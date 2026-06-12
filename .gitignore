@@ -1,0 +1,9 @@
+# Agent and tool configurations
+.agent/
+.codex/
+.opencode/
+Agent-gateway
+
+# Agent documentation
+AGENT.MD
+AGENT.md
