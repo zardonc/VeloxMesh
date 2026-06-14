@@ -38,3 +38,17 @@ func (r *Registry) GetDefault() (ProviderAdapter, error) {
 func (r *Registry) HasConfiguredProviders() bool {
 	return len(r.providers) > 0
 }
+
+func (r *Registry) GetAllModels() []string {
+	var allModels []string
+	seen := make(map[string]bool)
+	for _, p := range r.providers {
+		for _, m := range p.Models() {
+			if !seen[m] {
+				seen[m] = true
+				allModels = append(allModels, m)
+			}
+		}
+	}
+	return allModels
+}

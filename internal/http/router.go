@@ -16,11 +16,13 @@ func NewRouter(cfg *config.Config, svc *gateway.Service) *chi.Mux {
 	r.Use(middleware.Logging)
 	
 	chatHandler := handlers.NewChatHandler(svc)
+	modelsHandler := handlers.NewModelsHandler(svc)
 	
 	// API routes that need auth will use a sub-router or group
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Auth(cfg))
 		r.Post("/v1/chat/completions", chatHandler.ChatCompletions)
+		r.Get("/v1/models", modelsHandler.ListModels)
 	})
 	
 	r.Get("/healthz", handlers.Healthz)

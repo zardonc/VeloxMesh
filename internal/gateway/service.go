@@ -46,3 +46,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 	return resp, nil
 }
+
+func (s *Service) GetAvailableModels() []string {
+	return s.router.GetAvailableModels()
+}

@@ -14,6 +14,7 @@ type RoutingDecision struct {
 
 type Router interface {
 	Select(ctx context.Context, req *llm.LLMRequest) (providers.ProviderAdapter, RoutingDecision, error)
+	GetAvailableModels() []string
 }
 
 type StaticRouter struct {
@@ -47,4 +48,8 @@ func (r *StaticRouter) Select(ctx context.Context, req *llm.LLMRequest) (provide
 		ProviderID: adapter.ID(),
 		Strategy:   strategy,
 	}, nil
+}
+
+func (r *StaticRouter) GetAvailableModels() []string {
+	return r.registry.GetAllModels()
 }
