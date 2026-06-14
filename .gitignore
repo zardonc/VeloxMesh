@@ -5,5 +5,20 @@
 Agent-gateway
 
 # Agent documentation
-AGENT.MD
+GEMINI.md
 AGENT.md
+
+# Build output
+bin/
+*.exe
+veloxmesh
+
+# Environment variables
+.env
+
+# IDE and Editor folders
+.idea/
+.vscode/
+
+# Dependencies
+node_modules/
