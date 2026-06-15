@@ -1,3 +1,13 @@
+// Package openai implements the OpenAI-compatible provider adapter.
+//
+// Decision Record (Phase 2):
+// We reviewed the official OpenAI Go SDK for request shape, auth header, error
+// mapping, and response model assumptions. However, we decided to keep this
+// minimal local `net/http` adapter instead of importing the full official SDK.
+// The official SDK would hide transport details that we want to observe and
+// add unnecessary abstraction for the hot-path (we only need /chat/completions
+// and a simple JSON request/response format). The minimal adapter approach
+// is sufficient for our current multi-provider routing needs.
 package openai
 
 import (
@@ -13,11 +23,11 @@ import (
 )
 
 type Adapter struct {
-	id         string
-	baseURL    string
-	apiKey     string
-	models     []string
-	client     *http.Client
+	id      string
+	baseURL string
+	apiKey  string
+	models  []string
+	client  *http.Client
 }
 
 func NewAdapter(id, baseURL, apiKey, modelsCSV string) *Adapter {

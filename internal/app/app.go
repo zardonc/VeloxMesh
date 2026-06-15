@@ -1,11 +1,14 @@
 package app
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"veloxmesh/internal/admission"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/gateway"
+	"veloxmesh/internal/health"
 	router "veloxmesh/internal/http"
 	"veloxmesh/internal/observability"
 	"veloxmesh/internal/providers"
@@ -19,30 +22,47 @@ type App struct {
 	Router http.Handler
 }
 
-func New() *App {
-	cfg := config.LoadConfig()
+func New() (*App, error) {
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load config: %w", err)
+	}
+
 	logger := observability.SetupLogger(cfg.LogLevel)
-	
-	openaiAdapter := openai.NewAdapter(
-		cfg.DefaultProvider,
-		cfg.PrimaryBaseURL,
-		cfg.PrimaryAPIKey,
-		cfg.PrimaryModels,
-	)
-	
-	registry := providers.NewRegistry(cfg, openaiAdapter)
-	routingSvc := routing.NewStaticRouter(registry)
+
+	var adapters []providers.ProviderAdapter
+	for _, p := range cfg.Providers {
+		if p.Type == "openai-compatible" {
+			adapter := openai.NewAdapter(
+				p.ID,
+				p.BaseURL,
+				p.APIKey,
+				strings.Join(p.Models, ","),
+			)
+			adapters = append(adapters, adapter)
+		}
+	}
+
+	registry := providers.NewRegistry(cfg, adapters...)
+
+	// Create health store
+	healthStore := health.NewInMemoryStore(3)
+	for _, p := range cfg.Providers {
+		healthStore.EnsureProvider(p.ID)
+	}
+
+	routingSvc := routing.NewHealthAwareRouter(registry, healthStore, cfg.RoutingStrategy)
 	admissionCtrl := admission.NewPassThroughController()
-	
-	gatewaySvc := gateway.NewService(routingSvc, admissionCtrl)
-	
+
+	gatewaySvc := gateway.NewService(routingSvc, admissionCtrl, healthStore)
+
 	r := router.NewRouter(cfg, gatewaySvc)
 
 	return &App{
 		Config: cfg,
 		Logger: logger,
 		Router: r,
-	}
+	}, nil
 }
 
 func (a *App) Run() error {

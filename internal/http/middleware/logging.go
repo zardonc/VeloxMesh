@@ -19,10 +19,10 @@ func (w *responseWriterObserver) WriteHeader(code int) {
 func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		
+
 		obs := &responseWriterObserver{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(obs, r)
-		
+
 		duration := time.Since(start)
 		reqID := GetReqID(r.Context())
 

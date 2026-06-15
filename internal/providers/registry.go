@@ -8,6 +8,7 @@ import (
 
 type Registry struct {
 	providers map[string]ProviderAdapter
+	ids       []string
 	defaultID string
 }
 
@@ -19,6 +20,7 @@ func NewRegistry(cfg *config.Config, adapters ...ProviderAdapter) *Registry {
 
 	for _, a := range adapters {
 		r.providers[a.ID()] = a
+		r.ids = append(r.ids, a.ID())
 	}
 
 	return r
@@ -39,10 +41,25 @@ func (r *Registry) HasConfiguredProviders() bool {
 	return len(r.providers) > 0
 }
 
+func (r *Registry) List() []ProviderAdapter {
+	list := make([]ProviderAdapter, 0, len(r.ids))
+	for _, id := range r.ids {
+		list = append(list, r.providers[id])
+	}
+	return list
+}
+
+func (r *Registry) IDs() []string {
+	ids := make([]string, len(r.ids))
+	copy(ids, r.ids)
+	return ids
+}
+
 func (r *Registry) GetAllModels() []string {
 	var allModels []string
 	seen := make(map[string]bool)
-	for _, p := range r.providers {
+	for _, id := range r.ids {
+		p := r.providers[id]
 		for _, m := range p.Models() {
 			if !seen[m] {
 				seen[m] = true

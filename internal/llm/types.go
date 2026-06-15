@@ -48,6 +48,7 @@ type LLMResponse struct {
 	GatewayID string
 	Model     string
 	Provider  string
+	Strategy  string
 	Choices   []Choice
 	// Room for metadata
 }
