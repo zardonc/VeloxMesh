@@ -25,6 +25,8 @@ type LLMRequest struct {
 	RequestID     string
 	Model         string
 	Messages      []Message
+	Temperature   *float64
+	MaxTokens     *int
 	Stream        bool
 	PriorityClass string
 	RouteOverride string

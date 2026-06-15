@@ -53,6 +53,8 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		RequestID:     reqID,
 		Model:         req.Model,
 		Messages:      req.Messages,
+		Temperature:   req.Temperature,
+		MaxTokens:     req.MaxTokens,
 		Stream:        req.Stream,
 		PriorityClass: priority,
 		RouteOverride: routeOverride,

@@ -12,6 +12,8 @@ import (
 	router "veloxmesh/internal/http"
 	"veloxmesh/internal/observability"
 	"veloxmesh/internal/providers"
+	"veloxmesh/internal/providers/anthropic"
+	"veloxmesh/internal/providers/gemini"
 	"veloxmesh/internal/providers/openai"
 	"veloxmesh/internal/routing"
 )
@@ -32,8 +34,25 @@ func New() (*App, error) {
 
 	var adapters []providers.ProviderAdapter
 	for _, p := range cfg.Providers {
-		if p.Type == "openai-compatible" {
+		switch p.Type {
+		case "openai-compatible":
 			adapter := openai.NewAdapter(
+				p.ID,
+				p.BaseURL,
+				p.APIKey,
+				strings.Join(p.Models, ","),
+			)
+			adapters = append(adapters, adapter)
+		case "anthropic":
+			adapter := anthropic.NewAdapter(
+				p.ID,
+				p.BaseURL,
+				p.APIKey,
+				strings.Join(p.Models, ","),
+			)
+			adapters = append(adapters, adapter)
+		case "gemini":
+			adapter := gemini.NewAdapter(
 				p.ID,
 				p.BaseURL,
 				p.APIKey,

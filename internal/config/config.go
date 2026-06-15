@@ -124,7 +124,7 @@ func (c *Config) Validate() error {
 		}
 		seen[p.ID] = true
 
-		if p.Type != "openai-compatible" {
+		if p.Type != "openai-compatible" && p.Type != "anthropic" && p.Type != "gemini" {
 			return fmt.Errorf("unsupported provider type for %s", p.ID)
 		}
 		if p.BaseURL == "" {
