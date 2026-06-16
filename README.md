@@ -5,9 +5,11 @@ VeloxMesh is a lightweight AI gateway and agent orchestration layer for routing,
 ## Go Gateway Walking Skeleton (Phase 1)
 
 This project uses a Go 1.26.1 backend utilizing the `chi` router for the API gateway.
+This project uses a Go 1.26.1 backend utilizing the `chi` router for the API gateway.
 
 ### Setup
 
+1. **Install Go 1.26.1**
 1. **Install Go 1.26.1**
 2. **Set Environment Variables**: Copy `.env.example` to `.env` and configure `DEV_API_KEY` and `OPENAI_PRIMARY_API_KEY`.
    ```bash
@@ -34,6 +36,13 @@ curl http://localhost:8080/healthz
 curl http://localhost:8080/readyz
 ```
 
+#### 3. List Models
+```bash
+curl http://localhost:8080/v1/models \
+  -H "Authorization: Bearer vx-dev"
+```
+
+#### 4. Chat Completions
 #### 3. List Models
 ```bash
 curl http://localhost:8080/v1/models \
