@@ -49,6 +49,40 @@ func TestHealthEndpoints(t *testing.T) {
 		if resp["status"] != "ready" {
 			t.Errorf("expected status ready, got %v", resp["status"])
 		}
+
+		// Assert capabilities are included and safe
+		providers := resp["providers"].([]interface{})
+		if len(providers) == 0 {
+			t.Fatal("expected providers in readyz")
+		}
+
+		p1 := providers[0].(map[string]interface{})
+		if p1["id"] != "p1" && p1["id"] != "p2" {
+			t.Errorf("expected p1 or p2, got %v", p1["id"])
+		}
+
+		caps, ok := p1["capabilities"].(map[string]interface{})
+		if !ok {
+			t.Fatal("expected capabilities in readyz provider")
+		}
+
+		if caps["provider_type"] != "openai-compatible" {
+			t.Errorf("expected provider_type openai-compatible, got %v", caps["provider_type"])
+		}
+		if caps["streaming"] != false {
+			t.Errorf("expected streaming false, got %v", caps["streaming"])
+		}
+
+		// Ensure no secrets
+		for _, p := range providers {
+			pMap := p.(map[string]interface{})
+			if _, hasKey := pMap["api_key"]; hasKey {
+				t.Error("found api_key in readyz")
+			}
+			if _, hasKey := pMap["base_url"]; hasKey {
+				t.Error("found base_url in readyz")
+			}
+		}
 	})
 
 	t.Run("readyz unavailable when all unhealthy", func(t *testing.T) {

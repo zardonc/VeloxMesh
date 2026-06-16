@@ -17,6 +17,7 @@ type RoutingDecision struct {
 type Router interface {
 	Select(ctx context.Context, req *llm.LLMRequest) (providers.ProviderAdapter, RoutingDecision, error)
 	SelectExcluding(ctx context.Context, req *llm.LLMRequest, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error)
+	GetProviderCapabilities() []providers.ProviderCapabilities
 	GetAvailableModels() []string
 }
 
@@ -126,6 +127,10 @@ func (r *HealthAwareRouter) selectLeastLatency(candidates []providers.ProviderAd
 	}
 
 	return best
+}
+
+func (r *HealthAwareRouter) GetProviderCapabilities() []providers.ProviderCapabilities {
+	return r.registry.AllCapabilities()
 }
 
 func (r *HealthAwareRouter) GetAvailableModels() []string {

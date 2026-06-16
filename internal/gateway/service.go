@@ -8,6 +8,7 @@ import (
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/observability"
+	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
 )
 
@@ -136,4 +137,8 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 func (s *Service) GetAvailableModels() []string {
 	return s.router.GetAvailableModels()
+}
+
+func (s *Service) GetProviderCapabilities() []providers.ProviderCapabilities {
+	return s.router.GetProviderCapabilities()
 }

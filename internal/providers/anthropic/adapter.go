@@ -60,6 +60,18 @@ func (a *Adapter) Models() []string {
 	return a.models
 }
 
+func (a *Adapter) Capabilities() providers.CapabilitySet {
+	return providers.CapabilitySet{
+		ProviderType:         providers.ProviderTypeAnthropic,
+		SupportedOperations:  []providers.Operation{providers.OperationChatCompletions},
+		InputModalities:      []providers.Modality{providers.ModalityText},
+		OutputModalities:     []providers.Modality{providers.ModalityText},
+		Streaming:            false,
+		ToolCalling:          false,
+		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
+	}
+}
+
 func (a *Adapter) HealthCheck(ctx context.Context) providers.HealthStatus {
 	return providers.HealthStatus{Available: true, Message: "Anthropic native health check not implemented"}
 }

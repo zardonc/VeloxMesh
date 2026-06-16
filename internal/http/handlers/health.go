@@ -26,6 +26,16 @@ func Readyz(cfg *config.Config, svc *gateway.Service) http.HandlerFunc {
 		degradedCount := 0
 		unhealthyCount := 0
 
+		caps := svc.GetProviderCapabilities()
+		capMap := make(map[string]map[string]interface{})
+		for _, c := range caps {
+			capMap[c.ID] = map[string]interface{}{
+				"provider_type": string(c.Capabilities.ProviderType),
+				"streaming":     c.Capabilities.Streaming,
+				"tool_calling":  c.Capabilities.ToolCalling,
+			}
+		}
+
 		var providerDetails []map[string]interface{}
 		for _, snap := range snapshots {
 			switch snap.Status {
@@ -40,6 +50,9 @@ func Readyz(cfg *config.Config, svc *gateway.Service) http.HandlerFunc {
 			detail := map[string]interface{}{
 				"id":     snap.ID,
 				"status": string(snap.Status),
+			}
+			if c, ok := capMap[snap.ID]; ok {
+				detail["capabilities"] = c
 			}
 			if !snap.LastProbeAt.IsZero() {
 				detail["last_probe_at"] = snap.LastProbeAt

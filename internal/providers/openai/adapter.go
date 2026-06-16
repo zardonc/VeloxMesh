@@ -58,6 +58,18 @@ func (a *Adapter) Models() []string {
 	return a.models
 }
 
+func (a *Adapter) Capabilities() providers.CapabilitySet {
+	return providers.CapabilitySet{
+		ProviderType:         providers.ProviderTypeOpenAICompatible,
+		SupportedOperations:  []providers.Operation{providers.OperationChatCompletions},
+		InputModalities:      []providers.Modality{providers.ModalityText},
+		OutputModalities:     []providers.Modality{providers.ModalityText},
+		Streaming:            false,
+		ToolCalling:          false,
+		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
+	}
+}
+
 func (a *Adapter) HealthCheck(ctx context.Context) providers.HealthStatus {
 	// A basic health check. Ideally, we would do a models list request, but this is fine for Phase 1.
 	if a.apiKey == "" {

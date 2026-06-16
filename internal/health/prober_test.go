@@ -21,6 +21,10 @@ func (m *mockAdapter) Models() []string { return []string{"m1"} }
 func (m *mockAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	return nil, nil
 }
+
+func (m *mockAdapter) Capabilities() providers.CapabilitySet {
+	return providers.CapabilitySet{ProviderType: providers.ProviderTypeOpenAICompatible}
+}
 func (m *mockAdapter) HealthCheck(ctx context.Context) providers.HealthStatus {
 	return m.status
 }

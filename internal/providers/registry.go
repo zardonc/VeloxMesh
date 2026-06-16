@@ -69,3 +69,38 @@ func (r *Registry) GetAllModels() []string {
 	}
 	return allModels
 }
+
+// ProviderCapabilities groups a provider's ID, its supported models, and its capabilities.
+type ProviderCapabilities struct {
+	ID           string
+	Models       []string
+	Capabilities CapabilitySet
+}
+
+// Capabilities returns the capability set for a specific provider by ID.
+func (r *Registry) Capabilities(id string) (CapabilitySet, error) {
+	p, err := r.Get(id)
+	if err != nil {
+		return CapabilitySet{}, err
+	}
+	return p.Capabilities().Clone(), nil
+}
+
+// AllCapabilities returns the capabilities for all registered providers in stable order.
+func (r *Registry) AllCapabilities() []ProviderCapabilities {
+	caps := make([]ProviderCapabilities, 0, len(r.ids))
+	for _, id := range r.ids {
+		p := r.providers[id]
+
+		models := p.Models()
+		modelsCopy := make([]string, len(models))
+		copy(modelsCopy, models)
+
+		caps = append(caps, ProviderCapabilities{
+			ID:           id,
+			Models:       modelsCopy,
+			Capabilities: p.Capabilities().Clone(),
+		})
+	}
+	return caps
+}

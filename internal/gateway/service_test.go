@@ -24,6 +24,9 @@ func (m *mockAdapter) ID() string {
 func (m *mockAdapter) Models() []string {
 	return []string{"gpt-4o"}
 }
+func (m *mockAdapter) Capabilities() providers.CapabilitySet {
+	return providers.CapabilitySet{ProviderType: providers.ProviderTypeOpenAICompatible}
+}
 func (m *mockAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	return &llm.LLMResponse{}, m.err
 }
