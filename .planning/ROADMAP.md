@@ -2,18 +2,25 @@
 
 **Created:** 2026-06-15
 **Mode:** brownfield retrospective initialization
-**Current focus:** Phase 2.1 - Health-Aware Multi-Provider Routing
+**Current focus:** Phase 2.7 - Provider Adapter Capability Contract
 
 ## Overview
 
-VeloxMesh is being built as vertical gateway slices. Phase 1 established the runnable data-plane walking skeleton. Phase 2 turns that skeleton into a real routing layer, then prepares for native provider adapters.
+VeloxMesh is being built as vertical gateway slices. Phase 1 established the runnable Go/Chi OpenAI-compatible data-plane skeleton. Phase 2 is now the provider and adapter foundation milestone: multi-provider routing, provider health, native adapters, retry/fallback, active probing, adapter capability metadata, config hardening, model eligibility, and adapter conformance.
 
 | Phase | Name | Status | Plans | Requirements |
 |-------|------|--------|-------|--------------|
 | 1 | Gateway Walking Skeleton | Complete | 1/1 complete | GW-01..05, CHAT-01..05, PROV-01..03, ROUTE-01..02, OBS-01..02 |
-| 2.1 | Health-Aware Multi-Provider Routing | Planned | 0/1 complete | PROV-04..05, ROUTE-03..06, OBS-03 |
-| 2.2 | Go Version Baseline for Official Provider SDKs | Proposed | 0/0 | OPS-01..02 |
-| 2.3 | Native Anthropic and Gemini Provider Adapters | Proposed | 0/0 | PROV-06, NPROV-01..03 |
+| 2.1 | Health-Aware Multi-Provider Routing | Complete | 1/1 complete | PROV-04..05, ROUTE-03..06, OBS-03 |
+| 2.2 | Go Version Baseline for Official Provider SDKs | Complete | 1/1 complete | OPS-01..02 |
+| 2.3 | Native Anthropic and Gemini Provider Adapters | Complete | 1/1 complete | PROV-06, NPROV-01..03 |
+| 2.4 | Provider Reliability and Error Contract | Complete | 1/1 complete | provider error taxonomy, adapter hardening, readiness semantics |
+| 2.5 | Provider Retry and Fallback Execution | Complete | 1/1 complete | retryability policy, fallback execution, attempt observability |
+| 2.6 | Active Provider Health Probing and Recovery | Complete | 1/1 complete | active probing, probe-driven recovery, readiness probe visibility |
+| 2.7 | Provider Adapter Capability Contract | Planned | 2/2 planned | provider-neutral adapter capability metadata |
+| 2.8 | Provider Configuration Schema and Secret-Safe Validation | Proposed | 0/0 | static config schema hardening |
+| 2.9 | Provider Model Catalog and Routing Eligibility | Proposed | 0/0 | model/provider capability eligibility |
+| 2.10 | Adapter Conformance Test Harness | Proposed | 0/0 | reusable adapter contract tests |
 | 3 | Durable Control State | Future | 0/0 | CTRL-01..03 |
 | 4 | Streaming, Rate Limits, Cache, and Cost | Future | 0/0 | STRM-01, RATE-01, CACHE-01, COST-01, CB-01 |
 
@@ -27,6 +34,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 - `.planning/phases/01-gateway-walking-skeleton/01-CONTEXT.md`
 - `.planning/phases/01-gateway-walking-skeleton/01-01-PLAN.md`
 - `.planning/phases/01-gateway-walking-skeleton/01-01-SUMMARY.md`
+- `.planning/phases/01-gateway-walking-skeleton/01-VERIFICATION.md`
 
 **Success Criteria:**
 1. `GET /healthz` returns liveness.
@@ -38,7 +46,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 2.1: Health-Aware Multi-Provider Routing
 
 **Goal:** Extend the single-provider gateway into an in-memory health-aware routing layer for multiple OpenAI-compatible providers.
-**Status:** Planned
+**Status:** Complete
 **Primary artifacts:**
 - `.planning/phases/02-health-aware-routing/02-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-01-PLAN.md`
@@ -55,7 +63,11 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 2.2: Go Version Baseline for Official Provider SDKs
 
 **Goal:** Confirm the active Go version baseline supports official provider SDK adoption, especially Anthropic's Go SDK.
-**Status:** Proposed
+**Status:** Complete
+**Primary artifacts:**
+- `.planning/phases/02-health-aware-routing/02-02-CONTEXT.md`
+- `.planning/phases/02-health-aware-routing/02-02-PLAN.md`
+- `.planning/phases/02-health-aware-routing/02-02-UAT.md`
 
 **Success Criteria:**
 1. `go.mod`, README, CI, and local tooling agree on the Go version baseline.
@@ -66,7 +78,11 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 2.3: Native Anthropic and Gemini Provider Adapters
 
 **Goal:** Add native provider adapters while preserving OpenAI-compatible downstream responses.
-**Status:** Proposed
+**Status:** Complete
+**Primary artifacts:**
+- `.planning/phases/02-health-aware-routing/02-03-CONTEXT.md`
+- `.planning/phases/02-health-aware-routing/02-03-PLAN.md`
+- `.planning/phases/02-health-aware-routing/02-03-UAT.md`
 
 **Success Criteria:**
 1. Config supports `anthropic` and `gemini` provider types.
@@ -75,6 +91,103 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 4. Native provider responses normalize into internal `LLMResponse`.
 5. `/v1/chat/completions` remains OpenAI-compatible for downstream clients.
 6. Tests prove request mapping, response normalization, error mapping, and routing integration.
+
+### Phase 2.4: Provider Reliability and Error Contract
+
+**Goal:** Standardize provider error classification, improve provider health semantics, and ensure adapters honor the shared request/response contract.
+**Status:** Complete
+**Primary artifacts:**
+- `.planning/phases/02-health-aware-routing/02-04-CONTEXT.md`
+- `.planning/phases/02-health-aware-routing/02-04-PLAN.md`
+- `.planning/phases/02-health-aware-routing/02-04-UAT.md`
+
+**Success Criteria:**
+1. Provider errors use shared structured categories.
+2. OpenAI-compatible, Anthropic, and Gemini adapters map retryable and non-retryable failures consistently.
+3. Health impact semantics are predictable across provider categories.
+4. Readiness remains secret-safe and avoids expensive provider calls.
+
+### Phase 2.5: Provider Retry and Fallback Execution
+
+**Goal:** Let non-streaming chat requests survive transient provider failures by trying another eligible provider when safe.
+**Status:** Complete
+**Primary artifacts:**
+- `.planning/phases/02-health-aware-routing/02-05-CONTEXT.md`
+- `.planning/phases/02-health-aware-routing/02-05-PLAN.md`
+- `.planning/phases/02-health-aware-routing/02-05-SUMMARY.md`
+- `.planning/phases/02-health-aware-routing/02-05-UAT.md`
+
+**Success Criteria:**
+1. Retryability is based on Phase 2.4 provider error categories.
+2. Fallback attempts exclude already failed providers.
+3. `X-Route-To` remains a strict override and disables fallback.
+4. Attempt metadata is exposed through safe response headers.
+5. Tests prove fallback success, exhaustion, non-retryable errors, and strict override behavior.
+
+### Phase 2.6: Active Provider Health Probing and Recovery
+
+**Goal:** Add configurable in-process provider health checks so provider health can recover without waiting for live client traffic.
+**Status:** Complete
+**Primary artifacts:**
+- `.planning/phases/02-health-aware-routing/02-06-CONTEXT.md`
+- `.planning/phases/02-health-aware-routing/02-06-PLAN.md`
+- `.planning/phases/02-health-aware-routing/02-06-UAT.md`
+
+**Success Criteria:**
+1. Provider health checks are structured in static config.
+2. `ProbeProvider(ctx, providerID)` and `ProbeOnce(ctx)` exist for deterministic internal use.
+3. Probe results can degrade and recover provider health.
+4. `/readyz` exposes secret-safe probe state.
+5. Probe lifecycle is context-bound and test-safe.
+
+### Phase 2.7: Provider Adapter Capability Contract
+
+**Goal:** Make every provider adapter describe supported operations, modalities, parameters, and future feature flags in a provider-neutral way.
+**Status:** Planned
+**Primary artifacts:**
+- `.planning/phases/02-health-aware-routing/02-07-CONTEXT.md`
+- `.planning/phases/02-health-aware-routing/02-07-01-PLAN.md`
+- `.planning/phases/02-health-aware-routing/02-07-02-PLAN.md`
+
+**Success Criteria:**
+1. The adapter contract exposes provider-neutral capability metadata without leaking SDK-native details.
+2. OpenAI-compatible, Anthropic, and Gemini adapters report consistent capability metadata.
+3. Registry APIs can list and resolve capabilities without importing provider-specific packages outside app wiring.
+4. Readiness or internal model surfaces can include safe capability metadata only where compatible.
+5. Tests prove capability metadata is stable and secret-safe.
+
+### Phase 2.8: Provider Configuration Schema and Secret-Safe Validation
+
+**Goal:** Harden static provider configuration into a stable schema that can later become the Admin API/Admin Console contract.
+**Status:** Proposed
+
+**Success Criteria:**
+1. Provider config structs cover identity, type, base URL, auth reference, models, defaults, timeout, health overrides, retry/fallback settings, and capability overrides if needed.
+2. Validation rejects duplicate provider IDs, unknown provider types, invalid URLs, invalid durations, invalid thresholds, and model/default mismatches.
+3. Validation and docs remain secret-safe.
+4. Existing backward-compatible env config still loads.
+
+### Phase 2.9: Provider Model Catalog and Routing Eligibility
+
+**Goal:** Build an internal model catalog that maps models to providers and provider capabilities.
+**Status:** Proposed
+
+**Success Criteria:**
+1. Catalog derives model/provider eligibility from static config and adapter capability metadata.
+2. Routing can ask one source whether a provider supports a requested model and operation.
+3. `/v1/models` remains OpenAI-compatible while internal metadata can be richer.
+4. Tests cover shared model names, provider-specific models, unknown models, and capability-ineligible providers.
+
+### Phase 2.10: Adapter Conformance Test Harness
+
+**Goal:** Create reusable conformance tests that every current and future provider adapter must pass.
+**Status:** Proposed
+
+**Success Criteria:**
+1. Shared test helpers cover request mapping sanity, response normalization, finish reason mapping, structured error categories, health-check behavior, and secret-safe errors.
+2. OpenAI-compatible, Anthropic, and Gemini adapters run through the harness.
+3. Provider-specific tests remain where SDK details matter.
+4. A future adapter has a clear test contract before registration.
 
 ### Phase 3: Durable Control State
 
@@ -88,7 +201,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 
 ### Phase 4: Streaming, Rate Limits, Cache, and Cost
 
-**Goal:** Add the advanced gateway features from the architecture after routing and adapters are stable.
+**Goal:** Add advanced gateway features after routing and adapters are stable.
 **Status:** Future
 
 **Success Criteria:**
@@ -99,10 +212,9 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 
 ## Notes
 
-- Phase 2.1 is planned but not reflected in current source code yet.
-- Current source code still has single-provider env config and static routing.
-- Native provider adapters should not be implemented before the Go baseline is settled.
+- Phase 2 remains static-config and in-process until durable control state is explicitly scoped.
+- Do not add PostgreSQL, Redis, Admin API, Admin Console UI, runtime CRUD, streaming, semantic cache, rate limiting, or cost governance during Phase 2.7.
+- Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
 
 ---
-*Roadmap created: 2026-06-15*
-*Last updated: 2026-06-15 after retrospective project initialization*
+*Roadmap refreshed: 2026-06-16 for Phase 2.7 planning*
