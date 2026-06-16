@@ -13,12 +13,12 @@ import (
 
 func TestAdapter_Complete(t *testing.T) {
 	tests := []struct {
-		name           string
-		request        *llm.LLMRequest
-		mockStatus     int
-		mockResponse   any
-		expectedText   string
-		expectError    bool
+		name            string
+		request         *llm.LLMRequest
+		mockStatus      int
+		mockResponse    any
+		expectedText    string
+		expectError     bool
 		expectedErrCode string
 	}{
 		{
@@ -43,37 +43,37 @@ func TestAdapter_Complete(t *testing.T) {
 			expectedText: "Hi",
 		},
 		{
-			name: "auth error",
-			request: &llm.LLMRequest{},
-			mockStatus: http.StatusUnauthorized,
-			mockResponse: map[string]any{},
-			expectError: true,
+			name:            "auth error",
+			request:         &llm.LLMRequest{},
+			mockStatus:      http.StatusUnauthorized,
+			mockResponse:    map[string]any{},
+			expectError:     true,
 			expectedErrCode: gatewayErr.ProviderAuthError,
 		},
 		{
-			name: "rate limit",
-			request: &llm.LLMRequest{},
-			mockStatus: http.StatusTooManyRequests,
-			mockResponse: map[string]any{},
-			expectError: true,
+			name:            "rate limit",
+			request:         &llm.LLMRequest{},
+			mockStatus:      http.StatusTooManyRequests,
+			mockResponse:    map[string]any{},
+			expectError:     true,
 			expectedErrCode: gatewayErr.ProviderRateLimit,
 		},
 		{
-			name: "invalid model",
-			request: &llm.LLMRequest{},
-			mockStatus: http.StatusNotFound,
-			mockResponse: map[string]any{},
-			expectError: true,
+			name:            "invalid model",
+			request:         &llm.LLMRequest{},
+			mockStatus:      http.StatusNotFound,
+			mockResponse:    map[string]any{},
+			expectError:     true,
 			expectedErrCode: gatewayErr.ProviderInvalidModel,
 		},
 		{
-			name: "bad response",
-			request: &llm.LLMRequest{},
+			name:       "bad response",
+			request:    &llm.LLMRequest{},
 			mockStatus: http.StatusOK,
 			mockResponse: map[string]any{
 				"choices": []map[string]any{}, // empty choices
 			},
-			expectError: true,
+			expectError:     true,
 			expectedErrCode: gatewayErr.ProviderBadResponse,
 		},
 		{
@@ -121,7 +121,7 @@ func TestAdapter_Complete(t *testing.T) {
 
 			adapter := NewAdapter("test-openai", server.URL, "test-key", "gpt-4")
 			resp, err := adapter.Complete(context.Background(), tt.request)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Fatalf("expected error, got nil")
@@ -135,7 +135,7 @@ func TestAdapter_Complete(t *testing.T) {
 				}
 				return
 			}
-			
+
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

@@ -7,18 +7,20 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	gatewayErr "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
 )
 
 func TestAdapter_Complete(t *testing.T) {
 	tests := []struct {
-		name           string
-		request        *llm.LLMRequest
-		mockStatus     int
-		mockResponse   any
-		expectedText   string
-		expectedReason string
-		expectError    bool
+		name            string
+		request         *llm.LLMRequest
+		mockStatus      int
+		mockResponse    any
+		expectedText    string
+		expectedReason  string
+		expectError     bool
+		expectedErrCode string
 	}{
 		{
 			name: "successful text completion with end_turn",
@@ -81,7 +83,8 @@ func TestAdapter_Complete(t *testing.T) {
 					"message": "Rate limit exceeded",
 				},
 			},
-			expectError: true,
+			expectError:     true,
+			expectedErrCode: gatewayErr.ProviderRateLimit,
 		},
 		{
 			name: "auth error",
@@ -96,7 +99,24 @@ func TestAdapter_Complete(t *testing.T) {
 					"message": "invalid api key",
 				},
 			},
-			expectError: true,
+			expectError:     true,
+			expectedErrCode: gatewayErr.ProviderAuthError,
+		},
+		{
+			name: "bad response - empty content",
+			request: &llm.LLMRequest{
+				Messages: []llm.Message{{Role: llm.RoleUser, Content: "Test"}},
+			},
+			mockStatus: http.StatusOK,
+			mockResponse: map[string]any{
+				"id":      "msg_125",
+				"type":    "message",
+				"role":    "assistant",
+				"model":   "claude-3-5-sonnet-20240620",
+				"content": []map[string]any{},
+			},
+			expectError:     true,
+			expectedErrCode: gatewayErr.ProviderBadResponse,
 		},
 	}
 
@@ -116,6 +136,16 @@ func TestAdapter_Complete(t *testing.T) {
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("expected error, got nil")
+					return
+				}
+				if tt.expectedErrCode != "" {
+					gwErr, ok := err.(*gatewayErr.GatewayError)
+					if !ok {
+						t.Fatalf("expected GatewayError, got %T: %v", err, err)
+					}
+					if gwErr.Code != tt.expectedErrCode {
+						t.Errorf("expected error code %q, got %q", tt.expectedErrCode, gwErr.Code)
+					}
 				}
 				return
 			}

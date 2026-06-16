@@ -126,7 +126,7 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 			}
 		}
 	}
-	
+
 	if content == "" && candidate.FinishReason != "SAFETY" && candidate.FinishReason != "RECITATION" && candidate.FinishReason != "OTHER" {
 		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no text content", http.StatusBadGateway)
 	}
@@ -161,8 +161,24 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 
 func (a *Adapter) mapError(err error) error {
 	var apiErr *genai.APIError
+	var apiErrVal genai.APIError
 	if errors.As(err, &apiErr) {
 		switch apiErr.Code {
+		case http.StatusUnauthorized, http.StatusForbidden:
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderAuthError, "Gemini authentication failed", http.StatusBadGateway)
+		case http.StatusTooManyRequests:
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderRateLimit, "Gemini rate limit exceeded", http.StatusBadGateway)
+		case http.StatusNotFound:
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidModel, "Gemini model not found", http.StatusBadRequest)
+		case http.StatusBadRequest:
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidRequest, "Invalid request to Gemini", http.StatusBadRequest)
+		case http.StatusRequestTimeout:
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Gemini request timeout", http.StatusGatewayTimeout)
+		default:
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderError, "Gemini API error", http.StatusBadGateway)
+		}
+	} else if errors.As(err, &apiErrVal) {
+		switch apiErrVal.Code {
 		case http.StatusUnauthorized, http.StatusForbidden:
 			return gatewayErr.NewGatewayError(gatewayErr.ProviderAuthError, "Gemini authentication failed", http.StatusBadGateway)
 		case http.StatusTooManyRequests:

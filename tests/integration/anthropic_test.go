@@ -15,16 +15,16 @@ func TestChatCompletions_Anthropic(t *testing.T) {
 		if r.URL.Path != "/v1/messages" {
 			t.Errorf("expected /v1/messages, got %s", r.URL.Path)
 		}
-		
+
 		auth := r.Header.Get("x-api-key")
 		if auth != "test-anthropic-key" {
 			t.Errorf("unexpected api key: %s", auth)
 		}
 
 		resp := map[string]interface{}{
-			"id": "msg_123",
-			"type": "message",
-			"role": "assistant",
+			"id":    "msg_123",
+			"type":  "message",
+			"role":  "assistant",
 			"model": "claude-3-haiku",
 			"content": []map[string]interface{}{
 				{

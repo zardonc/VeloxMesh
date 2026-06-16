@@ -7,18 +7,20 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	gatewayErr "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
 )
 
 func TestAdapter_Complete(t *testing.T) {
 	tests := []struct {
-		name           string
-		request        *llm.LLMRequest
-		mockStatus     int
-		mockResponse   any
-		expectedText   string
-		expectedReason string
-		expectError    bool
+		name            string
+		request         *llm.LLMRequest
+		mockStatus      int
+		mockResponse    any
+		expectedText    string
+		expectedReason  string
+		expectError     bool
+		expectedErrCode string
 	}{
 		{
 			name: "successful text completion",
@@ -105,7 +107,8 @@ func TestAdapter_Complete(t *testing.T) {
 					"status":  "RESOURCE_EXHAUSTED",
 				},
 			},
-			expectError: true,
+			expectError:     true,
+			expectedErrCode: gatewayErr.ProviderRateLimit,
 		},
 		{
 			name: "auth error",
@@ -120,7 +123,20 @@ func TestAdapter_Complete(t *testing.T) {
 					"status":  "UNAUTHENTICATED",
 				},
 			},
-			expectError: true,
+			expectError:     true,
+			expectedErrCode: gatewayErr.ProviderAuthError,
+		},
+		{
+			name: "bad response - empty candidates",
+			request: &llm.LLMRequest{
+				Messages: []llm.Message{{Role: llm.RoleUser, Content: "Test"}},
+			},
+			mockStatus: http.StatusOK,
+			mockResponse: map[string]any{
+				"candidates": []map[string]any{},
+			},
+			expectError:     true,
+			expectedErrCode: gatewayErr.ProviderBadResponse,
 		},
 	}
 
@@ -140,6 +156,16 @@ func TestAdapter_Complete(t *testing.T) {
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("expected error, got nil")
+					return
+				}
+				if tt.expectedErrCode != "" {
+					gwErr, ok := err.(*gatewayErr.GatewayError)
+					if !ok {
+						t.Fatalf("expected GatewayError, got %T: %v", err, err)
+					}
+					if gwErr.Code != tt.expectedErrCode {
+						t.Errorf("expected error code %q, got %q", tt.expectedErrCode, gwErr.Code)
+					}
 				}
 				return
 			}

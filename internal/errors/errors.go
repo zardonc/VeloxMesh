@@ -63,7 +63,7 @@ func AffectsProviderHealth(err error) bool {
 	case ProviderAuthError, ProviderRateLimit, ProviderTimeout, ProviderUnavailable, ProviderBadResponse, ProviderError:
 		return true
 	}
-	
+
 	// Unrecognized gateway errors default to affecting health
 	return true
 }

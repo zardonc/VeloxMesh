@@ -98,11 +98,11 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 		MaxTokens: maxTokens,
 		Messages:  anthropicMessages,
 	}
-	
+
 	if len(systemBlocks) > 0 {
 		params.System = systemBlocks
 	}
-	
+
 	if req.Temperature != nil {
 		params.Temperature = anthropic.Float(*req.Temperature)
 	}
@@ -122,7 +122,7 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 			content += block.Text
 		}
 	}
-	
+
 	if content == "" {
 		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no text content", http.StatusBadGateway)
 	}
