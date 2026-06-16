@@ -45,17 +45,17 @@ type inMemoryStore struct {
 }
 
 type providerState struct {
-	id                  string
-	ewmaLatency         time.Duration
-	pendingRequests     int
-	consecutiveFailures       int
-	consecutiveSuccesses      int
-	failureThreshold          int
-	successThreshold          int
-	totalSuccesses            int
-	totalFailures             int
-	lastError                 error
-	lastUpdated               time.Time
+	id                   string
+	ewmaLatency          time.Duration
+	pendingRequests      int
+	consecutiveFailures  int
+	consecutiveSuccesses int
+	failureThreshold     int
+	successThreshold     int
+	totalSuccesses       int
+	totalFailures        int
+	lastError            error
+	lastUpdated          time.Time
 
 	lastProbeAt       time.Time
 	lastProbeSuccess  bool
