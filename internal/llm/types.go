@@ -47,10 +47,11 @@ type ChatCompletionResponse struct {
 }
 
 type LLMResponse struct {
-	GatewayID string
-	Model     string
-	Provider  string
-	Strategy  string
-	Choices   []Choice
-	// Room for metadata
+	GatewayID    string
+	Model        string
+	Provider     string
+	Strategy     string
+	Choices      []Choice
+	AttemptCount int
+	FallbackUsed bool
 }

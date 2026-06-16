@@ -16,6 +16,7 @@ type RoutingDecision struct {
 
 type Router interface {
 	Select(ctx context.Context, req *llm.LLMRequest) (providers.ProviderAdapter, RoutingDecision, error)
+	SelectExcluding(ctx context.Context, req *llm.LLMRequest, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error)
 	GetAvailableModels() []string
 }
 
@@ -35,11 +36,15 @@ func NewHealthAwareRouter(registry *providers.Registry, healthStore health.Store
 }
 
 func (r *HealthAwareRouter) Select(ctx context.Context, req *llm.LLMRequest) (providers.ProviderAdapter, RoutingDecision, error) {
+	return r.SelectExcluding(ctx, req, nil)
+}
+
+func (r *HealthAwareRouter) SelectExcluding(ctx context.Context, req *llm.LLMRequest, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error) {
 	if req.RouteOverride != "" {
 		return r.selectOverride(req.RouteOverride)
 	}
 
-	healthyProviders := r.getHealthyProviders()
+	healthyProviders := r.getHealthyProviders(excluded)
 	if len(healthyProviders) == 0 {
 		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
 	}
@@ -69,9 +74,12 @@ func (r *HealthAwareRouter) Select(ctx context.Context, req *llm.LLMRequest) (pr
 	}, nil
 }
 
-func (r *HealthAwareRouter) getHealthyProviders() []providers.ProviderAdapter {
+func (r *HealthAwareRouter) getHealthyProviders(excluded map[string]bool) []providers.ProviderAdapter {
 	var healthy []providers.ProviderAdapter
 	for _, p := range r.registry.List() {
+		if excluded != nil && excluded[p.ID()] {
+			continue
+		}
 		snap := r.healthStore.Snapshot(p.ID())
 		if snap.Status != health.StatusUnhealthy {
 			healthy = append(healthy, p)

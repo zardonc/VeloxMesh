@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -71,6 +72,38 @@ func TestAffectsProviderHealth(t *testing.T) {
 			result := AffectsProviderHealth(tt.err)
 			if result != tt.expected {
 				t.Errorf("expected %v, got %v", tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestIsRetryableProviderError(t *testing.T) {
+	tests := []struct {
+		name      string
+		err       error
+		retryable bool
+	}{
+		{"nil error", nil, false},
+		{"context canceled", context.Canceled, false},
+		{"context deadline exceeded", context.DeadlineExceeded, false},
+		{"standard error", errors.New("some_random_error"), false},
+		{"provider rate limit", NewGatewayError(ProviderRateLimit, "test", 429), true},
+		{"provider timeout", NewGatewayError(ProviderTimeout, "test", 504), true},
+		{"provider unavailable", NewGatewayError(ProviderUnavailable, "test", 503), true},
+		{"provider bad response", NewGatewayError(ProviderBadResponse, "test", 502), true},
+		{"provider error", NewGatewayError(ProviderError, "test", 500), true},
+		{"provider invalid request", NewGatewayError(ProviderInvalidRequest, "test", 400), false},
+		{"provider invalid model", NewGatewayError(ProviderInvalidModel, "test", 400), false},
+		{"provider auth error", NewGatewayError(ProviderAuthError, "test", 401), false},
+		{"routing no healthy provider", ErrNoHealthyProvider, false},
+		{"routing unknown override", ErrUnknownProviderOverride, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsRetryableProviderError(tt.err)
+			if result != tt.retryable {
+				t.Errorf("expected retryable=%v, got %v for error: %v", tt.retryable, result, tt.err)
 			}
 		})
 	}

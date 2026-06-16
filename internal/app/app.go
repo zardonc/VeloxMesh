@@ -73,7 +73,7 @@ func New() (*App, error) {
 	routingSvc := routing.NewHealthAwareRouter(registry, healthStore, cfg.RoutingStrategy)
 	admissionCtrl := admission.NewPassThroughController()
 
-	gatewaySvc := gateway.NewService(routingSvc, admissionCtrl, healthStore)
+	gatewaySvc := gateway.NewService(routingSvc, admissionCtrl, healthStore, cfg.FallbackEnabled, cfg.MaxAttempts)
 
 	r := router.NewRouter(cfg, gatewaySvc)
 

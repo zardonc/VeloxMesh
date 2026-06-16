@@ -175,4 +175,40 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 			t.Errorf("expected ErrUnknownProviderOverride, got %v", err)
 		}
 	})
+
+	t.Run("SelectExcluding", func(t *testing.T) {
+		store2 := health.NewInMemoryStore(3)
+		store2.EnsureProvider("p1")
+		store2.EnsureProvider("p2")
+		router2 := routing.NewHealthAwareRouter(registry, store2, "round-robin")
+		req := &llm.LLMRequest{}
+
+		excluded := map[string]bool{"p1": true}
+		a, _, err := router2.SelectExcluding(ctx, req, excluded)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if a.ID() != "p2" {
+			t.Errorf("expected p2 since p1 is excluded, got %s", a.ID())
+		}
+
+		excludedAll := map[string]bool{"p1": true, "p2": true}
+		_, _, err = router2.SelectExcluding(ctx, req, excludedAll)
+		if err != errors.ErrNoHealthyProvider {
+			t.Errorf("expected ErrNoHealthyProvider when all excluded, got %v", err)
+		}
+
+		// Ensure excluded overrides health (unhealthy p2 + excluded p1)
+		store2.BeginRequest("p2")
+		store2.EndRequest("p2", 0, errors.NewGatewayError("test", "test", 500))
+		store2.BeginRequest("p2")
+		store2.EndRequest("p2", 0, errors.NewGatewayError("test", "test", 500))
+		store2.BeginRequest("p2")
+		store2.EndRequest("p2", 0, errors.NewGatewayError("test", "test", 500))
+
+		_, _, err = router2.SelectExcluding(ctx, req, excluded)
+		if err != errors.ErrNoHealthyProvider {
+			t.Errorf("expected ErrNoHealthyProvider when available is unhealthy, got %v", err)
+		}
+	})
 }

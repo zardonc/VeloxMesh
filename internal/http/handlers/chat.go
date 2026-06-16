@@ -82,6 +82,14 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	if resp.Strategy != "" {
 		w.Header().Set("X-Routing-Strategy", resp.Strategy)
 	}
+	if resp.AttemptCount > 0 {
+		w.Header().Set("X-Provider-Attempts", fmt.Sprintf("%d", resp.AttemptCount))
+	}
+	if resp.FallbackUsed {
+		w.Header().Set("X-Fallback-Used", "true")
+	} else {
+		w.Header().Set("X-Fallback-Used", "false")
+	}
 
 	openAIResp := llm.ChatCompletionResponse{
 		ID:      reqID,

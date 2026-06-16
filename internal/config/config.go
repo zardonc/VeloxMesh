@@ -29,6 +29,9 @@ type Config struct {
 	RoutingStrategy string // e.g. "round-robin", "least-latency"
 	DefaultProvider string
 
+	FallbackEnabled bool
+	MaxAttempts     int
+
 	Providers []ProviderConfig
 }
 
@@ -53,10 +56,21 @@ func LoadConfig() (*Config, error) {
 		var fileCfg struct {
 			RoutingStrategy string           `json:"routing_strategy"`
 			DefaultProvider string           `json:"default_provider"`
+			FallbackEnabled *bool            `json:"fallback_enabled"`
+			MaxAttempts     *int             `json:"max_attempts"`
 			Providers       []ProviderConfig `json:"providers"`
 		}
 		if err := json.Unmarshal(data, &fileCfg); err != nil {
 			return nil, fmt.Errorf("failed to parse config file: %v", err)
+		}
+
+		fallbackEnabledSet := false
+		if fileCfg.FallbackEnabled != nil {
+			cfg.FallbackEnabled = *fileCfg.FallbackEnabled
+			fallbackEnabledSet = true
+		}
+		if fileCfg.MaxAttempts != nil {
+			cfg.MaxAttempts = *fileCfg.MaxAttempts
 		}
 
 		if fileCfg.RoutingStrategy != "" {
@@ -66,6 +80,10 @@ func LoadConfig() (*Config, error) {
 			cfg.DefaultProvider = fileCfg.DefaultProvider
 		}
 		cfg.Providers = fileCfg.Providers
+
+		if !fallbackEnabledSet {
+			cfg.FallbackEnabled = len(cfg.Providers) > 1
+		}
 	} else {
 		// Fallback to backward-compatible env config
 		providerID := getEnv("DEFAULT_PROVIDER", "openai-primary")
@@ -106,6 +124,14 @@ func LoadConfig() (*Config, error) {
 func (c *Config) Validate() error {
 	if c.RoutingStrategy != "round-robin" && c.RoutingStrategy != "least-latency" {
 		return fmt.Errorf("invalid routing strategy")
+	}
+
+	if c.MaxAttempts == 0 {
+		c.MaxAttempts = 2
+	} else if c.MaxAttempts < 1 {
+		c.MaxAttempts = 1
+	} else if c.MaxAttempts > 5 {
+		c.MaxAttempts = 5
 	}
 
 	if len(c.Providers) == 0 {

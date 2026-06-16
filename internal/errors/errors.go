@@ -67,3 +67,23 @@ func AffectsProviderHealth(err error) bool {
 	// Unrecognized gateway errors default to affecting health
 	return true
 }
+
+// IsRetryableProviderError determines if a provider error is transient and safe to retry.
+// It returns false for client-side errors, auth errors, and non-gateway errors (like context cancellation).
+func IsRetryableProviderError(err error) bool {
+	if err == nil {
+		return false
+	}
+	gwErr, ok := err.(*GatewayError)
+	if !ok {
+		return false
+	}
+
+	switch gwErr.Code {
+	case ProviderRateLimit, ProviderTimeout, ProviderUnavailable, ProviderBadResponse, ProviderError:
+		return true
+	}
+
+	// Default to false for unrecognized or non-transient errors like InvalidRequest, InvalidModel, AuthError
+	return false
+}
