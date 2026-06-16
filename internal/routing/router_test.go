@@ -38,10 +38,10 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 	p1 := &mockAdapter{id: "p1"}
 	p2 := &mockAdapter{id: "p2"}
 	registry := providers.NewRegistry(cfg, p1, p2)
-	healthStore := health.NewInMemoryStore(3)
+	healthStore := health.NewInMemoryStore()
 
-	healthStore.EnsureProvider("p1")
-	healthStore.EnsureProvider("p2")
+	healthStore.EnsureProvider("p1", 3, 1)
+	healthStore.EnsureProvider("p2", 3, 1)
 
 	ctx := context.Background()
 
@@ -91,9 +91,9 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 	})
 
 	t.Run("LeastLatency Cold Start", func(t *testing.T) {
-		store2 := health.NewInMemoryStore(3)
-		store2.EnsureProvider("p1")
-		store2.EnsureProvider("p2")
+		store2 := health.NewInMemoryStore()
+		store2.EnsureProvider("p1", 3, 1)
+		store2.EnsureProvider("p2", 3, 1)
 		router := routing.NewHealthAwareRouter(registry, store2, "least-latency")
 		req := &llm.LLMRequest{}
 
@@ -107,9 +107,9 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 	})
 
 	t.Run("Unhealthy Skipped", func(t *testing.T) {
-		store2 := health.NewInMemoryStore(3)
-		store2.EnsureProvider("p1")
-		store2.EnsureProvider("p2")
+		store2 := health.NewInMemoryStore()
+		store2.EnsureProvider("p1", 3, 1)
+		store2.EnsureProvider("p2", 3, 1)
 		router := routing.NewHealthAwareRouter(registry, store2, "round-robin")
 
 		// Make p1 unhealthy
@@ -133,8 +133,8 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 	})
 
 	t.Run("All Unhealthy", func(t *testing.T) {
-		store2 := health.NewInMemoryStore(3)
-		store2.EnsureProvider("p1")
+		store2 := health.NewInMemoryStore()
+		store2.EnsureProvider("p1", 3, 1)
 		router2 := routing.NewHealthAwareRouter(providers.NewRegistry(cfg, p1), store2, "round-robin")
 
 		// Make p1 unhealthy
@@ -151,8 +151,8 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 	})
 
 	t.Run("Override Unhealthy", func(t *testing.T) {
-		store2 := health.NewInMemoryStore(3)
-		store2.EnsureProvider("p1")
+		store2 := health.NewInMemoryStore()
+		store2.EnsureProvider("p1", 3, 1)
 		router2 := routing.NewHealthAwareRouter(providers.NewRegistry(cfg, p1), store2, "round-robin")
 
 		for i := 0; i < 3; i++ {
@@ -177,9 +177,9 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 	})
 
 	t.Run("SelectExcluding", func(t *testing.T) {
-		store2 := health.NewInMemoryStore(3)
-		store2.EnsureProvider("p1")
-		store2.EnsureProvider("p2")
+		store2 := health.NewInMemoryStore()
+		store2.EnsureProvider("p1", 3, 1)
+		store2.EnsureProvider("p2", 3, 1)
 		router2 := routing.NewHealthAwareRouter(registry, store2, "round-robin")
 		req := &llm.LLMRequest{}
 

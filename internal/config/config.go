@@ -8,15 +8,36 @@ import (
 	"time"
 )
 
+type ProviderHealthCheckConfig struct {
+	Enabled          *bool  `json:"enabled"`
+	Interval         string `json:"interval"`
+	Timeout          string `json:"timeout"`
+	InitialDelay     string `json:"initial_delay"`
+	FailureThreshold int    `json:"failure_threshold"`
+	SuccessThreshold int    `json:"success_threshold"`
+}
+
+type HealthCheckConfig struct {
+	Enabled          *bool  `json:"enabled"`
+	Interval         string `json:"interval"`
+	Timeout          string `json:"timeout"`
+	InitialDelay     string `json:"initial_delay"`
+	FailureThreshold int    `json:"failure_threshold"`
+	SuccessThreshold int    `json:"success_threshold"`
+	StaleAfter       string `json:"stale_after"`
+	MaxConcurrency   int    `json:"max_concurrency"`
+}
+
 type ProviderConfig struct {
-	ID           string   `json:"id"`
-	Type         string   `json:"type"` // e.g. "openai-compatible"
-	BaseURL      string   `json:"base_url"`
-	APIKey       string   `json:"api_key"`
-	Models       []string `json:"models"`
-	DefaultModel string   `json:"default_model"`
-	Timeout      string   `json:"timeout"`
-	Weight       int      `json:"weight"`
+	ID           string                     `json:"id"`
+	Type         string                     `json:"type"` // e.g. "openai-compatible"
+	BaseURL      string                     `json:"base_url"`
+	APIKey       string                     `json:"api_key"`
+	Models       []string                   `json:"models"`
+	DefaultModel string                     `json:"default_model"`
+	Timeout      string                     `json:"timeout"`
+	Weight       int                        `json:"weight"`
+	HealthCheck  *ProviderHealthCheckConfig `json:"health_check"`
 }
 
 type Config struct {
@@ -31,6 +52,8 @@ type Config struct {
 
 	FallbackEnabled bool
 	MaxAttempts     int
+
+	HealthCheck HealthCheckConfig
 
 	Providers []ProviderConfig
 }
@@ -54,11 +77,12 @@ func LoadConfig() (*Config, error) {
 		}
 
 		var fileCfg struct {
-			RoutingStrategy string           `json:"routing_strategy"`
-			DefaultProvider string           `json:"default_provider"`
-			FallbackEnabled *bool            `json:"fallback_enabled"`
-			MaxAttempts     *int             `json:"max_attempts"`
-			Providers       []ProviderConfig `json:"providers"`
+			RoutingStrategy string            `json:"routing_strategy"`
+			DefaultProvider string            `json:"default_provider"`
+			FallbackEnabled *bool             `json:"fallback_enabled"`
+			MaxAttempts     *int              `json:"max_attempts"`
+			HealthCheck     HealthCheckConfig `json:"health_check"`
+			Providers       []ProviderConfig  `json:"providers"`
 		}
 		if err := json.Unmarshal(data, &fileCfg); err != nil {
 			return nil, fmt.Errorf("failed to parse config file: %v", err)
@@ -79,6 +103,7 @@ func LoadConfig() (*Config, error) {
 		if fileCfg.DefaultProvider != "" {
 			cfg.DefaultProvider = fileCfg.DefaultProvider
 		}
+		cfg.HealthCheck = fileCfg.HealthCheck
 		cfg.Providers = fileCfg.Providers
 
 		if !fallbackEnabledSet {
@@ -112,6 +137,33 @@ func LoadConfig() (*Config, error) {
 				Timeout:      "30s",
 			},
 		}
+	}
+
+	// Apply health check defaults
+	if cfg.HealthCheck.Enabled == nil {
+		enabled := len(cfg.Providers) > 1
+		cfg.HealthCheck.Enabled = &enabled
+	}
+	if cfg.HealthCheck.Interval == "" {
+		cfg.HealthCheck.Interval = "30s"
+	}
+	if cfg.HealthCheck.Timeout == "" {
+		cfg.HealthCheck.Timeout = "2s"
+	}
+	if cfg.HealthCheck.InitialDelay == "" {
+		cfg.HealthCheck.InitialDelay = "0s"
+	}
+	if cfg.HealthCheck.FailureThreshold == 0 {
+		cfg.HealthCheck.FailureThreshold = 3
+	}
+	if cfg.HealthCheck.SuccessThreshold == 0 {
+		cfg.HealthCheck.SuccessThreshold = 1
+	}
+	if cfg.HealthCheck.StaleAfter == "" {
+		cfg.HealthCheck.StaleAfter = "0s"
+	}
+	if cfg.HealthCheck.MaxConcurrency == 0 {
+		cfg.HealthCheck.MaxConcurrency = 4
 	}
 
 	if err := cfg.Validate(); err != nil {
@@ -173,6 +225,65 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("default provider not found")
 	}
 
+	if err := validateDuration(c.HealthCheck.Interval, "health_check.interval"); err != nil {
+		return err
+	}
+	if err := validateDuration(c.HealthCheck.Timeout, "health_check.timeout"); err != nil {
+		return err
+	}
+	if err := validateDuration(c.HealthCheck.InitialDelay, "health_check.initial_delay"); err != nil {
+		return err
+	}
+	if err := validateDuration(c.HealthCheck.StaleAfter, "health_check.stale_after"); err != nil {
+		return err
+	}
+	if c.HealthCheck.FailureThreshold < 1 {
+		return fmt.Errorf("health_check.failure_threshold must be >= 1")
+	}
+	if c.HealthCheck.SuccessThreshold < 1 {
+		return fmt.Errorf("health_check.success_threshold must be >= 1")
+	}
+	if c.HealthCheck.MaxConcurrency < 1 {
+		return fmt.Errorf("health_check.max_concurrency must be >= 1")
+	}
+
+	for _, p := range c.Providers {
+		if p.HealthCheck != nil {
+			if p.HealthCheck.Interval != "" {
+				if err := validateDuration(p.HealthCheck.Interval, fmt.Sprintf("provider %s health_check.interval", p.ID)); err != nil {
+					return err
+				}
+			}
+			if p.HealthCheck.Timeout != "" {
+				if err := validateDuration(p.HealthCheck.Timeout, fmt.Sprintf("provider %s health_check.timeout", p.ID)); err != nil {
+					return err
+				}
+			}
+			if p.HealthCheck.InitialDelay != "" {
+				if err := validateDuration(p.HealthCheck.InitialDelay, fmt.Sprintf("provider %s health_check.initial_delay", p.ID)); err != nil {
+					return err
+				}
+			}
+			if p.HealthCheck.FailureThreshold != 0 && p.HealthCheck.FailureThreshold < 1 {
+				return fmt.Errorf("provider %s health_check.failure_threshold must be >= 1", p.ID)
+			}
+			if p.HealthCheck.SuccessThreshold != 0 && p.HealthCheck.SuccessThreshold < 1 {
+				return fmt.Errorf("provider %s health_check.success_threshold must be >= 1", p.ID)
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateDuration(d, name string) error {
+	dur, err := time.ParseDuration(d)
+	if err != nil {
+		return fmt.Errorf("invalid duration for %s: %v", name, err)
+	}
+	if dur < 0 {
+		return fmt.Errorf("duration for %s cannot be negative", name)
+	}
 	return nil
 }
 

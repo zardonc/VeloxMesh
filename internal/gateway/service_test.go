@@ -35,9 +35,9 @@ func TestService_HandleChatCompletion_AttemptLoopHealth(t *testing.T) {
 	ctx := context.Background()
 	req := &llm.LLMRequest{Model: "gpt-4o"}
 
-	store := health.NewInMemoryStore(3)
-	store.EnsureProvider("p1")
-	store.EnsureProvider("p2")
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	store.EnsureProvider("p2", 3, 1)
 
 	p1Err := errors.NewGatewayError(errors.ProviderUnavailable, "p1 offline", 503)
 	p1 := &mockAdapter{id: "p1", err: p1Err}

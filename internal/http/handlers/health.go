@@ -26,6 +26,7 @@ func Readyz(cfg *config.Config, svc *gateway.Service) http.HandlerFunc {
 		degradedCount := 0
 		unhealthyCount := 0
 
+		var providerDetails []map[string]interface{}
 		for _, snap := range snapshots {
 			switch snap.Status {
 			case health.StatusHealthy:
@@ -35,6 +36,20 @@ func Readyz(cfg *config.Config, svc *gateway.Service) http.HandlerFunc {
 			case health.StatusUnhealthy:
 				unhealthyCount++
 			}
+
+			detail := map[string]interface{}{
+				"id":     snap.ID,
+				"status": string(snap.Status),
+			}
+			if !snap.LastProbeAt.IsZero() {
+				detail["last_probe_at"] = snap.LastProbeAt
+				detail["last_probe_success"] = snap.LastProbeSuccess
+				if snap.LastProbeError != "" {
+					detail["last_probe_error"] = snap.LastProbeError
+				}
+				detail["last_probe_duration_ms"] = snap.LastProbeDuration.Milliseconds()
+			}
+			providerDetails = append(providerDetails, detail)
 		}
 
 		overall := "ready"
@@ -44,6 +59,11 @@ func Readyz(cfg *config.Config, svc *gateway.Service) http.HandlerFunc {
 			status = http.StatusServiceUnavailable
 		}
 
+		probeEnabled := false
+		if cfg.HealthCheck.Enabled != nil {
+			probeEnabled = *cfg.HealthCheck.Enabled
+		}
+
 		response := map[string]interface{}{
 			"status":               overall,
 			"configured_providers": len(cfg.Providers),
@@ -51,6 +71,8 @@ func Readyz(cfg *config.Config, svc *gateway.Service) http.HandlerFunc {
 			"degraded":             degradedCount,
 			"unhealthy":            unhealthyCount,
 			"routing_strategy":     cfg.RoutingStrategy,
+			"probe_enabled":        probeEnabled,
+			"providers":            providerDetails,
 		}
 
 		w.Header().Set("Content-Type", "application/json")

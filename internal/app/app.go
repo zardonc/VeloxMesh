@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -19,9 +20,15 @@ import (
 )
 
 type App struct {
-	Config *config.Config
-	Logger *slog.Logger
-	Router http.Handler
+	Config      *config.Config
+	Logger      *slog.Logger
+	Router      http.Handler
+	Prober      *health.Prober
+	healthStore health.Store
+}
+
+func (a *App) HealthStore() health.Store {
+	return a.healthStore
 }
 
 func New() (*App, error) {
@@ -65,10 +72,22 @@ func New() (*App, error) {
 	registry := providers.NewRegistry(cfg, adapters...)
 
 	// Create health store
-	healthStore := health.NewInMemoryStore(3)
+	healthStore := health.NewInMemoryStore()
 	for _, p := range cfg.Providers {
-		healthStore.EnsureProvider(p.ID)
+		failureThreshold := cfg.HealthCheck.FailureThreshold
+		successThreshold := cfg.HealthCheck.SuccessThreshold
+		if p.HealthCheck != nil {
+			if p.HealthCheck.FailureThreshold > 0 {
+				failureThreshold = p.HealthCheck.FailureThreshold
+			}
+			if p.HealthCheck.SuccessThreshold > 0 {
+				successThreshold = p.HealthCheck.SuccessThreshold
+			}
+		}
+		healthStore.EnsureProvider(p.ID, failureThreshold, successThreshold)
 	}
+
+	prober := health.NewProber(registry, healthStore, cfg, logger)
 
 	routingSvc := routing.NewHealthAwareRouter(registry, healthStore, cfg.RoutingStrategy)
 	admissionCtrl := admission.NewPassThroughController()
@@ -78,13 +97,28 @@ func New() (*App, error) {
 	r := router.NewRouter(cfg, gatewaySvc)
 
 	return &App{
-		Config: cfg,
-		Logger: logger,
-		Router: r,
+		Config:      cfg,
+		Logger:      logger,
+		Router:      r,
+		Prober:      prober,
+		healthStore: healthStore,
 	}, nil
 }
 
-func (a *App) Run() error {
+func (a *App) Run(ctx context.Context) error {
 	a.Logger.Info("starting gateway", "addr", a.Config.GatewayDataAddr)
-	return http.ListenAndServe(a.Config.GatewayDataAddr, a.Router)
+
+	go a.Prober.Start(ctx)
+
+	errChan := make(chan error, 1)
+	go func() {
+		errChan <- http.ListenAndServe(a.Config.GatewayDataAddr, a.Router)
+	}()
+
+	select {
+	case err := <-errChan:
+		return err
+	case <-ctx.Done():
+		return nil
+	}
 }

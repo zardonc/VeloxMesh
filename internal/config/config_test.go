@@ -43,6 +43,15 @@ func TestConfigMaxAttemptsValidation(t *testing.T) {
 				{ID: "p1", Type: "openai-compatible", BaseURL: "http", Models: []string{"m1"}},
 			},
 			MaxAttempts: tt.input,
+			HealthCheck: HealthCheckConfig{
+				Interval:         "30s",
+				Timeout:          "2s",
+				InitialDelay:     "0s",
+				FailureThreshold: 3,
+				SuccessThreshold: 1,
+				StaleAfter:       "0s",
+				MaxConcurrency:   4,
+			},
 		}
 
 		err := c.Validate()
@@ -53,5 +62,46 @@ func TestConfigMaxAttemptsValidation(t *testing.T) {
 		if c.MaxAttempts != tt.expected {
 			t.Errorf("for input %d, expected max attempts %d, got %d", tt.input, tt.expected, c.MaxAttempts)
 		}
+	}
+}
+
+func TestHealthCheckConfigValidation(t *testing.T) {
+	c := &Config{
+		RoutingStrategy: "round-robin",
+		Providers: []ProviderConfig{
+			{ID: "p1", Type: "openai-compatible", BaseURL: "http", Models: []string{"m1"}},
+		},
+		HealthCheck: HealthCheckConfig{
+			Interval:         "30s",
+			Timeout:          "2s",
+			InitialDelay:     "0s",
+			FailureThreshold: 3,
+			SuccessThreshold: 1,
+			StaleAfter:       "0s",
+			MaxConcurrency:   4,
+		},
+	}
+
+	if err := c.Validate(); err != nil {
+		t.Fatalf("expected valid config, got: %v", err)
+	}
+
+	c.HealthCheck.Interval = "-1s"
+	if err := c.Validate(); err == nil {
+		t.Fatalf("expected error for negative interval")
+	}
+	c.HealthCheck.Interval = "30s"
+
+	c.HealthCheck.FailureThreshold = 0
+	if err := c.Validate(); err == nil {
+		t.Fatalf("expected error for failure_threshold < 1")
+	}
+	c.HealthCheck.FailureThreshold = 3
+
+	c.Providers[0].HealthCheck = &ProviderHealthCheckConfig{
+		Interval: "invalid",
+	}
+	if err := c.Validate(); err == nil {
+		t.Fatalf("expected error for invalid provider override interval")
 	}
 }
