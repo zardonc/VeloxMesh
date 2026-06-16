@@ -10,6 +10,7 @@ type Metrics interface {
 	RecordProviderLatency(provider string, latencyMs float64)
 	RecordRoutingStrategy(strategy string)
 	RecordHealthStatus(provider string, status string)
+	RecordRequestOutcome(reqID string, provider string, model string, strategy string, status int, errorCategory string, latencyMs float64)
 }
 
 type StubMetrics struct {
@@ -34,6 +35,10 @@ func (m *StubMetrics) RecordProviderLatency(provider string, latencyMs float64) 
 func (m *StubMetrics) RecordRoutingStrategy(strategy string) {}
 
 func (m *StubMetrics) RecordHealthStatus(provider string, status string) {}
+
+func (m *StubMetrics) RecordRequestOutcome(reqID string, provider string, model string, strategy string, status int, errorCategory string, latencyMs float64) {
+	// Log the outcome securely without dumping raw response bodies or prompts.
+}
 
 // Global metrics instance for Phase 1/2
 var DefaultMetrics Metrics = NewStubMetrics()

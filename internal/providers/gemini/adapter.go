@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"os"
 	"strings"
 
 	"google.golang.org/genai"
@@ -113,7 +114,7 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 	}
 
 	if len(resp.Candidates) == 0 {
-		return nil, gatewayErr.NewGatewayError("provider_error", "No candidates returned from Gemini", http.StatusBadGateway)
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "No candidates returned from Gemini", http.StatusBadGateway)
 	}
 
 	candidate := resp.Candidates[0]
@@ -124,6 +125,10 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 				content += part.Text
 			}
 		}
+	}
+	
+	if content == "" && candidate.FinishReason != "SAFETY" && candidate.FinishReason != "RECITATION" && candidate.FinishReason != "OTHER" {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no text content", http.StatusBadGateway)
 	}
 
 	finishReason := "stop"
@@ -159,16 +164,21 @@ func (a *Adapter) mapError(err error) error {
 	if errors.As(err, &apiErr) {
 		switch apiErr.Code {
 		case http.StatusUnauthorized, http.StatusForbidden:
-			return gatewayErr.NewGatewayError("provider_auth_error", "Gemini authentication failed", http.StatusBadGateway)
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderAuthError, "Gemini authentication failed", http.StatusBadGateway)
 		case http.StatusTooManyRequests:
-			return gatewayErr.NewGatewayError("provider_rate_limit", "Gemini rate limit exceeded", http.StatusBadGateway)
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderRateLimit, "Gemini rate limit exceeded", http.StatusBadGateway)
 		case http.StatusNotFound:
-			return gatewayErr.NewGatewayError("provider_invalid_model", "Gemini model not found", http.StatusBadGateway)
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidModel, "Gemini model not found", http.StatusBadRequest)
 		case http.StatusBadRequest:
-			return gatewayErr.NewGatewayError("provider_invalid_request", "Invalid request to Gemini", http.StatusBadGateway)
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidRequest, "Invalid request to Gemini", http.StatusBadRequest)
+		case http.StatusRequestTimeout:
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Gemini request timeout", http.StatusGatewayTimeout)
 		default:
-			return gatewayErr.NewGatewayError("provider_error", "Gemini API error", http.StatusBadGateway)
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderError, "Gemini API error", http.StatusBadGateway)
 		}
 	}
-	return gatewayErr.NewGatewayError("provider_network_error", "Failed to communicate with Gemini", http.StatusBadGateway)
+	if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
+		return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
+	}
+	return gatewayErr.NewGatewayError(gatewayErr.ProviderUnavailable, "Failed to communicate with Gemini", http.StatusBadGateway)
 }

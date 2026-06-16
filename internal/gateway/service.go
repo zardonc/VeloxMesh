@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 	"veloxmesh/internal/admission"
+	"veloxmesh/internal/errors"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/observability"
@@ -49,10 +50,37 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	resp, err := adapter.Complete(ctx, req)
 	latency := time.Since(start)
 
-	defer s.healthStore.EndRequest(decision.ProviderID, latency, err)
+	healthErr := err
+	errCategory := ""
+	status := 200
+	if err != nil {
+		if gwErr, ok := err.(*errors.GatewayError); ok {
+			errCategory = gwErr.Code
+			status = gwErr.HTTPStatus
+		} else {
+			errCategory = "provider_error"
+			status = 502
+		}
+		if !errors.AffectsProviderHealth(err) {
+			healthErr = nil
+		}
+	}
+
+	// We don't need defer here since we call it immediately before returning
+	s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
+
+	observability.DefaultMetrics.RecordRequestOutcome(
+		req.RequestID,
+		decision.ProviderID,
+		req.Model,
+		decision.Strategy,
+		status,
+		errCategory,
+		float64(latency.Milliseconds()),
+	)
 
 	if err != nil {
-		observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, 502)
+		observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, status)
 		return nil, err
 	}
 	resp.Provider = decision.ProviderID

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/anthropics/anthropic-sdk-go"
@@ -111,11 +112,19 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 		return nil, a.mapError(err)
 	}
 
+	if len(resp.Content) == 0 {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned empty content", http.StatusBadGateway)
+	}
+
 	content := ""
 	for _, block := range resp.Content {
 		if block.Type == "text" {
 			content += block.Text
 		}
+	}
+	
+	if content == "" {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no text content", http.StatusBadGateway)
 	}
 
 	finishReason := "stop"
@@ -151,16 +160,21 @@ func (a *Adapter) mapError(err error) error {
 	if errors.As(err, &apiErr) {
 		switch apiErr.StatusCode {
 		case http.StatusUnauthorized, http.StatusForbidden:
-			return gatewayErr.NewGatewayError("provider_auth_error", "Anthropic authentication failed", http.StatusBadGateway)
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderAuthError, "Anthropic authentication failed", http.StatusBadGateway)
 		case http.StatusTooManyRequests:
-			return gatewayErr.NewGatewayError("provider_rate_limit", "Anthropic rate limit exceeded", http.StatusBadGateway)
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderRateLimit, "Anthropic rate limit exceeded", http.StatusBadGateway)
 		case http.StatusNotFound:
-			return gatewayErr.NewGatewayError("provider_invalid_model", "Anthropic model not found", http.StatusBadGateway)
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidModel, "Anthropic model not found", http.StatusBadRequest)
 		case http.StatusBadRequest:
-			return gatewayErr.NewGatewayError("provider_invalid_request", "Invalid request to Anthropic", http.StatusBadGateway)
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidRequest, "Invalid request to Anthropic", http.StatusBadRequest)
+		case http.StatusRequestTimeout:
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Anthropic request timeout", http.StatusGatewayTimeout)
 		default:
-			return gatewayErr.NewGatewayError("provider_error", "Anthropic API error", http.StatusBadGateway)
+			return gatewayErr.NewGatewayError(gatewayErr.ProviderError, "Anthropic API error", http.StatusBadGateway)
 		}
 	}
-	return gatewayErr.NewGatewayError("provider_network_error", "Failed to communicate with Anthropic", http.StatusBadGateway)
+	if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
+		return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
+	}
+	return gatewayErr.NewGatewayError(gatewayErr.ProviderUnavailable, "Failed to communicate with Anthropic", http.StatusBadGateway)
 }

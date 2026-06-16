@@ -14,10 +14,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
+	
+	gatewayErr "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/providers"
 )
@@ -63,20 +67,25 @@ func (a *Adapter) HealthCheck(ctx context.Context) providers.HealthStatus {
 }
 
 func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
-	// Map to OpenAI request format
 	openAIReq := map[string]interface{}{
 		"model":    req.Model,
 		"messages": req.Messages,
 	}
+	if req.Temperature != nil {
+		openAIReq["temperature"] = *req.Temperature
+	}
+	if req.MaxTokens != nil {
+		openAIReq["max_tokens"] = *req.MaxTokens
+	}
 
 	body, err := json.Marshal(openAIReq)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidRequest, "failed to marshal request", http.StatusBadRequest)
 	}
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, a.baseURL+"/chat/completions", bytes.NewReader(body))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderError, "failed to create request", http.StatusInternalServerError)
 	}
 
 	httpReq.Header.Set("Content-Type", "application/json")
@@ -86,17 +95,44 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 
 	resp, err := a.client.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("provider request failed: %w", err)
+		if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
+		}
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderUnavailable, "Provider unavailable", http.StatusBadGateway)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("provider returned status %d", resp.StatusCode)
+		bodyBytes, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		bodyStr := strings.ToLower(string(bodyBytes))
+		isModelInvalid := resp.StatusCode == http.StatusNotFound || strings.Contains(bodyStr, "model")
+
+		switch resp.StatusCode {
+		case http.StatusBadRequest:
+			if isModelInvalid {
+				return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidModel, "Invalid model requested", http.StatusBadRequest)
+			}
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidRequest, "Invalid request to provider", http.StatusBadRequest)
+		case http.StatusUnauthorized, http.StatusForbidden:
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderAuthError, "Provider authentication failed", http.StatusBadGateway)
+		case http.StatusNotFound:
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidModel, "Invalid model requested", http.StatusBadRequest)
+		case http.StatusRequestTimeout:
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
+		case http.StatusTooManyRequests:
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderRateLimit, "Provider rate limit exceeded", http.StatusBadGateway)
+		default:
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderError, "Provider returned error", http.StatusBadGateway)
+		}
 	}
 
 	var openAIResp llm.ChatCompletionResponse
 	if err := json.NewDecoder(resp.Body).Decode(&openAIResp); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Malformed JSON from provider", http.StatusBadGateway)
+	}
+
+	if len(openAIResp.Choices) == 0 {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no choices", http.StatusBadGateway)
 	}
 
 	return &llm.LLMResponse{
