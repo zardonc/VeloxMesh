@@ -1,7 +1,7 @@
 # Phase 2.6: Active Provider Health Probing and Recovery - Context
 
 **Gathered:** 2026-06-16
-**Status:** Ready for planning after adding the missing ROADMAP entry
+**Status:** Ready for planning; ROADMAP should be updated to include Phase 2.6 as the next provider-foundation step
 
 <domain>
 ## Phase Boundary
@@ -25,27 +25,47 @@ This phase should keep the implementation small and in-process. It should not in
 
 ### Probe Behavior
 - **D-05:** Add a lightweight health prober that periodically calls each adapter's `HealthCheck(ctx)` method.
-- **D-06:** Probe intervals should be static config values with conservative defaults, for example `health_probe_enabled`, `health_probe_interval`, and `health_probe_timeout`.
+- **D-06:** Health-check behavior must be extracted into explicit configuration structs and JSON config fields so a later Admin Console/Admin API can call the same prober boundary without reworking internals.
 - **D-07:** Health probes must use short timeouts and must not perform expensive generation/model calls. Each adapter's `HealthCheck` should remain cheap and secret-safe.
 - **D-08:** Probe failures should affect health state enough to keep broken providers out of routing, but should not log secrets, raw prompts, auth headers, or raw provider bodies.
 - **D-09:** Probe successes should be able to recover degraded/unhealthy providers by clearing consecutive failures through the existing health-store success path or a small explicit probe-result method.
 
+### Health Check Configuration
+- **D-10:** Add a top-level health-check config shape, for example `health_check` or `health_probe`, with fields such as:
+  - `enabled`
+  - `interval`
+  - `timeout`
+  - `initial_delay`
+  - `failure_threshold`
+  - `success_threshold`
+  - `stale_after`
+  - `max_concurrency`
+- **D-11:** Add optional per-provider override fields only where they are immediately useful, for example `health_check_enabled`, `health_check_interval`, and `health_check_timeout` on provider config. Do not add dynamic policy storage in this phase.
+- **D-12:** Defaults should be conservative and safe for local development:
+  - enabled when more than one provider is configured.
+  - interval around 30 seconds.
+  - timeout around 2 seconds.
+  - failure threshold aligned with the existing unhealthy threshold unless explicitly configured.
+  - success threshold default 1 for simple recovery.
+- **D-13:** The prober should expose a deterministic internal method such as `ProbeOnce(ctx)` and preferably `ProbeProvider(ctx, providerID)` so a future Admin Console can trigger checks through a thin API layer without duplicating probe logic.
+- **D-14:** Config parsing should preserve backwards compatibility: existing configs without health-check fields should continue to load and behave sensibly.
+
 ### Health State Semantics
-- **D-10:** Preserve the current simple health statuses: `healthy`, `degraded`, and `unhealthy`.
-- **D-11:** Do not build a full Closed/Open/HalfOpen circuit breaker in this phase. If a minimal "probe can recover unhealthy provider" path resembles half-open behavior internally, keep it as health-store semantics rather than a new breaker abstraction.
-- **D-12:** Add probe metadata to health snapshots only if needed for readiness/debugging, such as `last_probe_at`, `last_probe_error`, or `last_probe_success`.
-- **D-13:** Unknown providers and providers with stale or failing probes should remain non-routable only when their current health status is unhealthy. Do not make cold-start readiness fail just because no probe has run yet unless config explicitly requires probes.
+- **D-15:** Preserve the current simple health statuses: `healthy`, `degraded`, and `unhealthy`.
+- **D-16:** Do not build a full Closed/Open/HalfOpen circuit breaker in this phase. If a minimal "probe can recover unhealthy provider" path resembles half-open behavior internally, keep it as health-store semantics rather than a new breaker abstraction.
+- **D-17:** Add probe metadata to health snapshots only if needed for readiness/debugging, such as `last_probe_at`, `last_probe_error`, `last_probe_success`, or `last_probe_duration`.
+- **D-18:** Unknown providers and providers with stale or failing probes should remain non-routable only when their current health status is unhealthy. Do not make cold-start readiness fail just because no probe has run yet unless config explicitly requires probes.
 
 ### Readiness and Visibility
-- **D-14:** `/readyz` should expose a secret-safe provider readiness summary that includes active-probe information when available.
-- **D-15:** Readiness should still return 200 when at least one provider is healthy or degraded and routeable.
-- **D-16:** Readiness should return 503 when no provider is healthy or degraded.
-- **D-17:** Logs/metrics should record probe outcomes at the existing abstraction level where practical, but dedicated Prometheus/OpenTelemetry exporters remain deferred.
+- **D-19:** `/readyz` should expose a secret-safe provider readiness summary that includes active-probe information when available.
+- **D-20:** Readiness should still return 200 when at least one provider is healthy or degraded and routeable.
+- **D-21:** Readiness should return 503 when no provider is healthy or degraded.
+- **D-22:** Logs/metrics should record probe outcomes at the existing abstraction level where practical, but dedicated Prometheus/OpenTelemetry exporters remain deferred.
 
 ### Lifecycle and App Wiring
-- **D-18:** The prober should start when the app starts and stop cleanly when its context is canceled.
-- **D-19:** Avoid goroutine leaks in tests by giving the prober an explicit `Start(ctx)`/`Stop` or context-driven lifecycle.
-- **D-20:** Tests should use fake adapters or fake upstream servers and must not call real LLM providers.
+- **D-23:** The prober should start when the app starts and stop cleanly when its context is canceled.
+- **D-24:** Avoid goroutine leaks in tests by giving the prober an explicit `Start(ctx)`/`Stop` or context-driven lifecycle.
+- **D-25:** Tests should use fake adapters or fake upstream servers and must not call real LLM providers.
 
 ### the agent's Discretion
 The planner/executor may choose whether to place the prober under `internal/health`, `internal/gateway`, or a small new package such as `internal/health/prober.go`. Prefer the placement that avoids import cycles and keeps provider adapters independent from routing internals.
@@ -105,6 +125,7 @@ The planner/executor may choose whether to place the prober under `internal/heal
 
 ### Integration Points
 - Add health probe config to `internal/config/config.go`.
+- Extract health-check parameters into named config structs rather than loose fields so the shape can later back an Admin Console/Admin API request/response contract.
 - Add a prober service that iterates over `providers.Registry.List()` or receives adapters directly.
 - Update `health.Store` only if current `EndRequest` semantics are insufficient for probe recovery metadata.
 - Wire prober startup in `internal/app/app.go` without changing request handlers.
@@ -123,16 +144,20 @@ The planner/executor may choose whether to place the prober under `internal/heal
   - probes enabled by default when more than one provider is configured.
   - interval default around 30 seconds.
   - timeout default around 2 seconds.
+  - health-check parameters live in config structs and are suitable for later Admin Console invocation.
   - tests should use short manually-triggered probe runs instead of sleeping for real intervals.
 - The planner should prefer a deterministic `ProbeOnce(ctx)` API for tests plus a ticker-based `Start(ctx)` loop for runtime.
+- The planner should also prefer `ProbeProvider(ctx, providerID)` if it can be added cleanly; this gives the future Admin Console a direct "check this provider now" boundary without adding the console in this phase.
 
 </specifics>
 
 <must_build>
 ## Must Build In Phase 2.6
 
-- Static health probe config with conservative defaults and validation.
+- Static health probe config with conservative defaults and validation, extracted into reusable config structs.
+- Optional per-provider health-check overrides that do not require runtime policy storage.
 - In-process provider health prober with `ProbeOnce(ctx)` and context-driven background loop.
+- Internal single-provider probe entry point suitable for future Admin Console/Admin API use.
 - Integration with existing `providers.ProviderAdapter.HealthCheck(ctx)`.
 - Health-store updates for probe success/failure so unhealthy providers can recover.
 - Secret-safe readiness output that includes probe state/freshness if implemented.
@@ -162,6 +187,7 @@ The planner/executor may choose whether to place the prober under `internal/heal
 ## Success Criteria
 
 - The gateway periodically probes configured providers using cheap adapter health checks.
+- Health-check parameters are configurable and structured enough to be reused by a future Admin Console/Admin API.
 - A provider marked unhealthy by live traffic can recover after successful health probes.
 - Routing automatically includes recovered providers once their health state becomes routeable.
 - `/readyz` remains secret-safe and accurately reflects whether any provider is routeable.
