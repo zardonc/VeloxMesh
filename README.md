@@ -60,6 +60,8 @@ Set the `CONFIG_FILE` environment variable to a JSON file like:
 {
   "routing_strategy": "least-latency",
   "default_provider": "openai-1",
+  "fallback_enabled": true,
+  "max_attempts": 2,
   "providers": [
     {
       "id": "openai-1",
@@ -71,5 +73,7 @@ Set the `CONFIG_FILE` environment variable to a JSON file like:
   ]
 }
 ```
+
+By default, fallback across providers is enabled if more than one provider is configured. You can use the `X-Route-To` header to strictly override routing to a specific provider. When a strict override is used, fallback attempts are disabled.
 
 *Note: Features like Redis cache, PostgreSQL storage, advanced routing, admin API, SSE streaming proxy, Prometheus `/metrics`, and rate limiting are explicitly deferred to later phases.*
