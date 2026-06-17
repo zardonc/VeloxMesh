@@ -46,7 +46,7 @@ func New() (*App, error) {
 			adapter := openai.NewAdapter(
 				p.ID,
 				p.BaseURL,
-				p.APIKey,
+				p.ResolveAPIKey(),
 				strings.Join(p.Models, ","),
 			)
 			adapters = append(adapters, adapter)
@@ -54,7 +54,7 @@ func New() (*App, error) {
 			adapter := anthropic.NewAdapter(
 				p.ID,
 				p.BaseURL,
-				p.APIKey,
+				p.ResolveAPIKey(),
 				strings.Join(p.Models, ","),
 			)
 			adapters = append(adapters, adapter)
@@ -62,7 +62,7 @@ func New() (*App, error) {
 			adapter := gemini.NewAdapter(
 				p.ID,
 				p.BaseURL,
-				p.APIKey,
+				p.ResolveAPIKey(),
 				strings.Join(p.Models, ","),
 			)
 			adapters = append(adapters, adapter)

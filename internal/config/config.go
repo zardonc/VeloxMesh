@@ -3,10 +3,15 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 )
+
+type ProviderAuthConfig struct {
+	APIKeyEnv string `json:"api_key_env"`
+}
 
 type ProviderHealthCheckConfig struct {
 	Enabled          *bool  `json:"enabled"`
@@ -33,11 +38,21 @@ type ProviderConfig struct {
 	Type         string                     `json:"type"` // e.g. "openai-compatible"
 	BaseURL      string                     `json:"base_url"`
 	APIKey       string                     `json:"api_key"`
+	Auth         *ProviderAuthConfig        `json:"auth"`
 	Models       []string                   `json:"models"`
 	DefaultModel string                     `json:"default_model"`
 	Timeout      string                     `json:"timeout"`
 	Weight       int                        `json:"weight"`
 	HealthCheck  *ProviderHealthCheckConfig `json:"health_check"`
+}
+
+func (p *ProviderConfig) ResolveAPIKey() string {
+	if p.Auth != nil && p.Auth.APIKeyEnv != "" {
+		if val, exists := os.LookupEnv(p.Auth.APIKeyEnv); exists {
+			return val
+		}
+	}
+	return p.APIKey
 }
 
 type Config struct {
@@ -59,7 +74,6 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	// defaults
 	cfg := &Config{
 		GatewayDataAddr:    getEnv("GATEWAY_DATA_ADDR", ":8080"),
 		GatewayAdminAddr:   getEnv("GATEWAY_ADMIN_ADDR", ":8081"),
@@ -139,7 +153,16 @@ func LoadConfig() (*Config, error) {
 		}
 	}
 
-	// Apply health check defaults
+	applyDefaults(cfg)
+
+	if err := cfg.Validate(); err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
+}
+
+func applyDefaults(cfg *Config) {
 	if cfg.HealthCheck.Enabled == nil {
 		enabled := len(cfg.Providers) > 1
 		cfg.HealthCheck.Enabled = &enabled
@@ -166,11 +189,17 @@ func LoadConfig() (*Config, error) {
 		cfg.HealthCheck.MaxConcurrency = 4
 	}
 
-	if err := cfg.Validate(); err != nil {
-		return nil, err
+	// Default fallback config
+	if cfg.MaxAttempts == 0 {
+		if cfg.FallbackEnabled {
+			cfg.MaxAttempts = 2
+			if len(cfg.Providers) < 2 {
+				cfg.MaxAttempts = 1
+			}
+		} else {
+			cfg.MaxAttempts = 1
+		}
 	}
-
-	return cfg, nil
 }
 
 func (c *Config) Validate() error {
@@ -178,12 +207,8 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("invalid routing strategy")
 	}
 
-	if c.MaxAttempts == 0 {
-		c.MaxAttempts = 2
-	} else if c.MaxAttempts < 1 {
-		c.MaxAttempts = 1
-	} else if c.MaxAttempts > 5 {
-		c.MaxAttempts = 5
+	if err := validateFallback(c); err != nil {
+		return err
 	}
 
 	if len(c.Providers) == 0 {
@@ -193,31 +218,18 @@ func (c *Config) Validate() error {
 	seen := make(map[string]bool)
 	defaultFound := false
 
-	for _, p := range c.Providers {
-		if p.ID == "" {
-			return fmt.Errorf("empty provider id")
+	for i := range c.Providers {
+		p := &c.Providers[i]
+		if err := validateProvider(p); err != nil {
+			return err
 		}
 		if seen[p.ID] {
 			return fmt.Errorf("duplicate provider id: %s", p.ID)
 		}
 		seen[p.ID] = true
 
-		if p.Type != "openai-compatible" && p.Type != "anthropic" && p.Type != "gemini" {
-			return fmt.Errorf("unsupported provider type for %s", p.ID)
-		}
-		if p.BaseURL == "" {
-			return fmt.Errorf("missing base URL for %s", p.ID)
-		}
-		if len(p.Models) == 0 {
-			return fmt.Errorf("missing models for %s", p.ID)
-		}
 		if p.ID == c.DefaultProvider {
 			defaultFound = true
-		}
-		if p.Timeout != "" {
-			if _, err := time.ParseDuration(p.Timeout); err != nil {
-				return fmt.Errorf("invalid timeout for %s: %v", p.ID, err)
-			}
 		}
 	}
 
@@ -225,50 +237,15 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("default provider not found")
 	}
 
-	if err := validateDuration(c.HealthCheck.Interval, "health_check.interval"); err != nil {
+	if err := validateHealthCheckConfig(&c.HealthCheck); err != nil {
 		return err
-	}
-	if err := validateDuration(c.HealthCheck.Timeout, "health_check.timeout"); err != nil {
-		return err
-	}
-	if err := validateDuration(c.HealthCheck.InitialDelay, "health_check.initial_delay"); err != nil {
-		return err
-	}
-	if err := validateDuration(c.HealthCheck.StaleAfter, "health_check.stale_after"); err != nil {
-		return err
-	}
-	if c.HealthCheck.FailureThreshold < 1 {
-		return fmt.Errorf("health_check.failure_threshold must be >= 1")
-	}
-	if c.HealthCheck.SuccessThreshold < 1 {
-		return fmt.Errorf("health_check.success_threshold must be >= 1")
-	}
-	if c.HealthCheck.MaxConcurrency < 1 {
-		return fmt.Errorf("health_check.max_concurrency must be >= 1")
 	}
 
-	for _, p := range c.Providers {
+	for i := range c.Providers {
+		p := &c.Providers[i]
 		if p.HealthCheck != nil {
-			if p.HealthCheck.Interval != "" {
-				if err := validateDuration(p.HealthCheck.Interval, fmt.Sprintf("provider %s health_check.interval", p.ID)); err != nil {
-					return err
-				}
-			}
-			if p.HealthCheck.Timeout != "" {
-				if err := validateDuration(p.HealthCheck.Timeout, fmt.Sprintf("provider %s health_check.timeout", p.ID)); err != nil {
-					return err
-				}
-			}
-			if p.HealthCheck.InitialDelay != "" {
-				if err := validateDuration(p.HealthCheck.InitialDelay, fmt.Sprintf("provider %s health_check.initial_delay", p.ID)); err != nil {
-					return err
-				}
-			}
-			if p.HealthCheck.FailureThreshold != 0 && p.HealthCheck.FailureThreshold < 1 {
-				return fmt.Errorf("provider %s health_check.failure_threshold must be >= 1", p.ID)
-			}
-			if p.HealthCheck.SuccessThreshold != 0 && p.HealthCheck.SuccessThreshold < 1 {
-				return fmt.Errorf("provider %s health_check.success_threshold must be >= 1", p.ID)
+			if err := validateProviderHealthCheck(p); err != nil {
+				return err
 			}
 		}
 	}
@@ -276,10 +253,130 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-func validateDuration(d, name string) error {
+func validateProvider(p *ProviderConfig) error {
+	if p.ID == "" {
+		return fmt.Errorf("empty provider id")
+	}
+	if p.Type != "openai-compatible" && p.Type != "anthropic" && p.Type != "gemini" {
+		return fmt.Errorf("unsupported provider type for %s", p.ID)
+	}
+	if err := validateProviderBaseURL(p.ID, p.BaseURL); err != nil {
+		return err
+	}
+	if err := validateProviderModels(p); err != nil {
+		return err
+	}
+	if p.Timeout != "" {
+		if err := validateDurationField(p.Timeout, fmt.Sprintf("provider %s timeout", p.ID)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateProviderBaseURL(id, baseURL string) error {
+	if baseURL == "" {
+		return fmt.Errorf("missing base URL for %s", id)
+	}
+	u, err := url.ParseRequestURI(baseURL)
+	if err != nil {
+		return fmt.Errorf("invalid base URL for %s", id)
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("base URL must use http or https for %s", id)
+	}
+	if u.Host == "" {
+		return fmt.Errorf("base URL host cannot be empty for %s", id)
+	}
+	return nil
+}
+
+func validateProviderModels(p *ProviderConfig) error {
+	if len(p.Models) == 0 {
+		return fmt.Errorf("missing models for %s", p.ID)
+	}
+	if p.DefaultModel != "" {
+		found := false
+		for _, m := range p.Models {
+			if m == p.DefaultModel {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("default model %q not found in models for %s", p.DefaultModel, p.ID)
+		}
+	}
+	return nil
+}
+
+func validateFallback(c *Config) error {
+	if c.MaxAttempts < 1 {
+		return fmt.Errorf("fallback max_attempts must be >= 1")
+	}
+	if !c.FallbackEnabled && c.MaxAttempts > 1 {
+		return fmt.Errorf("explicit multi-attempt fallback setting when fallback is disabled")
+	}
+	if c.FallbackEnabled && c.MaxAttempts > len(c.Providers) {
+		return fmt.Errorf("fallback max_attempts greater than configured provider count")
+	}
+	return nil
+}
+
+func validateHealthCheckConfig(hc *HealthCheckConfig) error {
+	if err := validateDurationField(hc.Interval, "health_check.interval"); err != nil {
+		return err
+	}
+	if err := validateDurationField(hc.Timeout, "health_check.timeout"); err != nil {
+		return err
+	}
+	if err := validateDurationField(hc.InitialDelay, "health_check.initial_delay"); err != nil {
+		return err
+	}
+	if err := validateDurationField(hc.StaleAfter, "health_check.stale_after"); err != nil {
+		return err
+	}
+	if hc.FailureThreshold < 1 {
+		return fmt.Errorf("health_check.failure_threshold must be >= 1")
+	}
+	if hc.SuccessThreshold < 1 {
+		return fmt.Errorf("health_check.success_threshold must be >= 1")
+	}
+	if hc.MaxConcurrency < 1 {
+		return fmt.Errorf("health_check.max_concurrency must be >= 1")
+	}
+	return nil
+}
+
+func validateProviderHealthCheck(p *ProviderConfig) error {
+	if p.HealthCheck.Interval != "" {
+		if err := validateDurationField(p.HealthCheck.Interval, fmt.Sprintf("provider %s health_check.interval", p.ID)); err != nil {
+			return err
+		}
+	}
+	if p.HealthCheck.Timeout != "" {
+		if err := validateDurationField(p.HealthCheck.Timeout, fmt.Sprintf("provider %s health_check.timeout", p.ID)); err != nil {
+			return err
+		}
+	}
+	if p.HealthCheck.InitialDelay != "" {
+		if err := validateDurationField(p.HealthCheck.InitialDelay, fmt.Sprintf("provider %s health_check.initial_delay", p.ID)); err != nil {
+			return err
+		}
+	}
+	if p.HealthCheck.FailureThreshold != 0 && p.HealthCheck.FailureThreshold < 1 {
+		return fmt.Errorf("provider %s health_check.failure_threshold must be >= 1", p.ID)
+	}
+	if p.HealthCheck.SuccessThreshold != 0 && p.HealthCheck.SuccessThreshold < 1 {
+		return fmt.Errorf("provider %s health_check.success_threshold must be >= 1", p.ID)
+	}
+	return nil
+}
+
+func validateDurationField(d, name string) error {
 	dur, err := time.ParseDuration(d)
 	if err != nil {
-		return fmt.Errorf("invalid duration for %s: %v", name, err)
+		return fmt.Errorf("invalid duration for %s", name)
 	}
 	if dur < 0 {
 		return fmt.Errorf("duration for %s cannot be negative", name)
