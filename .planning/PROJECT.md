@@ -21,13 +21,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ### Active
 
-- [ ] Add static multi-provider configuration for OpenAI-compatible providers.
-- [ ] Add provider registry support for stable listing and selection across multiple providers.
-- [ ] Add in-memory provider health tracking with latency, pending, failure, and health status signals.
-- [ ] Add health-aware routing strategies: `round-robin`, `least-latency`, and `X-Route-To` override.
-- [ ] Update readiness and model listing to reflect multi-provider state.
-- [ ] Standardize the Go version baseline for official provider SDK adoption.
-- [ ] Add native Anthropic and Gemini provider adapters with OpenAI-compatible response normalization.
+- [ ] Begin durable control-state design for provider/API-key/config persistence.
 
 ### Out of Scope
 
@@ -54,6 +48,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - **Latency**: Optional systems such as semantic cache, storage, and admin features should not pollute the base forwarding path.
 - **Security**: Do not log API keys, authorization headers, raw prompts, or sensitive provider payloads.
 - **Current config**: Static env/config is acceptable until provider CRUD and durable config are intentionally added.
+- **Temporary transitional measures**: When a solution is explicitly introduced as a temporary transitional measure during a development phase, its goal is only to meet the current phase's requirements. Do not spend excessive time optimizing, refining, or designing it for long-term maintainability unless it is expected to remain in use in future phases.
 
 ## Key Decisions
 
@@ -63,8 +58,9 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Public data plane is OpenAI-compatible | Keeps downstream clients simple and provider-agnostic | ✓ Good |
 | Provider-specific behavior lives behind adapters | Allows Anthropic/Gemini/Gemini-native formats without changing handlers | ✓ Good |
 | Phase 1 uses static dev auth and env config | Proves the call chain without pulling in PostgreSQL/Redis early | ✓ Good |
-| Phase 2.1 should add in-memory health-aware routing before Redis/Admin API | Builds routing value before persistence/control-plane scope | — Pending |
-| Anthropic adapter should prefer official SDK after Go baseline verification | User preference; reduces provider mapping risk if SDK fits | — Pending |
+| Phase 2 should use in-memory/static control surfaces before Redis/Admin API | Builds routing value before persistence/control-plane scope | ✓ Good |
+| Anthropic adapter should prefer official SDK after Go baseline verification | User preference; reduces provider mapping risk if SDK fits | ✓ Good |
+| Static JSON multi-provider config is transitional | It satisfies Phase 2 provider/routing requirements but is expected to be replaced by runtime Admin Console/database configuration in a future phase | Temporary |
 
 ## Evolution
 
@@ -75,4 +71,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-06-15 after retrospective project initialization*
+*Last updated: 2026-06-17 after Phase 2 completion metadata reconciliation*

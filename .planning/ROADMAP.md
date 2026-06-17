@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-15
 **Mode:** brownfield retrospective initialization
-**Current focus:** Phase 2.10 - Adapter Conformance Test Harness
+**Current focus:** Phase 3 - Durable Control State
 
 ## Overview
 
@@ -17,10 +17,10 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 | 2.4 | Provider Reliability and Error Contract | Complete | 1/1 complete | provider error taxonomy, adapter hardening, readiness semantics |
 | 2.5 | Provider Retry and Fallback Execution | Complete | 1/1 complete | retryability policy, fallback execution, attempt observability |
 | 2.6 | Active Provider Health Probing and Recovery | Complete | 1/1 complete | active probing, probe-driven recovery, readiness probe visibility |
-| 2.7 | Provider Adapter Capability Contract | Planned | 2/2 planned | provider-neutral adapter capability metadata |
-| 2.8 | Provider Configuration Schema and Secret-Safe Validation | Planned | 1/1 planned | static config schema hardening |
+| 2.7 | Provider Adapter Capability Contract | Complete | 2/2 complete | provider-neutral adapter capability metadata |
+| 2.8 | Provider Configuration Schema and Secret-Safe Validation | Complete | 1/1 complete | static config schema hardening |
 | 2.9 | Provider Model Catalog and Routing Eligibility | Complete | 1/1 complete | model/provider capability eligibility |
-| 2.10 | Adapter Conformance Test Harness | Planned | 1/1 planned | reusable adapter contract tests |
+| 2.10 | Adapter Conformance Test Harness | Complete | 1/1 complete | reusable adapter contract tests |
 | 3 | Durable Control State | Future | 0/0 | CTRL-01..03 |
 | 4 | Streaming, Rate Limits, Cache, and Cost | Future | 0/0 | STRM-01, RATE-01, CACHE-01, COST-01, CB-01 |
 
@@ -143,11 +143,15 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 2.7: Provider Adapter Capability Contract
 
 **Goal:** Make every provider adapter describe supported operations, modalities, parameters, and future feature flags in a provider-neutral way.
-**Status:** Planned
+**Status:** Complete
 **Primary artifacts:**
 - `.planning/phases/02-health-aware-routing/02-07-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-07-01-PLAN.md`
 - `.planning/phases/02-health-aware-routing/02-07-02-PLAN.md`
+- `.planning/phases/02-health-aware-routing/02-07-SUMMARY.md`
+- `.planning/phases/02-health-aware-routing/02-07-UAT.md`
+- `.planning/phases/02-health-aware-routing/02-07-VALIDATION.md`
+- `.planning/phases/02-health-aware-routing/02-07-SECURITY.md`
 
 **Success Criteria:**
 1. The adapter contract exposes provider-neutral capability metadata without leaking SDK-native details.
@@ -159,10 +163,12 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 2.8: Provider Configuration Schema and Secret-Safe Validation
 
 **Goal:** Harden static provider configuration into a stable schema that can later become the Admin API/Admin Console contract.
-**Status:** Planned
+**Status:** Complete
 **Primary artifacts:**
 - `.planning/phases/02-health-aware-routing/02-08-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-08-PLAN.md`
+- `.planning/phases/02-health-aware-routing/02-08-SUMMARY.md`
+- `.planning/phases/02-health-aware-routing/02-08-UAT.md`
 
 **Success Criteria:**
 1. Provider config structs cover identity, type, base URL, auth reference, models, defaults, timeout, health overrides, retry/fallback settings, and capability overrides if needed.
@@ -190,10 +196,12 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 2.10: Adapter Conformance Test Harness
 
 **Goal:** Create reusable conformance tests that every current and future provider adapter must pass.
-**Status:** Planned
+**Status:** Complete
 **Primary artifacts:**
 - `.planning/phases/02-health-aware-routing/02-10-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-10-PLAN.md`
+- `.planning/phases/02-health-aware-routing/02-10-UAT.md`
+- `.planning/phases/02-health-aware-routing/02-10-SECURITY.md`
 
 **Success Criteria:**
 1. Shared test helpers cover request mapping sanity, response normalization, finish reason mapping, structured error categories, health-check behavior, and secret-safe errors.
@@ -224,9 +232,10 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 
 ## Notes
 
-- Phase 2 remains static-config and in-process until durable control state is explicitly scoped.
-- Do not add PostgreSQL, Redis, Admin API, Admin Console UI, runtime CRUD, streaming, semantic cache, rate limiting, or cost governance during Phase 2.10.
+- Phase 2 is complete. Its static-config and in-process control surfaces are transitional until durable control state is explicitly scoped.
+- When a solution is explicitly introduced as a temporary transitional measure during a development phase, its goal is only to meet the current phase's requirements. Do not spend excessive time optimizing, refining, or designing it for long-term maintainability unless it is expected to remain in use in future phases.
+- Do not add streaming, semantic cache, rate limiting, or cost governance until their later phase is explicitly scoped.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
 
 ---
-*Roadmap refreshed: 2026-06-17 for Phase 2.10 planning*
+*Roadmap refreshed: 2026-06-17 after Phase 2 completion reconciliation*
