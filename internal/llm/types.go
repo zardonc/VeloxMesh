@@ -25,6 +25,8 @@ type LLMRequest struct {
 	RequestID     string
 	Model         string
 	Messages      []Message
+	Temperature   *float64
+	MaxTokens     *int
 	Stream        bool
 	PriorityClass string
 	RouteOverride string
@@ -45,9 +47,11 @@ type ChatCompletionResponse struct {
 }
 
 type LLMResponse struct {
-	GatewayID string
-	Model     string
-	Provider  string
-	Choices   []Choice
-	// Room for metadata
+	GatewayID    string
+	Model        string
+	Provider     string
+	Strategy     string
+	Choices      []Choice
+	AttemptCount int
+	FallbackUsed bool
 }

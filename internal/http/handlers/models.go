@@ -31,11 +31,11 @@ func (h *ModelsHandler) ListModels(w http.ResponseWriter, r *http.Request) {
 	// For Phase 1, we can return the configured models from the registry.
 	// Since we don't have a direct method to list all models across all providers yet,
 	// we will construct a static list based on the router configuration.
-	
+
 	// A simple approach is to return the default provider's models.
 	models := h.service.GetAvailableModels()
 
-	var data []ModelItem
+	data := make([]ModelItem, 0, len(models))
 	for _, m := range models {
 		data = append(data, ModelItem{
 			ID:      m,

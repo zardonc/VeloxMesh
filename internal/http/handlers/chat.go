@@ -53,6 +53,8 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		RequestID:     reqID,
 		Model:         req.Model,
 		Messages:      req.Messages,
+		Temperature:   req.Temperature,
+		MaxTokens:     req.MaxTokens,
 		Stream:        req.Stream,
 		PriorityClass: priority,
 		RouteOverride: routeOverride,
@@ -60,21 +62,34 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.service.HandleChatCompletion(r.Context(), llmReq)
 	if err != nil {
-		sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
+		if gwErr, ok := err.(*errors.GatewayError); ok {
+			sendError(w, gwErr.Code, gwErr.Message, gwErr.HTTPStatus)
+		} else {
+			sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
+		}
 		return
 	}
 
 	duration := time.Since(start)
 
 	w.Header().Set("X-Request-ID", reqID)
-	// We don't have X-Provider from HandleChatCompletion unless we add it to LLMResponse.
-	// For Phase 1, we can add it to the LLMResponse struct.
 	w.Header().Set("X-Provider", resp.Provider)
 	w.Header().Set("X-Model", resp.Model)
 	w.Header().Set("X-Cache-Hit", "false")
 	w.Header().Set("X-Cache-Level", "none")
 	w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
 	w.Header().Set("X-Queue-Wait-Ms", "0")
+	if resp.Strategy != "" {
+		w.Header().Set("X-Routing-Strategy", resp.Strategy)
+	}
+	if resp.AttemptCount > 0 {
+		w.Header().Set("X-Provider-Attempts", fmt.Sprintf("%d", resp.AttemptCount))
+	}
+	if resp.FallbackUsed {
+		w.Header().Set("X-Fallback-Used", "true")
+	} else {
+		w.Header().Set("X-Fallback-Used", "false")
+	}
 
 	openAIResp := llm.ChatCompletionResponse{
 		ID:      reqID,

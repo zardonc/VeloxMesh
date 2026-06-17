@@ -15,4 +15,7 @@ type ProviderAdapter interface {
 	Models() []string
 	Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error)
 	HealthCheck(ctx context.Context) HealthStatus
+
+	// Capabilities returns the provider-neutral capabilities of this adapter.
+	Capabilities() CapabilitySet
 }
