@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-15
 **Mode:** brownfield retrospective initialization
-**Current focus:** Phase 2.7 - Provider Adapter Capability Contract
+**Current focus:** Phase 2.8 - Provider Configuration Schema and Secret-Safe Validation
 
 ## Overview
 
@@ -18,7 +18,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 | 2.5 | Provider Retry and Fallback Execution | Complete | 1/1 complete | retryability policy, fallback execution, attempt observability |
 | 2.6 | Active Provider Health Probing and Recovery | Complete | 1/1 complete | active probing, probe-driven recovery, readiness probe visibility |
 | 2.7 | Provider Adapter Capability Contract | Planned | 2/2 planned | provider-neutral adapter capability metadata |
-| 2.8 | Provider Configuration Schema and Secret-Safe Validation | Proposed | 0/0 | static config schema hardening |
+| 2.8 | Provider Configuration Schema and Secret-Safe Validation | Planned | 1/1 planned | static config schema hardening |
 | 2.9 | Provider Model Catalog and Routing Eligibility | Proposed | 0/0 | model/provider capability eligibility |
 | 2.10 | Adapter Conformance Test Harness | Proposed | 0/0 | reusable adapter contract tests |
 | 3 | Durable Control State | Future | 0/0 | CTRL-01..03 |
@@ -159,7 +159,10 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 2.8: Provider Configuration Schema and Secret-Safe Validation
 
 **Goal:** Harden static provider configuration into a stable schema that can later become the Admin API/Admin Console contract.
-**Status:** Proposed
+**Status:** Planned
+**Primary artifacts:**
+- `.planning/phases/02-health-aware-routing/02-08-CONTEXT.md`
+- `.planning/phases/02-health-aware-routing/02-08-PLAN.md`
 
 **Success Criteria:**
 1. Provider config structs cover identity, type, base URL, auth reference, models, defaults, timeout, health overrides, retry/fallback settings, and capability overrides if needed.
@@ -213,8 +216,8 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ## Notes
 
 - Phase 2 remains static-config and in-process until durable control state is explicitly scoped.
-- Do not add PostgreSQL, Redis, Admin API, Admin Console UI, runtime CRUD, streaming, semantic cache, rate limiting, or cost governance during Phase 2.7.
+- Do not add PostgreSQL, Redis, Admin API, Admin Console UI, runtime CRUD, streaming, semantic cache, rate limiting, or cost governance during Phase 2.8.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
 
 ---
-*Roadmap refreshed: 2026-06-16 for Phase 2.7 planning*
+*Roadmap refreshed: 2026-06-16 for Phase 2.8 planning*
