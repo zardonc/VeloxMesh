@@ -10,6 +10,7 @@ import (
 	gatewayErr "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/providers"
+	"veloxmesh/internal/providers/adaptertest"
 )
 
 func TestAdapter_Capabilities(t *testing.T) {
@@ -205,4 +206,118 @@ func TestAdapter_Complete(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAdapter_Conformance(t *testing.T) {
+	var mockStatus int
+	var mockResponse any
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(mockStatus)
+		json.NewEncoder(w).Encode(mockResponse)
+	}))
+	defer server.Close()
+
+	adapter := NewAdapter("anthropic-1", server.URL+"/", "test-key", "claude-3-5-sonnet-20240620")
+
+	spec := adaptertest.ConformanceSpec{
+		Adapter:        adapter,
+		ExpectedID:     "anthropic-1",
+		ExpectedModels: []string{"claude-3-5-sonnet-20240620"},
+		ExpectedCapabilities: providers.CapabilitySet{
+			ProviderType:        providers.ProviderTypeAnthropic,
+			SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+			InputModalities:     []providers.Modality{providers.ModalityText},
+			OutputModalities:    []providers.Modality{providers.ModalityText},
+			Streaming:           false,
+			ToolCalling:         false,
+			GenerationParameters: []providers.GenerationParameter{
+				providers.GenerationParameterTemperature,
+				providers.GenerationParameterMaxTokens,
+			},
+		},
+		ForbiddenSecretSubstrings: []string{"test-key", "x-api-key"},
+		HealthCases: []adaptertest.HealthCase{
+			{
+				Name: "available",
+				SetupFake: func() {
+				},
+				ExpectedStatus: providers.HealthStatus{Available: true, Message: "Healthy"},
+			},
+		},
+		SuccessCases: []adaptertest.SuccessCase{
+			{
+				Name: "basic success",
+				Request: &llm.LLMRequest{
+					Model: "claude-3-5-sonnet-20240620",
+					Messages: []llm.Message{
+						{Role: llm.RoleUser, Content: "Hello"},
+					},
+				},
+				SetupFake: func() {
+					mockStatus = http.StatusOK
+					mockResponse = map[string]any{
+						"id":    "msg_123",
+						"type":  "message",
+						"role":  "assistant",
+						"model": "claude-3-5-sonnet-20240620",
+						"content": []map[string]any{
+							{"type": "text", "text": "Hi there!"},
+						},
+						"stop_reason": "end_turn",
+					}
+				},
+				ExpectedModel:          "claude-3-5-sonnet-20240620",
+				ExpectedMessageContent: "Hi there!",
+				ExpectedFinishReason:   "stop",
+			},
+		},
+		ErrorCases: []adaptertest.ErrorCase{
+			{
+				Name: "auth error",
+				SetupFake: func() {
+					mockStatus = http.StatusUnauthorized
+					mockResponse = map[string]any{
+						"type": "error",
+						"error": map[string]any{
+							"type":    "authentication_error",
+							"message": "invalid api key",
+						},
+					}
+				},
+				ExpectedCode: gatewayErr.ProviderAuthError,
+			},
+			{
+				Name: "rate limit error",
+				SetupFake: func() {
+					mockStatus = http.StatusTooManyRequests
+					mockResponse = map[string]any{
+						"type": "error",
+						"error": map[string]any{
+							"type":    "rate_limit_error",
+							"message": "Rate limit exceeded",
+						},
+					}
+				},
+				ExpectedCode: gatewayErr.ProviderRateLimit,
+			},
+			{
+				Name: "bad response",
+				SetupFake: func() {
+					mockStatus = http.StatusOK
+					mockResponse = map[string]any{
+						"id":      "msg_125",
+						"type":    "message",
+						"role":    "assistant",
+						"model":   "claude-3-5-sonnet-20240620",
+						"content": []map[string]any{},
+					}
+				},
+				ExpectedCode: gatewayErr.ProviderBadResponse,
+			},
+		},
+	}
+
+	adaptertest.RunConformance(t, spec)
 }

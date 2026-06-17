@@ -10,6 +10,7 @@ import (
 	gatewayErr "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/providers"
+	"veloxmesh/internal/providers/adaptertest"
 )
 
 func TestAdapter_Capabilities(t *testing.T) {
@@ -184,4 +185,112 @@ func TestAdapter_Complete(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAdapter_Conformance(t *testing.T) {
+	var mockStatus int
+	var mockResponse any
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(mockStatus)
+		json.NewEncoder(w).Encode(mockResponse)
+	}))
+	defer server.Close()
+
+	adapter := NewAdapter("test-openai", server.URL, "test-key", "gpt-4")
+
+	spec := adaptertest.ConformanceSpec{
+		Adapter:        adapter,
+		ExpectedID:     "test-openai",
+		ExpectedModels: []string{"gpt-4"},
+		ExpectedCapabilities: providers.CapabilitySet{
+			ProviderType:        providers.ProviderTypeOpenAICompatible,
+			SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+			InputModalities:     []providers.Modality{providers.ModalityText},
+			OutputModalities:    []providers.Modality{providers.ModalityText},
+			Streaming:           false,
+			ToolCalling:         false,
+			GenerationParameters: []providers.GenerationParameter{
+				providers.GenerationParameterTemperature,
+				providers.GenerationParameterMaxTokens,
+			},
+		},
+		ForbiddenSecretSubstrings: []string{"test-key", "Bearer "},
+		HealthCases: []adaptertest.HealthCase{
+			{
+				Name: "available",
+				SetupFake: func() {
+				},
+				ExpectedStatus: providers.HealthStatus{Available: true, Message: "Healthy"},
+			},
+		},
+		SuccessCases: []adaptertest.SuccessCase{
+			{
+				Name: "basic success",
+				Request: &llm.LLMRequest{
+					Model: "gpt-4",
+					Messages: []llm.Message{
+						{Role: llm.RoleUser, Content: "Hello"},
+					},
+				},
+				SetupFake: func() {
+					mockStatus = http.StatusOK
+					mockResponse = map[string]any{
+						"model": "gpt-4",
+						"choices": []map[string]any{
+							{
+								"message": map[string]any{
+									"role":    "assistant",
+									"content": "Hi there!",
+								},
+								"finish_reason": "stop",
+							},
+						},
+					}
+				},
+				ExpectedModel:          "gpt-4",
+				ExpectedMessageContent: "Hi there!",
+				ExpectedFinishReason:   "stop",
+			},
+		},
+		ErrorCases: []adaptertest.ErrorCase{
+			{
+				Name: "auth error",
+				SetupFake: func() {
+					mockStatus = http.StatusUnauthorized
+					mockResponse = map[string]any{}
+				},
+				ExpectedCode: gatewayErr.ProviderAuthError,
+			},
+			{
+				Name: "rate limit error",
+				SetupFake: func() {
+					mockStatus = http.StatusTooManyRequests
+					mockResponse = map[string]any{}
+				},
+				ExpectedCode: gatewayErr.ProviderRateLimit,
+			},
+			{
+				Name: "bad response",
+				SetupFake: func() {
+					mockStatus = http.StatusOK
+					mockResponse = map[string]any{
+						"choices": []map[string]any{},
+					}
+				},
+				ExpectedCode: gatewayErr.ProviderBadResponse,
+			},
+			{
+				Name: "invalid model",
+				SetupFake: func() {
+					mockStatus = http.StatusNotFound
+					mockResponse = map[string]any{}
+				},
+				ExpectedCode: gatewayErr.ProviderInvalidModel,
+			},
+		},
+	}
+
+	adaptertest.RunConformance(t, spec)
 }

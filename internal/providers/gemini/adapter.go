@@ -57,7 +57,9 @@ func (a *Adapter) ID() string {
 }
 
 func (a *Adapter) Models() []string {
-	return a.models
+	models := make([]string, len(a.models))
+	copy(models, a.models)
+	return models
 }
 
 func (a *Adapter) Capabilities() providers.CapabilitySet {

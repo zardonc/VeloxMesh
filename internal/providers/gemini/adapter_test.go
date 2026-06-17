@@ -10,6 +10,7 @@ import (
 	gatewayErr "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/providers"
+	"veloxmesh/internal/providers/adaptertest"
 )
 
 func TestAdapter_Capabilities(t *testing.T) {
@@ -225,4 +226,117 @@ func TestAdapter_Complete(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAdapter_Conformance(t *testing.T) {
+	var mockStatus int
+	var mockResponse any
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(mockStatus)
+		json.NewEncoder(w).Encode(mockResponse)
+	}))
+	defer server.Close()
+
+	adapter := NewAdapter("gemini-1", server.URL+"/", "test-key", "gemini-1.5-pro")
+
+	spec := adaptertest.ConformanceSpec{
+		Adapter:        adapter,
+		ExpectedID:     "gemini-1",
+		ExpectedModels: []string{"gemini-1.5-pro"},
+		ExpectedCapabilities: providers.CapabilitySet{
+			ProviderType:        providers.ProviderTypeGemini,
+			SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+			InputModalities:     []providers.Modality{providers.ModalityText},
+			OutputModalities:    []providers.Modality{providers.ModalityText},
+			Streaming:           false,
+			ToolCalling:         false,
+			GenerationParameters: []providers.GenerationParameter{
+				providers.GenerationParameterTemperature,
+				providers.GenerationParameterMaxTokens,
+			},
+		},
+		ForbiddenSecretSubstrings: []string{"test-key", "x-goog-api-key"},
+		HealthCases: []adaptertest.HealthCase{
+			{
+				Name: "available",
+				SetupFake: func() {
+				},
+				ExpectedStatus: providers.HealthStatus{Available: true, Message: "Healthy"},
+			},
+		},
+		SuccessCases: []adaptertest.SuccessCase{
+			{
+				Name: "basic success",
+				Request: &llm.LLMRequest{
+					Model: "gemini-1.5-pro",
+					Messages: []llm.Message{
+						{Role: llm.RoleUser, Content: "Hello"},
+					},
+				},
+				SetupFake: func() {
+					mockStatus = http.StatusOK
+					mockResponse = map[string]any{
+						"candidates": []map[string]any{
+							{
+								"content": map[string]any{
+									"parts": []map[string]any{
+										{"text": "Hi there!"},
+									},
+									"role": "model",
+								},
+								"finishReason": "STOP",
+							},
+						},
+					}
+				},
+				ExpectedModel:          "gemini-1.5-pro",
+				ExpectedMessageContent: "Hi there!",
+				ExpectedFinishReason:   "stop",
+			},
+		},
+		ErrorCases: []adaptertest.ErrorCase{
+			{
+				Name: "auth error",
+				SetupFake: func() {
+					mockStatus = http.StatusUnauthorized
+					mockResponse = map[string]any{
+						"error": map[string]any{
+							"code":    401,
+							"message": "API key not valid. Please pass a valid API key.",
+							"status":  "UNAUTHENTICATED",
+						},
+					}
+				},
+				ExpectedCode: gatewayErr.ProviderAuthError,
+			},
+			{
+				Name: "rate limit error",
+				SetupFake: func() {
+					mockStatus = http.StatusTooManyRequests
+					mockResponse = map[string]any{
+						"error": map[string]any{
+							"code":    429,
+							"message": "Quota exceeded",
+							"status":  "RESOURCE_EXHAUSTED",
+						},
+					}
+				},
+				ExpectedCode: gatewayErr.ProviderRateLimit,
+			},
+			{
+				Name: "bad response",
+				SetupFake: func() {
+					mockStatus = http.StatusOK
+					mockResponse = map[string]any{
+						"candidates": []map[string]any{},
+					}
+				},
+				ExpectedCode: gatewayErr.ProviderBadResponse,
+			},
+		},
+	}
+
+	adaptertest.RunConformance(t, spec)
 }
