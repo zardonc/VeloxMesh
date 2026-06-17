@@ -73,3 +73,13 @@ func (c CapabilitySet) Clone() CapabilitySet {
 
 	return clone
 }
+
+// SupportsOperation checks if the capability set supports the requested operation.
+func (c CapabilitySet) SupportsOperation(op Operation) bool {
+	for _, o := range c.SupportedOperations {
+		if o == op {
+			return true
+		}
+	}
+	return false
+}

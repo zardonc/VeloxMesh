@@ -59,7 +59,7 @@ func TestChatCompletions_Gemini(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rec, resp := doChatReq(t, application, "gemini-1")
+	rec, resp := doChatReqModel(t, application, "gemini-1", "gemini-1.5-pro")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", rec.Code)
 	}

@@ -23,9 +23,11 @@ func NewGatewayError(code, message string, httpStatus int) *GatewayError {
 
 // Common routing errors
 var (
-	ErrNoHealthyProvider         = NewGatewayError("no_healthy_provider", "no healthy providers available", 503)
-	ErrUnknownProviderOverride   = NewGatewayError("unknown_provider_override", "requested provider override is unknown", 400)
-	ErrUnhealthyProviderOverride = NewGatewayError("unhealthy_provider_override", "requested provider override is unhealthy", 503)
+	ErrNoHealthyProvider          = NewGatewayError("no_healthy_provider", "no healthy providers available", 503)
+	ErrNoEligibleProvider         = NewGatewayError("no_eligible_provider", "no configured provider supports the requested model and operation", 400)
+	ErrUnknownProviderOverride    = NewGatewayError("unknown_provider_override", "requested provider override is unknown", 400)
+	ErrUnhealthyProviderOverride  = NewGatewayError("unhealthy_provider_override", "requested provider override is unhealthy", 503)
+	ErrIneligibleProviderOverride = NewGatewayError("ineligible_provider_override", "requested provider override does not support the requested model and operation", 400)
 )
 
 // Shared Provider Error Categories

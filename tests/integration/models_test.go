@@ -41,10 +41,26 @@ func TestModelsEndpoint(t *testing.T) {
 			t.Errorf("expected object list, got %s", resp.Object)
 		}
 
-		if len(resp.Data) != 1 {
-			t.Errorf("expected 1 unique model, got %d", len(resp.Data))
-		} else if resp.Data[0].ID != "gpt-4o" {
-			t.Errorf("expected gpt-4o, got %s", resp.Data[0].ID)
+		if len(resp.Data) != 3 {
+			t.Errorf("expected 3 unique models, got %d", len(resp.Data))
+		}
+
+		foundGPT4o := false
+		foundP1Only := false
+		foundP2Only := false
+
+		for _, m := range resp.Data {
+			if m.ID == "gpt-4o" {
+				foundGPT4o = true
+			} else if m.ID == "p1-only" {
+				foundP1Only = true
+			} else if m.ID == "p2-only" {
+				foundP2Only = true
+			}
+		}
+
+		if !foundGPT4o || !foundP1Only || !foundP2Only {
+			t.Errorf("expected gpt-4o, p1-only, p2-only in models response, got %v", resp.Data)
 		}
 	})
 }

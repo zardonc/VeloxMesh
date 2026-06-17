@@ -149,4 +149,71 @@ func TestRegistry(t *testing.T) {
 			t.Error("capability metadata was not a copy")
 		}
 	})
+
+	t.Run("EligibleProviders", func(t *testing.T) {
+		eligible := registry.EligibleProviders("modelB", providers.OperationChatCompletions)
+		if len(eligible) != 2 {
+			t.Fatalf("expected 2 eligible providers for modelB, got %d", len(eligible))
+		}
+		if eligible[0].ProviderID != "p1" || eligible[1].ProviderID != "p2" {
+			t.Errorf("unexpected eligible providers for modelB: %v", eligible)
+		}
+
+		// Ensure copy safety
+		eligible[0].ProviderID = "mutated"
+		eligible[0].Capabilities.SupportedOperations[0] = "mutated_op"
+		again := registry.EligibleProviders("modelB", providers.OperationChatCompletions)
+		if again[0].ProviderID == "mutated" || again[0].Capabilities.SupportedOperations[0] == "mutated_op" {
+			t.Error("EligibleProviders did not return a safe copy")
+		}
+
+		none := registry.EligibleProviders("unknown", providers.OperationChatCompletions)
+		if len(none) != 0 {
+			t.Errorf("expected 0 eligible providers for unknown model, got %d", len(none))
+		}
+	})
+
+	t.Run("ProviderSupports", func(t *testing.T) {
+		if !registry.ProviderSupports("p1", "modelA", providers.OperationChatCompletions) {
+			t.Error("expected p1 to support modelA and chat_completions")
+		}
+		if registry.ProviderSupports("p1", "modelC", providers.OperationChatCompletions) {
+			t.Error("expected p1 to NOT support modelC")
+		}
+		if registry.ProviderSupports("p2", "modelA", providers.OperationChatCompletions) {
+			t.Error("expected p2 to NOT support modelA")
+		}
+		if registry.ProviderSupports("p1", "modelA", "unknown_operation") {
+			t.Error("expected p1 to NOT support unknown_operation")
+		}
+	})
+
+	t.Run("DefaultModel", func(t *testing.T) {
+		model, ok := registry.DefaultModel("p1")
+		// Config didn't specify default models for p1/p2, so should be false
+		if ok {
+			t.Errorf("expected no default model for p1, got %s", model)
+		}
+
+		cfgWithDefaults := &config.Config{
+			DefaultProvider: "p1",
+			Providers: []config.ProviderConfig{
+				{ID: "p1", DefaultModel: "modelA"},
+				{ID: "p2", DefaultModel: "modelB"},
+			},
+		}
+		reg2 := providers.NewRegistry(cfgWithDefaults, p1, p2)
+		m1, ok1 := reg2.DefaultModel("p1")
+		if !ok1 || m1 != "modelA" {
+			t.Errorf("expected p1 to have default modelA, got %s (ok=%v)", m1, ok1)
+		}
+		m2, ok2 := reg2.DefaultModel("p2")
+		if !ok2 || m2 != "modelB" {
+			t.Errorf("expected p2 to have default modelB, got %s (ok=%v)", m2, ok2)
+		}
+		_, okUnknown := reg2.DefaultModel("unknown")
+		if okUnknown {
+			t.Error("expected no default model for unknown provider")
+		}
+	})
 }

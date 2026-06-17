@@ -52,14 +52,14 @@ func writeConfig(t *testing.T, p1, p2 *httptest.Server, strategy string) string 
 				"type": "openai-compatible",
 				"base_url": "%s",
 				"api_key": "test-key",
-				"models": ["gpt-4o"]
+				"models": ["gpt-4o", "p1-only"]
 			},
 			{
 				"id": "p2",
 				"type": "openai-compatible",
 				"base_url": "%s",
 				"api_key": "test-key",
-				"models": ["gpt-4o"]
+				"models": ["gpt-4o", "p2-only"]
 			}
 		]
 	}`, strategy, p1.URL, p2.URL)
@@ -73,9 +73,9 @@ func writeConfig(t *testing.T, p1, p2 *httptest.Server, strategy string) string 
 	return f.Name()
 }
 
-func doChatReq(t *testing.T, a *app.App, override string) (*httptest.ResponseRecorder, llm.ChatCompletionResponse) {
+func doChatReqModel(t *testing.T, a *app.App, override, model string) (*httptest.ResponseRecorder, llm.ChatCompletionResponse) {
 	chatReq := llm.ChatCompletionRequest{
-		Model: "gpt-4o",
+		Model: model,
 		Messages: []llm.Message{
 			{Role: llm.RoleUser, Content: "Hello"},
 		},
@@ -95,6 +95,10 @@ func doChatReq(t *testing.T, a *app.App, override string) (*httptest.ResponseRec
 		json.NewDecoder(rec.Body).Decode(&resp)
 	}
 	return rec, resp
+}
+
+func doChatReq(t *testing.T, a *app.App, override string) (*httptest.ResponseRecorder, llm.ChatCompletionResponse) {
+	return doChatReqModel(t, a, override, "gpt-4o")
 }
 
 func TestChatCompletions_MultiProvider(t *testing.T) {
@@ -289,6 +293,58 @@ func TestChatCompletions_MultiProvider(t *testing.T) {
 		rec, _ := doChatReq(t, appFail, "")
 		if rec.Code != http.StatusBadGateway {
 			t.Fatalf("expected gateway error (502), got %d", rec.Code)
+		}
+	})
+
+	t.Run("Unknown Model", func(t *testing.T) {
+		rec, _ := doChatReqModel(t, application, "", "unknown-model")
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("expected 400 for unknown model, got %d", rec.Code)
+		}
+	})
+
+	t.Run("Provider Specific Model - p1-only", func(t *testing.T) {
+		rec, resp := doChatReqModel(t, application, "", "p1-only")
+		if rec.Code != http.StatusOK {
+			t.Errorf("expected 200, got %d", rec.Code)
+		}
+		if rec.Header().Get("X-Provider") != "p1" {
+			t.Errorf("expected p1, got %s", rec.Header().Get("X-Provider"))
+		}
+		if resp.Choices[0].Message.Content != "Response from p1" {
+			t.Errorf("expected response from p1, got %s", resp.Choices[0].Message.Content)
+		}
+	})
+
+	t.Run("Provider Specific Model - p2-only", func(t *testing.T) {
+		rec, resp := doChatReqModel(t, application, "", "p2-only")
+		if rec.Code != http.StatusOK {
+			t.Errorf("expected 200, got %d", rec.Code)
+		}
+		if rec.Header().Get("X-Provider") != "p2" {
+			t.Errorf("expected p2, got %s", rec.Header().Get("X-Provider"))
+		}
+		if resp.Choices[0].Message.Content != "Response from p2" {
+			t.Errorf("expected response from p2, got %s", resp.Choices[0].Message.Content)
+		}
+	})
+
+	t.Run("Provider Specific Model Fallback Exhaustion", func(t *testing.T) {
+		p1Fail := setupFakeProvider(t, "p1", 0, http.StatusInternalServerError)
+		defer p1Fail.Close()
+
+		cfgPathFail := writeConfig(t, p1Fail, p2, "round-robin")
+		defer os.Remove(cfgPathFail)
+		os.Setenv("CONFIG_FILE", cfgPathFail)
+		appFail, _ := app.New()
+
+		// p1-only is only on p1. Even if p1 fails retryably, it shouldn't fallback to p2 since p2 doesn't support p1-only.
+		rec, _ := doChatReqModel(t, appFail, "", "p1-only")
+		if rec.Code != http.StatusBadGateway { // gateway wraps 500 as 502
+			t.Fatalf("expected 502 bad gateway from p1 without fallback, got %d", rec.Code)
+		}
+		if rec.Header().Get("X-Fallback-Used") == "true" {
+			t.Errorf("expected no fallback since p2 is ineligible")
 		}
 	})
 }

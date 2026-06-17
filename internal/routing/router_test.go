@@ -44,8 +44,8 @@ func (m *mockAdapter) HealthCheck(ctx context.Context) providers.HealthStatus {
 
 func TestHealthAwareRouter_Select(t *testing.T) {
 	cfg := &config.Config{DefaultProvider: "p1"}
-	p1 := &mockAdapter{id: "p1"}
-	p2 := &mockAdapter{id: "p2"}
+	p1 := &mockAdapter{id: "p1", models: []string{"m1", "m_shared"}}
+	p2 := &mockAdapter{id: "p2", models: []string{"m2", "m_shared"}}
 	registry := providers.NewRegistry(cfg, p1, p2)
 	healthStore := health.NewInMemoryStore()
 
@@ -56,7 +56,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 
 	t.Run("RoundRobin", func(t *testing.T) {
 		router := routing.NewHealthAwareRouter(registry, healthStore, "round-robin")
-		req := &llm.LLMRequest{}
+		req := &llm.LLMRequest{Model: "m_shared"}
 
 		a1, dec1, err := router.Select(ctx, req)
 		if err != nil {
@@ -78,7 +78,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 
 	t.Run("LeastLatency", func(t *testing.T) {
 		router := routing.NewHealthAwareRouter(registry, healthStore, "least-latency")
-		req := &llm.LLMRequest{}
+		req := &llm.LLMRequest{Model: "m_shared"}
 
 		// Give p2 lower latency
 		healthStore.BeginRequest("p1")
@@ -104,7 +104,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 		store2.EnsureProvider("p1", 3, 1)
 		store2.EnsureProvider("p2", 3, 1)
 		router := routing.NewHealthAwareRouter(registry, store2, "least-latency")
-		req := &llm.LLMRequest{}
+		req := &llm.LLMRequest{Model: "m_shared"}
 
 		_, dec, err := router.Select(ctx, req)
 		if err != nil {
@@ -129,7 +129,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 		store2.BeginRequest("p1")
 		store2.EndRequest("p1", 0, errors.NewGatewayError("test", "test", 500))
 
-		req := &llm.LLMRequest{}
+		req := &llm.LLMRequest{Model: "m_shared"}
 		for i := 0; i < 3; i++ {
 			a, _, err := router.Select(ctx, req)
 			if err != nil {
@@ -152,7 +152,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 			store2.EndRequest("p1", 0, errors.NewGatewayError("test", "test", 500))
 		}
 
-		req := &llm.LLMRequest{}
+		req := &llm.LLMRequest{Model: "m_shared"}
 		_, _, err := router2.Select(ctx, req)
 		if err != errors.ErrNoHealthyProvider {
 			t.Errorf("expected ErrNoHealthyProvider, got %v", err)
@@ -169,7 +169,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 			store2.EndRequest("p1", 0, errors.NewGatewayError("test", "test", 500))
 		}
 
-		req := &llm.LLMRequest{RouteOverride: "p1"}
+		req := &llm.LLMRequest{RouteOverride: "p1", Model: "m1"}
 		_, _, err := router2.Select(ctx, req)
 		if err != errors.ErrUnhealthyProviderOverride {
 			t.Errorf("expected ErrUnhealthyProviderOverride, got %v", err)
@@ -178,7 +178,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 
 	t.Run("Override Unknown", func(t *testing.T) {
 		router2 := routing.NewHealthAwareRouter(registry, healthStore, "round-robin")
-		req := &llm.LLMRequest{RouteOverride: "unknown"}
+		req := &llm.LLMRequest{RouteOverride: "unknown", Model: "m1"}
 		_, _, err := router2.Select(ctx, req)
 		if err != errors.ErrUnknownProviderOverride {
 			t.Errorf("expected ErrUnknownProviderOverride, got %v", err)
@@ -190,7 +190,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 		store2.EnsureProvider("p1", 3, 1)
 		store2.EnsureProvider("p2", 3, 1)
 		router2 := routing.NewHealthAwareRouter(registry, store2, "round-robin")
-		req := &llm.LLMRequest{}
+		req := &llm.LLMRequest{Model: "m_shared"}
 
 		excluded := map[string]bool{"p1": true}
 		a, _, err := router2.SelectExcluding(ctx, req, excluded)
@@ -218,6 +218,24 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 		_, _, err = router2.SelectExcluding(ctx, req, excluded)
 		if err != errors.ErrNoHealthyProvider {
 			t.Errorf("expected ErrNoHealthyProvider when available is unhealthy, got %v", err)
+		}
+	})
+
+	t.Run("No Eligible Provider", func(t *testing.T) {
+		req := &llm.LLMRequest{Model: "unknown_model"}
+		router2 := routing.NewHealthAwareRouter(registry, healthStore, "round-robin")
+		_, _, err := router2.Select(ctx, req)
+		if err != errors.ErrNoEligibleProvider {
+			t.Errorf("expected ErrNoEligibleProvider, got %v", err)
+		}
+	})
+
+	t.Run("Ineligible Override", func(t *testing.T) {
+		req := &llm.LLMRequest{RouteOverride: "p1", Model: "m2"} // p1 doesn't support m2
+		router2 := routing.NewHealthAwareRouter(registry, healthStore, "round-robin")
+		_, _, err := router2.Select(ctx, req)
+		if err != errors.ErrIneligibleProviderOverride {
+			t.Errorf("expected ErrIneligibleProviderOverride, got %v", err)
 		}
 	})
 }

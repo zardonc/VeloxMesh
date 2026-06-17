@@ -3,13 +3,13 @@ package providers
 import (
 	"fmt"
 	"veloxmesh/internal/config"
-	// We'll import openai dynamically or wire it up in app.go, but for Phase 1 we can just wire it here.
 )
 
 type Registry struct {
 	providers map[string]ProviderAdapter
 	ids       []string
 	defaultID string
+	catalog   *ModelCatalog
 }
 
 func NewRegistry(cfg *config.Config, adapters ...ProviderAdapter) *Registry {
@@ -23,7 +23,13 @@ func NewRegistry(cfg *config.Config, adapters ...ProviderAdapter) *Registry {
 		r.ids = append(r.ids, a.ID())
 	}
 
+	r.catalog = NewModelCatalog(cfg, adapters...)
+
 	return r
+}
+
+func (r *Registry) ModelCatalog() *ModelCatalog {
+	return r.catalog
 }
 
 func (r *Registry) Get(id string) (ProviderAdapter, error) {
@@ -56,18 +62,19 @@ func (r *Registry) IDs() []string {
 }
 
 func (r *Registry) GetAllModels() []string {
-	var allModels []string
-	seen := make(map[string]bool)
-	for _, id := range r.ids {
-		p := r.providers[id]
-		for _, m := range p.Models() {
-			if !seen[m] {
-				seen[m] = true
-				allModels = append(allModels, m)
-			}
-		}
-	}
-	return allModels
+	return r.catalog.GetAllModels()
+}
+
+func (r *Registry) EligibleProviders(model string, operation Operation) []ModelProvider {
+	return r.catalog.EligibleProviders(model, operation)
+}
+
+func (r *Registry) ProviderSupports(providerID string, model string, operation Operation) bool {
+	return r.catalog.ProviderSupports(providerID, model, operation)
+}
+
+func (r *Registry) DefaultModel(providerID string) (string, bool) {
+	return r.catalog.DefaultModel(providerID)
 }
 
 // ProviderCapabilities groups a provider's ID, its supported models, and its capabilities.

@@ -42,10 +42,15 @@ func (r *HealthAwareRouter) Select(ctx context.Context, req *llm.LLMRequest) (pr
 
 func (r *HealthAwareRouter) SelectExcluding(ctx context.Context, req *llm.LLMRequest, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error) {
 	if req.RouteOverride != "" {
-		return r.selectOverride(req.RouteOverride)
+		return r.selectOverride(req.RouteOverride, req.Model)
 	}
 
-	healthyProviders := r.getHealthyProviders(excluded)
+	eligible := r.registry.EligibleProviders(req.Model, providers.OperationChatCompletions)
+	if len(eligible) == 0 {
+		return nil, RoutingDecision{}, errors.ErrNoEligibleProvider
+	}
+
+	healthyProviders := r.getHealthyProviders(eligible, excluded)
 	if len(healthyProviders) == 0 {
 		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
 	}
@@ -75,24 +80,30 @@ func (r *HealthAwareRouter) SelectExcluding(ctx context.Context, req *llm.LLMReq
 	}, nil
 }
 
-func (r *HealthAwareRouter) getHealthyProviders(excluded map[string]bool) []providers.ProviderAdapter {
+func (r *HealthAwareRouter) getHealthyProviders(eligible []providers.ModelProvider, excluded map[string]bool) []providers.ProviderAdapter {
 	var healthy []providers.ProviderAdapter
-	for _, p := range r.registry.List() {
-		if excluded != nil && excluded[p.ID()] {
+	for _, pInfo := range eligible {
+		if excluded != nil && excluded[pInfo.ProviderID] {
 			continue
 		}
-		snap := r.healthStore.Snapshot(p.ID())
+		snap := r.healthStore.Snapshot(pInfo.ProviderID)
 		if snap.Status != health.StatusUnhealthy {
-			healthy = append(healthy, p)
+			if adapter, err := r.registry.Get(pInfo.ProviderID); err == nil {
+				healthy = append(healthy, adapter)
+			}
 		}
 	}
 	return healthy
 }
 
-func (r *HealthAwareRouter) selectOverride(providerID string) (providers.ProviderAdapter, RoutingDecision, error) {
+func (r *HealthAwareRouter) selectOverride(providerID string, model string) (providers.ProviderAdapter, RoutingDecision, error) {
 	adapter, err := r.registry.Get(providerID)
 	if err != nil {
 		return nil, RoutingDecision{}, errors.ErrUnknownProviderOverride
+	}
+
+	if !r.registry.ProviderSupports(providerID, model, providers.OperationChatCompletions) {
+		return nil, RoutingDecision{}, errors.ErrIneligibleProviderOverride
 	}
 
 	snap := r.healthStore.Snapshot(providerID)

@@ -62,7 +62,7 @@ func TestChatCompletions_Anthropic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rec, resp := doChatReq(t, application, "anthro-1")
+	rec, resp := doChatReqModel(t, application, "anthro-1", "claude-3-haiku")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", rec.Code)
 	}
