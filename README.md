@@ -56,6 +56,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 ### Multi-Provider Configuration (Phase 2)
 
 VeloxMesh supports dynamic routing across multiple providers via a JSON configuration file.
+This `CONFIG_FILE` approach is a temporary Phase 2 bootstrap path for local/static configuration. In later development, provider configuration will be managed at runtime through the Admin Console and persisted in the database.
 Set the `CONFIG_FILE` environment variable to a JSON file like:
 ```json
 {
@@ -122,4 +123,4 @@ When starting the gateway, the configuration is strictly validated to ensure rob
 
 By default, fallback across providers is enabled if more than one provider is configured. You can use the `X-Route-To` header to strictly override routing to a specific provider. When a strict override is used, fallback attempts are disabled.
 
-*Note: Features like Admin API, Admin Console, Redis cache, PostgreSQL storage, runtime config hot reload, advanced routing, SSE streaming proxy, rate limiting, semantic cache, cost governance, or live model discovery are explicitly deferred to later phases.*
+*Note: This static JSON configuration path is temporary. Features like Admin API, Admin Console, PostgreSQL-backed provider configuration, Redis cache, runtime config hot reload, advanced routing, SSE streaming proxy, rate limiting, semantic cache, cost governance, or live model discovery are explicitly deferred to later phases.*
