@@ -26,7 +26,13 @@ func (m *mockAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.L
 }
 
 func (m *mockAdapter) Capabilities() providers.CapabilitySet {
-	return providers.CapabilitySet{ProviderType: providers.ProviderTypeOpenAICompatible}
+	return providers.CapabilitySet{
+		ProviderType:         providers.ProviderTypeOpenAICompatible,
+		SupportedOperations:  []providers.Operation{providers.OperationChatCompletions},
+		InputModalities:      []providers.Modality{providers.ModalityText},
+		OutputModalities:     []providers.Modality{providers.ModalityText},
+		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature},
+	}
 }
 
 func (m *mockAdapter) HealthCheck(ctx context.Context) providers.HealthStatus {
@@ -100,6 +106,14 @@ func TestRegistry(t *testing.T) {
 		if caps.ProviderType != providers.ProviderTypeOpenAICompatible {
 			t.Errorf("expected openai-compatible, got %s", caps.ProviderType)
 		}
+		caps.SupportedOperations[0] = "mutated"
+		capsAgain, err := registry.Capabilities("p1")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if capsAgain.SupportedOperations[0] == "mutated" {
+			t.Error("capability slices were not copied")
+		}
 	})
 
 	t.Run("Capabilities unknown", func(t *testing.T) {
@@ -128,6 +142,11 @@ func TestRegistry(t *testing.T) {
 		allCaps[0].Models[0] = "mutated"
 		if registry.GetAllModels()[0] == "mutated" {
 			t.Error("models slice was not a copy")
+		}
+		allCaps[0].Capabilities.InputModalities[0] = "mutated"
+		allCapsAgain := registry.AllCapabilities()
+		if allCapsAgain[0].Capabilities.InputModalities[0] == "mutated" {
+			t.Error("capability metadata was not a copy")
 		}
 	})
 }

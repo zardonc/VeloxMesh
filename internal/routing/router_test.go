@@ -30,7 +30,12 @@ func (m *mockAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.L
 }
 
 func (m *mockAdapter) Capabilities() providers.CapabilitySet {
-	return providers.CapabilitySet{ProviderType: providers.ProviderTypeOpenAICompatible}
+	return providers.CapabilitySet{
+		ProviderType:        providers.ProviderTypeOpenAICompatible,
+		SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+		InputModalities:     []providers.Modality{providers.ModalityText},
+		OutputModalities:    []providers.Modality{providers.ModalityText},
+	}
 }
 
 func (m *mockAdapter) HealthCheck(ctx context.Context) providers.HealthStatus {
@@ -215,4 +220,30 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 			t.Errorf("expected ErrNoHealthyProvider when available is unhealthy, got %v", err)
 		}
 	})
+}
+
+func TestHealthAwareRouter_GetProviderCapabilities(t *testing.T) {
+	cfg := &config.Config{DefaultProvider: "p1"}
+	p1 := &mockAdapter{id: "p1", models: []string{"m1"}}
+	p2 := &mockAdapter{id: "p2", models: []string{"m2"}}
+	registry := providers.NewRegistry(cfg, p1, p2)
+	healthStore := health.NewInMemoryStore()
+	router := routing.NewHealthAwareRouter(registry, healthStore, "round-robin")
+
+	caps := router.GetProviderCapabilities()
+	if len(caps) != 2 {
+		t.Fatalf("expected 2 provider capabilities, got %d", len(caps))
+	}
+	if caps[0].ID != "p1" || caps[1].ID != "p2" {
+		t.Fatalf("expected stable provider order [p1 p2], got [%s %s]", caps[0].ID, caps[1].ID)
+	}
+	if caps[0].Capabilities.ProviderType != providers.ProviderTypeOpenAICompatible {
+		t.Errorf("expected openai-compatible capabilities, got %s", caps[0].Capabilities.ProviderType)
+	}
+
+	caps[0].Capabilities.SupportedOperations[0] = "mutated"
+	capsAgain := router.GetProviderCapabilities()
+	if capsAgain[0].Capabilities.SupportedOperations[0] == "mutated" {
+		t.Error("router returned mutable provider capability metadata")
+	}
 }

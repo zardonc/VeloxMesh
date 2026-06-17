@@ -25,7 +25,12 @@ func (m *mockAdapter) Models() []string {
 	return []string{"gpt-4o"}
 }
 func (m *mockAdapter) Capabilities() providers.CapabilitySet {
-	return providers.CapabilitySet{ProviderType: providers.ProviderTypeOpenAICompatible}
+	return providers.CapabilitySet{
+		ProviderType:        providers.ProviderTypeOpenAICompatible,
+		SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+		InputModalities:     []providers.Modality{providers.ModalityText},
+		OutputModalities:    []providers.Modality{providers.ModalityText},
+	}
 }
 func (m *mockAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	return &llm.LLMResponse{}, m.err
@@ -79,5 +84,31 @@ func TestService_HandleChatCompletion_AttemptLoopHealth(t *testing.T) {
 		// p2 failed, p1 succeeded
 	} else {
 		t.Errorf("expected one provider to have 1 failure and the other 0, got p1:%d, p2:%d", snap1.ConsecutiveFailures, snap2.ConsecutiveFailures)
+	}
+}
+
+func TestService_GetProviderCapabilities(t *testing.T) {
+	store := health.NewInMemoryStore()
+	p1 := &mockAdapter{id: "p1"}
+	p2 := &mockAdapter{id: "p2"}
+	registry := providers.NewRegistry(&config.Config{}, p1, p2)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2)
+
+	caps := svc.GetProviderCapabilities()
+	if len(caps) != 2 {
+		t.Fatalf("expected 2 provider capabilities, got %d", len(caps))
+	}
+	if caps[0].ID != "p1" || caps[1].ID != "p2" {
+		t.Fatalf("expected stable provider order [p1 p2], got [%s %s]", caps[0].ID, caps[1].ID)
+	}
+	if caps[0].Capabilities.ProviderType != providers.ProviderTypeOpenAICompatible {
+		t.Errorf("expected openai-compatible capabilities, got %s", caps[0].Capabilities.ProviderType)
+	}
+
+	caps[0].Capabilities.InputModalities[0] = "mutated"
+	capsAgain := svc.GetProviderCapabilities()
+	if capsAgain[0].Capabilities.InputModalities[0] == "mutated" {
+		t.Error("service returned mutable provider capability metadata")
 	}
 }

@@ -9,7 +9,44 @@ import (
 
 	gatewayErr "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
+	"veloxmesh/internal/providers"
 )
+
+func TestAdapter_Capabilities(t *testing.T) {
+	adapter := NewAdapter("anthropic-1", "https://example.test/", "test-key", "claude-3-5-sonnet-20240620")
+	caps := adapter.Capabilities()
+
+	if caps.ProviderType != providers.ProviderTypeAnthropic {
+		t.Errorf("expected provider type %q, got %q", providers.ProviderTypeAnthropic, caps.ProviderType)
+	}
+	if len(caps.SupportedOperations) != 1 || caps.SupportedOperations[0] != providers.OperationChatCompletions {
+		t.Errorf("expected chat_completions operation, got %v", caps.SupportedOperations)
+	}
+	if len(caps.InputModalities) != 1 || caps.InputModalities[0] != providers.ModalityText {
+		t.Errorf("expected text input modality, got %v", caps.InputModalities)
+	}
+	if len(caps.OutputModalities) != 1 || caps.OutputModalities[0] != providers.ModalityText {
+		t.Errorf("expected text output modality, got %v", caps.OutputModalities)
+	}
+	if caps.Streaming {
+		t.Error("expected streaming to be false")
+	}
+	if caps.ToolCalling {
+		t.Error("expected tool calling to be false")
+	}
+	expectedParams := []providers.GenerationParameter{
+		providers.GenerationParameterTemperature,
+		providers.GenerationParameterMaxTokens,
+	}
+	if len(caps.GenerationParameters) != len(expectedParams) {
+		t.Fatalf("expected %d generation parameters, got %d", len(expectedParams), len(caps.GenerationParameters))
+	}
+	for i, expected := range expectedParams {
+		if caps.GenerationParameters[i] != expected {
+			t.Errorf("expected generation parameter %d to be %q, got %q", i, expected, caps.GenerationParameters[i])
+		}
+	}
+}
 
 func TestAdapter_Complete(t *testing.T) {
 	tests := []struct {
