@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-15
 **Mode:** brownfield retrospective initialization
-**Current focus:** Phase 2.9 - Provider Model Catalog and Routing Eligibility
+**Current focus:** Phase 2.10 - Adapter Conformance Test Harness
 
 ## Overview
 
@@ -19,8 +19,8 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 | 2.6 | Active Provider Health Probing and Recovery | Complete | 1/1 complete | active probing, probe-driven recovery, readiness probe visibility |
 | 2.7 | Provider Adapter Capability Contract | Planned | 2/2 planned | provider-neutral adapter capability metadata |
 | 2.8 | Provider Configuration Schema and Secret-Safe Validation | Planned | 1/1 planned | static config schema hardening |
-| 2.9 | Provider Model Catalog and Routing Eligibility | Planned | 1/1 planned | model/provider capability eligibility |
-| 2.10 | Adapter Conformance Test Harness | Proposed | 0/0 | reusable adapter contract tests |
+| 2.9 | Provider Model Catalog and Routing Eligibility | Complete | 1/1 complete | model/provider capability eligibility |
+| 2.10 | Adapter Conformance Test Harness | Planned | 1/1 planned | reusable adapter contract tests |
 | 3 | Durable Control State | Future | 0/0 | CTRL-01..03 |
 | 4 | Streaming, Rate Limits, Cache, and Cost | Future | 0/0 | STRM-01, RATE-01, CACHE-01, COST-01, CB-01 |
 
@@ -173,10 +173,13 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 2.9: Provider Model Catalog and Routing Eligibility
 
 **Goal:** Build an internal model catalog that maps models to providers and provider capabilities.
-**Status:** Planned
+**Status:** Complete
 **Primary artifacts:**
 - `.planning/phases/02-health-aware-routing/02-09-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-09-PLAN.md`
+- `.planning/phases/02-health-aware-routing/02-09-SUMMARY.md`
+- `.planning/phases/02-health-aware-routing/02-09-UAT.md`
+- `.planning/phases/02-health-aware-routing/02-09-SECURITY.md`
 
 **Success Criteria:**
 1. Catalog derives model/provider eligibility from static config and adapter capability metadata.
@@ -187,7 +190,10 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 2.10: Adapter Conformance Test Harness
 
 **Goal:** Create reusable conformance tests that every current and future provider adapter must pass.
-**Status:** Proposed
+**Status:** Planned
+**Primary artifacts:**
+- `.planning/phases/02-health-aware-routing/02-10-CONTEXT.md`
+- `.planning/phases/02-health-aware-routing/02-10-PLAN.md`
 
 **Success Criteria:**
 1. Shared test helpers cover request mapping sanity, response normalization, finish reason mapping, structured error categories, health-check behavior, and secret-safe errors.
@@ -219,8 +225,8 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ## Notes
 
 - Phase 2 remains static-config and in-process until durable control state is explicitly scoped.
-- Do not add PostgreSQL, Redis, Admin API, Admin Console UI, runtime CRUD, streaming, semantic cache, rate limiting, or cost governance during Phase 2.9.
+- Do not add PostgreSQL, Redis, Admin API, Admin Console UI, runtime CRUD, streaming, semantic cache, rate limiting, or cost governance during Phase 2.10.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
 
 ---
-*Roadmap refreshed: 2026-06-17 for Phase 2.9 planning*
+*Roadmap refreshed: 2026-06-17 for Phase 2.10 planning*

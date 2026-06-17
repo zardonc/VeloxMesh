@@ -6,14 +6,14 @@ status: active
 last_updated: "2026-06-16T00:00:00-07:00"
 progress:
   total_phases: 11
-  completed_phases: 7
-  total_plans: 11
-  completed_plans: 7
-  percent: 73
+  completed_phases: 8
+  total_plans: 12
+  completed_plans: 8
+  percent: 75
 current:
-  phase: "2.9"
-  name: "Provider Model Catalog and Routing Eligibility"
-  resume_file: ".planning/phases/02-health-aware-routing/02-09-PLAN.md"
+  phase: "2.10"
+  name: "Adapter Conformance Test Harness"
+  resume_file: ".planning/phases/02-health-aware-routing/02-10-PLAN.md"
 ---
 
 ## Project Reference
@@ -22,7 +22,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 2.9 - Provider Model Catalog and Routing Eligibility.
+**Current focus:** Phase 2.10 - Adapter Conformance Test Harness.
 
 ## Current Implementation State
 
@@ -35,7 +35,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 - Phase 2.6 active provider health probing and recovery is complete and verified 15/15.
 - Phase 2.7 provider adapter capability contract is implemented and validated.
 - Phase 2.8 provider configuration schema and secret-safe validation is implemented and UAT verified.
-- Phase 2.9 is planned next as one executable slice for provider model catalog and routing eligibility.
+- Phase 2.9 provider model catalog and routing eligibility is implemented, UAT verified, and security verified.
+- Phase 2.10 is planned next as one executable slice for adapter conformance test harness coverage.
 
 ## Completed
 
@@ -46,14 +47,15 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 - Phase 2.4: Provider Reliability and Error Contract.
 - Phase 2.5: Provider Retry and Fallback Execution.
 - Phase 2.6: Active Provider Health Probing and Recovery.
+- Phase 2.9: Provider Model Catalog and Routing Eligibility.
 
 ## Planned Next
 
-1. Execute `.planning/phases/02-health-aware-routing/02-09-PLAN.md`.
-2. Plan Phase 2.10 for adapter conformance test harness.
+1. Execute `.planning/phases/02-health-aware-routing/02-10-PLAN.md`.
+2. Verify Phase 2.10 adapter conformance harness work after implementation.
 
 ## Useful Commands
 
-- `$gsd-execute-phase 2.9` - execute the provider model catalog and routing eligibility plan.
-- `$gsd-plan-phase 2.10` - create the adapter conformance test harness plan.
+- `$gsd-execute-phase 2.10` - execute the adapter conformance test harness plan.
+- `$gsd-verify-work 2.10` - verify the adapter conformance harness after execution.
 - `go test ./...` - run the current Go test suite.
