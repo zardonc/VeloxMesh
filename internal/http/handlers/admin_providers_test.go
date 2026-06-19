@@ -16,10 +16,14 @@ import (
 // A simplified mock repo for handlers test
 type mockAdminRepo struct {
 	controlstate.Repository
-	provRepo *mockProvRepo
+	provRepo  *mockProvRepo
+	idemRepo  controlstate.IdempotencyRepository
+	auditRepo controlstate.AuditRepository
 }
 
-func (m *mockAdminRepo) Providers() controlstate.ProviderRepository { return m.provRepo }
+func (m *mockAdminRepo) Providers() controlstate.ProviderRepository      { return m.provRepo }
+func (m *mockAdminRepo) Idempotency() controlstate.IdempotencyRepository { return m.idemRepo }
+func (m *mockAdminRepo) Audit() controlstate.AuditRepository             { return m.auditRepo }
 func (m *mockAdminRepo) BeginTx(ctx context.Context) (controlstate.Transaction, error) {
 	return &mockTx{}, nil
 }
@@ -29,9 +33,47 @@ type mockTx struct{}
 func (m *mockTx) Commit() error   { return nil }
 func (m *mockTx) Rollback() error { return nil }
 
+type mockIdempotencyRepo struct {
+	controlstate.IdempotencyRepository
+	records map[string]*controlstate.IdempotencyRecord
+}
+
+func (m *mockIdempotencyRepo) Get(ctx context.Context, key string) (*controlstate.IdempotencyRecord, error) {
+	if rec, ok := m.records[key]; ok {
+		return rec, nil
+	}
+	return nil, nil
+}
+
+func (m *mockIdempotencyRepo) Save(ctx context.Context, record *controlstate.IdempotencyRecord) error {
+	if m.records == nil {
+		m.records = make(map[string]*controlstate.IdempotencyRecord)
+	}
+	m.records[record.Key] = record
+	return nil
+}
+
+type mockAuditRepo struct {
+	controlstate.AuditRepository
+}
+
+func (m *mockAuditRepo) Log(ctx context.Context, event *controlstate.AuditEvent) error {
+	return nil
+}
+
 type mockProvRepo struct {
 	controlstate.ProviderRepository
 	records []*controlstate.ProviderRecord
+}
+
+func (m *mockProvRepo) Get(ctx context.Context, id string) (*controlstate.ProviderRecord, error) {
+	for _, r := range m.records {
+		if r.ID == id {
+			return r, nil
+		}
+	}
+	// Return empty record for tests where id isn't set up
+	return &controlstate.ProviderRecord{ID: id, Enabled: true, Type: "openai-compatible"}, nil
 }
 
 func (m *mockProvRepo) Create(ctx context.Context, p *controlstate.ProviderMutation) (*controlstate.ProviderRecord, error) {
@@ -68,7 +110,7 @@ func (m *mockAdminCipher) DecryptProviderSecret(s *controlstate.EncryptedSecret)
 }
 
 func TestAdminProvidersHandler_Create(t *testing.T) {
-	repo := &mockAdminRepo{provRepo: &mockProvRepo{}}
+	repo := &mockAdminRepo{provRepo: &mockProvRepo{}, idemRepo: &mockIdempotencyRepo{}, auditRepo: &mockAuditRepo{}}
 	cipher := &mockAdminCipher{}
 	manager := controlstate.NewRuntimeProviderManager(&config.Config{}, nil)
 	svc := controlstate.NewAdminProviderService(repo, cipher, manager)
@@ -90,7 +132,7 @@ func TestAdminProvidersHandler_Create(t *testing.T) {
 }
 
 func TestAdminProvidersHandler_Create_ValidationFail(t *testing.T) {
-	repo := &mockAdminRepo{provRepo: &mockProvRepo{}}
+	repo := &mockAdminRepo{provRepo: &mockProvRepo{}, idemRepo: &mockIdempotencyRepo{}, auditRepo: &mockAuditRepo{}}
 	cipher := &mockAdminCipher{}
 	manager := controlstate.NewRuntimeProviderManager(&config.Config{}, nil)
 	svc := controlstate.NewAdminProviderService(repo, cipher, manager)
@@ -115,5 +157,41 @@ func TestAdminProvidersHandler_Create_ValidationFail(t *testing.T) {
 	json.Unmarshal(rr.Body.Bytes(), &resp)
 	if resp["code"] != "validation_failed" {
 		t.Errorf("expected validation_failed, got %v", resp["code"])
+	}
+}
+
+func TestAdminProvidersHandler_TestConnection(t *testing.T) {
+	repo := &mockAdminRepo{auditRepo: &mockAuditRepo{}, idemRepo: &mockIdempotencyRepo{}, provRepo: &mockProvRepo{
+		records: []*controlstate.ProviderRecord{
+			{
+				ID:      "p1",
+				Type:    "openai-compatible",
+				BaseURL: "http://example.com",
+				Enabled: true,
+				Models:  []string{"gpt-4"},
+			},
+		},
+	}}
+	cipher := &mockAdminCipher{}
+	manager := controlstate.NewRuntimeProviderManager(&config.Config{}, nil)
+	svc := controlstate.NewAdminProviderService(repo, cipher, manager)
+	handler := NewAdminProvidersHandler(svc)
+
+	r := chi.NewRouter()
+	r.Post("/admin/v1/providers/{id}/test-connection", handler.TestConnection)
+
+	req := httptest.NewRequest("POST", "/admin/v1/providers/p1/test-connection", nil)
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d. Body: %s", rr.Code, rr.Body.String())
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(rr.Body.Bytes(), &resp)
+	if _, ok := resp["ok"]; !ok {
+		t.Errorf("expected ok field in response")
 	}
 }

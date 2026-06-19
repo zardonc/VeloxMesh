@@ -74,6 +74,8 @@ CREATE TABLE audit_events (
 
 CREATE TABLE idempotency_keys (
     key VARCHAR(255) PRIMARY KEY,
+    action_name VARCHAR(255) NOT NULL,
+    fingerprint VARCHAR(255) NOT NULL,
     status VARCHAR(50) NOT NULL,
     response TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),

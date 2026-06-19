@@ -309,19 +309,83 @@ func (u *usageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) e
 
 type auditRepo struct{ pool *pgxpool.Pool }
 
-func (a *auditRepo) Log(ctx context.Context, event *controlstate.AuditEvent) error { return nil }
+func (a *auditRepo) Log(ctx context.Context, event *controlstate.AuditEvent) error {
+	if event.ID == "" {
+		event.ID = time.Now().UTC().Format("20060102150405.000000000") + "-" + event.Action
+	}
+	if event.Timestamp.IsZero() {
+		event.Timestamp = time.Now().UTC()
+	}
+	_, err := a.pool.Exec(ctx, `
+		INSERT INTO audit_events (id, actor, action, target_id, outcome, metadata, timestamp)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+		event.ID, event.Actor, event.Action, event.TargetID, event.Outcome, event.Metadata, event.Timestamp,
+	)
+	return err
+}
 func (a *auditRepo) List(ctx context.Context, targetID string) ([]*controlstate.AuditEvent, error) {
-	return nil, nil
+	rows, err := a.pool.Query(ctx, `
+		SELECT id, actor, action, target_id, outcome, metadata, timestamp
+		FROM audit_events
+		WHERE target_id = $1
+		ORDER BY timestamp ASC`, targetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var events []*controlstate.AuditEvent
+	for rows.Next() {
+		event := &controlstate.AuditEvent{}
+		if err := rows.Scan(&event.ID, &event.Actor, &event.Action, &event.TargetID, &event.Outcome, &event.Metadata, &event.Timestamp); err != nil {
+			return nil, err
+		}
+		events = append(events, event)
+	}
+	return events, rows.Err()
 }
 func (a *auditRepo) PurgeOld(ctx context.Context, beforeTimestamp string) (int64, error) {
-	return 0, nil
+	res, err := a.pool.Exec(ctx, `DELETE FROM audit_events WHERE timestamp < $1`, beforeTimestamp)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected(), nil
 }
 
 type idempotencyRepo struct{ pool *pgxpool.Pool }
 
 func (i *idempotencyRepo) Get(ctx context.Context, key string) (*controlstate.IdempotencyRecord, error) {
-	return nil, nil
+	row := i.pool.QueryRow(ctx, `
+		SELECT key, action_name, fingerprint, status, response, created_at, expires_at
+		FROM idempotency_keys
+		WHERE key = $1`, key)
+	record := &controlstate.IdempotencyRecord{}
+	var response *string
+	if err := row.Scan(&record.Key, &record.ActionName, &record.Fingerprint, &record.Status, &response, &record.CreatedAt, &record.ExpiresAt); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if response != nil {
+		record.Response = *response
+	}
+	return record, nil
 }
 func (i *idempotencyRepo) Save(ctx context.Context, record *controlstate.IdempotencyRecord) error {
-	return nil
+	if record.CreatedAt.IsZero() {
+		record.CreatedAt = time.Now().UTC()
+	}
+	_, err := i.pool.Exec(ctx, `
+		INSERT INTO idempotency_keys (key, action_name, fingerprint, status, response, created_at, expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		ON CONFLICT(key) DO UPDATE SET
+			action_name=excluded.action_name,
+			fingerprint=excluded.fingerprint,
+			status=excluded.status,
+			response=excluded.response,
+			expires_at=excluded.expires_at`,
+		record.Key, record.ActionName, record.Fingerprint, record.Status, record.Response, record.CreatedAt, record.ExpiresAt,
+	)
+	return err
 }

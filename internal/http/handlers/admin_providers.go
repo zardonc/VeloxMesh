@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -19,21 +21,36 @@ func NewAdminProvidersHandler(service *controlstate.AdminProviderService) *Admin
 }
 
 func (h *AdminProvidersHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var req controlstate.ProviderCreateRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		sendAdminError(w, gwErr.NewGatewayError("invalid_request", "invalid JSON body", http.StatusBadRequest))
+	key := controlstate.IdempotencyKeyFromRequest(r)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		sendAdminError(w, gwErr.NewGatewayError("invalid_request", "failed to read body", http.StatusBadRequest))
 		return
 	}
 
-	resp, err := h.service.Create(r.Context(), &req)
+	res, err := h.service.WithIdempotency(r.Context(), key, "provider.create", r.Method, r.URL.Path, body, func(ctx context.Context) (interface{}, error) {
+		var req controlstate.ProviderCreateRequest
+		if err := json.Unmarshal(body, &req); err != nil {
+			return nil, gwErr.NewGatewayError("invalid_request", "invalid JSON body", http.StatusBadRequest)
+		}
+		return h.service.Create(ctx, &req)
+	})
+
 	if err != nil {
 		sendAdminError(w, err)
 		return
 	}
 
+	if idemRes, ok := res.(*controlstate.IdempotencyResult); ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(idemRes.Status)
+		w.Write(idemRes.Response)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(res)
 }
 
 func (h *AdminProvidersHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -83,20 +100,63 @@ func (h *AdminProvidersHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req controlstate.ProviderUpdateRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		sendAdminError(w, gwErr.NewGatewayError("invalid_request", "invalid JSON body", http.StatusBadRequest))
+	key := controlstate.IdempotencyKeyFromRequest(r)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		sendAdminError(w, gwErr.NewGatewayError("invalid_request", "failed to read body", http.StatusBadRequest))
 		return
 	}
 
-	resp, err := h.service.Update(r.Context(), id, &req)
+	res, err := h.service.WithIdempotency(r.Context(), key, "provider.update", r.Method, r.URL.Path, body, func(ctx context.Context) (interface{}, error) {
+		var req controlstate.ProviderUpdateRequest
+		if err := json.Unmarshal(body, &req); err != nil {
+			return nil, gwErr.NewGatewayError("invalid_request", "invalid JSON body", http.StatusBadRequest)
+		}
+		return h.service.Update(ctx, id, &req)
+	})
+
 	if err != nil {
 		sendAdminError(w, err)
 		return
 	}
 
+	if idemRes, ok := res.(*controlstate.IdempotencyResult); ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(idemRes.Status)
+		w.Write(idemRes.Response)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(res)
+}
+
+func (h *AdminProvidersHandler) TestConnection(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		sendAdminError(w, gwErr.NewGatewayError("invalid_request", "missing id", http.StatusBadRequest))
+		return
+	}
+
+	key := controlstate.IdempotencyKeyFromRequest(r)
+	res, err := h.service.WithIdempotency(r.Context(), key, "provider.test_connection", r.Method, r.URL.Path, nil, func(ctx context.Context) (interface{}, error) {
+		return h.service.TestConnection(ctx, id)
+	})
+
+	if err != nil {
+		sendAdminError(w, err)
+		return
+	}
+
+	if idemRes, ok := res.(*controlstate.IdempotencyResult); ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(idemRes.Status)
+		w.Write(idemRes.Response)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(res)
 }
 
 func (h *AdminProvidersHandler) Disable(w http.ResponseWriter, r *http.Request) {
@@ -106,9 +166,22 @@ func (h *AdminProvidersHandler) Disable(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err := h.service.Disable(r.Context(), id)
+	key := controlstate.IdempotencyKeyFromRequest(r)
+	res, err := h.service.WithIdempotency(r.Context(), key, "provider.disable", r.Method, r.URL.Path, nil, func(ctx context.Context) (interface{}, error) {
+		return nil, h.service.Disable(ctx, id)
+	})
+
 	if err != nil {
 		sendAdminError(w, err)
+		return
+	}
+
+	if idemRes, ok := res.(*controlstate.IdempotencyResult); ok {
+		if idemRes.Status != http.StatusNoContent {
+			w.Header().Set("Content-Type", "application/json")
+		}
+		w.WriteHeader(idemRes.Status)
+		w.Write(idemRes.Response)
 		return
 	}
 
@@ -122,9 +195,22 @@ func (h *AdminProvidersHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.Delete(r.Context(), id)
+	key := controlstate.IdempotencyKeyFromRequest(r)
+	res, err := h.service.WithIdempotency(r.Context(), key, "provider.delete", r.Method, r.URL.Path, nil, func(ctx context.Context) (interface{}, error) {
+		return nil, h.service.Delete(ctx, id)
+	})
+
 	if err != nil {
 		sendAdminError(w, err)
+		return
+	}
+
+	if idemRes, ok := res.(*controlstate.IdempotencyResult); ok {
+		if idemRes.Status != http.StatusNoContent {
+			w.Header().Set("Content-Type", "application/json")
+		}
+		w.WriteHeader(idemRes.Status)
+		w.Write(idemRes.Response)
 		return
 	}
 

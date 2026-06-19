@@ -33,6 +33,16 @@ type ProviderResponse struct {
 	UpdatedAt    time.Time              `json:"updated_at"`
 }
 
+type ProviderTestConnectionResponse struct {
+	ProviderID   string    `json:"provider_id"`
+	ProviderType string    `json:"provider_type"`
+	OK           bool      `json:"ok"`
+	Code         string    `json:"code"`
+	Message      string    `json:"message"`
+	LatencyMs    int64     `json:"latency_ms"`
+	CheckedAt    time.Time `json:"checked_at"`
+}
+
 type ProviderListResponse struct {
 	Data []*ProviderResponse `json:"data"`
 }
@@ -101,7 +111,24 @@ func (s *AdminProviderService) mapToResponse(r *ProviderRecord) *ProviderRespons
 	}
 }
 
-func (s *AdminProviderService) Create(ctx context.Context, req *ProviderCreateRequest) (*ProviderResponse, error) {
+func (s *AdminProviderService) Create(ctx context.Context, req *ProviderCreateRequest) (res *ProviderResponse, err error) {
+	outcome := "success"
+	var meta map[string]interface{}
+	defer func() {
+		if err != nil {
+			if IsValidationError(err) {
+				outcome = "validation_failed"
+			} else if gwE, ok := err.(*gwErr.GatewayError); ok && gwE.Code == "provider_conflict" {
+				outcome = "conflict"
+			} else if err.Error() == "activation failed" || strings.Contains(err.Error(), "activation failed") {
+				outcome = "activation_failed"
+			} else {
+				outcome = "provider_failed"
+			}
+		}
+		s.RecordAudit(ctx, "provider.create", req.ID, outcome, meta)
+	}()
+
 	enabled := true
 	if req.Enabled != nil {
 		enabled = *req.Enabled
@@ -166,7 +193,24 @@ func (s *AdminProviderService) Create(ctx context.Context, req *ProviderCreateRe
 	return s.mapToResponse(created), nil
 }
 
-func (s *AdminProviderService) Update(ctx context.Context, id string, req *ProviderUpdateRequest) (*ProviderResponse, error) {
+func (s *AdminProviderService) Update(ctx context.Context, id string, req *ProviderUpdateRequest) (res *ProviderResponse, err error) {
+	outcome := "success"
+	var meta map[string]interface{}
+	defer func() {
+		if err != nil {
+			if IsValidationError(err) {
+				outcome = "validation_failed"
+			} else if gwE, ok := err.(*gwErr.GatewayError); ok && gwE.Code == "provider_conflict" {
+				outcome = "conflict"
+			} else if strings.Contains(err.Error(), "activation failed") {
+				outcome = "activation_failed"
+			} else {
+				outcome = "provider_failed"
+			}
+		}
+		s.RecordAudit(ctx, "provider.update", id, outcome, meta)
+	}()
+
 	mutation := &ProviderMutation{
 		ID:           id,
 		Name:         req.Name,
@@ -226,6 +270,91 @@ func (s *AdminProviderService) Update(ctx context.Context, id string, req *Provi
 	return s.mapToResponse(updated), nil
 }
 
+func (s *AdminProviderService) TestConnection(ctx context.Context, id string) (res *ProviderTestConnectionResponse, err error) {
+	outcome := "success"
+	var meta map[string]interface{}
+	defer func() {
+		if err != nil {
+			outcome = "provider_failed"
+		} else if res != nil && !res.OK {
+			outcome = res.Code
+			meta = map[string]interface{}{"message": res.Message}
+		}
+		s.RecordAudit(ctx, "provider.test_connection", id, outcome, meta)
+	}()
+
+	start := time.Now()
+
+	rec, err := s.repo.Providers().Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if rec == nil {
+		return nil, gwErr.NewGatewayError("provider_not_found", "provider not found", 404)
+	}
+
+	if !rec.Enabled {
+		return &ProviderTestConnectionResponse{
+			ProviderID:   rec.ID,
+			ProviderType: rec.Type,
+			OK:           false,
+			Code:         "provider_disabled",
+			Message:      "provider is disabled",
+			LatencyMs:    time.Since(start).Milliseconds(),
+			CheckedAt:    time.Now().UTC(),
+		}, nil
+	}
+
+	ciphertext, nonce, keyID, err := s.repo.Providers().GetEncryptedSecret(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get encrypted secret: %w", err)
+	}
+
+	var apiKey string
+	if len(ciphertext) > 0 {
+		cleartext, err := s.cipher.DecryptProviderSecret(&EncryptedSecret{
+			Ciphertext: ciphertext,
+			Nonce:      nonce,
+			KeyID:      keyID,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to decrypt secret: %w", err)
+		}
+		apiKey = string(cleartext)
+	}
+
+	adapters, err := BuildProviderAdapters([]*ProviderRecord{rec}, map[string]string{rec.ID: apiKey})
+	if err != nil {
+		return &ProviderTestConnectionResponse{
+			ProviderID:   rec.ID,
+			ProviderType: rec.Type,
+			OK:           false,
+			Code:         "provider_configuration_invalid",
+			Message:      err.Error(),
+			LatencyMs:    time.Since(start).Milliseconds(),
+			CheckedAt:    time.Now().UTC(),
+		}, nil
+	}
+
+	adapter := adapters[0]
+	hs := adapter.HealthCheck(ctx)
+
+	code := "success"
+	if !hs.Available {
+		code = "provider_unavailable"
+	}
+
+	return &ProviderTestConnectionResponse{
+		ProviderID:   rec.ID,
+		ProviderType: rec.Type,
+		OK:           hs.Available,
+		Code:         code,
+		Message:      hs.Message,
+		LatencyMs:    time.Since(start).Milliseconds(),
+		CheckedAt:    time.Now().UTC(),
+	}, nil
+}
+
 func (s *AdminProviderService) Get(ctx context.Context, id string) (*ProviderResponse, error) {
 	rec, err := s.repo.Providers().Get(ctx, id)
 	if err != nil {
@@ -252,7 +381,16 @@ func (s *AdminProviderService) List(ctx context.Context, filter ProviderFilter) 
 	return &ProviderListResponse{Data: data}, nil
 }
 
-func (s *AdminProviderService) Disable(ctx context.Context, id string) error {
+func (s *AdminProviderService) Disable(ctx context.Context, id string) (err error) {
+	outcome := "success"
+	var meta map[string]interface{}
+	defer func() {
+		if err != nil {
+			outcome = "provider_failed"
+		}
+		s.RecordAudit(ctx, "provider.disable", id, outcome, meta)
+	}()
+
 	rec, err := s.repo.Providers().Get(ctx, id)
 	if err != nil {
 		return err
@@ -300,7 +438,20 @@ func (s *AdminProviderService) Disable(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *AdminProviderService) Delete(ctx context.Context, id string) error {
+func (s *AdminProviderService) Delete(ctx context.Context, id string) (err error) {
+	outcome := "success"
+	var meta map[string]interface{}
+	defer func() {
+		if err != nil {
+			if gwE, ok := err.(*gwErr.GatewayError); ok && gwE.Code == "provider_delete_not_safe" {
+				outcome = "conflict"
+			} else {
+				outcome = "provider_failed"
+			}
+		}
+		s.RecordAudit(ctx, "provider.delete", id, outcome, meta)
+	}()
+
 	// First check if it exists
 	rec, err := s.repo.Providers().Get(ctx, id)
 	if err != nil {

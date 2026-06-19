@@ -33,6 +33,7 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 			r.Get("/admin/v1/providers/{id}", adminProvHandler.Get)
 			r.Put("/admin/v1/providers/{id}", adminProvHandler.Update)
 			r.Post("/admin/v1/providers/{id}/disable", adminProvHandler.Disable)
+			r.Post("/admin/v1/providers/{id}/test-connection", adminProvHandler.TestConnection)
 			r.Delete("/admin/v1/providers/{id}", adminProvHandler.Delete)
 		})
 	}

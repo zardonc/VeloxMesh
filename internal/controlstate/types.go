@@ -98,11 +98,13 @@ type AuditEvent struct {
 }
 
 type IdempotencyRecord struct {
-	Key       string    `json:"key"`
-	Status    string    `json:"status"`
-	Response  string    `json:"response,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
-	ExpiresAt time.Time `json:"expires_at"`
+	Key         string    `json:"key"`
+	ActionName  string    `json:"action_name"`
+	Fingerprint string    `json:"fingerprint"`
+	Status      string    `json:"status"`
+	Response    string    `json:"response,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
+	ExpiresAt   time.Time `json:"expires_at"`
 }
 
 type ConfigChangeEvent struct {

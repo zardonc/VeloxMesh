@@ -18,14 +18,31 @@ import (
 )
 
 // A dummy control state repo using memory for tests
-type memoryRepository struct {
-	controlstate.Repository
-	provRepo *memoryProviderRepo
+type dummyAuditRepo struct{ controlstate.AuditRepository }
+
+func (d *dummyAuditRepo) Log(ctx context.Context, event *controlstate.AuditEvent) error { return nil }
+
+type dummyIdemRepo struct {
+	controlstate.IdempotencyRepository
 }
 
-func (m *memoryRepository) Providers() controlstate.ProviderRepository {
-	return m.provRepo
+func (d *dummyIdemRepo) Get(ctx context.Context, key string) (*controlstate.IdempotencyRecord, error) {
+	return nil, nil
 }
+func (d *dummyIdemRepo) Save(ctx context.Context, record *controlstate.IdempotencyRecord) error {
+	return nil
+}
+
+type memoryRepository struct {
+	controlstate.Repository
+	provRepo  *memoryProviderRepo
+	idemRepo  controlstate.IdempotencyRepository
+	auditRepo controlstate.AuditRepository
+}
+
+func (m *memoryRepository) Providers() controlstate.ProviderRepository      { return m.provRepo }
+func (m *memoryRepository) Idempotency() controlstate.IdempotencyRepository { return m.idemRepo }
+func (m *memoryRepository) Audit() controlstate.AuditRepository             { return m.auditRepo }
 
 type memoryProviderRepo struct {
 	controlstate.ProviderRepository
@@ -156,7 +173,11 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	provRepo := &memoryProviderRepo{
 		records: []*controlstate.ProviderRecord{},
 	}
-	repo := &memoryRepository{provRepo: provRepo}
+	repo := &memoryRepository{
+		provRepo:  provRepo,
+		auditRepo: &dummyAuditRepo{},
+		idemRepo:  &dummyIdemRepo{},
+	}
 	cipher := &memoryCipher{}
 
 	// 1. Initial reload with empty repo

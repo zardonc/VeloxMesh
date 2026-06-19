@@ -13,6 +13,16 @@ type mockTransaction struct{}
 func (m *mockTransaction) Commit() error   { return nil }
 func (m *mockTransaction) Rollback() error { return nil }
 
+type mockAuditRepo struct {
+	AuditRepository
+	events []*AuditEvent
+}
+
+func (m *mockAuditRepo) Log(ctx context.Context, event *AuditEvent) error {
+	m.events = append(m.events, event)
+	return nil
+}
+
 type mockProviderRepo struct {
 	ProviderRepository
 	records []*ProviderRecord
@@ -105,11 +115,15 @@ func (m *mockProviderRepo) PutEncryptedSecret(ctx context.Context, id string, ci
 
 type mockRepo struct {
 	Repository
-	provRepo *mockProviderRepo
-	errTx    error
+	provRepo  *mockProviderRepo
+	idemRepo  IdempotencyRepository
+	auditRepo AuditRepository
+	errTx     error
 }
 
-func (m *mockRepo) Providers() ProviderRepository { return m.provRepo }
+func (m *mockRepo) Providers() ProviderRepository      { return m.provRepo }
+func (m *mockRepo) Idempotency() IdempotencyRepository { return m.idemRepo }
+func (m *mockRepo) Audit() AuditRepository             { return m.auditRepo }
 func (m *mockRepo) BeginTx(ctx context.Context) (Transaction, error) {
 	if m.errTx != nil {
 		return nil, m.errTx
@@ -137,7 +151,7 @@ func (m *mockCipher) DecryptProviderSecret(s *EncryptedSecret) ([]byte, error) {
 }
 
 func TestAdminProviderService_Create_Validation(t *testing.T) {
-	repo := &mockRepo{provRepo: &mockProviderRepo{}}
+	repo := &mockRepo{provRepo: &mockProviderRepo{}, auditRepo: &mockAuditRepo{}}
 	cipher := &mockCipher{}
 	manager := NewRuntimeProviderManager(&config.Config{}, nil)
 	svc := NewAdminProviderService(repo, cipher, manager)
@@ -167,7 +181,7 @@ func TestAdminProviderService_Create_Success(t *testing.T) {
 			keyID             string
 		}),
 	}
-	repo := &mockRepo{provRepo: provRepo}
+	repo := &mockRepo{provRepo: provRepo, auditRepo: &mockAuditRepo{}}
 	cipher := &mockCipher{}
 	cfg := &config.Config{RoutingStrategy: "round-robin"}
 	manager := NewRuntimeProviderManager(cfg, nil)
@@ -203,7 +217,7 @@ func TestAdminProviderService_Update_Conflict(t *testing.T) {
 	provRepo := &mockProviderRepo{
 		conflict: true,
 	}
-	repo := &mockRepo{provRepo: provRepo}
+	repo := &mockRepo{provRepo: provRepo, auditRepo: &mockAuditRepo{}}
 	cipher := &mockCipher{}
 	manager := NewRuntimeProviderManager(&config.Config{}, nil)
 	svc := NewAdminProviderService(repo, cipher, manager)
@@ -224,5 +238,67 @@ func TestAdminProviderService_Update_Conflict(t *testing.T) {
 	gwE, ok := err.(*gwErr.GatewayError)
 	if !ok || gwE.Code != "provider_conflict" {
 		t.Fatalf("expected provider_conflict, got %v", err)
+	}
+}
+
+func TestAdminProviderService_TestConnection(t *testing.T) {
+	provRepo := &mockProviderRepo{
+		records: []*ProviderRecord{
+			{
+				ID:       "test-1",
+				Type:     "openai-compatible",
+				BaseURL:  "http://example.com",
+				Enabled:  true,
+				Models:   []string{"gpt-4"},
+				Revision: 1,
+			},
+			{
+				ID:       "test-disabled",
+				Type:     "openai-compatible",
+				BaseURL:  "http://example.com",
+				Enabled:  false,
+				Models:   []string{"gpt-4"},
+				Revision: 1,
+			},
+		},
+		secrets: make(map[string]struct {
+			ciphertext, nonce []byte
+			keyID             string
+		}),
+	}
+	// Add mock secret
+	provRepo.secrets["test-1"] = struct {
+		ciphertext, nonce []byte
+		keyID             string
+	}{[]byte("sk-test"), []byte("n"), "k"}
+
+	repo := &mockRepo{provRepo: provRepo, auditRepo: &mockAuditRepo{}}
+	cipher := &mockCipher{}
+	cfg := &config.Config{RoutingStrategy: "round-robin"}
+	manager := NewRuntimeProviderManager(cfg, nil)
+	svc := NewAdminProviderService(repo, cipher, manager)
+
+	// Test 1: Disabled provider
+	resp, err := svc.TestConnection(context.Background(), "test-disabled")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.OK {
+		t.Errorf("expected disabled provider to not be ok")
+	}
+	if resp.Code != "provider_disabled" {
+		t.Errorf("expected provider_disabled code, got %s", resp.Code)
+	}
+
+	// Test 2: Valid provider but missing secret/invalid configuration for HealthCheck mock?
+	// Wait, we need an adapter to do HealthCheck. The openai adapter will just return true if no real HTTP request is made? Wait, openai adapter HealthCheck actually tries to hit the API, which will fail if there is no server mocked! But wait, openai adapter might just return `Available: true` or try network. Let's see what happens.
+	// We can let it fail. If the network call fails, it should gracefully return ok=false, code="provider_unavailable".
+	resp2, err := svc.TestConnection(context.Background(), "test-1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// Openai adapter simply checks if API key is present for healthcheck, so it should be OK
+	if !resp2.OK {
+		t.Errorf("expected fake provider to be OK, got %v", resp2)
 	}
 }

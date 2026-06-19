@@ -62,7 +62,11 @@ func TestAdminProvidersIntegration(t *testing.T) {
 		records: []*controlstate.ProviderRecord{},
 		secrets: make(map[string]string),
 	}
-	repo := &memoryRepository{provRepo: provRepo}
+	repo := &memoryRepository{
+		provRepo:  provRepo,
+		auditRepo: &dummyAuditRepo{},
+		idemRepo:  &dummyIdemRepo{},
+	}
 	cipher := &memoryCipher{secrets: make(map[string]string)}
 
 	adminService := controlstate.NewAdminProviderService(repo, cipher, a.RuntimeProviderManager)
