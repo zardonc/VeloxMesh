@@ -1,0 +1,233 @@
+package controlstate
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"strings"
+	"sync"
+	"sync/atomic"
+
+	"veloxmesh/internal/config"
+	gwErr "veloxmesh/internal/errors"
+	"veloxmesh/internal/health"
+	"veloxmesh/internal/llm"
+	"veloxmesh/internal/providers"
+	"veloxmesh/internal/providers/anthropic"
+	"veloxmesh/internal/providers/gemini"
+	"veloxmesh/internal/providers/openai"
+	"veloxmesh/internal/routing"
+)
+
+type RuntimeSnapshot struct {
+	Registry *providers.Registry
+	Router   routing.Router
+	Prober   *health.Prober
+}
+
+type ActivationValidator func(ctx context.Context, adapters []providers.ProviderAdapter) error
+
+type RuntimeProviderManager struct {
+	snapshot    atomic.Value // holds *RuntimeSnapshot
+	healthStore health.Store
+	cfg         *config.Config
+	logger      *slog.Logger
+
+	mu           sync.Mutex
+	baseCtx      context.Context
+	proberCancel context.CancelFunc
+}
+
+func NewRuntimeProviderManager(cfg *config.Config, logger *slog.Logger) *RuntimeProviderManager {
+	if logger == nil {
+		logger = slog.Default()
+	}
+	m := &RuntimeProviderManager{
+		healthStore: health.NewInMemoryStore(),
+		cfg:         cfg,
+		logger:      logger,
+	}
+	m.snapshot.Store((*RuntimeSnapshot)(nil))
+	return m
+}
+
+func (m *RuntimeProviderManager) HealthStore() health.Store {
+	return m.healthStore
+}
+
+func (m *RuntimeProviderManager) Snapshot() *RuntimeSnapshot {
+	snap, _ := m.snapshot.Load().(*RuntimeSnapshot)
+	return snap
+}
+
+func (m *RuntimeProviderManager) Start(ctx context.Context) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.baseCtx = ctx
+
+	snap := m.Snapshot()
+	if snap != nil && snap.Prober != nil {
+		pCtx, cancel := context.WithCancel(ctx)
+		m.proberCancel = cancel
+		go snap.Prober.Start(pCtx)
+	}
+}
+
+func (m *RuntimeProviderManager) ActivateStatic(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	cfgClone := *m.cfg
+	cfgClone.Providers = providersCfg
+
+	for _, p := range providersCfg {
+		fail := 3
+		succ := 1
+		if p.HealthCheck != nil {
+			if p.HealthCheck.FailureThreshold > 0 { fail = p.HealthCheck.FailureThreshold }
+			if p.HealthCheck.SuccessThreshold > 0 { succ = p.HealthCheck.SuccessThreshold }
+		}
+		m.healthStore.EnsureProvider(p.ID, fail, succ)
+	}
+
+	registry := providers.NewRegistry(&cfgClone, adapters...)
+	router := routing.NewHealthAwareRouter(registry, m.healthStore, cfgClone.RoutingStrategy)
+	prober := health.NewProber(registry, m.healthStore, &cfgClone, m.logger)
+
+	snap := &RuntimeSnapshot{
+		Registry: registry,
+		Router:   router,
+		Prober:   prober,
+	}
+
+	m.snapshot.Store(snap)
+
+	if m.baseCtx != nil {
+		if m.proberCancel != nil {
+			m.proberCancel()
+		}
+		pCtx, cancel := context.WithCancel(m.baseCtx)
+		m.proberCancel = cancel
+		go prober.Start(pCtx)
+	}
+
+	return nil
+}
+
+func (m *RuntimeProviderManager) ActivateProviderSet(ctx context.Context, records []*ProviderRecord, secrets map[string]string, validator ActivationValidator) error {
+	providerConfigs, err := BuildRuntimeConfig(records)
+	if err != nil {
+		return err
+	}
+
+	adapters, err := BuildProviderAdapters(records, secrets)
+	if err != nil {
+		return err
+	}
+
+	if validator != nil {
+		if err := validator(ctx, adapters); err != nil {
+			return gwErr.NewGatewayError("provider_activation_failed", fmt.Sprintf("validation failed: %v", err), 500)
+		}
+	}
+
+	return m.ActivateStatic(providerConfigs, adapters)
+}
+
+// Router delegates
+func (m *RuntimeProviderManager) Select(ctx context.Context, req *llm.LLMRequest) (providers.ProviderAdapter, routing.RoutingDecision, error) {
+	snap := m.Snapshot()
+	if snap == nil || snap.Router == nil {
+		return nil, routing.RoutingDecision{}, gwErr.ErrNoActiveProviderConfig
+	}
+	return snap.Router.Select(ctx, req)
+}
+
+func (m *RuntimeProviderManager) SelectExcluding(ctx context.Context, req *llm.LLMRequest, excluded map[string]bool) (providers.ProviderAdapter, routing.RoutingDecision, error) {
+	snap := m.Snapshot()
+	if snap == nil || snap.Router == nil {
+		return nil, routing.RoutingDecision{}, gwErr.ErrNoActiveProviderConfig
+	}
+	return snap.Router.SelectExcluding(ctx, req, excluded)
+}
+
+func (m *RuntimeProviderManager) GetProviderCapabilities() []providers.ProviderCapabilities {
+	snap := m.Snapshot()
+	if snap == nil || snap.Router == nil {
+		return nil
+	}
+	return snap.Router.GetProviderCapabilities()
+}
+
+func (m *RuntimeProviderManager) GetAvailableModels() []string {
+	snap := m.Snapshot()
+	if snap == nil || snap.Router == nil {
+		return nil
+	}
+	return snap.Router.GetAvailableModels()
+}
+
+// LoadActiveProviderRecords returns all enabled provider records from the repository.
+func LoadActiveProviderRecords(ctx context.Context, repo ProviderRepository) ([]*ProviderRecord, error) {
+	enabled := true
+	return repo.List(ctx, ProviderFilter{Enabled: &enabled})
+}
+
+// BuildRuntimeConfig converts active durable provider records into config.ProviderConfig.
+func BuildRuntimeConfig(records []*ProviderRecord) ([]config.ProviderConfig, error) {
+	var providerConfigs []config.ProviderConfig
+	for _, r := range records {
+		if !r.Enabled {
+			continue
+		}
+
+		cfg := config.ProviderConfig{
+			ID:           r.ID,
+			Type:         r.Type,
+			BaseURL:      r.BaseURL,
+			Models:       r.Models,
+			DefaultModel: r.DefaultModel,
+			Timeout:      r.Timeout,
+			Weight:       r.Weight,
+		}
+		providerConfigs = append(providerConfigs, cfg)
+	}
+	return providerConfigs, nil
+}
+
+// BuildProviderAdapters converts active durable provider records and decrypted secrets into provider adapters.
+func BuildProviderAdapters(records []*ProviderRecord, decryptedSecrets map[string]string) ([]providers.ProviderAdapter, error) {
+	var adapters []providers.ProviderAdapter
+
+	for _, r := range records {
+		if !r.Enabled {
+			continue
+		}
+
+		if len(r.Models) == 0 {
+			return nil, gwErr.NewGatewayError(gwErr.ErrMissingProviderModelConfig.Code, fmt.Sprintf("provider %s is missing required model config", r.ID), gwErr.ErrMissingProviderModelConfig.HTTPStatus)
+		}
+
+		apiKey, ok := decryptedSecrets[r.ID]
+		if !ok || apiKey == "" {
+			return nil, gwErr.NewGatewayError(gwErr.ErrMissingProviderSecret.Code, fmt.Sprintf("missing provider secret for provider %s", r.ID), gwErr.ErrMissingProviderSecret.HTTPStatus)
+		}
+
+		modelsCSV := strings.Join(r.Models, ",")
+
+		var adapter providers.ProviderAdapter
+		switch r.Type {
+		case "openai-compatible":
+			adapter = openai.NewAdapter(r.ID, r.BaseURL, apiKey, modelsCSV)
+		case "anthropic":
+			adapter = anthropic.NewAdapter(r.ID, r.BaseURL, apiKey, modelsCSV)
+		case "gemini":
+			adapter = gemini.NewAdapter(r.ID, r.BaseURL, apiKey, modelsCSV)
+		default:
+			return nil, fmt.Errorf("unknown provider type: %s", r.Type)
+		}
+		adapters = append(adapters, adapter)
+	}
+
+	return adapters, nil
+}
