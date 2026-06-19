@@ -80,6 +80,16 @@ type Config struct {
 	ControlStateEncryptionKey    string `json:"control_state_encryption_key"`
 	AdminAPIKey                  string `json:"admin_api_key"`
 	AuditRetention               string `json:"audit_retention"`
+
+	// Phase 3 Hot State Fields
+	RedisEnabled        bool   `json:"redis_enabled"`
+	RedisAddr           string `json:"redis_addr"`
+	RedisPassword       string `json:"redis_password"`
+	RedisDB             int    `json:"redis_db"`
+	RedisNamespace      string `json:"redis_namespace"`
+	RedisHealthTTL      string `json:"redis_health_ttl"`
+	RedisAuthCacheTTL   string `json:"redis_auth_cache_ttl"`
+	RedisDegradeToLocal bool   `json:"redis_degrade_to_local"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -98,6 +108,15 @@ func LoadConfig() (*Config, error) {
 		ControlStateEncryptionKey:    getEnv("CONTROL_STATE_ENCRYPTION_KEY", ""),
 		AdminAPIKey:                  getEnv("ADMIN_API_KEY", ""),
 		AuditRetention:               getEnv("AUDIT_RETENTION", "720h"),
+		
+		RedisEnabled:                 getEnv("REDIS_ENABLED", "false") == "true",
+		RedisAddr:                    getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisPassword:                getEnv("REDIS_PASSWORD", ""),
+		RedisDB:                      0, // Simplification, can override via JSON if needed, or parse env
+		RedisNamespace:               getEnv("REDIS_NAMESPACE", "veloxmesh:local"),
+		RedisHealthTTL:               getEnv("REDIS_HEALTH_TTL", "1m"),
+		RedisAuthCacheTTL:            getEnv("REDIS_AUTH_CACHE_TTL", "5m"),
+		RedisDegradeToLocal:          getEnv("REDIS_DEGRADE_TO_LOCAL", "true") == "true",
 	}
 
 	configFile := getEnv("CONFIG_FILE", "")
@@ -122,6 +141,15 @@ func LoadConfig() (*Config, error) {
 			ControlStateEncryptionKey    string `json:"control_state_encryption_key"`
 			AdminAPIKey                  string `json:"admin_api_key"`
 			AuditRetention               string `json:"audit_retention"`
+			
+			RedisEnabled        *bool  `json:"redis_enabled"`
+			RedisAddr           string `json:"redis_addr"`
+			RedisPassword       string `json:"redis_password"`
+			RedisDB             *int   `json:"redis_db"`
+			RedisNamespace      string `json:"redis_namespace"`
+			RedisHealthTTL      string `json:"redis_health_ttl"`
+			RedisAuthCacheTTL   string `json:"redis_auth_cache_ttl"`
+			RedisDegradeToLocal *bool  `json:"redis_degrade_to_local"`
 		}
 		if err := json.Unmarshal(data, &fileCfg); err != nil {
 			return nil, fmt.Errorf("failed to parse config file: %v", err)
@@ -165,6 +193,31 @@ func LoadConfig() (*Config, error) {
 		}
 		if fileCfg.AuditRetention != "" {
 			cfg.AuditRetention = fileCfg.AuditRetention
+		}
+		
+		if fileCfg.RedisEnabled != nil {
+			cfg.RedisEnabled = *fileCfg.RedisEnabled
+		}
+		if fileCfg.RedisAddr != "" {
+			cfg.RedisAddr = fileCfg.RedisAddr
+		}
+		if fileCfg.RedisPassword != "" {
+			cfg.RedisPassword = fileCfg.RedisPassword
+		}
+		if fileCfg.RedisDB != nil {
+			cfg.RedisDB = *fileCfg.RedisDB
+		}
+		if fileCfg.RedisNamespace != "" {
+			cfg.RedisNamespace = fileCfg.RedisNamespace
+		}
+		if fileCfg.RedisHealthTTL != "" {
+			cfg.RedisHealthTTL = fileCfg.RedisHealthTTL
+		}
+		if fileCfg.RedisAuthCacheTTL != "" {
+			cfg.RedisAuthCacheTTL = fileCfg.RedisAuthCacheTTL
+		}
+		if fileCfg.RedisDegradeToLocal != nil {
+			cfg.RedisDegradeToLocal = *fileCfg.RedisDegradeToLocal
 		}
 
 		if !fallbackEnabledSet {

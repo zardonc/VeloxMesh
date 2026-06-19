@@ -38,12 +38,15 @@ type RuntimeProviderManager struct {
 	proberCancel context.CancelFunc
 }
 
-func NewRuntimeProviderManager(cfg *config.Config, logger *slog.Logger) *RuntimeProviderManager {
+func NewRuntimeProviderManager(cfg *config.Config, logger *slog.Logger, healthStore health.Store) *RuntimeProviderManager {
 	if logger == nil {
 		logger = slog.Default()
 	}
+	if healthStore == nil {
+		healthStore = health.NewInMemoryStore()
+	}
 	m := &RuntimeProviderManager{
-		healthStore: health.NewInMemoryStore(),
+		healthStore: healthStore,
 		cfg:         cfg,
 		logger:      logger,
 	}

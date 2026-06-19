@@ -181,7 +181,7 @@ func TestRuntimeProviderManager_ActivateProviderSet(t *testing.T) {
 	cfg := &config.Config{
 		RoutingStrategy: "round-robin",
 	}
-	manager := NewRuntimeProviderManager(cfg, nil)
+	manager := NewRuntimeProviderManager(cfg, nil, nil)
 
 	if snap := manager.Snapshot(); snap != nil && snap.Router != nil {
 		t.Fatal("expected initially empty router")
@@ -229,7 +229,7 @@ func TestRuntimeProviderManager_Static(t *testing.T) {
 	cfg := &config.Config{
 		RoutingStrategy: "round-robin",
 	}
-	manager := NewRuntimeProviderManager(cfg, nil)
+	manager := NewRuntimeProviderManager(cfg, nil, nil)
 
 	err := manager.ActivateStatic([]config.ProviderConfig{}, []providers.ProviderAdapter{})
 	if err != nil {

@@ -112,7 +112,7 @@ func (m *mockAdminCipher) DecryptProviderSecret(s *controlstate.EncryptedSecret)
 func TestAdminProvidersHandler_Create(t *testing.T) {
 	repo := &mockAdminRepo{provRepo: &mockProvRepo{}, idemRepo: &mockIdempotencyRepo{}, auditRepo: &mockAuditRepo{}}
 	cipher := &mockAdminCipher{}
-	manager := controlstate.NewRuntimeProviderManager(&config.Config{}, nil)
+	manager := controlstate.NewRuntimeProviderManager(&config.Config{}, nil, nil)
 	svc := controlstate.NewAdminProviderService(repo, cipher, manager)
 	handler := NewAdminProvidersHandler(svc)
 
@@ -134,7 +134,7 @@ func TestAdminProvidersHandler_Create(t *testing.T) {
 func TestAdminProvidersHandler_Create_ValidationFail(t *testing.T) {
 	repo := &mockAdminRepo{provRepo: &mockProvRepo{}, idemRepo: &mockIdempotencyRepo{}, auditRepo: &mockAuditRepo{}}
 	cipher := &mockAdminCipher{}
-	manager := controlstate.NewRuntimeProviderManager(&config.Config{}, nil)
+	manager := controlstate.NewRuntimeProviderManager(&config.Config{}, nil, nil)
 	svc := controlstate.NewAdminProviderService(repo, cipher, manager)
 	handler := NewAdminProvidersHandler(svc)
 
@@ -173,7 +173,7 @@ func TestAdminProvidersHandler_TestConnection(t *testing.T) {
 		},
 	}}
 	cipher := &mockAdminCipher{}
-	manager := controlstate.NewRuntimeProviderManager(&config.Config{}, nil)
+	manager := controlstate.NewRuntimeProviderManager(&config.Config{}, nil, nil)
 	svc := controlstate.NewAdminProviderService(repo, cipher, manager)
 	handler := NewAdminProvidersHandler(svc)
 

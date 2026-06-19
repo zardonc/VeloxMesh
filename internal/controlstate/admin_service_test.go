@@ -153,7 +153,7 @@ func (m *mockCipher) DecryptProviderSecret(s *EncryptedSecret) ([]byte, error) {
 func TestAdminProviderService_Create_Validation(t *testing.T) {
 	repo := &mockRepo{provRepo: &mockProviderRepo{}, auditRepo: &mockAuditRepo{}}
 	cipher := &mockCipher{}
-	manager := NewRuntimeProviderManager(&config.Config{}, nil)
+	manager := NewRuntimeProviderManager(&config.Config{}, nil, nil)
 	svc := NewAdminProviderService(repo, cipher, manager)
 
 	// Missing ID, Name
@@ -184,7 +184,7 @@ func TestAdminProviderService_Create_Success(t *testing.T) {
 	repo := &mockRepo{provRepo: provRepo, auditRepo: &mockAuditRepo{}}
 	cipher := &mockCipher{}
 	cfg := &config.Config{RoutingStrategy: "round-robin"}
-	manager := NewRuntimeProviderManager(cfg, nil)
+	manager := NewRuntimeProviderManager(cfg, nil, nil)
 	// Initialize empty snap
 	manager.ActivateStatic([]config.ProviderConfig{}, nil)
 	svc := NewAdminProviderService(repo, cipher, manager)
@@ -219,7 +219,7 @@ func TestAdminProviderService_Update_Conflict(t *testing.T) {
 	}
 	repo := &mockRepo{provRepo: provRepo, auditRepo: &mockAuditRepo{}}
 	cipher := &mockCipher{}
-	manager := NewRuntimeProviderManager(&config.Config{}, nil)
+	manager := NewRuntimeProviderManager(&config.Config{}, nil, nil)
 	svc := NewAdminProviderService(repo, cipher, manager)
 
 	req := &ProviderUpdateRequest{
@@ -275,7 +275,7 @@ func TestAdminProviderService_TestConnection(t *testing.T) {
 	repo := &mockRepo{provRepo: provRepo, auditRepo: &mockAuditRepo{}}
 	cipher := &mockCipher{}
 	cfg := &config.Config{RoutingStrategy: "round-robin"}
-	manager := NewRuntimeProviderManager(cfg, nil)
+	manager := NewRuntimeProviderManager(cfg, nil, nil)
 	svc := NewAdminProviderService(repo, cipher, manager)
 
 	// Test 1: Disabled provider

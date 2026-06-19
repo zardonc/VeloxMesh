@@ -314,3 +314,61 @@ func TestEnvFallback(t *testing.T) {
 		t.Errorf("expected default model test-model-1, got %s", p.DefaultModel)
 	}
 }
+
+func TestRedisConfigDefaults(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.RedisEnabled {
+		t.Errorf("expected Redis to be disabled by default")
+	}
+	if cfg.RedisNamespace != "veloxmesh:local" {
+		t.Errorf("expected default namespace veloxmesh:local, got %s", cfg.RedisNamespace)
+	}
+	if cfg.RedisHealthTTL != "1m" {
+		t.Errorf("expected default health TTL 1m, got %s", cfg.RedisHealthTTL)
+	}
+	if cfg.RedisAuthCacheTTL != "5m" {
+		t.Errorf("expected default auth cache TTL 5m, got %s", cfg.RedisAuthCacheTTL)
+	}
+	if !cfg.RedisDegradeToLocal {
+		t.Errorf("expected degrade to local to be true by default")
+	}
+}
+
+func TestRedisConfigEnv(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("REDIS_ENABLED", "true")
+	t.Setenv("REDIS_ADDR", "redis:6379")
+	t.Setenv("REDIS_NAMESPACE", "prod")
+	t.Setenv("REDIS_HEALTH_TTL", "10s")
+	t.Setenv("REDIS_AUTH_CACHE_TTL", "10m")
+	t.Setenv("REDIS_DEGRADE_TO_LOCAL", "false")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !cfg.RedisEnabled {
+		t.Errorf("expected Redis to be enabled")
+	}
+	if cfg.RedisAddr != "redis:6379" {
+		t.Errorf("expected addr redis:6379, got %s", cfg.RedisAddr)
+	}
+	if cfg.RedisNamespace != "prod" {
+		t.Errorf("expected namespace prod, got %s", cfg.RedisNamespace)
+	}
+	if cfg.RedisHealthTTL != "10s" {
+		t.Errorf("expected health TTL 10s, got %s", cfg.RedisHealthTTL)
+	}
+	if cfg.RedisAuthCacheTTL != "10m" {
+		t.Errorf("expected auth cache TTL 10m, got %s", cfg.RedisAuthCacheTTL)
+	}
+	if cfg.RedisDegradeToLocal {
+		t.Errorf("expected degrade to local to be false")
+	}
+}

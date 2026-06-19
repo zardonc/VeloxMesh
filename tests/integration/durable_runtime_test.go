@@ -168,7 +168,7 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, nil)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil)
 
 	provRepo := &memoryProviderRepo{
 		records: []*controlstate.ProviderRecord{},

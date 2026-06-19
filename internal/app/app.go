@@ -11,6 +11,7 @@ import (
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
+	"veloxmesh/internal/hotstate"
 	router "veloxmesh/internal/http"
 	"veloxmesh/internal/observability"
 	"veloxmesh/internal/providers"
@@ -24,6 +25,7 @@ type App struct {
 	Logger                 *slog.Logger
 	Router                 http.Handler
 	RuntimeProviderManager *controlstate.RuntimeProviderManager
+	HotState               hotstate.Client
 }
 
 func (a *App) HealthStore() health.Store {
@@ -38,7 +40,31 @@ func New() (*App, error) {
 
 	logger := observability.SetupLogger(cfg.LogLevel)
 
-	m := controlstate.NewRuntimeProviderManager(cfg, logger)
+	var hotStateClient hotstate.Client
+	if cfg.RedisEnabled {
+		redisClient, err := hotstate.NewRedisClient(context.Background(), cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB, cfg.RedisNamespace)
+		if err != nil {
+			if cfg.RedisDegradeToLocal {
+				logger.Warn("redis unavailable; degrading to process-local hot state", "error", err)
+				hotStateClient = hotstate.NewLocalHotState()
+			} else {
+				return nil, fmt.Errorf("failed to initialize redis: %w", err)
+			}
+		} else {
+			hotStateClient = redisClient
+		}
+	} else {
+		hotStateClient = hotstate.NewLocalHotState()
+	}
+
+	var healthStore health.Store
+	if cfg.RedisEnabled && hotStateClient != nil {
+		healthStore = health.NewRedisStore(hotStateClient, cfg.RedisHealthTTL)
+	} else {
+		healthStore = health.NewInMemoryStore()
+	}
+
+	m := controlstate.NewRuntimeProviderManager(cfg, logger, healthStore)
 
 	var adapters []providers.ProviderAdapter
 	for _, p := range cfg.Providers {
@@ -61,13 +87,14 @@ func New() (*App, error) {
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts)
 
-	r := router.NewRouter(cfg, gatewaySvc, nil)
+	r := router.NewRouter(cfg, gatewaySvc, nil, hotStateClient)
 
 	return &App{
 		Config:                 cfg,
 		Logger:                 logger,
 		Router:                 r,
 		RuntimeProviderManager: m,
+		HotState:               hotStateClient,
 	}, nil
 }
 
