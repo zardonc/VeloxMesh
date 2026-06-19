@@ -75,8 +75,8 @@ type ProviderUpdateRequest struct {
 }
 
 type AdminProviderService struct {
-	repo    Repository
-	cipher  SecretCipher
+	repo      Repository
+	cipher    SecretCipher
 	manager   *RuntimeProviderManager
 	publisher hotstate.ConfigChangePublisher
 }

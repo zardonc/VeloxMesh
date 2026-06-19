@@ -114,14 +114,14 @@ func (r *RedisClient) PublishConfigChange(ctx context.Context, msg *ConfigChange
 func (r *RedisClient) SubscribeConfigChanges(ctx context.Context) (Subscription, error) {
 	channel := NamespacedKey(r.namespace, "channel", "config-change")
 	pubsub := r.client.Subscribe(ctx, channel)
-	
+
 	// Wait for subscription confirmation
 	_, err := pubsub.Receive(ctx)
 	if err != nil {
 		pubsub.Close()
 		return nil, fmt.Errorf("failed to subscribe to config changes: %w", err)
 	}
-	
+
 	return &redisSubscription{pubsub: pubsub}, nil
 }
 
