@@ -27,6 +27,7 @@ type ProviderRepository interface {
 	Update(ctx context.Context, p *ProviderMutation) (*ProviderRecord, error)
 	Delete(ctx context.Context, id string) error
 	GetEncryptedSecret(ctx context.Context, id string) ([]byte, []byte, string, error) // Returns ciphertext, nonce, key_id
+	PutEncryptedSecret(ctx context.Context, id string, ciphertext, nonce []byte, keyID string) error
 }
 
 type RoutingRepository interface {

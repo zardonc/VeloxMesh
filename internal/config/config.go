@@ -71,6 +71,15 @@ type Config struct {
 	HealthCheck HealthCheckConfig
 
 	Providers []ProviderConfig
+
+	// Phase 3 Control State Fields
+	ControlStateBackend          string `json:"control_state_backend"`
+	ControlStateDSN              string `json:"control_state_dsn"`
+	ControlStateMigrateOnStartup bool   `json:"control_state_migrate_on_startup"`
+	ControlStateLocalSeedEnabled bool   `json:"control_state_local_seed_enabled"`
+	ControlStateEncryptionKey    string `json:"control_state_encryption_key"`
+	AdminAPIKey                  string `json:"admin_api_key"`
+	AuditRetention               string `json:"audit_retention"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -81,6 +90,14 @@ func LoadConfig() (*Config, error) {
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		DevAPIKey:          getEnv("DEV_API_KEY", "vx-dev"),
 		RoutingStrategy:    getEnv("ROUTING_STRATEGY", "least-latency"),
+		
+		ControlStateBackend:          getEnv("CONTROL_STATE_BACKEND", "disabled"),
+		ControlStateDSN:              getEnv("CONTROL_STATE_DSN", ""),
+		ControlStateMigrateOnStartup: getEnv("CONTROL_STATE_MIGRATE_ON_STARTUP", "false") == "true",
+		ControlStateLocalSeedEnabled: getEnv("CONTROL_STATE_LOCAL_SEED_ENABLED", "false") == "true",
+		ControlStateEncryptionKey:    getEnv("CONTROL_STATE_ENCRYPTION_KEY", ""),
+		AdminAPIKey:                  getEnv("ADMIN_API_KEY", ""),
+		AuditRetention:               getEnv("AUDIT_RETENTION", "720h"),
 	}
 
 	configFile := getEnv("CONFIG_FILE", "")
@@ -97,6 +114,14 @@ func LoadConfig() (*Config, error) {
 			MaxAttempts     *int              `json:"max_attempts"`
 			HealthCheck     HealthCheckConfig `json:"health_check"`
 			Providers       []ProviderConfig  `json:"providers"`
+
+			ControlStateBackend          string `json:"control_state_backend"`
+			ControlStateDSN              string `json:"control_state_dsn"`
+			ControlStateMigrateOnStartup *bool  `json:"control_state_migrate_on_startup"`
+			ControlStateLocalSeedEnabled *bool  `json:"control_state_local_seed_enabled"`
+			ControlStateEncryptionKey    string `json:"control_state_encryption_key"`
+			AdminAPIKey                  string `json:"admin_api_key"`
+			AuditRetention               string `json:"audit_retention"`
 		}
 		if err := json.Unmarshal(data, &fileCfg); err != nil {
 			return nil, fmt.Errorf("failed to parse config file: %v", err)
@@ -119,6 +144,28 @@ func LoadConfig() (*Config, error) {
 		}
 		cfg.HealthCheck = fileCfg.HealthCheck
 		cfg.Providers = fileCfg.Providers
+
+		if fileCfg.ControlStateBackend != "" {
+			cfg.ControlStateBackend = fileCfg.ControlStateBackend
+		}
+		if fileCfg.ControlStateDSN != "" {
+			cfg.ControlStateDSN = fileCfg.ControlStateDSN
+		}
+		if fileCfg.ControlStateMigrateOnStartup != nil {
+			cfg.ControlStateMigrateOnStartup = *fileCfg.ControlStateMigrateOnStartup
+		}
+		if fileCfg.ControlStateLocalSeedEnabled != nil {
+			cfg.ControlStateLocalSeedEnabled = *fileCfg.ControlStateLocalSeedEnabled
+		}
+		if fileCfg.ControlStateEncryptionKey != "" {
+			cfg.ControlStateEncryptionKey = fileCfg.ControlStateEncryptionKey
+		}
+		if fileCfg.AdminAPIKey != "" {
+			cfg.AdminAPIKey = fileCfg.AdminAPIKey
+		}
+		if fileCfg.AuditRetention != "" {
+			cfg.AuditRetention = fileCfg.AuditRetention
+		}
 
 		if !fallbackEnabledSet {
 			cfg.FallbackEnabled = len(cfg.Providers) > 1
