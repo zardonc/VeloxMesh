@@ -98,3 +98,26 @@ func (l *LocalHotState) CacheAuthResult(ctx context.Context, tokenHash string, a
 	}
 	return nil
 }
+
+// localSubscription is a no-op subscription for local mode.
+type localSubscription struct {
+	ch chan *ConfigChangeMessage
+}
+
+func (s *localSubscription) Channel() <-chan *ConfigChangeMessage {
+	return s.ch
+}
+
+func (s *localSubscription) Close() error {
+	return nil
+}
+
+func (l *LocalHotState) PublishConfigChange(ctx context.Context, msg *ConfigChangeMessage) error {
+	// No-op for local hot state
+	return nil
+}
+
+func (l *LocalHotState) SubscribeConfigChanges(ctx context.Context) (Subscription, error) {
+	// Return a dummy subscription that never receives messages
+	return &localSubscription{ch: make(chan *ConfigChangeMessage)}, nil
+}

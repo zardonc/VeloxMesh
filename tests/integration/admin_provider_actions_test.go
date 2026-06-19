@@ -67,7 +67,7 @@ func TestAdminProviderActions_TestConnectionIdempotencyAndAudit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cipher: %v", err)
 	}
-	adminService := controlstate.NewAdminProviderService(repo, cipher, a.RuntimeProviderManager)
+	adminService := controlstate.NewAdminProviderService(repo, cipher, a.RuntimeProviderManager, nil)
 	adminHandler := handlers.NewAdminProvidersHandler(adminService)
 	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admission.NewPassThroughController(), a.HealthStore(), false, 1)
 	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil)

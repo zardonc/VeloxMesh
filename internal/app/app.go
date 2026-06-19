@@ -130,6 +130,35 @@ func (a *App) ReloadProviders(ctx context.Context, repo controlstate.Repository,
 	return a.RuntimeProviderManager.ActivateProviderSet(ctx, records, secrets, nil)
 }
 
+func (a *App) StartConfigChangeSubscriber(ctx context.Context, repo controlstate.Repository, cipher controlstate.SecretCipher) error {
+	sub, err := a.HotState.SubscribeConfigChanges(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to subscribe to config changes: %w", err)
+	}
+
+	a.Logger.Info("starting config change subscriber")
+
+	go func() {
+		defer sub.Close()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case msg := <-sub.Channel():
+				if msg == nil {
+					return
+				}
+				a.Logger.Info("received config change notification", "provider_id", msg.ProviderID, "action", msg.Action, "revision", msg.Revision)
+				if err := a.ReloadProviders(ctx, repo, cipher); err != nil {
+					a.Logger.Error("failed to reload providers on config change", "error", err)
+				}
+			}
+		}
+	}()
+
+	return nil
+}
+
 func (a *App) Run(ctx context.Context) error {
 	a.Logger.Info("starting gateway", "addr", a.Config.GatewayDataAddr)
 

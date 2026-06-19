@@ -8,6 +8,7 @@ import (
 	"time"
 
 	gwErr "veloxmesh/internal/errors"
+	"veloxmesh/internal/hotstate"
 )
 
 // DTOs
@@ -76,14 +77,16 @@ type ProviderUpdateRequest struct {
 type AdminProviderService struct {
 	repo    Repository
 	cipher  SecretCipher
-	manager *RuntimeProviderManager
+	manager   *RuntimeProviderManager
+	publisher hotstate.ConfigChangePublisher
 }
 
-func NewAdminProviderService(repo Repository, cipher SecretCipher, manager *RuntimeProviderManager) *AdminProviderService {
+func NewAdminProviderService(repo Repository, cipher SecretCipher, manager *RuntimeProviderManager, publisher hotstate.ConfigChangePublisher) *AdminProviderService {
 	return &AdminProviderService{
-		repo:    repo,
-		cipher:  cipher,
-		manager: manager,
+		repo:      repo,
+		cipher:    cipher,
+		manager:   manager,
+		publisher: publisher,
 	}
 }
 
@@ -190,6 +193,15 @@ func (s *AdminProviderService) Create(ctx context.Context, req *ProviderCreateRe
 		return nil, err
 	}
 
+	if s.publisher != nil {
+		_ = s.publisher.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+			ProviderID: created.ID,
+			Action:     "create",
+			Revision:   created.Revision,
+			Timestamp:  time.Now().UTC(),
+		})
+	}
+
 	return s.mapToResponse(created), nil
 }
 
@@ -266,6 +278,15 @@ func (s *AdminProviderService) Update(ctx context.Context, id string, req *Provi
 
 	// Secret updated at might have changed, refetch
 	updated, _ = provRepo.Get(ctx, id)
+
+	if s.publisher != nil && updated != nil {
+		_ = s.publisher.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+			ProviderID: updated.ID,
+			Action:     "update",
+			Revision:   updated.Revision,
+			Timestamp:  time.Now().UTC(),
+		})
+	}
 
 	return s.mapToResponse(updated), nil
 }
@@ -435,6 +456,18 @@ func (s *AdminProviderService) Disable(ctx context.Context, id string) (err erro
 		return err
 	}
 
+	if s.publisher != nil {
+		// we need to get the updated revision
+		if updatedRec, err := s.repo.Providers().Get(ctx, id); err == nil && updatedRec != nil {
+			_ = s.publisher.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+				ProviderID: id,
+				Action:     "disable",
+				Revision:   updatedRec.Revision,
+				Timestamp:  time.Now().UTC(),
+			})
+		}
+	}
+
 	return nil
 }
 
@@ -481,6 +514,15 @@ func (s *AdminProviderService) Delete(ctx context.Context, id string) (err error
 
 	// Just in case it was somehow active
 	_ = s.reloadRuntime(ctx)
+
+	if s.publisher != nil {
+		_ = s.publisher.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+			ProviderID: id,
+			Action:     "delete",
+			Revision:   0, // Revision doesn't matter for delete
+			Timestamp:  time.Now().UTC(),
+		})
+	}
 
 	return nil
 }

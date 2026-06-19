@@ -69,7 +69,7 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	}
 	cipher := &memoryCipher{secrets: make(map[string]string)}
 
-	adminService := controlstate.NewAdminProviderService(repo, cipher, a.RuntimeProviderManager)
+	adminService := controlstate.NewAdminProviderService(repo, cipher, a.RuntimeProviderManager, nil)
 	adminHandler := handlers.NewAdminProvidersHandler(adminService)
 
 	admissionCtrl := admission.NewPassThroughController()

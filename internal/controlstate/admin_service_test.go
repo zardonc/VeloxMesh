@@ -154,7 +154,7 @@ func TestAdminProviderService_Create_Validation(t *testing.T) {
 	repo := &mockRepo{provRepo: &mockProviderRepo{}, auditRepo: &mockAuditRepo{}}
 	cipher := &mockCipher{}
 	manager := NewRuntimeProviderManager(&config.Config{}, nil, nil)
-	svc := NewAdminProviderService(repo, cipher, manager)
+	svc := NewAdminProviderService(repo, cipher, manager, nil)
 
 	// Missing ID, Name
 	req := &ProviderCreateRequest{
@@ -187,7 +187,7 @@ func TestAdminProviderService_Create_Success(t *testing.T) {
 	manager := NewRuntimeProviderManager(cfg, nil, nil)
 	// Initialize empty snap
 	manager.ActivateStatic([]config.ProviderConfig{}, nil)
-	svc := NewAdminProviderService(repo, cipher, manager)
+	svc := NewAdminProviderService(repo, cipher, manager, nil)
 
 	req := &ProviderCreateRequest{
 		ID:      "test-p1",
@@ -220,7 +220,7 @@ func TestAdminProviderService_Update_Conflict(t *testing.T) {
 	repo := &mockRepo{provRepo: provRepo, auditRepo: &mockAuditRepo{}}
 	cipher := &mockCipher{}
 	manager := NewRuntimeProviderManager(&config.Config{}, nil, nil)
-	svc := NewAdminProviderService(repo, cipher, manager)
+	svc := NewAdminProviderService(repo, cipher, manager, nil)
 
 	req := &ProviderUpdateRequest{
 		Name:     "Test",
@@ -276,7 +276,7 @@ func TestAdminProviderService_TestConnection(t *testing.T) {
 	cipher := &mockCipher{}
 	cfg := &config.Config{RoutingStrategy: "round-robin"}
 	manager := NewRuntimeProviderManager(cfg, nil, nil)
-	svc := NewAdminProviderService(repo, cipher, manager)
+	svc := NewAdminProviderService(repo, cipher, manager, nil)
 
 	// Test 1: Disabled provider
 	resp, err := svc.TestConnection(context.Background(), "test-disabled")

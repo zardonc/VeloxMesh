@@ -89,3 +89,22 @@ func TestLocalHotState(t *testing.T) {
 		t.Errorf("expected ErrCacheMiss due to ttl expiry, got %v", err)
 	}
 }
+
+func TestLocalHotState_PubSub(t *testing.T) {
+	local := NewLocalHotState()
+	ctx := context.Background()
+	msg := &ConfigChangeMessage{ProviderID: "test"}
+	if err := local.PublishConfigChange(ctx, msg); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	sub, err := local.SubscribeConfigChanges(ctx)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	select {
+	case <-sub.Channel():
+		t.Fatalf("should not receive any messages")
+	default:
+	}
+	_ = sub.Close()
+}

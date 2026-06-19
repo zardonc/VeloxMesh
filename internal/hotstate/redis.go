@@ -2,6 +2,7 @@ package hotstate
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -99,4 +100,49 @@ func (r *RedisClient) CacheAuthResult(ctx context.Context, tokenHash string, all
 		val = "1"
 	}
 	return r.client.Set(ctx, key, val, ttl).Err()
+}
+
+func (r *RedisClient) PublishConfigChange(ctx context.Context, msg *ConfigChangeMessage) error {
+	channel := NamespacedKey(r.namespace, "channel", "config-change")
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config change message: %w", err)
+	}
+	return r.client.Publish(ctx, channel, data).Err()
+}
+
+func (r *RedisClient) SubscribeConfigChanges(ctx context.Context) (Subscription, error) {
+	channel := NamespacedKey(r.namespace, "channel", "config-change")
+	pubsub := r.client.Subscribe(ctx, channel)
+	
+	// Wait for subscription confirmation
+	_, err := pubsub.Receive(ctx)
+	if err != nil {
+		pubsub.Close()
+		return nil, fmt.Errorf("failed to subscribe to config changes: %w", err)
+	}
+	
+	return &redisSubscription{pubsub: pubsub}, nil
+}
+
+type redisSubscription struct {
+	pubsub *redis.PubSub
+}
+
+func (s *redisSubscription) Channel() <-chan *ConfigChangeMessage {
+	ch := make(chan *ConfigChangeMessage)
+	go func() {
+		defer close(ch)
+		for msg := range s.pubsub.Channel() {
+			var configMsg ConfigChangeMessage
+			if err := json.Unmarshal([]byte(msg.Payload), &configMsg); err == nil {
+				ch <- &configMsg
+			}
+		}
+	}()
+	return ch
+}
+
+func (s *redisSubscription) Close() error {
+	return s.pubsub.Close()
 }
