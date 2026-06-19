@@ -1,19 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: Gateway Foundation
-status: active
-last_updated: "2026-06-17T00:00:00-07:00"
+milestone_name: milestone
+status: Ready to execute
+last_updated: "2026-06-19T03:34:09.203Z"
 progress:
   total_phases: 11
   completed_phases: 11
   total_plans: 12
   completed_plans: 12
   percent: 100
-current:
-  phase: "3"
-  name: "Durable Control State"
-  resume_file: ".planning/ROADMAP.md"
 ---
 
 ## Project Reference

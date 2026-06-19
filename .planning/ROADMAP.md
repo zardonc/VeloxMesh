@@ -21,7 +21,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 | 2.8 | Provider Configuration Schema and Secret-Safe Validation | Complete | 1/1 complete | static config schema hardening |
 | 2.9 | Provider Model Catalog and Routing Eligibility | Complete | 1/1 complete | model/provider capability eligibility |
 | 2.10 | Adapter Conformance Test Harness | Complete | 1/1 complete | reusable adapter contract tests |
-| 3 | Durable Control State | Future | 0/0 | CTRL-01..03 |
+| 3 | Durable Control State | Planned | 0/7 planned | CTRL-01..03 |
 | 4 | Streaming, Rate Limits, Cache, and Cost | Future | 0/0 | STRM-01, RATE-01, CACHE-01, COST-01, CB-01 |
 
 ## Phase Details
@@ -31,12 +31,14 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Create the runnable Go gateway foundation and prove the client-to-provider call chain.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/01-gateway-walking-skeleton/01-CONTEXT.md`
 - `.planning/phases/01-gateway-walking-skeleton/01-01-PLAN.md`
 - `.planning/phases/01-gateway-walking-skeleton/01-01-SUMMARY.md`
 - `.planning/phases/01-gateway-walking-skeleton/01-VERIFICATION.md`
 
 **Success Criteria:**
+
 1. `GET /healthz` returns liveness.
 2. `GET /readyz` checks static provider readiness.
 3. `POST /v1/chat/completions` accepts OpenAI-compatible non-streaming chat requests.
@@ -48,10 +50,12 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Extend the single-provider gateway into an in-memory health-aware routing layer for multiple OpenAI-compatible providers.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/02-health-aware-routing/02-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-01-PLAN.md`
 
 **Success Criteria:**
+
 1. Static config supports multiple OpenAI-compatible provider definitions.
 2. Provider registry lists and resolves multiple providers with stable ordering.
 3. In-memory health store tracks latency, pending requests, failures, and health status.
@@ -65,11 +69,13 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Confirm the active Go version baseline supports official provider SDK adoption, especially Anthropic's Go SDK.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/02-health-aware-routing/02-02-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-02-PLAN.md`
 - `.planning/phases/02-health-aware-routing/02-02-UAT.md`
 
 **Success Criteria:**
+
 1. `go.mod`, README, CI, and local tooling agree on the Go version baseline.
 2. The selected baseline satisfies Anthropic official SDK requirements.
 3. `go test ./...` passes under the selected baseline.
@@ -80,11 +86,13 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Add native provider adapters while preserving OpenAI-compatible downstream responses.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/02-health-aware-routing/02-03-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-03-PLAN.md`
 - `.planning/phases/02-health-aware-routing/02-03-UAT.md`
 
 **Success Criteria:**
+
 1. Config supports `anthropic` and `gemini` provider types.
 2. Anthropic adapter uses the official Anthropic Go SDK unless a concrete blocker is documented.
 3. Gemini adapter evaluates the official Google Gen AI Go SDK before implementation.
@@ -97,11 +105,13 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Standardize provider error classification, improve provider health semantics, and ensure adapters honor the shared request/response contract.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/02-health-aware-routing/02-04-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-04-PLAN.md`
 - `.planning/phases/02-health-aware-routing/02-04-UAT.md`
 
 **Success Criteria:**
+
 1. Provider errors use shared structured categories.
 2. OpenAI-compatible, Anthropic, and Gemini adapters map retryable and non-retryable failures consistently.
 3. Health impact semantics are predictable across provider categories.
@@ -112,12 +122,14 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Let non-streaming chat requests survive transient provider failures by trying another eligible provider when safe.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/02-health-aware-routing/02-05-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-05-PLAN.md`
 - `.planning/phases/02-health-aware-routing/02-05-SUMMARY.md`
 - `.planning/phases/02-health-aware-routing/02-05-UAT.md`
 
 **Success Criteria:**
+
 1. Retryability is based on Phase 2.4 provider error categories.
 2. Fallback attempts exclude already failed providers.
 3. `X-Route-To` remains a strict override and disables fallback.
@@ -129,11 +141,13 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Add configurable in-process provider health checks so provider health can recover without waiting for live client traffic.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/02-health-aware-routing/02-06-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-06-PLAN.md`
 - `.planning/phases/02-health-aware-routing/02-06-UAT.md`
 
 **Success Criteria:**
+
 1. Provider health checks are structured in static config.
 2. `ProbeProvider(ctx, providerID)` and `ProbeOnce(ctx)` exist for deterministic internal use.
 3. Probe results can degrade and recover provider health.
@@ -145,6 +159,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Make every provider adapter describe supported operations, modalities, parameters, and future feature flags in a provider-neutral way.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/02-health-aware-routing/02-07-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-07-01-PLAN.md`
 - `.planning/phases/02-health-aware-routing/02-07-02-PLAN.md`
@@ -154,6 +169,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 - `.planning/phases/02-health-aware-routing/02-07-SECURITY.md`
 
 **Success Criteria:**
+
 1. The adapter contract exposes provider-neutral capability metadata without leaking SDK-native details.
 2. OpenAI-compatible, Anthropic, and Gemini adapters report consistent capability metadata.
 3. Registry APIs can list and resolve capabilities without importing provider-specific packages outside app wiring.
@@ -165,12 +181,14 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Harden static provider configuration into a stable schema that can later become the Admin API/Admin Console contract.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/02-health-aware-routing/02-08-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-08-PLAN.md`
 - `.planning/phases/02-health-aware-routing/02-08-SUMMARY.md`
 - `.planning/phases/02-health-aware-routing/02-08-UAT.md`
 
 **Success Criteria:**
+
 1. Provider config structs cover identity, type, base URL, auth reference, models, defaults, timeout, health overrides, retry/fallback settings, and capability overrides if needed.
 2. Validation rejects duplicate provider IDs, unknown provider types, invalid URLs, invalid durations, invalid thresholds, and model/default mismatches.
 3. Validation and docs remain secret-safe.
@@ -181,6 +199,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Build an internal model catalog that maps models to providers and provider capabilities.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/02-health-aware-routing/02-09-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-09-PLAN.md`
 - `.planning/phases/02-health-aware-routing/02-09-SUMMARY.md`
@@ -188,6 +207,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 - `.planning/phases/02-health-aware-routing/02-09-SECURITY.md`
 
 **Success Criteria:**
+
 1. Catalog derives model/provider eligibility from static config and adapter capability metadata.
 2. Routing can ask one source whether a provider supports a requested model and operation.
 3. `/v1/models` remains OpenAI-compatible while internal metadata can be richer.
@@ -198,12 +218,14 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Goal:** Create reusable conformance tests that every current and future provider adapter must pass.
 **Status:** Complete
 **Primary artifacts:**
+
 - `.planning/phases/02-health-aware-routing/02-10-CONTEXT.md`
 - `.planning/phases/02-health-aware-routing/02-10-PLAN.md`
 - `.planning/phases/02-health-aware-routing/02-10-UAT.md`
 - `.planning/phases/02-health-aware-routing/02-10-SECURITY.md`
 
 **Success Criteria:**
+
 1. Shared test helpers cover request mapping sanity, response normalization, finish reason mapping, structured error categories, health-check behavior, and secret-safe errors.
 2. OpenAI-compatible, Anthropic, and Gemini adapters run through the harness.
 3. Provider-specific tests remain where SDK details matter.
@@ -212,9 +234,39 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 3: Durable Control State
 
 **Goal:** Introduce persistent provider/API-key/config state and Redis-backed hot control state.
-**Status:** Future
+**Status:** Planned
+**Plans:** 7 plans
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md - Durable control-state contracts, schema migrations, validation, and encrypted provider secrets.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 03-02-PLAN.md - PostgreSQL/SQLite repositories, backend config, and local-dev static seed semantics.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 03-03-PLAN.md - Runtime provider loading, actionable missing-config errors, disabled-provider filtering, and reload without restart.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 03-04-PLAN.md - Versioned Admin provider CRUD API, dedicated admin bearer auth, transactional runtime activation, and redacted DTOs.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 03-05-PLAN.md - Provider test-connection action, idempotency keys, audit events, and audit retention.
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 03-06-PLAN.md - Optional Redis health/probe hot state, data-plane auth cache, namespace/TTL handling, and local degradation.
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 03-07-PLAN.md - Redis config-change pub/sub notifications and no-Redis consistency documentation.
 
 **Success Criteria:**
+
 1. PostgreSQL schema stores provider, API key, routing, and usage records.
 2. Redis stores health and hot control state where appropriate.
 3. Admin API manages provider config without process restart.
@@ -225,6 +277,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 **Status:** Future
 
 **Success Criteria:**
+
 1. SSE streaming proxy works with provider adapters.
 2. Rate limits and admission controls protect providers.
 3. Semantic cache and cost governance are opt-in and observable.
