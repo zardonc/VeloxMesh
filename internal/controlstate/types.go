@@ -1,0 +1,122 @@
+package controlstate
+
+import (
+	"encoding/json"
+	"time"
+)
+
+type FieldError struct {
+	Field   string `json:"field"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type ProviderSecretMetadata struct {
+	SecretConfigured bool       `json:"secret_configured"`
+	UpdatedAt        *time.Time `json:"updated_at,omitempty"`
+}
+
+type ProviderRecord struct {
+	ID           string                 `json:"id"`
+	Name         string                 `json:"name"`
+	Type         string                 `json:"type"`
+	BaseURL      string                 `json:"base_url"`
+	Enabled      bool                   `json:"enabled"`
+	Models       []string               `json:"models,omitempty"`
+	DefaultModel string                 `json:"default_model,omitempty"`
+	Timeout      string                 `json:"timeout,omitempty"`
+	Weight       int                    `json:"weight,omitempty"`
+	HealthConfig json.RawMessage        `json:"health_config,omitempty"`
+	Revision     int64                  `json:"revision"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
+	Secret       ProviderSecretMetadata `json:"secret"`
+}
+
+type ProviderMutation struct {
+	ID           string          `json:"id"`
+	Name         string          `json:"name"`
+	Type         string          `json:"type"`
+	BaseURL      string          `json:"base_url"`
+	Enabled      bool            `json:"enabled"`
+	APIKey       *string         `json:"api_key,omitempty"` // cleartext for mutation only
+	Models       []string        `json:"models,omitempty"`
+	DefaultModel *string         `json:"default_model,omitempty"`
+	Timeout      *string         `json:"timeout,omitempty"`
+	Weight       *int            `json:"weight,omitempty"`
+	HealthConfig json.RawMessage `json:"health_config,omitempty"`
+	Revision     *int64          `json:"revision,omitempty"`
+}
+
+type ProviderFilter struct {
+	Enabled *bool
+	Type    string
+	Search  string
+}
+
+type RoutingConfig struct {
+	ID              string    `json:"id"`
+	Strategy        string    `json:"strategy"`
+	DefaultProvider string    `json:"default_provider"`
+	FallbackEnabled bool      `json:"fallback_enabled"`
+	MaxAttempts     int       `json:"max_attempts"`
+	Revision        int64     `json:"revision"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+type APIKeyRecord struct {
+	ID        string    `json:"id"`
+	Prefix    string    `json:"prefix"`
+	Hash      string    `json:"-"`
+	Name      string    `json:"name"`
+	Role      string    `json:"role"`
+	Enabled   bool      `json:"enabled"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type UsageRecord struct {
+	ID             string    `json:"id"`
+	ProviderID     string    `json:"provider_id"`
+	Model          string    `json:"model"`
+	PromptTokens   int       `json:"prompt_tokens"`
+	ResponseTokens int       `json:"response_tokens"`
+	TotalTokens    int       `json:"total_tokens"`
+	DurationMs     int64     `json:"duration_ms"`
+	Timestamp      time.Time `json:"timestamp"`
+}
+
+type AuditEvent struct {
+	ID         string          `json:"id"`
+	Actor      string          `json:"actor"`
+	Action     string          `json:"action"`
+	TargetID   string          `json:"target_id"`
+	Outcome    string          `json:"outcome"`
+	Metadata   json.RawMessage `json:"metadata,omitempty"`
+	Timestamp  time.Time       `json:"timestamp"`
+}
+
+type IdempotencyRecord struct {
+	Key       string    `json:"key"`
+	Status    string    `json:"status"`
+	Response  string    `json:"response,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+type ConfigChangeEvent struct {
+	ID        string    `json:"id"`
+	Type      string    `json:"type"`      // e.g. "provider_updated", "routing_updated"
+	TargetID  string    `json:"target_id"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+func RedactProviderRecord(p *ProviderRecord) *ProviderRecord {
+	if p == nil {
+		return nil
+	}
+	clone := *p
+	// Already safe because ProviderRecord doesn't contain raw API keys
+	return &clone
+}
