@@ -61,7 +61,7 @@ func New() (*App, error) {
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts)
 
-	r := router.NewRouter(cfg, gatewaySvc)
+	r := router.NewRouter(cfg, gatewaySvc, nil)
 
 	return &App{
 		Config:                 cfg,

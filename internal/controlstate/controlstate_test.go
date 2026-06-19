@@ -43,12 +43,12 @@ func TestRedactProviderRecord(t *testing.T) {
 			UpdatedAt:        &now,
 		},
 	}
-	
+
 	redacted := RedactProviderRecord(rec)
-	
+
 	b, _ := json.Marshal(redacted)
 	s := string(b)
-	
+
 	// Just ensure the output is safe. Since we don't store raw API keys in ProviderRecord at all,
 	// it's naturally redacted, but we verify the contract.
 	if !redacted.Secret.SecretConfigured {

@@ -2,6 +2,7 @@
 .agent/
 .codex/
 .opencode/
+.tmp/
 Agent-gateway
 
 # Agent documentation

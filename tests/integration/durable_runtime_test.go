@@ -44,9 +44,58 @@ func (m *memoryProviderRepo) List(ctx context.Context, filter controlstate.Provi
 	return res, nil
 }
 
+func (m *memoryProviderRepo) Create(ctx context.Context, p *controlstate.ProviderMutation) (*controlstate.ProviderRecord, error) {
+	rec := &controlstate.ProviderRecord{
+		ID:      p.ID,
+		Name:    p.Name,
+		Type:    p.Type,
+		BaseURL: p.BaseURL,
+		Enabled: p.Enabled,
+		Models:  p.Models,
+		Secret:  controlstate.ProviderSecretMetadata{SecretConfigured: true},
+	}
+	m.records = append(m.records, rec)
+	return rec, nil
+}
+
+func (m *memoryProviderRepo) Update(ctx context.Context, p *controlstate.ProviderMutation) (*controlstate.ProviderRecord, error) {
+	for _, r := range m.records {
+		if r.ID == p.ID {
+			r.Name = p.Name
+			r.Enabled = p.Enabled
+			r.Models = p.Models
+			return r, nil
+		}
+	}
+	return nil, nil
+}
+
+func (m *memoryProviderRepo) Get(ctx context.Context, id string) (*controlstate.ProviderRecord, error) {
+	for _, r := range m.records {
+		if r.ID == id {
+			return r, nil
+		}
+	}
+	return nil, nil
+}
+
 func (m *memoryProviderRepo) GetEncryptedSecret(ctx context.Context, id string) ([]byte, []byte, string, error) {
 	return []byte("enc"), []byte("nonce"), "key", nil
 }
+
+func (m *memoryProviderRepo) PutEncryptedSecret(ctx context.Context, id string, ciphertext, nonce []byte, keyID string) error {
+	m.secrets[id] = string(ciphertext)
+	return nil
+}
+
+func (m *memoryRepository) BeginTx(ctx context.Context) (controlstate.Transaction, error) {
+	return &mockTx{}, nil
+}
+
+type mockTx struct{}
+
+func (m *mockTx) Commit() error   { return nil }
+func (m *mockTx) Rollback() error { return nil }
 
 type memoryCipher struct {
 	controlstate.SecretCipher
@@ -55,6 +104,10 @@ type memoryCipher struct {
 
 func (m *memoryCipher) DecryptProviderSecret(secret *controlstate.EncryptedSecret) ([]byte, error) {
 	return []byte("test-secret"), nil
+}
+
+func (m *memoryCipher) EncryptProviderSecret(plaintext []byte) (*controlstate.EncryptedSecret, error) {
+	return &controlstate.EncryptedSecret{Ciphertext: plaintext, Nonce: []byte("n"), KeyID: "k"}, nil
 }
 
 func TestDurableRuntimeIntegration(t *testing.T) {
@@ -98,7 +151,7 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts)
-	a.Router = router.NewRouter(a.Config, gatewaySvc)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, nil)
 
 	provRepo := &memoryProviderRepo{
 		records: []*controlstate.ProviderRecord{},
@@ -160,7 +213,7 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 
 	var modelsResp map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&modelsResp)
-	
+
 	data, ok := modelsResp["data"].([]interface{})
 	if !ok || len(data) != 1 {
 		t.Errorf("expected models data to contain 1 element, got %v", modelsResp)

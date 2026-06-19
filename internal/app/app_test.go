@@ -36,7 +36,7 @@ func (d *dummyProvRepo) GetEncryptedSecret(ctx context.Context, id string) ([]by
 	return []byte("enc"), []byte("nonce"), "key", nil
 }
 
-type dummyCipher struct{
+type dummyCipher struct {
 	controlstate.SecretCipher
 }
 

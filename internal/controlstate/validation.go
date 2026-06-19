@@ -14,7 +14,7 @@ func ValidateProviderMutation(m *ProviderMutation, isCreate bool) []FieldError {
 	if m.Name == "" {
 		errors = append(errors, FieldError{Field: "name", Code: "required", Message: "Provider Name is required"})
 	}
-	
+
 	if m.Type != "openai-compatible" && m.Type != "anthropic" && m.Type != "gemini" {
 		errors = append(errors, FieldError{Field: "type", Code: "unsupported_provider_type", Message: fmt.Sprintf("Unsupported provider type: %s", m.Type)})
 	}

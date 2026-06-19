@@ -19,7 +19,7 @@ func NewMigrator(db *sql.DB) controlstate.Migrator {
 
 func (m *Migrator) Migrate(ctx context.Context) error {
 	fs := controlstate.GetSQLiteMigrations()
-	
+
 	data, err := fs.ReadFile("migrations/sqlite/0001_control_state.sql")
 	if err != nil {
 		return fmt.Errorf("failed to read sqlite migration: %w", err)
@@ -27,7 +27,7 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 
 	// We apply only the "Up" part of the goose migration
 	sqlStr := string(data)
-	
+
 	// A real migrator would use a library like goose, but for this milestone we
 	// can do a simple split or just execute the whole file. Wait, we should only
 	// execute up to `-- +goose Down`.
@@ -45,7 +45,7 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if !exists {
 		// Only execute the Up section
 		upSQL := sqlStr
@@ -64,7 +64,7 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 				return fmt.Errorf("failed to execute sqlite migration statement: %w", err)
 			}
 		}
-		
+
 		if _, err := tx.ExecContext(ctx, "INSERT INTO schema_migrations (version, dirty) VALUES (1, 0)"); err != nil {
 			return err
 		}

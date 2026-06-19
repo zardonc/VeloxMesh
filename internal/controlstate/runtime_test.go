@@ -2,7 +2,6 @@ package controlstate
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"veloxmesh/internal/config"
@@ -73,7 +72,7 @@ func TestBuildProviderAdapters_NoActiveProviders(t *testing.T) {
 			Models:  []string{"gpt-3.5"},
 		},
 	}
-	
+
 	adapters, err := BuildProviderAdapters(records, nil)
 	if err != nil {
 		t.Fatalf("expected no error for empty adapters, got %v", err)

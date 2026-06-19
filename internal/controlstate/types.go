@@ -88,13 +88,13 @@ type UsageRecord struct {
 }
 
 type AuditEvent struct {
-	ID         string          `json:"id"`
-	Actor      string          `json:"actor"`
-	Action     string          `json:"action"`
-	TargetID   string          `json:"target_id"`
-	Outcome    string          `json:"outcome"`
-	Metadata   json.RawMessage `json:"metadata,omitempty"`
-	Timestamp  time.Time       `json:"timestamp"`
+	ID        string          `json:"id"`
+	Actor     string          `json:"actor"`
+	Action    string          `json:"action"`
+	TargetID  string          `json:"target_id"`
+	Outcome   string          `json:"outcome"`
+	Metadata  json.RawMessage `json:"metadata,omitempty"`
+	Timestamp time.Time       `json:"timestamp"`
 }
 
 type IdempotencyRecord struct {
@@ -107,7 +107,7 @@ type IdempotencyRecord struct {
 
 type ConfigChangeEvent struct {
 	ID        string    `json:"id"`
-	Type      string    `json:"type"`      // e.g. "provider_updated", "routing_updated"
+	Type      string    `json:"type"` // e.g. "provider_updated", "routing_updated"
 	TargetID  string    `json:"target_id"`
 	Timestamp time.Time `json:"timestamp"`
 }

@@ -39,7 +39,7 @@ func TestSQLiteRepository(t *testing.T) {
 		BaseURL: "https://api.test/v1",
 		Enabled: true,
 	}
-	
+
 	rec, err := repo.Providers().Create(ctx, m)
 	if err != nil {
 		t.Fatalf("Create failed: %v", err)

@@ -84,8 +84,12 @@ func (m *RuntimeProviderManager) ActivateStatic(providersCfg []config.ProviderCo
 		fail := 3
 		succ := 1
 		if p.HealthCheck != nil {
-			if p.HealthCheck.FailureThreshold > 0 { fail = p.HealthCheck.FailureThreshold }
-			if p.HealthCheck.SuccessThreshold > 0 { succ = p.HealthCheck.SuccessThreshold }
+			if p.HealthCheck.FailureThreshold > 0 {
+				fail = p.HealthCheck.FailureThreshold
+			}
+			if p.HealthCheck.SuccessThreshold > 0 {
+				succ = p.HealthCheck.SuccessThreshold
+			}
 		}
 		m.healthStore.EnsureProvider(p.ID, fail, succ)
 	}

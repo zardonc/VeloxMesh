@@ -172,7 +172,7 @@ func (p *providerRepo) List(ctx context.Context, filter controlstate.ProviderFil
 		if filter.Type != "" && rec.Type != filter.Type {
 			continue
 		}
-		
+
 		if modelsJSON.Valid {
 			_ = json.Unmarshal([]byte(modelsJSON.String), &rec.Models)
 		}
@@ -296,28 +296,43 @@ func (p *providerRepo) PutEncryptedSecret(ctx context.Context, id string, cipher
 
 // -- other repos simplified for now --
 
-type routingRepo struct { db *sql.DB }
-func (r *routingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error) { return nil, nil }
+type routingRepo struct{ db *sql.DB }
+
+func (r *routingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error)       { return nil, nil }
 func (r *routingRepo) Save(ctx context.Context, config *controlstate.RoutingConfig) error { return nil }
 
-type apiKeyRepo struct { db *sql.DB }
-func (a *apiKeyRepo) GetByHash(ctx context.Context, hash string) (*controlstate.APIKeyRecord, error) { return nil, nil }
-func (a *apiKeyRepo) List(ctx context.Context) ([]*controlstate.APIKeyRecord, error) { return nil, nil }
+type apiKeyRepo struct{ db *sql.DB }
+
+func (a *apiKeyRepo) GetByHash(ctx context.Context, hash string) (*controlstate.APIKeyRecord, error) {
+	return nil, nil
+}
+func (a *apiKeyRepo) List(ctx context.Context) ([]*controlstate.APIKeyRecord, error)   { return nil, nil }
 func (a *apiKeyRepo) Create(ctx context.Context, key *controlstate.APIKeyRecord) error { return nil }
 func (a *apiKeyRepo) Update(ctx context.Context, key *controlstate.APIKeyRecord) error { return nil }
-func (a *apiKeyRepo) Delete(ctx context.Context, id string) error { return nil }
+func (a *apiKeyRepo) Delete(ctx context.Context, id string) error                      { return nil }
 
-type usageRepo struct { db *sql.DB }
+type usageRepo struct{ db *sql.DB }
+
 func (u *usageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error { return nil }
 
-type auditRepo struct { db *sql.DB }
-func (a *auditRepo) Log(ctx context.Context, event *controlstate.AuditEvent) error { return nil }
-func (a *auditRepo) List(ctx context.Context, targetID string) ([]*controlstate.AuditEvent, error) { return nil, nil }
-func (a *auditRepo) PurgeOld(ctx context.Context, beforeTimestamp string) (int64, error) { return 0, nil }
+type auditRepo struct{ db *sql.DB }
 
-type idempotencyRepo struct { db *sql.DB }
-func (i *idempotencyRepo) Get(ctx context.Context, key string) (*controlstate.IdempotencyRecord, error) { return nil, nil }
-func (i *idempotencyRepo) Save(ctx context.Context, record *controlstate.IdempotencyRecord) error { return nil }
+func (a *auditRepo) Log(ctx context.Context, event *controlstate.AuditEvent) error { return nil }
+func (a *auditRepo) List(ctx context.Context, targetID string) ([]*controlstate.AuditEvent, error) {
+	return nil, nil
+}
+func (a *auditRepo) PurgeOld(ctx context.Context, beforeTimestamp string) (int64, error) {
+	return 0, nil
+}
+
+type idempotencyRepo struct{ db *sql.DB }
+
+func (i *idempotencyRepo) Get(ctx context.Context, key string) (*controlstate.IdempotencyRecord, error) {
+	return nil, nil
+}
+func (i *idempotencyRepo) Save(ctx context.Context, record *controlstate.IdempotencyRecord) error {
+	return nil
+}
 
 func (r *Repository) DBForTest() *sql.DB {
 	return r.db
