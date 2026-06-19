@@ -15,8 +15,11 @@ func (m *mockTransaction) Rollback() error { return nil }
 
 type mockProviderRepo struct {
 	ProviderRepository
-	records  []*ProviderRecord
-	secrets  map[string]struct{ ciphertext, nonce []byte; keyID string }
+	records []*ProviderRecord
+	secrets map[string]struct {
+		ciphertext, nonce []byte
+		keyID             string
+	}
 	err      error
 	conflict bool
 }
@@ -42,13 +45,13 @@ func (m *mockProviderRepo) Create(ctx context.Context, p *ProviderMutation) (*Pr
 		return nil, m.err
 	}
 	rec := &ProviderRecord{
-		ID:           p.ID,
-		Name:         p.Name,
-		Type:         p.Type,
-		BaseURL:      p.BaseURL,
-		Enabled:      p.Enabled,
-		Models:       p.Models,
-		Revision:     1,
+		ID:       p.ID,
+		Name:     p.Name,
+		Type:     p.Type,
+		BaseURL:  p.BaseURL,
+		Enabled:  p.Enabled,
+		Models:   p.Models,
+		Revision: 1,
 	}
 	if p.DefaultModel != nil {
 		rec.DefaultModel = *p.DefaultModel
@@ -93,7 +96,10 @@ func (m *mockProviderRepo) GetEncryptedSecret(ctx context.Context, id string) ([
 }
 
 func (m *mockProviderRepo) PutEncryptedSecret(ctx context.Context, id string, ciphertext, nonce []byte, keyID string) error {
-	m.secrets[id] = struct{ ciphertext, nonce []byte; keyID string }{ciphertext, nonce, keyID}
+	m.secrets[id] = struct {
+		ciphertext, nonce []byte
+		keyID             string
+	}{ciphertext, nonce, keyID}
 	return nil
 }
 
@@ -156,7 +162,10 @@ func TestAdminProviderService_Create_Validation(t *testing.T) {
 func TestAdminProviderService_Create_Success(t *testing.T) {
 	provRepo := &mockProviderRepo{
 		records: []*ProviderRecord{},
-		secrets: make(map[string]struct{ ciphertext, nonce []byte; keyID string }),
+		secrets: make(map[string]struct {
+			ciphertext, nonce []byte
+			keyID             string
+		}),
 	}
 	repo := &mockRepo{provRepo: provRepo}
 	cipher := &mockCipher{}

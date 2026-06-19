@@ -25,6 +25,7 @@ func (m *mockAdminRepo) BeginTx(ctx context.Context) (controlstate.Transaction, 
 }
 
 type mockTx struct{}
+
 func (m *mockTx) Commit() error   { return nil }
 func (m *mockTx) Rollback() error { return nil }
 
@@ -55,9 +56,10 @@ func (m *mockProvRepo) List(ctx context.Context, filter controlstate.ProviderFil
 	return m.records, nil
 }
 
-type mockAdminCipher struct{
+type mockAdminCipher struct {
 	controlstate.SecretCipher
 }
+
 func (m *mockAdminCipher) EncryptProviderSecret(plaintext []byte) (*controlstate.EncryptedSecret, error) {
 	return &controlstate.EncryptedSecret{}, nil
 }

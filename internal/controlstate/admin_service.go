@@ -157,7 +157,7 @@ func (s *AdminProviderService) Create(ctx context.Context, req *ProviderCreateRe
 	// Trigger runtime activation
 	if err := s.reloadRuntime(ctx); err != nil {
 		// If runtime reload fails, we should ideally rollback the DB transaction.
-		// However, since we committed already, the state is persisted. 
+		// However, since we committed already, the state is persisted.
 		// For a full fix, we could do `reloadRuntime` before commit by reading uncommitted state.
 		// For now we just return the activation error.
 		return nil, err
