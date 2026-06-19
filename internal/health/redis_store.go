@@ -95,7 +95,7 @@ func (s *RedisStore) EndRequest(id string, latency time.Duration, err error) {
 	if state.PendingRequests > 0 {
 		state.PendingRequests--
 	}
-	
+
 	if err != nil {
 		state.ConsecutiveFailures++
 		state.ConsecutiveSuccesses = 0

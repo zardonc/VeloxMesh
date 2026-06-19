@@ -1,15 +1,15 @@
 package middleware
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/errors"
-	"crypto/sha256"
-	"encoding/hex"
 	"veloxmesh/internal/hotstate"
-	"time"
 )
 
 func Auth(cfg *config.Config, cache hotstate.Client) func(http.Handler) http.Handler {
@@ -36,10 +36,10 @@ func Auth(cfg *config.Config, cache hotstate.Client) func(http.Handler) http.Han
 			}
 
 			token := parts[1]
-			
+
 			hash := sha256.Sum256([]byte(token))
 			tokenHash := hex.EncodeToString(hash[:])
-			
+
 			if cache != nil {
 				if allowed, err := cache.GetCachedAuthResult(r.Context(), tokenHash); err == nil {
 					if allowed {
@@ -52,7 +52,7 @@ func Auth(cfg *config.Config, cache hotstate.Client) func(http.Handler) http.Han
 			}
 
 			allowed := (token == cfg.DevAPIKey)
-			
+
 			if cache != nil {
 				_ = cache.CacheAuthResult(r.Context(), tokenHash, allowed, ttl)
 			}

@@ -100,7 +100,7 @@ func LoadConfig() (*Config, error) {
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		DevAPIKey:          getEnv("DEV_API_KEY", "vx-dev"),
 		RoutingStrategy:    getEnv("ROUTING_STRATEGY", "least-latency"),
-		
+
 		ControlStateBackend:          getEnv("CONTROL_STATE_BACKEND", "disabled"),
 		ControlStateDSN:              getEnv("CONTROL_STATE_DSN", ""),
 		ControlStateMigrateOnStartup: getEnv("CONTROL_STATE_MIGRATE_ON_STARTUP", "false") == "true",
@@ -108,15 +108,15 @@ func LoadConfig() (*Config, error) {
 		ControlStateEncryptionKey:    getEnv("CONTROL_STATE_ENCRYPTION_KEY", ""),
 		AdminAPIKey:                  getEnv("ADMIN_API_KEY", ""),
 		AuditRetention:               getEnv("AUDIT_RETENTION", "720h"),
-		
-		RedisEnabled:                 getEnv("REDIS_ENABLED", "false") == "true",
-		RedisAddr:                    getEnv("REDIS_ADDR", "localhost:6379"),
-		RedisPassword:                getEnv("REDIS_PASSWORD", ""),
-		RedisDB:                      0, // Simplification, can override via JSON if needed, or parse env
-		RedisNamespace:               getEnv("REDIS_NAMESPACE", "veloxmesh:local"),
-		RedisHealthTTL:               getEnv("REDIS_HEALTH_TTL", "1m"),
-		RedisAuthCacheTTL:            getEnv("REDIS_AUTH_CACHE_TTL", "5m"),
-		RedisDegradeToLocal:          getEnv("REDIS_DEGRADE_TO_LOCAL", "true") == "true",
+
+		RedisEnabled:        getEnv("REDIS_ENABLED", "false") == "true",
+		RedisAddr:           getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisPassword:       getEnv("REDIS_PASSWORD", ""),
+		RedisDB:             0, // Simplification, can override via JSON if needed, or parse env
+		RedisNamespace:      getEnv("REDIS_NAMESPACE", "veloxmesh:local"),
+		RedisHealthTTL:      getEnv("REDIS_HEALTH_TTL", "1m"),
+		RedisAuthCacheTTL:   getEnv("REDIS_AUTH_CACHE_TTL", "5m"),
+		RedisDegradeToLocal: getEnv("REDIS_DEGRADE_TO_LOCAL", "true") == "true",
 	}
 
 	configFile := getEnv("CONFIG_FILE", "")
@@ -141,7 +141,7 @@ func LoadConfig() (*Config, error) {
 			ControlStateEncryptionKey    string `json:"control_state_encryption_key"`
 			AdminAPIKey                  string `json:"admin_api_key"`
 			AuditRetention               string `json:"audit_retention"`
-			
+
 			RedisEnabled        *bool  `json:"redis_enabled"`
 			RedisAddr           string `json:"redis_addr"`
 			RedisPassword       string `json:"redis_password"`
@@ -194,7 +194,7 @@ func LoadConfig() (*Config, error) {
 		if fileCfg.AuditRetention != "" {
 			cfg.AuditRetention = fileCfg.AuditRetention
 		}
-		
+
 		if fileCfg.RedisEnabled != nil {
 			cfg.RedisEnabled = *fileCfg.RedisEnabled
 		}
