@@ -2,11 +2,11 @@
 
 **Created:** 2026-06-15
 **Mode:** brownfield retrospective initialization
-**Current focus:** Phase 3 - Durable Control State
+**Current focus:** Phase 4 - Streaming, Rate Limits, Cache, and Cost
 
 ## Overview
 
-VeloxMesh is being built as vertical gateway slices. Phase 1 established the runnable Go/Chi OpenAI-compatible data-plane skeleton. Phase 2 is now the provider and adapter foundation milestone: multi-provider routing, provider health, native adapters, retry/fallback, active probing, adapter capability metadata, config hardening, model eligibility, and adapter conformance.
+VeloxMesh is being built as vertical gateway slices. Phase 1 established the runnable Go/Chi OpenAI-compatible data-plane skeleton. Phase 2 completed the provider and adapter foundation milestone: multi-provider routing, provider health, native adapters, retry/fallback, active probing, adapter capability metadata, config hardening, model eligibility, and adapter conformance. Phase 3 completed durable control state: database-backed provider configuration, Admin provider CRUD, runtime reload, audit/idempotency, Redis hot state, and Redis config-change notifications.
 
 | Phase | Name | Status | Plans | Requirements |
 |-------|------|--------|-------|--------------|
@@ -21,7 +21,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 | 2.8 | Provider Configuration Schema and Secret-Safe Validation | Complete | 1/1 complete | static config schema hardening |
 | 2.9 | Provider Model Catalog and Routing Eligibility | Complete | 1/1 complete | model/provider capability eligibility |
 | 2.10 | Adapter Conformance Test Harness | Complete | 1/1 complete | reusable adapter contract tests |
-| 3 | Durable Control State | Planned | 0/7 planned | CTRL-01..03 |
+| 3 | Durable Control State | Complete | 7/7 complete | CTRL-01..03 |
 | 4 | Streaming, Rate Limits, Cache, and Cost | Future | 0/0 | STRM-01, RATE-01, CACHE-01, COST-01, CB-01 |
 
 ## Phase Details
@@ -234,41 +234,60 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 ### Phase 3: Durable Control State
 
 **Goal:** Introduce persistent provider/API-key/config state and Redis-backed hot control state.
-**Status:** Planned
-**Plans:** 7 plans
+**Status:** Complete
+**Plans:** 7 plans complete
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md - Durable control-state contracts, schema migrations, validation, and encrypted provider secrets.
+- [x] 03-01-PLAN.md - Durable control-state contracts, schema migrations, validation, and encrypted provider secrets.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md - PostgreSQL/SQLite repositories, backend config, and local-dev static seed semantics.
+- [x] 03-02-PLAN.md - PostgreSQL/SQLite repositories, backend config, and local-dev static seed semantics.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 03-03-PLAN.md - Runtime provider loading, actionable missing-config errors, disabled-provider filtering, and reload without restart.
+- [x] 03-03-PLAN.md - Runtime provider loading, actionable missing-config errors, disabled-provider filtering, and reload without restart.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 03-04-PLAN.md - Versioned Admin provider CRUD API, dedicated admin bearer auth, transactional runtime activation, and redacted DTOs.
+- [x] 03-04-PLAN.md - Versioned Admin provider CRUD API, dedicated admin bearer auth, transactional runtime activation, and redacted DTOs.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 03-05-PLAN.md - Provider test-connection action, idempotency keys, audit events, and audit retention.
+- [x] 03-05-PLAN.md - Provider test-connection action, idempotency keys, audit events, and audit retention.
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 03-06-PLAN.md - Optional Redis health/probe hot state, data-plane auth cache, namespace/TTL handling, and local degradation.
+- [x] 03-06-PLAN.md - Optional Redis health/probe hot state, data-plane auth cache, namespace/TTL handling, and local degradation.
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 03-07-PLAN.md - Redis config-change pub/sub notifications and no-Redis consistency documentation.
+- [x] 03-07-PLAN.md - Redis config-change pub/sub notifications and no-Redis consistency documentation.
+
+**Primary artifacts:**
+
+- `.planning/phases/03-durable-control-state/03-CONTEXT.md`
+- `.planning/phases/03-durable-control-state/03-01-PLAN.md`
+- `.planning/phases/03-durable-control-state/03-01-UAT.md`
+- `.planning/phases/03-durable-control-state/03-02-PLAN.md`
+- `.planning/phases/03-durable-control-state/03-02-UAT.md`
+- `.planning/phases/03-durable-control-state/03-03-PLAN.md`
+- `.planning/phases/03-durable-control-state/03-03-UAT.md`
+- `.planning/phases/03-durable-control-state/03-04-PLAN.md`
+- `.planning/phases/03-durable-control-state/03-04-UAT.md`
+- `.planning/phases/03-durable-control-state/03-05-PLAN.md`
+- `.planning/phases/03-durable-control-state/03-05-UAT.md`
+- `.planning/phases/03-durable-control-state/03-06-PLAN.md`
+- `.planning/phases/03-durable-control-state/03-06-UAT.md`
+- `.planning/phases/03-durable-control-state/03-07-PLAN.md`
+- `.planning/phases/03-durable-control-state/03-07-SUMMARY.md`
+- `.planning/phases/03-durable-control-state/03-07-UAT.md`
 
 **Success Criteria:**
 
 1. PostgreSQL schema stores provider, API key, routing, and usage records.
-2. Redis stores health and hot control state where appropriate.
+2. Redis stores provider health/probe hot state, auth-cache hot state, and config-change notifications where configured.
 3. Admin API manages provider config without process restart.
 
 ### Phase 4: Streaming, Rate Limits, Cache, and Cost
@@ -285,10 +304,10 @@ Plans:
 
 ## Notes
 
-- Phase 2 is complete. Its static-config and in-process control surfaces are transitional until durable control state is explicitly scoped.
+- Phase 3 is complete. Phase 2 static-config and in-process control surfaces remain only as compatibility/local-development paths; durable control state is now the intended provider configuration path.
 - When a solution is explicitly introduced as a temporary transitional measure during a development phase, its goal is only to meet the current phase's requirements. Do not spend excessive time optimizing, refining, or designing it for long-term maintainability unless it is expected to remain in use in future phases.
 - Do not add streaming, semantic cache, rate limiting, or cost governance until their later phase is explicitly scoped.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
 
 ---
-*Roadmap refreshed: 2026-06-17 after Phase 2 completion reconciliation*
+*Roadmap refreshed: 2026-06-19 after Phase 3 durable control state UAT completion*

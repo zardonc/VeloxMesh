@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-last_updated: "2026-06-19T03:34:09.203Z"
+last_updated: "2026-06-19T16:10:00.000Z"
 progress:
   total_phases: 11
   completed_phases: 11
@@ -18,7 +18,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 2 is complete. Next milestone slice is Phase 3 - Durable Control State.
+**Current focus:** Phase 3 durable control state is complete and UAT verified. Next milestone slice is Phase 4 - Streaming, Rate Limits, Cache, and Cost.
 
 ## Current Implementation State
 
@@ -33,7 +33,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 - Phase 2.8 provider configuration schema and secret-safe validation is implemented and UAT verified.
 - Phase 2.9 provider model catalog and routing eligibility is implemented, UAT verified, and security verified.
 - Phase 2.10 adapter conformance test harness is implemented, UAT verified, and security verified.
-- Static JSON multi-provider config remains a temporary transitional Phase 2 measure. It should be replaced by runtime Admin Console/database-backed provider configuration in a future phase rather than over-optimized as a long-term design.
+- Phase 3 durable control state is implemented and UAT verified across 7/7 plans.
+- Durable provider configuration now supports PostgreSQL/SQLite repositories, encrypted provider secrets, Admin provider CRUD, runtime provider reload without restart, provider test-connection, idempotency, audit events, optional Redis health/probe hot state, auth-cache hot state, and Redis config-change pub/sub notifications.
+- Static JSON multi-provider config remains as a compatibility/local-development seed path only. Durable provider configuration is now the intended provider source of truth.
 
 ## Completed
 
@@ -48,13 +50,20 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 - Phase 2.8: Provider Configuration Schema and Secret-Safe Validation.
 - Phase 2.9: Provider Model Catalog and Routing Eligibility.
 - Phase 2.10: Adapter Conformance Test Harness.
+- Phase 3.1: Durable control-state contracts, schema migrations, validation, and encrypted provider secrets.
+- Phase 3.2: PostgreSQL/SQLite repositories, backend config, and local-dev static seed semantics.
+- Phase 3.3: Runtime provider loading, actionable missing-config errors, disabled-provider filtering, and reload without restart.
+- Phase 3.4: Versioned Admin provider CRUD API, dedicated admin bearer auth, transactional runtime activation, and redacted DTOs.
+- Phase 3.5: Provider test-connection action, idempotency keys, audit events, and audit retention.
+- Phase 3.6: Optional Redis health/probe hot state, data-plane auth cache, namespace/TTL handling, and local degradation.
+- Phase 3.7: Redis config-change pub/sub notifications and no-Redis consistency documentation.
 
 ## Planned Next
 
-1. Plan Phase 3 durable control state.
-2. Keep Phase 2 transitional static-config decisions scoped as temporary until Phase 3 replaces them.
+1. Plan Phase 4 streaming, rate limits, cache, cost, and circuit-breaker/fallback-chain scope.
+2. Keep Phase 4 advanced gateway features out of Phase 3 maintenance unless explicitly scoped.
 
 ## Useful Commands
 
-- `$gsd-plan-phase 3` - plan durable control state.
+- `$gsd-plan-phase 4` - plan streaming, rate limits, cache, cost, and circuit-breaker/fallback-chain work.
 - `go test ./...` - run the current Go test suite.
