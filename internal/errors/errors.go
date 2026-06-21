@@ -4,9 +4,9 @@ import "fmt"
 
 // GatewayError represents a structured error returned by the gateway.
 type GatewayError struct {
-	Code       string
-	Message    string
-	HTTPStatus int
+	Code       string `json:"code"`
+	Message    string `json:"message"`
+	HTTPStatus int    `json:"status"`
 }
 
 func (e *GatewayError) Error() string {
@@ -28,6 +28,12 @@ var (
 	ErrUnknownProviderOverride    = NewGatewayError("unknown_provider_override", "requested provider override is unknown", 400)
 	ErrUnhealthyProviderOverride  = NewGatewayError("unhealthy_provider_override", "requested provider override is unhealthy", 503)
 	ErrIneligibleProviderOverride = NewGatewayError("ineligible_provider_override", "requested provider override does not support the requested model and operation", 400)
+
+	// Control state runtime errors
+	ErrNoActiveProviderConfig     = NewGatewayError("no_active_provider_config", "no active provider configuration exists; create and enable a provider through /admin/v1/providers", 503)
+	ErrMissingProviderSecret      = NewGatewayError("missing_provider_secret", "missing provider secret", 500)
+	ErrMissingProviderModelConfig = NewGatewayError("missing_provider_model_config", "missing provider model config", 400)
+	ErrProviderActivationFailed   = NewGatewayError("provider_activation_failed", "provider activation failed", 500)
 )
 
 // Shared Provider Error Categories

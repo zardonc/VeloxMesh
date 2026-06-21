@@ -57,9 +57,9 @@
 
 ### Control Plane And Storage
 
-- **CTRL-01**: Admin API can manage provider configuration.
-- **CTRL-02**: PostgreSQL stores durable provider, API key, routing, and usage records.
-- **CTRL-03**: Redis stores hot health, rate-limit, auth-cache, and exact-cache state.
+- [x] **CTRL-01**: Admin API can manage provider configuration.
+- [x] **CTRL-02**: PostgreSQL/SQLite stores durable provider, API key, routing, usage, audit, idempotency, and provider-secret records.
+- [x] **CTRL-03**: Redis stores hot provider health/probe state, data-plane auth-cache hot state, and config-change notifications when configured.
 
 ### Advanced Gateway Features
 
@@ -110,6 +110,9 @@
 | OPS-01 | Phase 2.2 | Pending |
 | OPS-02 | Phase 2.2 | Pending |
 | PROV-06 | Phase 2.3 | Pending |
+| CTRL-01 | Phase 3 | Complete |
+| CTRL-02 | Phase 3 | Complete |
+| CTRL-03 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 26 total
@@ -118,4 +121,4 @@
 
 ---
 *Requirements defined: 2026-06-15*
-*Last updated: 2026-06-15 after retrospective project initialization*
+*Last updated: 2026-06-19 after Phase 3 durable control state UAT completion*

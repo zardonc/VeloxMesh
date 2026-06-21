@@ -1,14 +1,26 @@
 package middleware
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/errors"
+	"veloxmesh/internal/hotstate"
 )
 
-func Auth(cfg *config.Config) func(http.Handler) http.Handler {
+func Auth(cfg *config.Config, cache hotstate.Client) func(http.Handler) http.Handler {
+	var ttl time.Duration
+	if cfg.RedisAuthCacheTTL != "" {
+		ttl, _ = time.ParseDuration(cfg.RedisAuthCacheTTL)
+	}
+	if ttl <= 0 {
+		ttl = 5 * time.Minute
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
@@ -24,7 +36,28 @@ func Auth(cfg *config.Config) func(http.Handler) http.Handler {
 			}
 
 			token := parts[1]
-			if token != cfg.DevAPIKey {
+
+			hash := sha256.Sum256([]byte(token))
+			tokenHash := hex.EncodeToString(hash[:])
+
+			if cache != nil {
+				if allowed, err := cache.GetCachedAuthResult(r.Context(), tokenHash); err == nil {
+					if allowed {
+						next.ServeHTTP(w, r)
+						return
+					}
+					sendAuthError(w, "invalid_api_key", "Invalid API key")
+					return
+				}
+			}
+
+			allowed := (token == cfg.DevAPIKey)
+
+			if cache != nil {
+				_ = cache.CacheAuthResult(r.Context(), tokenHash, allowed, ttl)
+			}
+
+			if !allowed {
 				sendAuthError(w, "invalid_api_key", "Invalid API key")
 				return
 			}

@@ -2,7 +2,7 @@
 
 ## What This Is
 
-VeloxMesh is a lightweight AI gateway for routing, governing, and observing LLM traffic across multiple providers. The current repository focuses on the gateway binary: a Go/Chi OpenAI-compatible data-plane API with provider adapters, routing boundaries, admission boundaries, and a path toward health-aware multi-provider routing.
+VeloxMesh is a lightweight AI gateway for routing, governing, and observing LLM traffic across multiple providers. The current repository focuses on the gateway binary: a Go/Chi OpenAI-compatible data-plane API with provider adapters, routing boundaries, admission boundaries, durable provider control state, and Redis-backed hot-state coordination where configured.
 
 The gateway is intended to remain a unified OpenAI-compatible entry point for downstream clients while provider adapters translate to each upstream provider's native protocol where needed.
 
@@ -21,24 +21,22 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ### Active
 
-- [ ] Begin durable control-state design for provider/API-key/config persistence.
+- [ ] Plan Phase 4 advanced gateway features: streaming, rate limits, cache, cost, and circuit-breaker/fallback-chain behavior.
 
 ### Out of Scope
 
-- PostgreSQL-backed provider/API-key/config persistence — deferred until the gateway routing layer is stable.
-- Redis-backed health, auth cache, rate limiting, and semantic cache — deferred until in-memory behavior is proven.
-- Admin API and Admin Console — deferred; current control surface is static config/env.
+- Admin Console UI — deferred; Phase 3 added backend Admin provider APIs but no frontend console.
 - SSE streaming proxy — deferred; current chat endpoint is non-streaming only.
 - Tool/function calling and multimodal provider normalization — deferred until text chat adapters are working.
 - Cost governance, usage aggregation, and model degradation — deferred until provider routing and observability foundations exist.
+- Rate limiting and semantic cache — deferred to Phase 4+; Phase 3 Redis support is limited to health/probe hot state, auth-cache hot state, and config-change notifications.
 
 ## Context
 
 - Source architecture: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\gateway-architecture.md`.
 - The original gateway design is Go-first. TypeScript/Node gateway plans were superseded.
-- Current code is a Phase 1 walking skeleton. It uses Go `1.26.1` in `go.mod`, Chi router, static environment config, a single OpenAI-compatible adapter, and basic integration tests.
-- Phase 2.1 is planned in `.planning/phases/02-health-aware-routing/02-01-PLAN.md` but the current code has not yet implemented `internal/health`, multi-provider config, or health-aware routing.
-- Native Anthropic/Gemini adapters are planned after the Go version baseline is verified. Downstream clients should continue to see OpenAI-compatible responses.
+- Current code includes Phase 1 through Phase 3: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable PostgreSQL/SQLite provider control state, versioned Admin provider CRUD, test-connection, audit/idempotency, runtime reload, optional Redis hot state, and Redis config-change pub/sub notifications.
+- Downstream clients should continue to see OpenAI-compatible responses.
 
 ## Constraints
 
@@ -60,7 +58,9 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Phase 1 uses static dev auth and env config | Proves the call chain without pulling in PostgreSQL/Redis early | ✓ Good |
 | Phase 2 should use in-memory/static control surfaces before Redis/Admin API | Builds routing value before persistence/control-plane scope | ✓ Good |
 | Anthropic adapter should prefer official SDK after Go baseline verification | User preference; reduces provider mapping risk if SDK fits | ✓ Good |
-| Static JSON multi-provider config is transitional | It satisfies Phase 2 provider/routing requirements but is expected to be replaced by runtime Admin Console/database configuration in a future phase | Temporary |
+| Static JSON multi-provider config is transitional | It satisfies Phase 2 provider/routing requirements but durable provider configuration is now the intended source of truth after Phase 3 | Temporary |
+| Durable provider configuration is database-backed | Phase 3 introduced PostgreSQL/SQLite repositories plus Admin provider APIs and runtime reload | ✓ Good |
+| Redis hot state is optional | Phase 3 Redis support coordinates health/probe/auth-cache/config-change hot state while no-Redis mode remains local/single-instance for reload consistency | ✓ Good |
 
 ## Evolution
 
@@ -71,4 +71,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-06-17 after Phase 2 completion metadata reconciliation*
+*Last updated: 2026-06-19 after Phase 3 durable control state UAT completion*

@@ -41,6 +41,10 @@ func (r *HealthAwareRouter) Select(ctx context.Context, req *llm.LLMRequest) (pr
 }
 
 func (r *HealthAwareRouter) SelectExcluding(ctx context.Context, req *llm.LLMRequest, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error) {
+	if !r.registry.HasConfiguredProviders() {
+		return nil, RoutingDecision{}, errors.ErrNoActiveProviderConfig
+	}
+
 	if req.RouteOverride != "" {
 		return r.selectOverride(req.RouteOverride, req.Model)
 	}

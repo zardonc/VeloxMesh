@@ -142,7 +142,11 @@ func TestHealthRecovery(t *testing.T) {
 
 	// 3. ProbeProvider(ctx, "p1") succeeds.
 	importContext := context.Background()
-	res := application.Prober.ProbeProvider(importContext, "p1")
+	rpmSnap := application.RuntimeProviderManager.Snapshot()
+	if rpmSnap == nil || rpmSnap.Prober == nil {
+		t.Fatal("prober not available in snapshot")
+	}
+	res := rpmSnap.Prober.ProbeProvider(importContext, "p1")
 	if !res.Available {
 		t.Errorf("expected probe to be available")
 	}

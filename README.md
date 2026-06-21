@@ -123,4 +123,28 @@ When starting the gateway, the configuration is strictly validated to ensure rob
 
 By default, fallback across providers is enabled if more than one provider is configured. You can use the `X-Route-To` header to strictly override routing to a specific provider. When a strict override is used, fallback attempts are disabled.
 
-*Note: This static JSON configuration path is temporary. Features like Admin API, Admin Console, PostgreSQL-backed provider configuration, Redis cache, runtime config hot reload, advanced routing, SSE streaming proxy, rate limiting, semantic cache, cost governance, or live model discovery are explicitly deferred to later phases.*
+### Durable Control State & Redis Hot State (Phase 3)
+
+VeloxMesh supports dynamic provider configuration management via an Admin API. The control plane uses PostgreSQL or SQLite for durable storage, while Redis optionally handles multi-instance consistency and distributed caching.
+
+#### Redis Configuration
+Redis is optional but recommended for multi-instance deployments. Configure it via environment variables or `CONFIG_FILE`:
+- `REDIS_ENABLED`: Set to `true` to enable Redis (default: `false`).
+- `REDIS_ADDR`: Redis server address (default: `localhost:6379`).
+- `REDIS_PASSWORD`: Redis password (default: empty).
+- `REDIS_DB`: Redis database index (default: `0`).
+- `REDIS_NAMESPACE`: Key prefix for all Redis data (default: `veloxmesh:local`).
+- `REDIS_HEALTH_TTL`: TTL for health check snapshots (default: `1m`).
+- `REDIS_AUTH_CACHE_TTL`: TTL for data-plane API key auth caching (default: `5m`).
+- `REDIS_CONFIG_CHANGE_CHANNEL`: Pattern used for pub/sub notifications, defaulting to `{namespace}:channel:config-change`.
+- `REDIS_DEGRADE_TO_LOCAL`: If `true`, falls back to in-memory local state when Redis is unavailable (default: `true`).
+
+#### Key Patterns & No-Secrets Rule
+Keys are prefixed using the configured namespace (e.g., `veloxmesh:prod:health:provider-id`).
+VeloxMesh guarantees that **Redis never stores provider secrets, decrypted credentials, encrypted secret blobs, raw prompts, or upstream payloads**. It only caches ephemeral routing state (health, auth decisions) and configuration change notifications.
+
+#### Multi-Instance Consistency Modes
+- **With Redis (Recommended)**: Admin API mutations publish a config-change event via Redis pub/sub. All connected VeloxMesh instances subscribe to this channel and automatically reload their runtime provider state to ensure cluster-wide consistency.
+- **Without Redis (Local Only)**: If Redis is disabled or degraded, runtime reload is guaranteed **only for the gateway instance handling the Admin API request**. Other instances will not receive the update until restarted or manually reloaded.
+
+*Note: Features like advanced routing, SSE streaming proxy, rate limiting, semantic cache, cost governance, or live model discovery are explicitly deferred to later phases.*
