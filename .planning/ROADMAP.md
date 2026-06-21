@@ -309,5 +309,16 @@ Plans:
 - Do not add streaming, semantic cache, rate limiting, or cost governance until their later phase is explicitly scoped.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
 
+## Local Development Resources
+
+The local development environment has been verified and configured. The following resources are available and their specific connection details, models, and credentials can be found in the local `.env` and `.env.local` files:
+
+- **Infrastructure**: 
+  - PostgreSQL Database
+  - Redis Cache
+- **LLM Providers**:
+  - `sanf` (OpenAI Primary)
+  - `sans` (SANS Primary, with multiple models configured)
+
 ---
 *Roadmap refreshed: 2026-06-19 after Phase 3 durable control state UAT completion*
