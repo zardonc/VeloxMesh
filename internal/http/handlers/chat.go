@@ -59,7 +59,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		ch, respMeta, err := h.service.HandleChatCompletionStream(r.Context(), llmReq)
 		if err != nil {
 			if gwErr, ok := err.(*errors.GatewayError); ok {
-				sendError(w, gwErr.Code, gwErr.Message, gwErr.HTTPStatus)
+				sendGatewayError(w, gwErr)
 			} else {
 				sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
 			}
@@ -153,7 +153,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	resp, err := h.service.HandleChatCompletion(r.Context(), llmReq)
 	if err != nil {
 		if gwErr, ok := err.(*errors.GatewayError); ok {
-			sendError(w, gwErr.Code, gwErr.Message, gwErr.HTTPStatus)
+			sendGatewayError(w, gwErr)
 		} else {
 			sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
 		}
@@ -198,4 +198,15 @@ func sendError(w http.ResponseWriter, code, message string, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(errors.NewGatewayError(code, message, status))
+}
+
+func sendGatewayError(w http.ResponseWriter, gwErr *errors.GatewayError) {
+	w.Header().Set("Content-Type", "application/json")
+	if gwErr.Headers != nil {
+		for k, v := range gwErr.Headers {
+			w.Header().Set(k, v)
+		}
+	}
+	w.WriteHeader(gwErr.HTTPStatus)
+	_ = json.NewEncoder(w).Encode(gwErr)
 }

@@ -66,14 +66,15 @@ type RoutingConfig struct {
 }
 
 type APIKeyRecord struct {
-	ID        string    `json:"id"`
-	Prefix    string    `json:"prefix"`
-	Hash      string    `json:"-"`
-	Name      string    `json:"name"`
-	Role      string    `json:"role"`
-	Enabled   bool      `json:"enabled"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID            string    `json:"id"`
+	Prefix        string    `json:"prefix"`
+	Hash          string    `json:"-"`
+	Name          string    `json:"name"`
+	Role          string    `json:"role"`
+	Enabled       bool      `json:"enabled"`
+	CreditBalance int64     `json:"credit_balance"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type UsageRecord struct {

@@ -125,10 +125,15 @@ func New() (*App, error) {
 		}
 	}
 
-	admissionCtrl := admission.NewPassThroughController()
+	var admissionCtrl admission.Controller
+	if repo != nil {
+		admissionCtrl = admission.NewCreditAdmissionController(repo)
+	} else {
+		admissionCtrl = admission.NewPassThroughController()
+	}
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts)
 
-	r := router.NewRouter(cfg, gatewaySvc, nil, hotStateClient)
+	r := router.NewRouter(cfg, gatewaySvc, nil, hotStateClient, repo)
 
 	application := &App{
 		Config:                 cfg,

@@ -351,12 +351,81 @@ func (r *routingRepo) Save(ctx context.Context, config *controlstate.RoutingConf
 type apiKeyRepo struct{ db *sql.DB }
 
 func (a *apiKeyRepo) GetByHash(ctx context.Context, hash string) (*controlstate.APIKeyRecord, error) {
-	return nil, nil
+	row := a.db.QueryRowContext(ctx, `
+		SELECT id, prefix, hash, name, role, enabled, credit_balance, created_at, updated_at
+		FROM api_keys
+		WHERE hash = ?`, hash)
+	rec := &controlstate.APIKeyRecord{}
+	if err := row.Scan(&rec.ID, &rec.Prefix, &rec.Hash, &rec.Name, &rec.Role, &rec.Enabled, &rec.CreditBalance, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return rec, nil
 }
-func (a *apiKeyRepo) List(ctx context.Context) ([]*controlstate.APIKeyRecord, error)   { return nil, nil }
-func (a *apiKeyRepo) Create(ctx context.Context, key *controlstate.APIKeyRecord) error { return nil }
-func (a *apiKeyRepo) Update(ctx context.Context, key *controlstate.APIKeyRecord) error { return nil }
-func (a *apiKeyRepo) Delete(ctx context.Context, id string) error                      { return nil }
+
+func (a *apiKeyRepo) List(ctx context.Context) ([]*controlstate.APIKeyRecord, error) {
+	rows, err := a.db.QueryContext(ctx, `
+		SELECT id, prefix, hash, name, role, enabled, credit_balance, created_at, updated_at
+		FROM api_keys
+		ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []*controlstate.APIKeyRecord
+	for rows.Next() {
+		rec := &controlstate.APIKeyRecord{}
+		if err := rows.Scan(&rec.ID, &rec.Prefix, &rec.Hash, &rec.Name, &rec.Role, &rec.Enabled, &rec.CreditBalance, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+			return nil, err
+		}
+		result = append(result, rec)
+	}
+	return result, rows.Err()
+}
+
+func (a *apiKeyRepo) Create(ctx context.Context, key *controlstate.APIKeyRecord) error {
+	if key.CreatedAt.IsZero() {
+		key.CreatedAt = time.Now().UTC()
+	}
+	if key.UpdatedAt.IsZero() {
+		key.UpdatedAt = time.Now().UTC()
+	}
+	_, err := a.db.ExecContext(ctx, `
+		INSERT INTO api_keys (id, prefix, hash, name, role, enabled, credit_balance, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		key.ID, key.Prefix, key.Hash, key.Name, key.Role, key.Enabled, key.CreditBalance, key.CreatedAt, key.UpdatedAt,
+	)
+	return err
+}
+
+func (a *apiKeyRepo) Update(ctx context.Context, key *controlstate.APIKeyRecord) error {
+	key.UpdatedAt = time.Now().UTC()
+	res, err := a.db.ExecContext(ctx, `
+		UPDATE api_keys
+		SET name = ?, role = ?, enabled = ?, credit_balance = ?, updated_at = ?
+		WHERE id = ?`,
+		key.Name, key.Role, key.Enabled, key.CreditBalance, key.UpdatedAt, key.ID,
+	)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("api key not found")
+	}
+	return nil
+}
+
+func (a *apiKeyRepo) Delete(ctx context.Context, id string) error {
+	_, err := a.db.ExecContext(ctx, `DELETE FROM api_keys WHERE id = ?`, id)
+	return err
+}
 
 type usageRepo struct{ db *sql.DB }
 

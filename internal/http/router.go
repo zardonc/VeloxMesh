@@ -3,13 +3,14 @@ package http
 import (
 	"github.com/go-chi/chi/v5"
 	"veloxmesh/internal/config"
+	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/hotstate"
 	"veloxmesh/internal/http/handlers"
 	"veloxmesh/internal/http/middleware"
 )
 
-func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handlers.AdminProvidersHandler, hotStateClient hotstate.Client) *chi.Mux {
+func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handlers.AdminProvidersHandler, hotStateClient hotstate.Client, repo controlstate.Repository) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -21,7 +22,7 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 
 	// API routes that need auth will use a sub-router or group
 	r.Group(func(r chi.Router) {
-		r.Use(middleware.Auth(cfg, hotStateClient))
+		r.Use(middleware.Auth(cfg, hotStateClient, repo))
 		r.Post("/v1/chat/completions", chatHandler.ChatCompletions)
 		r.Get("/v1/models", modelsHandler.ListModels)
 	})

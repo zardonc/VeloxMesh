@@ -4,9 +4,10 @@ import "fmt"
 
 // GatewayError represents a structured error returned by the gateway.
 type GatewayError struct {
-	Code       string `json:"code"`
-	Message    string `json:"message"`
-	HTTPStatus int    `json:"status"`
+	Code       string            `json:"code"`
+	Message    string            `json:"message"`
+	HTTPStatus int               `json:"status"`
+	Headers    map[string]string `json:"-"`
 }
 
 func (e *GatewayError) Error() string {

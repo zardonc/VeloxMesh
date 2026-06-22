@@ -118,3 +118,74 @@ func TestSQLiteRepository(t *testing.T) {
 		t.Errorf("Expected revision to increment, got %d vs %d", updatedRCfg.Revision, savedRCfg.Revision)
 	}
 }
+
+func TestSQLiteAPIKeyCredit(t *testing.T) {
+	dsn := "file::memory:?cache=shared"
+	repo, err := Open(dsn)
+	if err != nil {
+		t.Fatalf("Failed to open sqlite: %v", err)
+	}
+	defer repo.Close()
+
+	ctx := context.Background()
+	migrator := NewMigrator(repo.db)
+	if err := migrator.Migrate(ctx); err != nil {
+		t.Fatalf("Migration failed: %v", err)
+	}
+
+	key := &controlstate.APIKeyRecord{
+		ID:            "key-1",
+		Prefix:        "vx-",
+		Hash:          "hash123",
+		Name:          "Test Key",
+		Role:          "admin",
+		Enabled:       true,
+		CreditBalance: 1000,
+	}
+
+	err = repo.APIKeys().Create(ctx, key)
+	if err != nil {
+		t.Fatalf("Create API key failed: %v", err)
+	}
+
+	// Get by hash
+	fetched, err := repo.APIKeys().GetByHash(ctx, "hash123")
+	if err != nil {
+		t.Fatalf("GetByHash failed: %v", err)
+	}
+	if fetched == nil {
+		t.Fatalf("Expected key to be found")
+	}
+	if fetched.CreditBalance != 1000 {
+		t.Errorf("Expected CreditBalance 1000, got %d", fetched.CreditBalance)
+	}
+
+	// Update balance
+	fetched.CreditBalance = 500
+	err = repo.APIKeys().Update(ctx, fetched)
+	if err != nil {
+		t.Fatalf("Update API key failed: %v", err)
+	}
+
+	// List keys
+	keys, err := repo.APIKeys().List(ctx)
+	if err != nil {
+		t.Fatalf("List API keys failed: %v", err)
+	}
+	if len(keys) != 1 {
+		t.Fatalf("Expected 1 key, got %d", len(keys))
+	}
+	if keys[0].CreditBalance != 500 {
+		t.Errorf("Expected updated CreditBalance 500, got %d", keys[0].CreditBalance)
+	}
+
+	// Delete key
+	err = repo.APIKeys().Delete(ctx, "key-1")
+	if err != nil {
+		t.Fatalf("Delete API key failed: %v", err)
+	}
+	keys, _ = repo.APIKeys().List(ctx)
+	if len(keys) != 0 {
+		t.Errorf("Expected 0 keys after delete, got %d", len(keys))
+	}
+}

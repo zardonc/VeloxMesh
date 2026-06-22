@@ -17,7 +17,7 @@ func TestAuthMiddlewareCache(t *testing.T) {
 	}
 
 	cache := hotstate.NewLocalHotState()
-	authMiddleware := middleware.Auth(cfg, cache)
+	authMiddleware := middleware.Auth(cfg, cache, nil)
 
 	handler := authMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

@@ -44,6 +44,7 @@ func (m *memoryRepository) Providers() controlstate.ProviderRepository      { re
 func (m *memoryRepository) Idempotency() controlstate.IdempotencyRepository { return m.idemRepo }
 func (m *memoryRepository) Audit() controlstate.AuditRepository             { return m.auditRepo }
 func (m *memoryRepository) Routing() controlstate.RoutingRepository         { return &dummyRoutingRepo{} }
+func (m *memoryRepository) APIKeys() controlstate.APIKeyRepository          { return nil }
 
 type dummyRoutingRepo struct{}
 
@@ -177,10 +178,6 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	a.Config = cfg
 	a.Config.DevAPIKey = "test-dev-key"
 
-	admissionCtrl := admission.NewPassThroughController()
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil)
-
 	provRepo := &memoryProviderRepo{
 		records: []*controlstate.ProviderRecord{},
 	}
@@ -190,6 +187,10 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 		idemRepo:  &dummyIdemRepo{},
 	}
 	cipher := &memoryCipher{}
+
+	admissionCtrl := admission.NewPassThroughController()
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, repo)
 
 	// 1. Initial reload with empty repo
 	err = a.ReloadProviders(context.Background(), repo, cipher)
