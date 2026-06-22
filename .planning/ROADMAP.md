@@ -8,6 +8,15 @@
 
 VeloxMesh is being built as vertical gateway slices. Phase 1 established the runnable Go/Chi OpenAI-compatible data-plane skeleton. Phase 2 completed the provider and adapter foundation milestone: multi-provider routing, provider health, native adapters, retry/fallback, active probing, adapter capability metadata, config hardening, model eligibility, and adapter conformance. Phase 3 completed durable control state: database-backed provider configuration, Admin provider CRUD, runtime reload, audit/idempotency, Redis hot state, and Redis config-change notifications.
 
+## Gateway Runtime Modes
+
+VeloxMesh should keep two startup modes explicit:
+
+- **Lite mode**: SQLite-only startup for local or small deployments. It should require no PostgreSQL or Redis middleware, keep the core OpenAI-compatible gateway path and durable local provider configuration working, and clearly disable or degrade distributed features that need PostgreSQL/Redis semantics.
+- **Full mode**: PostgreSQL + Redis startup for complete gateway functionality. It is the production-capable path for distributed durable state, hot-state coordination, config-change propagation, quota/cost features, and full Phase 4 behavior. Full mode expects PostgreSQL and Redis to be deployed before gateway startup, using Docker Compose or equivalent local middleware deployment.
+
+Planning rule: every Phase 4 plan must state whether each feature works in lite mode, requires full mode, or degrades/fails closed without PostgreSQL/Redis.
+
 | Phase | Name | Status | Plans | Requirements |
 |-------|------|--------|-------|--------------|
 | 1 | Gateway Walking Skeleton | Complete | 1/1 complete | GW-01..05, CHAT-01..05, PROV-01..03, ROUTE-01..02, OBS-01..02 |
@@ -301,10 +310,12 @@ Plans:
 2. Rate limits and admission controls protect providers.
 3. Semantic cache and cost governance are opt-in and observable.
 4. Circuit breaker and fallback-chain behavior is tested.
+5. Lite and full startup modes are documented and enforced by capability checks.
 
 ## Notes
 
 - Phase 3 is complete. Phase 2 static-config and in-process control surfaces remain only as compatibility/local-development paths; durable control state is now the intended provider configuration path.
+- Lite mode uses SQLite only and intentionally limited/basic features; full mode requires PostgreSQL + Redis predeployed through Docker Compose or equivalent and unlocks complete gateway behavior.
 - When a solution is explicitly introduced as a temporary transitional measure during a development phase, its goal is only to meet the current phase's requirements. Do not spend excessive time optimizing, refining, or designing it for long-term maintainability unless it is expected to remain in use in future phases.
 - Do not add streaming, semantic cache, rate limiting, or cost governance until their later phase is explicitly scoped.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
