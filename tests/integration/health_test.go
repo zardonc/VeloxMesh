@@ -72,8 +72,8 @@ func TestHealthEndpoints(t *testing.T) {
 		if caps["provider_type"] != "openai-compatible" {
 			t.Errorf("expected provider_type openai-compatible, got %v", caps["provider_type"])
 		}
-		if caps["streaming"] != false {
-			t.Errorf("expected streaming false, got %v", caps["streaming"])
+		if caps["streaming"] != true {
+			t.Errorf("expected streaming true, got %v", caps["streaming"])
 		}
 
 		// Ensure no secrets

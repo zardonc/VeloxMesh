@@ -174,3 +174,177 @@ func (s *Service) GetAvailableModels() []string {
 func (s *Service) GetProviderCapabilities() []providers.ProviderCapabilities {
 	return s.router.GetProviderCapabilities()
 }
+
+func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+	attempted := make(map[string]bool)
+	attempts := 0
+	var lastErr error
+
+	maxAllowedAttempts := 1
+
+	enabled, attemptsLimit := s.fallbackEnabled, s.maxAttempts
+	type FallbackProvider interface {
+		FallbackConfig() (bool, int)
+		CircuitBreakerConfig() (int, time.Duration)
+	}
+	if fp, ok := s.router.(FallbackProvider); ok {
+		enabled, attemptsLimit = fp.FallbackConfig()
+		threshold, recovery := fp.CircuitBreakerConfig()
+		s.cb.UpdateConfig(CircuitBreakerConfig{
+			FailureThreshold: threshold,
+			RecoveryTimeout:  recovery,
+		})
+	}
+
+	if enabled && req.RouteOverride == "" {
+		maxAllowedAttempts = attemptsLimit
+	}
+
+	for attempts < maxAllowedAttempts {
+		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
+		if err != nil {
+			if lastErr != nil {
+				return nil, nil, lastErr
+			}
+			return nil, nil, err
+		}
+
+		streamAdapter, ok := adapter.(providers.StreamAdapter)
+		if !ok {
+			attempted[decision.ProviderID] = true
+			lastErr = errors.NewGatewayError("provider_invalid_request", "Provider does not support streaming", 400)
+			continue
+		}
+
+		if !s.cb.Allow(decision.ProviderID) {
+			attempted[decision.ProviderID] = true
+			if req.RouteOverride != "" {
+				return nil, nil, errors.NewGatewayError("provider_circuit_open", "Provider circuit is open", 503)
+			}
+			continue
+		}
+
+		attempts++
+
+		release, _, err := s.admission.Admit(ctx, req, decision)
+		if err != nil {
+			if lastErr != nil {
+				return nil, nil, lastErr
+			}
+			return nil, nil, err
+		}
+
+		observability.DefaultMetrics.RecordRoutingStrategy(decision.Strategy)
+		observability.DefaultMetrics.RecordHealthStatus(decision.ProviderID, string(s.healthStore.Snapshot(decision.ProviderID).Status))
+
+		s.healthStore.BeginRequest(decision.ProviderID)
+		start := time.Now()
+
+		ch, err := streamAdapter.Stream(ctx, req)
+
+		if err != nil {
+			latency := time.Since(start)
+			healthErr := err
+			errCategory := ""
+			status := 200
+			if gwErr, ok := err.(*errors.GatewayError); ok {
+				errCategory = gwErr.Code
+				status = gwErr.HTTPStatus
+			} else {
+				errCategory = "provider_error"
+				status = 502
+			}
+			if !errors.AffectsProviderHealth(err) {
+				healthErr = nil
+			}
+
+			s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
+			s.cb.RecordResult(decision.ProviderID, healthErr == nil)
+
+			observability.DefaultMetrics.RecordRequestOutcome(
+				req.RequestID,
+				decision.ProviderID,
+				req.Model,
+				decision.Strategy,
+				status,
+				errCategory,
+				float64(latency.Milliseconds()),
+			)
+
+			release()
+			observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, status)
+			lastErr = err
+
+			if ctx.Err() != nil {
+				return nil, nil, err
+			}
+
+			if errors.IsRetryableProviderError(err) {
+				attempted[decision.ProviderID] = true
+				continue
+			}
+			return nil, nil, err
+		}
+
+		respMeta := &llm.LLMResponse{
+			GatewayID:    req.RequestID,
+			Model:        req.Model,
+			Provider:     decision.ProviderID,
+			Strategy:     decision.Strategy,
+			AttemptCount: attempts,
+			FallbackUsed: attempts > 1,
+		}
+
+		outCh := make(chan llm.StreamEvent)
+		go func() {
+			defer close(outCh)
+
+			var streamErr error
+			status := 200
+			errCategory := ""
+
+			for event := range ch {
+				if event.Error != nil {
+					streamErr = event.Error
+					if gwErr, ok := streamErr.(*errors.GatewayError); ok {
+						errCategory = gwErr.Code
+						status = gwErr.HTTPStatus
+					} else {
+						errCategory = "provider_error"
+						status = 502
+					}
+				}
+				outCh <- event
+			}
+
+			latency := time.Since(start)
+			healthErr := streamErr
+			if streamErr != nil && !errors.AffectsProviderHealth(streamErr) {
+				healthErr = nil
+			}
+
+			s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
+			s.cb.RecordResult(decision.ProviderID, healthErr == nil)
+
+			observability.DefaultMetrics.RecordRequestOutcome(
+				req.RequestID,
+				decision.ProviderID,
+				req.Model,
+				decision.Strategy,
+				status,
+				errCategory,
+				float64(latency.Milliseconds()),
+			)
+
+			release()
+			observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, status)
+			if status == 200 {
+				observability.DefaultMetrics.RecordProviderLatency(decision.ProviderID, float64(latency.Milliseconds()))
+			}
+		}()
+
+		return outCh, respMeta, nil
+	}
+
+	return nil, nil, lastErr
+}

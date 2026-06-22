@@ -46,6 +46,26 @@ type ChatCompletionResponse struct {
 	Choices []Choice `json:"choices"`
 }
 
+type Delta struct {
+	Role    Role   `json:"role,omitempty"`
+	Content string `json:"content,omitempty"`
+}
+
+type ChunkChoice struct {
+	Index        int     `json:"index"`
+	Delta        Delta   `json:"delta"`
+	FinishReason *string `json:"finish_reason,omitempty"`
+}
+
+type ChatCompletionChunkResponse struct {
+	ID      string        `json:"id"`
+	Object  string        `json:"object"`
+	Created int64         `json:"created"`
+	Model   string        `json:"model"`
+	Choices []ChunkChoice `json:"choices"`
+	Usage   *Usage        `json:"usage,omitempty"`
+}
+
 type LLMResponse struct {
 	GatewayID    string
 	Model        string
