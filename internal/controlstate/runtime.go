@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"veloxmesh/internal/config"
 	gwErr "veloxmesh/internal/errors"
@@ -203,6 +204,22 @@ func (m *RuntimeProviderManager) RoutingStrategy() string {
 		return snap.RoutingConfig.Strategy
 	}
 	return m.cfg.RoutingStrategy
+}
+
+func (m *RuntimeProviderManager) CircuitBreakerConfig() (int, time.Duration) {
+	threshold := m.cfg.HealthCheck.FailureThreshold
+	if threshold <= 0 {
+		threshold = 5 // fallback default
+	}
+	timeoutStr := m.cfg.HealthCheck.Interval
+	if timeoutStr == "" {
+		timeoutStr = "30s"
+	}
+	timeout, err := time.ParseDuration(timeoutStr)
+	if err != nil {
+		timeout = 30 * time.Second
+	}
+	return threshold, timeout
 }
 
 func (m *RuntimeProviderManager) ProbeEnabled() bool {

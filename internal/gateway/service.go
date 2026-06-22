@@ -18,15 +18,22 @@ type Service struct {
 	healthStore     health.Store
 	fallbackEnabled bool
 	maxAttempts     int
+	cb              *CircuitBreaker
 }
 
 func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int) *Service {
+	// Initialize breaker with some sane defaults, can be overridden or tied to snapshot later
+	breakerCfg := CircuitBreakerConfig{
+		FailureThreshold: 5,
+		RecoveryTimeout:  30 * time.Second,
+	}
 	return &Service{
 		router:          r,
 		admission:       a,
 		healthStore:     hs,
 		fallbackEnabled: fallbackEnabled,
 		maxAttempts:     maxAttempts,
+		cb:              NewCircuitBreaker(breakerCfg),
 	}
 }
 
@@ -48,9 +55,15 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	enabled, attemptsLimit := s.fallbackEnabled, s.maxAttempts
 	type FallbackProvider interface {
 		FallbackConfig() (bool, int)
+		CircuitBreakerConfig() (int, time.Duration)
 	}
 	if fp, ok := s.router.(FallbackProvider); ok {
 		enabled, attemptsLimit = fp.FallbackConfig()
+		threshold, recovery := fp.CircuitBreakerConfig()
+		s.cb.UpdateConfig(CircuitBreakerConfig{
+			FailureThreshold: threshold,
+			RecoveryTimeout:  recovery,
+		})
 	}
 
 	if enabled && req.RouteOverride == "" && !req.Stream {
@@ -58,8 +71,6 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	}
 
 	for attempts < maxAllowedAttempts {
-		attempts++
-
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
 		if err != nil {
 			if lastErr != nil {
@@ -67,6 +78,16 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			}
 			return nil, err
 		}
+
+		if !s.cb.Allow(decision.ProviderID) {
+			attempted[decision.ProviderID] = true
+			if req.RouteOverride != "" {
+				return nil, errors.NewGatewayError("provider_circuit_open", "Provider circuit is open", 503)
+			}
+			continue
+		}
+
+		attempts++
 
 		release, _, err := s.admission.Admit(ctx, req, decision)
 		if err != nil {
@@ -101,6 +122,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		}
 
 		s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
+		s.cb.RecordResult(decision.ProviderID, healthErr == nil)
 
 		observability.DefaultMetrics.RecordRequestOutcome(
 			req.RequestID,
@@ -111,9 +133,6 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			errCategory,
 			float64(latency.Milliseconds()),
 		)
-
-		// We still need to record the attempt metric if needed, but that's in Wave 2.
-		// For now we just use existing RequestOutcome which records it.
 
 		if err != nil {
 			release() // Release admission quickly

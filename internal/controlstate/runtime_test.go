@@ -236,3 +236,34 @@ func TestRuntimeProviderManager_Static(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestRuntimeProviderManager_CircuitBreakerConfig(t *testing.T) {
+	// Test fallback defaults when HealthCheck is not populated or threshold is 0
+	cfg := &config.Config{}
+	manager := NewRuntimeProviderManager(cfg, nil, nil)
+	threshold, timeout := manager.CircuitBreakerConfig()
+
+	if threshold != 5 {
+		t.Errorf("expected default threshold 5, got %d", threshold)
+	}
+	if timeout.Seconds() != 30 {
+		t.Errorf("expected default timeout 30s, got %v", timeout)
+	}
+
+	// Test configured values
+	cfg2 := &config.Config{
+		HealthCheck: config.HealthCheckConfig{
+			FailureThreshold: 2,
+			Interval:         "10s",
+		},
+	}
+	manager2 := NewRuntimeProviderManager(cfg2, nil, nil)
+	threshold2, timeout2 := manager2.CircuitBreakerConfig()
+
+	if threshold2 != 2 {
+		t.Errorf("expected threshold 2, got %d", threshold2)
+	}
+	if timeout2.Seconds() != 10 {
+		t.Errorf("expected timeout 10s, got %v", timeout2)
+	}
+}
