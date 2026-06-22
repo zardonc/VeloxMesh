@@ -165,8 +165,13 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Request-ID", reqID)
 	w.Header().Set("X-Provider", resp.Provider)
 	w.Header().Set("X-Model", resp.Model)
-	w.Header().Set("X-Cache-Hit", "false")
-	w.Header().Set("X-Cache-Level", "none")
+	if resp.CacheHit {
+		w.Header().Set("X-Cache-Hit", "true")
+		w.Header().Set("X-Cache-Level", resp.CacheLevel)
+	} else {
+		w.Header().Set("X-Cache-Hit", "false")
+		w.Header().Set("X-Cache-Level", "none")
+	}
 	w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
 	w.Header().Set("X-Queue-Wait-Ms", "0")
 	if resp.Strategy != "" {

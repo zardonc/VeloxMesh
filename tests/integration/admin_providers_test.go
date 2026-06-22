@@ -74,7 +74,7 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	adminHandler := handlers.NewAdminProvidersHandler(adminService)
 
 	admissionCtrl := admission.NewPassThroughController()
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo)
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil)
 	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil, repo)
 
 	// 1. Initial reload with empty repo

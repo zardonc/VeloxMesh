@@ -60,7 +60,7 @@ func TestService_HandleChatCompletion_AttemptLoopHealth(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 
-	svc := gateway.NewService(router, admissionCtrl, store, true, 2, nil)
+	svc := gateway.NewService(router, admissionCtrl, store, true, 2, nil, nil)
 
 	// In round-robin, it should select p1 first (because they are both healthy).
 	// Let's ensure p1 is picked first by manipulating internal state if needed, but round-robin
@@ -96,7 +96,7 @@ func TestService_GetProviderCapabilities(t *testing.T) {
 	p2 := &mockAdapter{id: "p2"}
 	registry := providers.NewRegistry(&config.Config{}, p1, p2)
 	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
-	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil)
 
 	caps := svc.GetProviderCapabilities()
 	if len(caps) != 2 {
@@ -154,7 +154,7 @@ func TestService_HandleChatCompletion_CircuitBreaker(t *testing.T) {
 	}
 
 	admissionCtrl := admission.NewPassThroughController()
-	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil)
+	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil, nil)
 
 	// Attempt 1 -> Fail
 	_, err := svc.HandleChatCompletion(ctx, req)
@@ -206,7 +206,7 @@ func TestService_HandleChatCompletion_StrictOverride(t *testing.T) {
 	}
 
 	admissionCtrl := admission.NewPassThroughController()
-	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil)
+	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil, nil)
 
 	// Attempt 1 -> Fail -> circuit opens
 	_, _ = svc.HandleChatCompletion(ctx, req)

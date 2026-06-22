@@ -90,6 +90,10 @@ type Config struct {
 	RedisHealthTTL      string `json:"redis_health_ttl"`
 	RedisAuthCacheTTL   string `json:"redis_auth_cache_ttl"`
 	RedisDegradeToLocal bool   `json:"redis_degrade_to_local"`
+
+	// Phase 4 Semantic Cache Fields
+	SemanticCacheEnabled  bool   `json:"semantic_cache_enabled"`
+	SemanticCacheProvider string `json:"semantic_cache_provider"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -117,6 +121,9 @@ func LoadConfig() (*Config, error) {
 		RedisHealthTTL:      getEnv("REDIS_HEALTH_TTL", "1m"),
 		RedisAuthCacheTTL:   getEnv("REDIS_AUTH_CACHE_TTL", "5m"),
 		RedisDegradeToLocal: getEnv("REDIS_DEGRADE_TO_LOCAL", "true") == "true",
+
+		SemanticCacheEnabled:  getEnv("SEMANTIC_CACHE_ENABLED", "false") == "true",
+		SemanticCacheProvider: getEnv("SEMANTIC_CACHE_PROVIDER", ""),
 	}
 
 	configFile := getEnv("CONFIG_FILE", "")
@@ -150,6 +157,9 @@ func LoadConfig() (*Config, error) {
 			RedisHealthTTL      string `json:"redis_health_ttl"`
 			RedisAuthCacheTTL   string `json:"redis_auth_cache_ttl"`
 			RedisDegradeToLocal *bool  `json:"redis_degrade_to_local"`
+
+			SemanticCacheEnabled  *bool  `json:"semantic_cache_enabled"`
+			SemanticCacheProvider string `json:"semantic_cache_provider"`
 		}
 		if err := json.Unmarshal(data, &fileCfg); err != nil {
 			return nil, fmt.Errorf("failed to parse config file: %v", err)
@@ -218,6 +228,13 @@ func LoadConfig() (*Config, error) {
 		}
 		if fileCfg.RedisDegradeToLocal != nil {
 			cfg.RedisDegradeToLocal = *fileCfg.RedisDegradeToLocal
+		}
+
+		if fileCfg.SemanticCacheEnabled != nil {
+			cfg.SemanticCacheEnabled = *fileCfg.SemanticCacheEnabled
+		}
+		if fileCfg.SemanticCacheProvider != "" {
+			cfg.SemanticCacheProvider = fileCfg.SemanticCacheProvider
 		}
 
 		if !fallbackEnabledSet {

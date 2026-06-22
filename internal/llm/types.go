@@ -75,6 +75,8 @@ type LLMResponse struct {
 	AttemptCount int
 	FallbackUsed bool
 	Usage        *Usage
+	CacheHit     bool
+	CacheLevel   string
 }
 
 type Usage struct {

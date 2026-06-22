@@ -3,7 +3,9 @@ package gateway
 import (
 	"context"
 	"time"
+	"encoding/json"
 	"veloxmesh/internal/admission"
+	"veloxmesh/internal/cache"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/errors"
 	"veloxmesh/internal/health"
@@ -22,9 +24,10 @@ type Service struct {
 	maxAttempts     int
 	cb              *CircuitBreaker
 	repo            controlstate.Repository
+	semanticCache   *cache.SemanticCacheService
 }
 
-func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int, repo controlstate.Repository) *Service {
+func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int, repo controlstate.Repository, semanticCache *cache.SemanticCacheService) *Service {
 	// Initialize breaker with some sane defaults, can be overridden or tied to snapshot later
 	breakerCfg := CircuitBreakerConfig{
 		FailureThreshold: 5,
@@ -38,6 +41,7 @@ func NewService(r routing.Router, a admission.Controller, hs health.Store, fallb
 		maxAttempts:     maxAttempts,
 		cb:              NewCircuitBreaker(breakerCfg),
 		repo:            repo,
+		semanticCache:   semanticCache,
 	}
 }
 
@@ -105,6 +109,58 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 	if enabled && req.RouteOverride == "" && !req.Stream {
 		maxAllowedAttempts = attemptsLimit
+	}
+
+	var identityScope string
+	if identity := middleware.GetAuthIdentity(ctx); identity != nil {
+		identityScope = identity.ID
+	}
+
+	// 1. Cache Lookup
+	if s.semanticCache != nil && !req.Stream && req.RouteOverride == "" && identityScope != "" && identityScope != "admin-key" {
+		b, _ := json.Marshal(req.Messages)
+		text := string(b)
+		entry, err := s.semanticCache.Lookup(ctx, identityScope, req.Model, text)
+		if err == nil && entry != nil {
+			// Cache hit
+			observability.DefaultMetrics.RecordRequestOutcome(
+				req.RequestID,
+				"cache",
+				req.Model,
+				"semantic_cache",
+				200,
+				"",
+				0, // latency negligible
+			)
+
+			// create a minimal LLMResponse from cached response
+			var choices []llm.Choice
+			_ = json.Unmarshal([]byte(entry.Response), &choices)
+
+			resp := &llm.LLMResponse{
+				GatewayID:    req.RequestID,
+				Model:        req.Model,
+				Provider:     "cache",
+				Strategy:     "semantic_cache",
+				AttemptCount: 1,
+				FallbackUsed: false,
+				Choices:      choices,
+				Usage: &llm.Usage{
+					PromptTokens:     0,
+					CompletionTokens: 0,
+					TotalTokens:      0,
+				},
+				CacheHit:   true,
+				CacheLevel: "semantic",
+			}
+			return resp, nil
+		}
+	}
+
+	var reqTextForStore string
+	if s.semanticCache != nil && !req.Stream {
+		b, _ := json.Marshal(req.Messages)
+		reqTextForStore = string(b)
 	}
 
 	for attempts < maxAllowedAttempts {
@@ -200,6 +256,16 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		observability.DefaultMetrics.RecordProviderLatency(decision.ProviderID, float64(latency.Milliseconds()))
 
 		s.settle(ctx, req, decision, resp.Usage, latency)
+
+		// Cache Store
+		if s.semanticCache != nil && !req.Stream && req.RouteOverride == "" && identityScope != "" && identityScope != "admin-key" {
+			// Only cache if there's a valid choice
+			if len(resp.Choices) > 0 {
+				bResp, _ := json.Marshal(resp.Choices)
+				usageID := req.RequestID // from settle
+				_ = s.semanticCache.Store(ctx, req.RequestID, identityScope, req.Model, reqTextForStore, string(bResp), &usageID)
+			}
+		}
 
 		return resp, nil
 	}

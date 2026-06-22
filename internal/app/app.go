@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 	"veloxmesh/internal/admission"
+	"veloxmesh/internal/cache"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/controlstate/postgres"
@@ -131,7 +133,31 @@ func New() (*App, error) {
 	} else {
 		admissionCtrl = admission.NewPassThroughController()
 	}
-	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo)
+
+	var semanticCache *cache.SemanticCacheService
+	if cfg.SemanticCacheEnabled && repo != nil && cfg.SemanticCacheProvider != "" {
+		if snapshot := m.Snapshot(); snapshot != nil && snapshot.Registry != nil {
+			adapter, err := snapshot.Registry.Get(cfg.SemanticCacheProvider)
+			if err == nil {
+				if embedAdapter, ok := adapter.(providers.EmbedAdapter); ok {
+					semanticCache = cache.NewSemanticCacheService(cache.SemanticCacheConfig{
+						Enabled:       true,
+						Threshold:     0.9,
+						MaxCandidates: 10,
+						TTL:           24 * time.Hour,
+					}, repo.SemanticCache(), embedAdapter)
+				} else {
+					logger.Warn("semantic cache provider is not an embed adapter", "provider", cfg.SemanticCacheProvider)
+				}
+			} else {
+				logger.Warn("semantic cache provider not found", "provider", cfg.SemanticCacheProvider)
+			}
+		} else {
+			logger.Warn("cannot initialize semantic cache: provider registry not ready")
+		}
+	}
+
+	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache)
 
 	r := router.NewRouter(cfg, gatewaySvc, nil, hotStateClient, repo)
 

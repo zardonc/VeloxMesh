@@ -432,7 +432,7 @@ func TestChatCompletions_Streaming(t *testing.T) {
 	if rec.Header().Get("Content-Type") != "text/event-stream" {
 		t.Errorf("expected text/event-stream, got %s", rec.Header().Get("Content-Type"))
 	}
-	
+
 	respBody := rec.Body.String()
 	if !strings.Contains(respBody, "Stream from p") {
 		t.Errorf("expected stream content, got %s", respBody)
@@ -479,7 +479,7 @@ func TestChatCompletions_Cancel(t *testing.T) {
 
 	application.Router.ServeHTTP(rec, req)
 
-	// Since context is canceled, gateway will return early. Depending on implementation, 
+	// Since context is canceled, gateway will return early. Depending on implementation,
 	// it might just close connection or return an error (if before headers).
 	// If it fails before writing headers, rec.Code would be 502/499.
 	// But it actually falls back to 502 if the context is canceled.
