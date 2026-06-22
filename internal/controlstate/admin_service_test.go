@@ -116,12 +116,46 @@ func (m *mockProviderRepo) PutEncryptedSecret(ctx context.Context, id string, ci
 type mockRepo struct {
 	Repository
 	provRepo  *mockProviderRepo
+	rateRepo  RateRepository
 	idemRepo  IdempotencyRepository
 	auditRepo AuditRepository
 	errTx     error
 }
 
+type mockRateRepo struct {
+	RateRepository
+	rates map[string]*ProviderModelRate
+	err   error
+}
+
+func (m *mockRateRepo) Save(ctx context.Context, rate *ProviderModelRate) error {
+	if m.err != nil {
+		return m.err
+	}
+	key := rate.ProviderID + ":" + rate.Model
+	m.rates[key] = rate
+	return nil
+}
+
+func (m *mockRateRepo) Get(ctx context.Context, providerID, model string) (*ProviderModelRate, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	key := providerID + ":" + model
+	return m.rates[key], nil
+}
+
+func (m *mockRateRepo) Delete(ctx context.Context, providerID, model string) error {
+	if m.err != nil {
+		return m.err
+	}
+	key := providerID + ":" + model
+	delete(m.rates, key)
+	return nil
+}
+
 func (m *mockRepo) Providers() ProviderRepository      { return m.provRepo }
+func (m *mockRepo) Rates() RateRepository              { return m.rateRepo }
 func (m *mockRepo) Idempotency() IdempotencyRepository { return m.idemRepo }
 func (m *mockRepo) Audit() AuditRepository             { return m.auditRepo }
 func (m *mockRepo) BeginTx(ctx context.Context) (Transaction, error) {
@@ -300,5 +334,65 @@ func TestAdminProviderService_TestConnection(t *testing.T) {
 	// Openai adapter simply checks if API key is present for healthcheck, so it should be OK
 	if !resp2.OK {
 		t.Errorf("expected fake provider to be OK, got %v", resp2)
+	}
+}
+
+func TestAdminProviderService_Rates(t *testing.T) {
+	provRepo := &mockProviderRepo{
+		records: []*ProviderRecord{
+			{ID: "p1", Models: []string{"m1"}},
+		},
+	}
+	rateRepo := &mockRateRepo{rates: make(map[string]*ProviderModelRate)}
+	repo := &mockRepo{provRepo: provRepo, rateRepo: rateRepo, auditRepo: &mockAuditRepo{}}
+	svc := NewAdminProviderService(repo, &mockCipher{}, nil, nil)
+
+	// Test disabled mode
+	svcNoRates := NewAdminProviderService(&mockRepo{auditRepo: &mockAuditRepo{}}, &mockCipher{}, nil, nil)
+	_, err := svcNoRates.SetRate(context.Background(), "p1", "m1", &RateRequest{InputCreditRate: 1, OutputCreditRate: 1})
+	if err == nil {
+		t.Fatalf("expected error for disabled rate management")
+	}
+
+	// Validation
+	_, err = svc.SetRate(context.Background(), "p1", "m1", &RateRequest{InputCreditRate: -1, OutputCreditRate: 1})
+	if err == nil || !IsValidationError(err) {
+		t.Fatalf("expected validation error for negative rate, got %v", err)
+	}
+	_, err = svc.SetRate(context.Background(), "unknown", "m1", &RateRequest{InputCreditRate: 1, OutputCreditRate: 1})
+	if err == nil || !IsValidationError(err) {
+		t.Fatalf("expected validation error for unknown provider, got %v", err)
+	}
+	_, err = svc.SetRate(context.Background(), "p1", "unknown", &RateRequest{InputCreditRate: 1, OutputCreditRate: 1})
+	if err == nil || !IsValidationError(err) {
+		t.Fatalf("expected validation error for unknown model, got %v", err)
+	}
+
+	// Success save
+	rate, err := svc.SetRate(context.Background(), "p1", "m1", &RateRequest{InputCreditRate: 10, OutputCreditRate: 20})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rate.InputCreditRate != 10 || rate.OutputCreditRate != 20 {
+		t.Errorf("rate mismatch: %v", rate)
+	}
+
+	// Success get
+	rate2, err := svc.GetRate(context.Background(), "p1", "m1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rate2.InputCreditRate != 10 {
+		t.Errorf("expected 10, got %v", rate2.InputCreditRate)
+	}
+
+	// Success delete
+	err = svc.DeleteRate(context.Background(), "p1", "m1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	_, err = svc.GetRate(context.Background(), "p1", "m1")
+	if err == nil {
+		t.Fatalf("expected error after delete")
 	}
 }

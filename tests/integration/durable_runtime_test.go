@@ -36,11 +36,46 @@ func (d *dummyIdemRepo) Save(ctx context.Context, record *controlstate.Idempoten
 type memoryRepository struct {
 	controlstate.Repository
 	provRepo  *memoryProviderRepo
+	rateRepo  *memoryRateRepo
 	idemRepo  controlstate.IdempotencyRepository
 	auditRepo controlstate.AuditRepository
 }
 
+type memoryRateRepo struct {
+	controlstate.RateRepository
+	rates map[string]*controlstate.ProviderModelRate
+}
+
+func (m *memoryRateRepo) Save(ctx context.Context, rate *controlstate.ProviderModelRate) error {
+	if m.rates == nil {
+		m.rates = make(map[string]*controlstate.ProviderModelRate)
+	}
+	key := rate.ProviderID + ":" + rate.Model
+	m.rates[key] = rate
+	return nil
+}
+
+func (m *memoryRateRepo) Get(ctx context.Context, providerID, model string) (*controlstate.ProviderModelRate, error) {
+	if m.rates == nil {
+		return nil, nil
+	}
+	key := providerID + ":" + model
+	if rate, ok := m.rates[key]; ok {
+		return rate, nil
+	}
+	return nil, nil
+}
+
+func (m *memoryRateRepo) Delete(ctx context.Context, providerID, model string) error {
+	if m.rates != nil {
+		key := providerID + ":" + model
+		delete(m.rates, key)
+	}
+	return nil
+}
+
 func (m *memoryRepository) Providers() controlstate.ProviderRepository      { return m.provRepo }
+func (m *memoryRepository) Rates() controlstate.RateRepository              { return m.rateRepo }
 func (m *memoryRepository) Idempotency() controlstate.IdempotencyRepository { return m.idemRepo }
 func (m *memoryRepository) Audit() controlstate.AuditRepository             { return m.auditRepo }
 func (m *memoryRepository) Routing() controlstate.RoutingRepository         { return &dummyRoutingRepo{} }
