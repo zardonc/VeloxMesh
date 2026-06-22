@@ -74,6 +74,7 @@ type LLMResponse struct {
 	Choices      []Choice
 	AttemptCount int
 	FallbackUsed bool
+	Usage        *Usage
 }
 
 type Usage struct {

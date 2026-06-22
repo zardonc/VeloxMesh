@@ -39,6 +39,16 @@ type memoryRepository struct {
 	rateRepo  *memoryRateRepo
 	idemRepo  controlstate.IdempotencyRepository
 	auditRepo controlstate.AuditRepository
+	usageRepo controlstate.UsageRepository
+}
+
+type memoryUsageRepo struct {
+	records []*controlstate.UsageRecord
+}
+
+func (m *memoryUsageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error {
+	m.records = append(m.records, record)
+	return nil
 }
 
 type memoryRateRepo struct {
@@ -76,6 +86,7 @@ func (m *memoryRateRepo) Delete(ctx context.Context, providerID, model string) e
 
 func (m *memoryRepository) Providers() controlstate.ProviderRepository      { return m.provRepo }
 func (m *memoryRepository) Rates() controlstate.RateRepository              { return m.rateRepo }
+func (m *memoryRepository) Usage() controlstate.UsageRepository             { return m.usageRepo }
 func (m *memoryRepository) Idempotency() controlstate.IdempotencyRepository { return m.idemRepo }
 func (m *memoryRepository) Audit() controlstate.AuditRepository             { return m.auditRepo }
 func (m *memoryRepository) Routing() controlstate.RoutingRepository         { return &dummyRoutingRepo{} }
@@ -156,6 +167,14 @@ func (m *memoryRepository) BeginTx(ctx context.Context) (controlstate.Transactio
 	return &mockTx{}, nil
 }
 
+func (m *memoryRepository) Settle(ctx context.Context, usage *controlstate.UsageRecord) error {
+	repo, ok := m.usageRepo.(*memoryUsageRepo)
+	if ok {
+		repo.records = append(repo.records, usage)
+	}
+	return nil
+}
+
 type mockTx struct{}
 
 func (m *mockTx) Commit() error   { return nil }
@@ -220,11 +239,12 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 		provRepo:  provRepo,
 		auditRepo: &dummyAuditRepo{},
 		idemRepo:  &dummyIdemRepo{},
+		usageRepo: &memoryUsageRepo{},
 	}
 	cipher := &memoryCipher{}
 
 	admissionCtrl := admission.NewPassThroughController()
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts)
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo)
 	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, repo)
 
 	// 1. Initial reload with empty repo

@@ -36,6 +36,81 @@ func (r *Repository) BeginTx(ctx context.Context) (controlstate.Transaction, err
 	return &PgxTransaction{tx: tx, ctx: ctx}, nil
 }
 
+func (r *Repository) Settle(ctx context.Context, usage *controlstate.UsageRecord) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	if usage.Timestamp.IsZero() {
+		usage.Timestamp = time.Now().UTC()
+	}
+
+	// 1. Get rate
+	row := tx.QueryRow(ctx, `
+		SELECT input_credit_rate, output_credit_rate
+		FROM provider_model_rates
+		WHERE provider_id = $1 AND model = $2`, usage.ProviderID, usage.Model)
+	var inputRate, outputRate int64
+	err = row.Scan(&inputRate, &outputRate)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			usage.Status = controlstate.SettlementStatusMissingRate
+			_, err = tx.Exec(ctx, `
+				INSERT INTO usage_records (id, api_key_id, provider_id, model, prompt_tokens, response_tokens, total_tokens, duration_ms, timestamp, status)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+				usage.ID, usage.APIKeyID, usage.ProviderID, usage.Model, usage.PromptTokens, usage.ResponseTokens, usage.TotalTokens, usage.DurationMs, usage.Timestamp, usage.Status,
+			)
+			if err != nil {
+				return err
+			}
+			return tx.Commit(ctx)
+		}
+		return err
+	}
+
+	usage.InputRate = &inputRate
+	usage.OutputRate = &outputRate
+
+	credits := (int64(usage.PromptTokens)*inputRate + 999) / 1000
+	outCredits := (int64(usage.ResponseTokens)*outputRate + 999) / 1000
+	totalCredits := credits + outCredits
+	usage.CreditsConsumed = &totalCredits
+	usage.Status = controlstate.SettlementStatusSettled
+
+	// 2. Lock and update API key
+	if usage.APIKeyID != nil {
+		row = tx.QueryRow(ctx, `SELECT credit_balance FROM api_keys WHERE id = $1 FOR UPDATE`, *usage.APIKeyID)
+		var balance int64
+		if err := row.Scan(&balance); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return errors.New("api key not found")
+			}
+			return err
+		}
+
+		balance -= totalCredits
+
+		_, err = tx.Exec(ctx, `UPDATE api_keys SET credit_balance = $1, updated_at = $2 WHERE id = $3`, balance, time.Now().UTC(), *usage.APIKeyID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 3. Insert usage record
+	_, err = tx.Exec(ctx, `
+		INSERT INTO usage_records (id, api_key_id, provider_id, model, prompt_tokens, response_tokens, total_tokens, duration_ms, timestamp, input_rate, output_rate, credits_consumed, status)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+		usage.ID, usage.APIKeyID, usage.ProviderID, usage.Model, usage.PromptTokens, usage.ResponseTokens, usage.TotalTokens, usage.DurationMs, usage.Timestamp, usage.InputRate, usage.OutputRate, usage.CreditsConsumed, usage.Status,
+	)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
+}
+
 type PgxTransaction struct {
 	tx  pgx.Tx
 	ctx context.Context

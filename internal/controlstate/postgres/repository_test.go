@@ -185,3 +185,58 @@ func TestPostgresRateAndUsageIntegration(t *testing.T) {
 		t.Fatalf("Failed to log usage: %v", err)
 	}
 }
+
+func TestPostgresSettlementIntegration(t *testing.T) {
+	dsn := os.Getenv("POSTGRES_TEST_DSN")
+	if dsn == "" {
+		t.Skip("Skipping postgres integration test because POSTGRES_TEST_DSN is not set")
+	}
+
+	ctx := context.Background()
+	repo, err := Open(ctx, dsn)
+	if err != nil {
+		t.Fatalf("Failed to open postgres: %v", err)
+	}
+	defer repo.Close()
+
+	repo.Providers().Create(ctx, &controlstate.ProviderMutation{
+		ID: "prov-settle", Name: "PS", Type: "openai", BaseURL: "http", Enabled: true,
+	})
+
+	repo.APIKeys().Create(ctx, &controlstate.APIKeyRecord{
+		ID: "key-settle", Prefix: "vx-", Hash: "hash-settle", Name: "Test", Role: "dev", Enabled: true, CreditBalance: 1000,
+	})
+
+	repo.Rates().Save(ctx, &controlstate.ProviderModelRate{
+		ProviderID: "prov-settle", Model: "gpt-4", InputCreditRate: 1500, OutputCreditRate: 3000,
+	})
+
+	keyID := "key-settle"
+	usage := &controlstate.UsageRecord{
+		ID:             "u-settle-1",
+		APIKeyID:       &keyID,
+		ProviderID:     "prov-settle",
+		Model:          "gpt-4",
+		PromptTokens:   100,
+		ResponseTokens: 50,
+		TotalTokens:    150,
+	}
+
+	if err := repo.Settle(ctx, usage); err != nil {
+		t.Fatalf("Settle failed: %v", err)
+	}
+
+	if usage.Status != controlstate.SettlementStatusSettled {
+		t.Errorf("Expected status settled, got %s", usage.Status)
+	}
+
+	expectedCredits := int64((100*1500+999)/1000 + (50*3000+999)/1000)
+	if *usage.CreditsConsumed != expectedCredits {
+		t.Errorf("Expected %d credits consumed, got %d", expectedCredits, *usage.CreditsConsumed)
+	}
+
+	k, _ := repo.APIKeys().GetByHash(ctx, "hash-settle")
+	if k.CreditBalance != 1000-expectedCredits {
+		t.Errorf("Expected remaining balance %d, got %d", 1000-expectedCredits, k.CreditBalance)
+	}
+}

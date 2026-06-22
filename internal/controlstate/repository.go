@@ -16,6 +16,7 @@ type Repository interface {
 	Audit() AuditRepository
 	Idempotency() IdempotencyRepository
 	BeginTx(ctx context.Context) (Transaction, error)
+	Settle(ctx context.Context, usage *UsageRecord) error
 	Close() error
 }
 

@@ -66,6 +66,7 @@ func TestAdminProvidersIntegration(t *testing.T) {
 		provRepo:  provRepo,
 		auditRepo: &dummyAuditRepo{},
 		idemRepo:  &dummyIdemRepo{},
+		usageRepo: &memoryUsageRepo{},
 	}
 	cipher := &memoryCipher{secrets: make(map[string]string)}
 
@@ -73,7 +74,7 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	adminHandler := handlers.NewAdminProvidersHandler(adminService)
 
 	admissionCtrl := admission.NewPassThroughController()
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts)
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo)
 	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil, repo)
 
 	// 1. Initial reload with empty repo
@@ -193,6 +194,7 @@ func TestAdminProvidersRates(t *testing.T) {
 		rateRepo:  rateRepo,
 		auditRepo: &dummyAuditRepo{},
 		idemRepo:  &dummyIdemRepo{},
+		usageRepo: &memoryUsageRepo{},
 	}
 	cipher := &memoryCipher{secrets: make(map[string]string)}
 

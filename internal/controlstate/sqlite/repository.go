@@ -40,6 +40,81 @@ func (r *Repository) BeginTx(ctx context.Context) (controlstate.Transaction, err
 	return &SqliteTransaction{tx: tx}, nil
 }
 
+func (r *Repository) Settle(ctx context.Context, usage *controlstate.UsageRecord) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if usage.Timestamp.IsZero() {
+		usage.Timestamp = time.Now().UTC()
+	}
+
+	// 1. Get rate
+	row := tx.QueryRowContext(ctx, `
+		SELECT input_credit_rate, output_credit_rate
+		FROM provider_model_rates
+		WHERE provider_id = ? AND model = ?`, usage.ProviderID, usage.Model)
+	var inputRate, outputRate int64
+	err = row.Scan(&inputRate, &outputRate)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			usage.Status = controlstate.SettlementStatusMissingRate
+			_, err = tx.ExecContext(ctx, `
+				INSERT INTO usage_records (id, api_key_id, provider_id, model, prompt_tokens, response_tokens, total_tokens, duration_ms, timestamp, status)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				usage.ID, usage.APIKeyID, usage.ProviderID, usage.Model, usage.PromptTokens, usage.ResponseTokens, usage.TotalTokens, usage.DurationMs, usage.Timestamp, usage.Status,
+			)
+			if err != nil {
+				return err
+			}
+			return tx.Commit()
+		}
+		return err
+	}
+
+	usage.InputRate = &inputRate
+	usage.OutputRate = &outputRate
+
+	credits := (int64(usage.PromptTokens)*inputRate + 999) / 1000
+	outCredits := (int64(usage.ResponseTokens)*outputRate + 999) / 1000
+	totalCredits := credits + outCredits
+	usage.CreditsConsumed = &totalCredits
+	usage.Status = controlstate.SettlementStatusSettled
+
+	// 2. Lock and update API key
+	if usage.APIKeyID != nil {
+		row = tx.QueryRowContext(ctx, `SELECT credit_balance FROM api_keys WHERE id = ?`, *usage.APIKeyID)
+		var balance int64
+		if err := row.Scan(&balance); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return errors.New("api key not found")
+			}
+			return err
+		}
+
+		balance -= totalCredits
+
+		_, err = tx.ExecContext(ctx, `UPDATE api_keys SET credit_balance = ?, updated_at = ? WHERE id = ?`, balance, time.Now().UTC(), *usage.APIKeyID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 3. Insert usage record
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO usage_records (id, api_key_id, provider_id, model, prompt_tokens, response_tokens, total_tokens, duration_ms, timestamp, input_rate, output_rate, credits_consumed, status)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		usage.ID, usage.APIKeyID, usage.ProviderID, usage.Model, usage.PromptTokens, usage.ResponseTokens, usage.TotalTokens, usage.DurationMs, usage.Timestamp, usage.InputRate, usage.OutputRate, usage.CreditsConsumed, usage.Status,
+	)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 type SqliteTransaction struct {
 	tx *sql.Tx
 }

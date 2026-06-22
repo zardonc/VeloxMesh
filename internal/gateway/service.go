@@ -4,8 +4,10 @@ import (
 	"context"
 	"time"
 	"veloxmesh/internal/admission"
+	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/errors"
 	"veloxmesh/internal/health"
+	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/observability"
 	"veloxmesh/internal/providers"
@@ -19,9 +21,10 @@ type Service struct {
 	fallbackEnabled bool
 	maxAttempts     int
 	cb              *CircuitBreaker
+	repo            controlstate.Repository
 }
 
-func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int) *Service {
+func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int, repo controlstate.Repository) *Service {
 	// Initialize breaker with some sane defaults, can be overridden or tied to snapshot later
 	breakerCfg := CircuitBreakerConfig{
 		FailureThreshold: 5,
@@ -34,7 +37,41 @@ func NewService(r routing.Router, a admission.Controller, hs health.Store, fallb
 		fallbackEnabled: fallbackEnabled,
 		maxAttempts:     maxAttempts,
 		cb:              NewCircuitBreaker(breakerCfg),
+		repo:            repo,
 	}
+}
+
+func (s *Service) settle(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, usage *llm.Usage, latency time.Duration) {
+	if s.repo == nil {
+		return
+	}
+
+	record := &controlstate.UsageRecord{
+		ID:           req.RequestID,
+		ProviderID:   decision.ProviderID,
+		Model:        req.Model,
+		DurationMs:   latency.Milliseconds(),
+		Timestamp:    time.Now().UTC(),
+	}
+
+	if usage != nil {
+		record.PromptTokens = usage.PromptTokens
+		record.ResponseTokens = usage.CompletionTokens
+		record.TotalTokens = usage.TotalTokens
+	} else {
+		record.Status = controlstate.SettlementStatusMissingUsage
+	}
+
+	if identity := middleware.GetAuthIdentity(ctx); identity != nil && identity.ID != "dev-key" && identity.ID != "admin-key" {
+		record.APIKeyID = &identity.ID
+	}
+
+	if record.Status == controlstate.SettlementStatusMissingUsage {
+		_ = s.repo.Usage().Log(context.Background(), record)
+		return
+	}
+
+	_ = s.repo.Settle(context.Background(), record)
 }
 
 func (s *Service) HealthStore() health.Store {
@@ -156,10 +193,13 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		resp.Strategy = decision.Strategy
 		resp.AttemptCount = attempts
 		resp.FallbackUsed = attempts > 1
+		resp.Usage = resp.Usage // Usually adapters set Usage directly on resp
 
 		// Record success
 		observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, 200)
 		observability.DefaultMetrics.RecordProviderLatency(decision.ProviderID, float64(latency.Milliseconds()))
+
+		s.settle(ctx, req, decision, resp.Usage, latency)
 
 		return resp, nil
 	}
@@ -302,8 +342,12 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 			var streamErr error
 			status := 200
 			errCategory := ""
+			var finalUsage *llm.Usage
 
 			for event := range ch {
+				if event.Usage != nil && finalUsage == nil {
+					finalUsage = event.Usage
+				}
 				if event.Error != nil {
 					streamErr = event.Error
 					if gwErr, ok := streamErr.(*errors.GatewayError); ok {
@@ -340,6 +384,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 			observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, status)
 			if status == 200 {
 				observability.DefaultMetrics.RecordProviderLatency(decision.ProviderID, float64(latency.Milliseconds()))
+				s.settle(ctx, req, decision, finalUsage, latency)
 			}
 		}()
 

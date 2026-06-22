@@ -131,7 +131,7 @@ func New() (*App, error) {
 	} else {
 		admissionCtrl = admission.NewPassThroughController()
 	}
-	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts)
+	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo)
 
 	r := router.NewRouter(cfg, gatewaySvc, nil, hotStateClient, repo)
 
