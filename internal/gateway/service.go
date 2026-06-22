@@ -34,14 +34,27 @@ func (s *Service) HealthStore() health.Store {
 	return s.healthStore
 }
 
+func (s *Service) Router() routing.Router {
+	return s.router
+}
+
 func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	attempted := make(map[string]bool)
 	attempts := 0
 	var lastErr error
 
 	maxAllowedAttempts := 1
-	if s.fallbackEnabled && req.RouteOverride == "" && !req.Stream {
-		maxAllowedAttempts = s.maxAttempts
+
+	enabled, attemptsLimit := s.fallbackEnabled, s.maxAttempts
+	type FallbackProvider interface {
+		FallbackConfig() (bool, int)
+	}
+	if fp, ok := s.router.(FallbackProvider); ok {
+		enabled, attemptsLimit = fp.FallbackConfig()
+	}
+
+	if enabled && req.RouteOverride == "" && !req.Stream {
+		maxAllowedAttempts = attemptsLimit
 	}
 
 	for attempts < maxAllowedAttempts {

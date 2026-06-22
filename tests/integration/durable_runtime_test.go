@@ -43,6 +43,17 @@ type memoryRepository struct {
 func (m *memoryRepository) Providers() controlstate.ProviderRepository      { return m.provRepo }
 func (m *memoryRepository) Idempotency() controlstate.IdempotencyRepository { return m.idemRepo }
 func (m *memoryRepository) Audit() controlstate.AuditRepository             { return m.auditRepo }
+func (m *memoryRepository) Routing() controlstate.RoutingRepository         { return &dummyRoutingRepo{} }
+
+type dummyRoutingRepo struct{}
+
+func (d *dummyRoutingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error) {
+	return nil, controlstate.ErrRoutingConfigNotFound
+}
+
+func (d *dummyRoutingRepo) Save(ctx context.Context, config *controlstate.RoutingConfig) error {
+	return nil
+}
 
 type memoryProviderRepo struct {
 	controlstate.ProviderRepository

@@ -16,6 +16,21 @@ func (d *dummyRepo) Providers() controlstate.ProviderRepository {
 	return d.prov
 }
 
+func (d *dummyRepo) Routing() controlstate.RoutingRepository {
+	return &dummyRoutingRepo{}
+}
+
+type dummyRoutingRepo struct {
+}
+
+func (d *dummyRoutingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error) {
+	return nil, controlstate.ErrRoutingConfigNotFound
+}
+
+func (d *dummyRoutingRepo) Save(ctx context.Context, config *controlstate.RoutingConfig) error {
+	return nil
+}
+
 type dummyProvRepo struct {
 	controlstate.ProviderRepository
 	records []*controlstate.ProviderRecord

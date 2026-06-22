@@ -2,7 +2,10 @@ package controlstate
 
 import (
 	"context"
+	"errors"
 )
+
+var ErrRoutingConfigNotFound = errors.New("routing config not found")
 
 type Repository interface {
 	Providers() ProviderRepository

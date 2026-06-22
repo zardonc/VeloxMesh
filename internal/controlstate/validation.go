@@ -73,3 +73,55 @@ func ValidateProviderModels(models []string, defaultModel *string) []FieldError 
 
 	return errors
 }
+
+func ValidateRoutingConfig(rc *RoutingConfig, providers []*ProviderRecord, backend string, redisConfigured bool) []FieldError {
+	var errs []FieldError
+
+	if rc == nil {
+		errs = append(errs, FieldError{Field: "routing_config", Code: "required", Message: "routing config is nil"})
+		return errs
+	}
+
+	if rc.Strategy != "round-robin" && rc.Strategy != "least-latency" && rc.Strategy != "priority" {
+		errs = append(errs, FieldError{Field: "strategy", Code: "invalid_strategy", Message: fmt.Sprintf("invalid strategy: %s", rc.Strategy)})
+	}
+
+	activeCount := 0
+	defaultFound := false
+	for _, p := range providers {
+		if !p.Enabled {
+			continue
+		}
+		activeCount++
+		if p.ID == rc.DefaultProvider {
+			defaultFound = true
+		}
+	}
+
+	if rc.DefaultProvider != "" && !defaultFound {
+		errs = append(errs, FieldError{Field: "default_provider", Code: "not_found", Message: fmt.Sprintf("default_provider '%s' not found or inactive", rc.DefaultProvider)})
+	}
+
+	if !rc.FallbackEnabled {
+		if rc.MaxAttempts != 1 {
+			errs = append(errs, FieldError{Field: "max_attempts", Code: "invalid_max_attempts", Message: "max_attempts must be 1 when fallback is disabled"})
+		}
+	} else {
+		if rc.MaxAttempts < 1 {
+			errs = append(errs, FieldError{Field: "max_attempts", Code: "invalid_max_attempts", Message: "max_attempts must be at least 1 when fallback is enabled"})
+		}
+		if rc.MaxAttempts > activeCount && activeCount > 0 {
+			errs = append(errs, FieldError{Field: "max_attempts", Code: "invalid_max_attempts", Message: fmt.Sprintf("max_attempts (%d) cannot exceed active eligible provider count (%d)", rc.MaxAttempts, activeCount)})
+		}
+	}
+
+	if backend == "sqlite" {
+		// Valid
+	} else if backend == "postgres" {
+		if !redisConfigured {
+			errs = append(errs, FieldError{Field: "mode", Code: "invalid_mode", Message: "full-mode distributed capability requires Redis when PostgreSQL is used"})
+		}
+	}
+
+	return errs
+}

@@ -72,4 +72,49 @@ func TestSQLiteRepository(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected stale update to fail")
 	}
+
+	// 6. Routing - Get not found
+	_, err = repo.Routing().Get(ctx)
+	if err != controlstate.ErrRoutingConfigNotFound {
+		t.Fatalf("Expected ErrRoutingConfigNotFound, got %v", err)
+	}
+
+	// 7. Routing - Save new config
+	rCfg := &controlstate.RoutingConfig{
+		Strategy:        "priority",
+		DefaultProvider: "test-1",
+		FallbackEnabled: true,
+		MaxAttempts:     3,
+	}
+	if err := repo.Routing().Save(ctx, rCfg); err != nil {
+		t.Fatalf("Failed to save routing config: %v", err)
+	}
+
+	// 8. Routing - Get saved config
+	savedRCfg, err := repo.Routing().Get(ctx)
+	if err != nil {
+		t.Fatalf("Failed to get routing config: %v", err)
+	}
+	if savedRCfg.Strategy != "priority" {
+		t.Errorf("Expected strategy 'priority', got '%s'", savedRCfg.Strategy)
+	}
+	if savedRCfg.MaxAttempts != 3 {
+		t.Errorf("Expected 3 max attempts, got %d", savedRCfg.MaxAttempts)
+	}
+
+	// 9. Routing - Upsert existing config
+	savedRCfg.MaxAttempts = 5
+	if err := repo.Routing().Save(ctx, savedRCfg); err != nil {
+		t.Fatalf("Failed to upsert routing config: %v", err)
+	}
+	updatedRCfg, err := repo.Routing().Get(ctx)
+	if err != nil {
+		t.Fatalf("Failed to get updated routing config: %v", err)
+	}
+	if updatedRCfg.MaxAttempts != 5 {
+		t.Errorf("Expected 5 max attempts, got %d", updatedRCfg.MaxAttempts)
+	}
+	if updatedRCfg.Revision <= savedRCfg.Revision {
+		t.Errorf("Expected revision to increment, got %d vs %d", updatedRCfg.Revision, savedRCfg.Revision)
+	}
 }

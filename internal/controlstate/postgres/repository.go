@@ -290,8 +290,54 @@ func (p *providerRepo) PutEncryptedSecret(ctx context.Context, id string, cipher
 // -- other repos simplified --
 type routingRepo struct{ pool *pgxpool.Pool }
 
-func (r *routingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error)       { return nil, nil }
-func (r *routingRepo) Save(ctx context.Context, config *controlstate.RoutingConfig) error { return nil }
+func (r *routingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error) {
+	row := r.pool.QueryRow(ctx, `
+		SELECT id, strategy, default_provider, fallback_enabled, max_attempts, revision, created_at, updated_at
+		FROM routing_configs
+		WHERE id = 'global'`)
+
+	rec := &controlstate.RoutingConfig{}
+	var defaultProvider *string
+	if err := row.Scan(&rec.ID, &rec.Strategy, &defaultProvider, &rec.FallbackEnabled, &rec.MaxAttempts, &rec.Revision, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, controlstate.ErrRoutingConfigNotFound
+		}
+		return nil, err
+	}
+	if defaultProvider != nil {
+		rec.DefaultProvider = *defaultProvider
+	}
+	return rec, nil
+}
+
+func (r *routingRepo) Save(ctx context.Context, config *controlstate.RoutingConfig) error {
+	if config.ID == "" {
+		config.ID = "global"
+	}
+	if config.CreatedAt.IsZero() {
+		config.CreatedAt = time.Now().UTC()
+	}
+
+	var defaultProvider *string
+	if config.DefaultProvider != "" {
+		str := config.DefaultProvider
+		defaultProvider = &str
+	}
+
+	_, err := r.pool.Exec(ctx, `
+		INSERT INTO routing_configs (id, strategy, default_provider, fallback_enabled, max_attempts, revision, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+		ON CONFLICT(id) DO UPDATE SET
+			strategy=excluded.strategy,
+			default_provider=excluded.default_provider,
+			fallback_enabled=excluded.fallback_enabled,
+			max_attempts=excluded.max_attempts,
+			revision=routing_configs.revision + 1,
+			updated_at=NOW()`,
+		config.ID, config.Strategy, defaultProvider, config.FallbackEnabled, config.MaxAttempts, config.Revision, config.CreatedAt,
+	)
+	return err
+}
 
 type apiKeyRepo struct{ pool *pgxpool.Pool }
 

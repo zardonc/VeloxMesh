@@ -9,6 +9,8 @@ import (
 	"veloxmesh/internal/admission"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/controlstate/postgres"
+	"veloxmesh/internal/controlstate/sqlite"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/hotstate"
@@ -66,19 +68,58 @@ func New() (*App, error) {
 
 	m := controlstate.NewRuntimeProviderManager(cfg, logger, healthStore)
 
-	var adapters []providers.ProviderAdapter
-	for _, p := range cfg.Providers {
-		switch p.Type {
-		case "openai-compatible":
-			adapters = append(adapters, openai.NewAdapter(p.ID, p.BaseURL, p.ResolveAPIKey(), strings.Join(p.Models, ",")))
-		case "anthropic":
-			adapters = append(adapters, anthropic.NewAdapter(p.ID, p.BaseURL, p.ResolveAPIKey(), strings.Join(p.Models, ",")))
-		case "gemini":
-			adapters = append(adapters, gemini.NewAdapter(p.ID, p.BaseURL, p.ResolveAPIKey(), strings.Join(p.Models, ",")))
+	var repo controlstate.Repository
+	var cipher controlstate.SecretCipher
+	ctx := context.Background()
+
+	if cfg.ControlStateBackend != "disabled" {
+		cipher, err = controlstate.NewAESGCMSecretCipher([]byte(cfg.ControlStateEncryptionKey), "v1")
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize secret cipher: %w", err)
+		}
+
+		if cfg.ControlStateBackend == "sqlite" {
+			repo, err = sqlite.Open(cfg.ControlStateDSN)
+		} else if cfg.ControlStateBackend == "postgres" {
+			repo, err = postgres.Open(ctx, cfg.ControlStateDSN)
+		} else {
+			return nil, fmt.Errorf("unknown control state backend: %s", cfg.ControlStateBackend)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to open repository: %w", err)
+		}
+
+		if cfg.ControlStateMigrateOnStartup {
+			if migrator, ok := repo.(interface{ Migrate(context.Context) error }); ok {
+				if err := migrator.Migrate(ctx); err != nil {
+					return nil, fmt.Errorf("failed to run migrations: %w", err)
+				}
+			}
+		}
+
+		if cfg.ControlStateLocalSeedEnabled {
+			options := controlstate.SeedOptions{
+				Enabled:       true,
+				EncryptionKey: cfg.ControlStateEncryptionKey,
+			}
+			if err := controlstate.SeedFromStaticConfig(ctx, repo, cfg, cipher, options); err != nil {
+				return nil, fmt.Errorf("failed to seed config: %w", err)
+			}
 		}
 	}
 
 	if cfg.ControlStateBackend == "disabled" {
+		var adapters []providers.ProviderAdapter
+		for _, p := range cfg.Providers {
+			switch p.Type {
+			case "openai-compatible":
+				adapters = append(adapters, openai.NewAdapter(p.ID, p.BaseURL, p.ResolveAPIKey(), strings.Join(p.Models, ",")))
+			case "anthropic":
+				adapters = append(adapters, anthropic.NewAdapter(p.ID, p.BaseURL, p.ResolveAPIKey(), strings.Join(p.Models, ",")))
+			case "gemini":
+				adapters = append(adapters, gemini.NewAdapter(p.ID, p.BaseURL, p.ResolveAPIKey(), strings.Join(p.Models, ",")))
+			}
+		}
 		if err := m.ActivateStatic(cfg.Providers, adapters); err != nil {
 			return nil, fmt.Errorf("failed to initialize static providers: %w", err)
 		}
@@ -89,19 +130,39 @@ func New() (*App, error) {
 
 	r := router.NewRouter(cfg, gatewaySvc, nil, hotStateClient)
 
-	return &App{
+	application := &App{
 		Config:                 cfg,
 		Logger:                 logger,
 		Router:                 r,
 		RuntimeProviderManager: m,
 		HotState:               hotStateClient,
-	}, nil
+	}
+
+	if cfg.ControlStateBackend != "disabled" {
+		if err := application.ReloadProviders(ctx, repo, cipher); err != nil {
+			return nil, fmt.Errorf("failed initial provider reload: %w", err)
+		}
+		if err := application.StartConfigChangeSubscriber(ctx, repo, cipher); err != nil {
+			return nil, fmt.Errorf("failed to start config subscriber: %w", err)
+		}
+	}
+
+	return application, nil
 }
 
 func (a *App) ReloadProviders(ctx context.Context, repo controlstate.Repository, cipher controlstate.SecretCipher) error {
 	records, err := controlstate.LoadActiveProviderRecords(ctx, repo.Providers())
 	if err != nil {
 		return fmt.Errorf("failed to load active provider records: %w", err)
+	}
+
+	var rCfg *controlstate.RoutingConfig
+	if repo.Routing() != nil {
+		rCfg, err = repo.Routing().Get(ctx)
+		if err != nil && err != controlstate.ErrRoutingConfigNotFound {
+			return fmt.Errorf("failed to load routing config: %w", err)
+		}
+		// If ErrRoutingConfigNotFound, rCfg stays nil, meaning no routing config applied yet.
 	}
 
 	secrets := make(map[string]string)
@@ -127,7 +188,7 @@ func (a *App) ReloadProviders(ctx context.Context, repo controlstate.Repository,
 		secrets[r.ID] = string(decrypted)
 	}
 
-	return a.RuntimeProviderManager.ActivateProviderSet(ctx, records, secrets, nil)
+	return a.RuntimeProviderManager.ActivateDurable(ctx, records, secrets, rCfg, nil)
 }
 
 func (a *App) StartConfigChangeSubscriber(ctx context.Context, repo controlstate.Repository, cipher controlstate.SecretCipher) error {
