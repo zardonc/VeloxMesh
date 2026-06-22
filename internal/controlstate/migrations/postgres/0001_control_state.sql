@@ -54,13 +54,28 @@ CREATE TABLE api_keys (
 
 CREATE TABLE usage_records (
     id VARCHAR(255) PRIMARY KEY,
+    api_key_id VARCHAR(255) REFERENCES api_keys(id) ON DELETE SET NULL,
     provider_id VARCHAR(255) NOT NULL,
     model VARCHAR(255) NOT NULL,
     prompt_tokens INT NOT NULL DEFAULT 0,
     response_tokens INT NOT NULL DEFAULT 0,
     total_tokens INT NOT NULL DEFAULT 0,
     duration_ms BIGINT NOT NULL,
-    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    input_rate BIGINT,
+    output_rate BIGINT,
+    credits_consumed BIGINT,
+    status VARCHAR(50) NOT NULL DEFAULT 'unsettled'
+);
+
+CREATE TABLE provider_model_rates (
+    provider_id VARCHAR(255) NOT NULL REFERENCES provider_configs(id) ON DELETE CASCADE,
+    model VARCHAR(255) NOT NULL,
+    input_credit_rate BIGINT NOT NULL DEFAULT 0,
+    output_credit_rate BIGINT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (provider_id, model)
 );
 
 CREATE TABLE audit_events (
@@ -87,6 +102,7 @@ CREATE TABLE idempotency_keys (
 
 DROP TABLE idempotency_keys;
 DROP TABLE audit_events;
+DROP TABLE provider_model_rates;
 DROP TABLE usage_records;
 DROP TABLE api_keys;
 DROP TABLE routing_configs;

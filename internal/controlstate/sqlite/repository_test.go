@@ -189,3 +189,67 @@ func TestSQLiteAPIKeyCredit(t *testing.T) {
 		t.Errorf("Expected 0 keys after delete, got %d", len(keys))
 	}
 }
+
+func TestSQLiteRateAndUsage(t *testing.T) {
+	dsn := "file::memory:?cache=shared"
+	repo, err := Open(dsn)
+	if err != nil {
+		t.Fatalf("Failed to open sqlite: %v", err)
+	}
+	defer repo.Close()
+
+	ctx := context.Background()
+	migrator := NewMigrator(repo.db)
+	if err := migrator.Migrate(ctx); err != nil {
+		t.Fatalf("Migration failed: %v", err)
+	}
+
+	_, err = repo.Providers().Create(ctx, &controlstate.ProviderMutation{
+		ID: "p-1", Name: "P", Type: "openai", BaseURL: "http", Enabled: true,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create provider: %v", err)
+	}
+
+	rate := &controlstate.ProviderModelRate{
+		ProviderID:       "p-1",
+		Model:            "m-1",
+		InputCreditRate:  10,
+		OutputCreditRate: 20,
+	}
+
+	if err := repo.Rates().Save(ctx, rate); err != nil {
+		t.Fatalf("Failed to save rate: %v", err)
+	}
+
+	gotRate, err := repo.Rates().Get(ctx, "p-1", "m-1")
+	if err != nil {
+		t.Fatalf("Failed to get rate: %v", err)
+	}
+	if gotRate == nil || gotRate.InputCreditRate != 10 {
+		t.Fatalf("Expected input rate 10, got %+v", gotRate)
+	}
+
+	if err := repo.Rates().Delete(ctx, "p-1", "m-1"); err != nil {
+		t.Fatalf("Failed to delete rate: %v", err)
+	}
+	gotRate, _ = repo.Rates().Get(ctx, "p-1", "m-1")
+	if gotRate != nil {
+		t.Fatalf("Expected rate to be deleted")
+	}
+
+	usage := &controlstate.UsageRecord{
+		ID:             "u-1",
+		ProviderID:     "p-1",
+		Model:          "m-1",
+		PromptTokens:   100,
+		ResponseTokens: 50,
+		TotalTokens:    150,
+		DurationMs:     200,
+		Status:         controlstate.SettlementStatusUnsettled,
+	}
+
+	if err := repo.Usage().Log(ctx, usage); err != nil {
+		t.Fatalf("Failed to log usage: %v", err)
+	}
+}

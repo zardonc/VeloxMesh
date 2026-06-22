@@ -61,6 +61,10 @@ func (r *Repository) APIKeys() controlstate.APIKeyRepository {
 	return &apiKeyRepo{pool: r.pool}
 }
 
+func (r *Repository) Rates() controlstate.RateRepository {
+	return &rateRepo{pool: r.pool}
+}
+
 func (r *Repository) Usage() controlstate.UsageRepository {
 	return &usageRepo{pool: r.pool}
 }
@@ -416,7 +420,59 @@ func (a *apiKeyRepo) Delete(ctx context.Context, id string) error {
 
 type usageRepo struct{ pool *pgxpool.Pool }
 
-func (u *usageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error { return nil }
+func (u *usageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error {
+	if record.Timestamp.IsZero() {
+		record.Timestamp = time.Now().UTC()
+	}
+	if record.Status == "" {
+		record.Status = controlstate.SettlementStatusUnsettled
+	}
+	_, err := u.pool.Exec(ctx, `
+		INSERT INTO usage_records (id, api_key_id, provider_id, model, prompt_tokens, response_tokens, total_tokens, duration_ms, timestamp, input_rate, output_rate, credits_consumed, status)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+		record.ID, record.APIKeyID, record.ProviderID, record.Model, record.PromptTokens, record.ResponseTokens, record.TotalTokens, record.DurationMs, record.Timestamp, record.InputRate, record.OutputRate, record.CreditsConsumed, record.Status,
+	)
+	return err
+}
+
+type rateRepo struct{ pool *pgxpool.Pool }
+
+func (r *rateRepo) Save(ctx context.Context, rate *controlstate.ProviderModelRate) error {
+	if rate.CreatedAt.IsZero() {
+		rate.CreatedAt = time.Now().UTC()
+	}
+	rate.UpdatedAt = time.Now().UTC()
+	_, err := r.pool.Exec(ctx, `
+		INSERT INTO provider_model_rates (provider_id, model, input_credit_rate, output_credit_rate, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT(provider_id, model) DO UPDATE SET
+			input_credit_rate=excluded.input_credit_rate,
+			output_credit_rate=excluded.output_credit_rate,
+			updated_at=excluded.updated_at`,
+		rate.ProviderID, rate.Model, rate.InputCreditRate, rate.OutputCreditRate, rate.CreatedAt, rate.UpdatedAt,
+	)
+	return err
+}
+
+func (r *rateRepo) Get(ctx context.Context, providerID, model string) (*controlstate.ProviderModelRate, error) {
+	row := r.pool.QueryRow(ctx, `
+		SELECT provider_id, model, input_credit_rate, output_credit_rate, created_at, updated_at
+		FROM provider_model_rates
+		WHERE provider_id = $1 AND model = $2`, providerID, model)
+	rate := &controlstate.ProviderModelRate{}
+	if err := row.Scan(&rate.ProviderID, &rate.Model, &rate.InputCreditRate, &rate.OutputCreditRate, &rate.CreatedAt, &rate.UpdatedAt); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return rate, nil
+}
+
+func (r *rateRepo) Delete(ctx context.Context, providerID, model string) error {
+	_, err := r.pool.Exec(ctx, `DELETE FROM provider_model_rates WHERE provider_id = $1 AND model = $2`, providerID, model)
+	return err
+}
 
 type auditRepo struct{ pool *pgxpool.Pool }
 

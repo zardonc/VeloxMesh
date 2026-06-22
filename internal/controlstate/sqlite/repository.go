@@ -64,6 +64,10 @@ func (r *Repository) APIKeys() controlstate.APIKeyRepository {
 	return &apiKeyRepo{db: r.db}
 }
 
+func (r *Repository) Rates() controlstate.RateRepository {
+	return &rateRepo{db: r.db}
+}
+
 func (r *Repository) Usage() controlstate.UsageRepository {
 	return &usageRepo{db: r.db}
 }
@@ -429,7 +433,59 @@ func (a *apiKeyRepo) Delete(ctx context.Context, id string) error {
 
 type usageRepo struct{ db *sql.DB }
 
-func (u *usageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error { return nil }
+func (u *usageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error {
+	if record.Timestamp.IsZero() {
+		record.Timestamp = time.Now().UTC()
+	}
+	if record.Status == "" {
+		record.Status = controlstate.SettlementStatusUnsettled
+	}
+	_, err := u.db.ExecContext(ctx, `
+		INSERT INTO usage_records (id, api_key_id, provider_id, model, prompt_tokens, response_tokens, total_tokens, duration_ms, timestamp, input_rate, output_rate, credits_consumed, status)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		record.ID, record.APIKeyID, record.ProviderID, record.Model, record.PromptTokens, record.ResponseTokens, record.TotalTokens, record.DurationMs, record.Timestamp, record.InputRate, record.OutputRate, record.CreditsConsumed, record.Status,
+	)
+	return err
+}
+
+type rateRepo struct{ db *sql.DB }
+
+func (r *rateRepo) Save(ctx context.Context, rate *controlstate.ProviderModelRate) error {
+	if rate.CreatedAt.IsZero() {
+		rate.CreatedAt = time.Now().UTC()
+	}
+	rate.UpdatedAt = time.Now().UTC()
+	_, err := r.db.ExecContext(ctx, `
+		INSERT INTO provider_model_rates (provider_id, model, input_credit_rate, output_credit_rate, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)
+		ON CONFLICT(provider_id, model) DO UPDATE SET
+			input_credit_rate=excluded.input_credit_rate,
+			output_credit_rate=excluded.output_credit_rate,
+			updated_at=excluded.updated_at`,
+		rate.ProviderID, rate.Model, rate.InputCreditRate, rate.OutputCreditRate, rate.CreatedAt, rate.UpdatedAt,
+	)
+	return err
+}
+
+func (r *rateRepo) Get(ctx context.Context, providerID, model string) (*controlstate.ProviderModelRate, error) {
+	row := r.db.QueryRowContext(ctx, `
+		SELECT provider_id, model, input_credit_rate, output_credit_rate, created_at, updated_at
+		FROM provider_model_rates
+		WHERE provider_id = ? AND model = ?`, providerID, model)
+	rate := &controlstate.ProviderModelRate{}
+	if err := row.Scan(&rate.ProviderID, &rate.Model, &rate.InputCreditRate, &rate.OutputCreditRate, &rate.CreatedAt, &rate.UpdatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return rate, nil
+}
+
+func (r *rateRepo) Delete(ctx context.Context, providerID, model string) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM provider_model_rates WHERE provider_id = ? AND model = ?`, providerID, model)
+	return err
+}
 
 type auditRepo struct{ db *sql.DB }
 

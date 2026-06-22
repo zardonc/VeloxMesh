@@ -128,3 +128,60 @@ func TestPostgresAPIKeyCreditIntegration(t *testing.T) {
 		t.Fatalf("Delete API key failed: %v", err)
 	}
 }
+
+func TestPostgresRateAndUsageIntegration(t *testing.T) {
+	dsn := os.Getenv("POSTGRES_TEST_DSN")
+	if dsn == "" {
+		t.Skip("Skipping postgres integration test because POSTGRES_TEST_DSN is not set")
+	}
+
+	ctx := context.Background()
+	repo, err := Open(ctx, dsn)
+	if err != nil {
+		t.Fatalf("Failed to open postgres: %v", err)
+	}
+	defer repo.Close()
+
+	// Provider creation
+	_, _ = repo.Providers().Create(ctx, &controlstate.ProviderMutation{
+		ID: "pg-p-1", Name: "PG-P", Type: "openai", BaseURL: "http", Enabled: true,
+	})
+
+	rate := &controlstate.ProviderModelRate{
+		ProviderID:       "pg-p-1",
+		Model:            "m-1",
+		InputCreditRate:  10,
+		OutputCreditRate: 20,
+	}
+
+	if err := repo.Rates().Save(ctx, rate); err != nil {
+		t.Fatalf("Failed to save rate: %v", err)
+	}
+
+	gotRate, err := repo.Rates().Get(ctx, "pg-p-1", "m-1")
+	if err != nil {
+		t.Fatalf("Failed to get rate: %v", err)
+	}
+	if gotRate == nil || gotRate.InputCreditRate != 10 {
+		t.Fatalf("Expected input rate 10, got %+v", gotRate)
+	}
+
+	if err := repo.Rates().Delete(ctx, "pg-p-1", "m-1"); err != nil {
+		t.Fatalf("Failed to delete rate: %v", err)
+	}
+
+	usage := &controlstate.UsageRecord{
+		ID:             "pg-u-1",
+		ProviderID:     "pg-p-1",
+		Model:          "m-1",
+		PromptTokens:   100,
+		ResponseTokens: 50,
+		TotalTokens:    150,
+		DurationMs:     200,
+		Status:         controlstate.SettlementStatusUnsettled,
+	}
+
+	if err := repo.Usage().Log(ctx, usage); err != nil {
+		t.Fatalf("Failed to log usage: %v", err)
+	}
+}

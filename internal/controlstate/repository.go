@@ -11,6 +11,7 @@ type Repository interface {
 	Providers() ProviderRepository
 	Routing() RoutingRepository
 	APIKeys() APIKeyRepository
+	Rates() RateRepository
 	Usage() UsageRepository
 	Audit() AuditRepository
 	Idempotency() IdempotencyRepository
@@ -44,6 +45,12 @@ type APIKeyRepository interface {
 	Create(ctx context.Context, key *APIKeyRecord) error
 	Update(ctx context.Context, key *APIKeyRecord) error
 	Delete(ctx context.Context, id string) error
+}
+
+type RateRepository interface {
+	Save(ctx context.Context, rate *ProviderModelRate) error
+	Get(ctx context.Context, providerID, model string) (*ProviderModelRate, error)
+	Delete(ctx context.Context, providerID, model string) error
 }
 
 type UsageRepository interface {

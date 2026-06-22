@@ -77,15 +77,38 @@ type APIKeyRecord struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
+type SettlementStatus string
+
+const (
+	SettlementStatusUnsettled    SettlementStatus = "unsettled"
+	SettlementStatusSettled      SettlementStatus = "settled"
+	SettlementStatusMissingRate  SettlementStatus = "missing_rate"
+	SettlementStatusMissingUsage SettlementStatus = "missing_usage"
+)
+
+type ProviderModelRate struct {
+	ProviderID       string    `json:"provider_id"`
+	Model            string    `json:"model"`
+	InputCreditRate  int64     `json:"input_credit_rate"`
+	OutputCreditRate int64     `json:"output_credit_rate"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
 type UsageRecord struct {
-	ID             string    `json:"id"`
-	ProviderID     string    `json:"provider_id"`
-	Model          string    `json:"model"`
-	PromptTokens   int       `json:"prompt_tokens"`
-	ResponseTokens int       `json:"response_tokens"`
-	TotalTokens    int       `json:"total_tokens"`
-	DurationMs     int64     `json:"duration_ms"`
-	Timestamp      time.Time `json:"timestamp"`
+	ID              string           `json:"id"`
+	APIKeyID        *string          `json:"api_key_id,omitempty"`
+	ProviderID      string           `json:"provider_id"`
+	Model           string           `json:"model"`
+	PromptTokens    int              `json:"prompt_tokens"`
+	ResponseTokens  int              `json:"response_tokens"`
+	TotalTokens     int              `json:"total_tokens"`
+	DurationMs      int64            `json:"duration_ms"`
+	Timestamp       time.Time        `json:"timestamp"`
+	InputRate       *int64           `json:"input_rate,omitempty"`
+	OutputRate      *int64           `json:"output_rate,omitempty"`
+	CreditsConsumed *int64           `json:"credits_consumed,omitempty"`
+	Status          SettlementStatus `json:"status"`
 }
 
 type AuditEvent struct {
