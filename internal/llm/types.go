@@ -92,3 +92,19 @@ type StreamEvent struct {
 	Model        string
 	Error        error
 }
+
+type EmbeddingRequest struct {
+	Model string   `json:"model"`
+	Input []string `json:"input"`
+}
+
+type Embedding struct {
+	Index     int       `json:"index"`
+	Embedding []float32 `json:"embedding"`
+}
+
+type EmbeddingResponse struct {
+	Model string      `json:"model"`
+	Data  []Embedding `json:"data"`
+	Usage *Usage      `json:"usage,omitempty"`
+}

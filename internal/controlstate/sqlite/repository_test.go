@@ -3,6 +3,7 @@ package sqlite
 import (
 	"context"
 	"testing"
+	"time"
 	"veloxmesh/internal/controlstate"
 )
 
@@ -251,5 +252,67 @@ func TestSQLiteRateAndUsage(t *testing.T) {
 
 	if err := repo.Usage().Log(ctx, usage); err != nil {
 		t.Fatalf("Failed to log usage: %v", err)
+	}
+}
+
+func TestSQLiteSemanticCache(t *testing.T) {
+	dsn := "file::memory:?cache=shared"
+	repo, err := Open(dsn)
+	if err != nil {
+		t.Fatalf("Failed to open sqlite: %v", err)
+	}
+	defer repo.Close()
+
+	ctx := context.Background()
+	migrator := NewMigrator(repo.db)
+	if err := migrator.Migrate(ctx); err != nil {
+		t.Fatalf("Migration failed: %v", err)
+	}
+
+	cacheRepo := repo.SemanticCache()
+
+	entry := &controlstate.SemanticCacheEntry{
+		ID:       "sc-1",
+		Scope:    "hash123",
+		Model:    "gpt-4",
+		Vector:   []byte{0x01, 0x02, 0x03},
+		Response: `{"choices": []}`,
+		Enabled:  true,
+		HitCount: 0,
+		ExpiresAt: time.Now().Add(1 * time.Hour).UTC(),
+	}
+
+	if err := cacheRepo.Store(ctx, entry); err != nil {
+		t.Fatalf("Failed to store cache entry: %v", err)
+	}
+
+	candidates, err := cacheRepo.ListCandidates(ctx, "hash123", "gpt-4")
+	if err != nil {
+		t.Fatalf("Failed to list candidates: %v", err)
+	}
+	if len(candidates) != 1 {
+		t.Fatalf("Expected 1 candidate, got %d", len(candidates))
+	}
+	if candidates[0].ID != "sc-1" {
+		t.Errorf("Expected ID sc-1, got %s", candidates[0].ID)
+	}
+	if len(candidates[0].Vector) != 3 || candidates[0].Vector[0] != 0x01 {
+		t.Errorf("Unexpected vector data")
+	}
+
+	if err := cacheRepo.RecordHit(ctx, "sc-1"); err != nil {
+		t.Fatalf("Failed to record hit: %v", err)
+	}
+
+	if err := cacheRepo.Disable(ctx, "sc-1"); err != nil {
+		t.Fatalf("Failed to disable entry: %v", err)
+	}
+
+	candidates, err = cacheRepo.ListCandidates(ctx, "hash123", "gpt-4")
+	if err != nil {
+		t.Fatalf("Failed to list candidates after disable: %v", err)
+	}
+	if len(candidates) != 0 {
+		t.Errorf("Expected 0 candidates after disable, got %d", len(candidates))
 	}
 }

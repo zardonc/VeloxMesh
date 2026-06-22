@@ -340,3 +340,58 @@ func TestAdapter_Stream(t *testing.T) {
 		t.Errorf("unexpected chunks: %v", contents)
 	}
 }
+
+func TestAdapter_Embed(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/embeddings" {
+			t.Errorf("expected path /embeddings, got %s", r.URL.Path)
+		}
+		var reqBody map[string]any
+		json.NewDecoder(r.Body).Decode(&reqBody)
+		if reqBody["model"] != "text-embedding-3-small" {
+			t.Errorf("expected model text-embedding-3-small, got %v", reqBody["model"])
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]any{
+			"object": "list",
+			"data": []map[string]any{
+				{
+					"object":    "embedding",
+					"index":     0,
+					"embedding": []float32{0.1, 0.2, 0.3},
+				},
+			},
+			"model": "text-embedding-3-small",
+			"usage": map[string]any{
+				"prompt_tokens": 10,
+				"total_tokens":  10,
+			},
+		})
+	}))
+	defer server.Close()
+
+	adapter := NewAdapter("test-openai", server.URL, "test-key", "text-embedding-3-small")
+	req := &llm.EmbeddingRequest{
+		Model: "text-embedding-3-small",
+		Input: []string{"Hello world"},
+	}
+
+	resp, err := adapter.Embed(context.Background(), req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Model != "text-embedding-3-small" {
+		t.Errorf("expected model text-embedding-3-small, got %s", resp.Model)
+	}
+
+	if len(resp.Data) != 1 {
+		t.Fatalf("expected 1 embedding, got %d", len(resp.Data))
+	}
+
+	if len(resp.Data[0].Embedding) != 3 || resp.Data[0].Embedding[0] != 0.1 {
+		t.Errorf("unexpected embedding: %v", resp.Data[0].Embedding)
+	}
+}

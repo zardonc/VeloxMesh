@@ -98,8 +98,22 @@ CREATE TABLE idempotency_keys (
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
+CREATE TABLE semantic_cache_entries (
+    id VARCHAR(255) PRIMARY KEY,
+    scope VARCHAR(255) NOT NULL,
+    model VARCHAR(255) NOT NULL,
+    vector BYTEA NOT NULL,
+    response TEXT NOT NULL,
+    usage_id VARCHAR(255) REFERENCES usage_records(id) ON DELETE SET NULL,
+    hit_count INT NOT NULL DEFAULT 0,
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
 -- +goose Down
 
+DROP TABLE semantic_cache_entries;
 DROP TABLE idempotency_keys;
 DROP TABLE audit_events;
 DROP TABLE provider_model_rates;

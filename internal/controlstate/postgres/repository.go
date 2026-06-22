@@ -631,3 +631,71 @@ func (i *idempotencyRepo) Save(ctx context.Context, record *controlstate.Idempot
 	)
 	return err
 }
+
+func (r *Repository) SemanticCache() controlstate.SemanticCacheRepository {
+	return &semanticCacheRepo{pool: r.pool}
+}
+
+type semanticCacheRepo struct{ pool *pgxpool.Pool }
+
+func (s *semanticCacheRepo) Store(ctx context.Context, entry *controlstate.SemanticCacheEntry) error {
+	if entry.CreatedAt.IsZero() {
+		entry.CreatedAt = time.Now().UTC()
+	}
+	var usageID *string
+	if entry.UsageID != nil {
+		str := *entry.UsageID
+		usageID = &str
+	}
+	_, err := s.pool.Exec(ctx, `
+		INSERT INTO semantic_cache_entries (id, scope, model, vector, response, usage_id, hit_count, enabled, created_at, expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		ON CONFLICT(id) DO UPDATE SET
+			scope=excluded.scope,
+			model=excluded.model,
+			vector=excluded.vector,
+			response=excluded.response,
+			usage_id=excluded.usage_id,
+			hit_count=excluded.hit_count,
+			enabled=excluded.enabled,
+			expires_at=excluded.expires_at`,
+		entry.ID, entry.Scope, entry.Model, entry.Vector, entry.Response, usageID, entry.HitCount, entry.Enabled, entry.CreatedAt, entry.ExpiresAt,
+	)
+	return err
+}
+
+func (s *semanticCacheRepo) ListCandidates(ctx context.Context, scope, model string) ([]*controlstate.SemanticCacheEntry, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, scope, model, vector, response, usage_id, hit_count, enabled, created_at, expires_at
+		FROM semantic_cache_entries
+		WHERE scope = $1 AND model = $2 AND enabled = true AND expires_at > $3
+		ORDER BY created_at DESC`, scope, model, time.Now().UTC())
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []*controlstate.SemanticCacheEntry
+	for rows.Next() {
+		entry := &controlstate.SemanticCacheEntry{}
+		var usageID *string
+		if err := rows.Scan(&entry.ID, &entry.Scope, &entry.Model, &entry.Vector, &entry.Response, &usageID, &entry.HitCount, &entry.Enabled, &entry.CreatedAt, &entry.ExpiresAt); err != nil {
+			return nil, err
+		}
+		if usageID != nil {
+			entry.UsageID = usageID
+		}
+		results = append(results, entry)
+	}
+	return results, rows.Err()
+}
+
+func (s *semanticCacheRepo) RecordHit(ctx context.Context, id string) error {
+	_, err := s.pool.Exec(ctx, `UPDATE semantic_cache_entries SET hit_count = hit_count + 1 WHERE id = $1`, id)
+	return err
+}
+
+func (s *semanticCacheRepo) Disable(ctx context.Context, id string) error {
+	_, err := s.pool.Exec(ctx, `UPDATE semantic_cache_entries SET enabled = false WHERE id = $1`, id)
+	return err
+}

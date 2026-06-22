@@ -14,6 +14,7 @@ type Operation string
 
 const (
 	OperationChatCompletions Operation = "chat_completions"
+	OperationEmbeddings      Operation = "embeddings"
 )
 
 // Modality represents an input or output modality.

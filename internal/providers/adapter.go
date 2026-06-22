@@ -24,3 +24,8 @@ type StreamAdapter interface {
 	ProviderAdapter
 	Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.StreamEvent, error)
 }
+
+type EmbedAdapter interface {
+	ProviderAdapter
+	Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error)
+}

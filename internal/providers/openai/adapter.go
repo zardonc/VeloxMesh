@@ -299,3 +299,69 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 
 	return ch, nil
 }
+
+func (a *Adapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
+	openAIReq := map[string]interface{}{
+		"model": req.Model,
+		"input": req.Input,
+	}
+
+	body, err := json.Marshal(openAIReq)
+	if err != nil {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidRequest, "failed to marshal request", http.StatusBadRequest)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, a.baseURL+"/embeddings", bytes.NewReader(body))
+	if err != nil {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderError, "failed to create request", http.StatusInternalServerError)
+	}
+
+	httpReq.Header.Set("Content-Type", "application/json")
+	if a.apiKey != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+a.apiKey)
+	}
+
+	resp, err := a.client.Do(httpReq)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
+		}
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderUnavailable, "Provider unavailable", http.StatusBadGateway)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		bodyStr := strings.ToLower(string(bodyBytes))
+		isModelInvalid := resp.StatusCode == http.StatusNotFound || strings.Contains(bodyStr, "model")
+
+		switch resp.StatusCode {
+		case http.StatusBadRequest:
+			if isModelInvalid {
+				return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidModel, "Invalid model requested", http.StatusBadRequest)
+			}
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidRequest, "Invalid request to provider", http.StatusBadRequest)
+		case http.StatusUnauthorized, http.StatusForbidden:
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderAuthError, "Provider authentication failed", http.StatusBadGateway)
+		case http.StatusNotFound:
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidModel, "Invalid model requested", http.StatusBadRequest)
+		case http.StatusRequestTimeout:
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
+		case http.StatusTooManyRequests:
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderRateLimit, "Provider rate limit exceeded", http.StatusBadGateway)
+		default:
+			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderError, "Provider returned error", http.StatusBadGateway)
+		}
+	}
+
+	var openAIResp llm.EmbeddingResponse
+	if err := json.NewDecoder(resp.Body).Decode(&openAIResp); err != nil {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Malformed JSON from provider", http.StatusBadGateway)
+	}
+
+	if len(openAIResp.Data) == 0 {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no embeddings", http.StatusBadGateway)
+	}
+
+	return &openAIResp, nil
+}

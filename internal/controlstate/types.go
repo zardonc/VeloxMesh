@@ -146,3 +146,16 @@ func RedactProviderRecord(p *ProviderRecord) *ProviderRecord {
 	// Already safe because ProviderRecord doesn't contain raw API keys
 	return &clone
 }
+
+type SemanticCacheEntry struct {
+	ID        string    `json:"id"`
+	Scope     string    `json:"scope"` // e.g. API key identity
+	Model     string    `json:"model"`
+	Vector    []byte    `json:"vector"`
+	Response  string    `json:"response"`
+	UsageID   *string   `json:"usage_id,omitempty"`
+	HitCount  int       `json:"hit_count"`
+	Enabled   bool      `json:"enabled"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at"`
+}

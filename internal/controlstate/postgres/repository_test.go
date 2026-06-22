@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 	"veloxmesh/internal/controlstate"
 )
 
@@ -238,5 +239,66 @@ func TestPostgresSettlementIntegration(t *testing.T) {
 	k, _ := repo.APIKeys().GetByHash(ctx, "hash-settle")
 	if k.CreditBalance != 1000-expectedCredits {
 		t.Errorf("Expected remaining balance %d, got %d", 1000-expectedCredits, k.CreditBalance)
+	}
+}
+
+func TestPostgresSemanticCache(t *testing.T) {
+	dsn := os.Getenv("POSTGRES_TEST_DSN")
+	if dsn == "" {
+		t.Skip("Skipping postgres integration test because POSTGRES_TEST_DSN is not set")
+	}
+
+	ctx := context.Background()
+	repo, err := Open(ctx, dsn)
+	if err != nil {
+		t.Fatalf("Failed to open postgres: %v", err)
+	}
+	defer repo.Close()
+
+	cacheRepo := repo.SemanticCache()
+
+	entry := &controlstate.SemanticCacheEntry{
+		ID:       "sc-pg-1",
+		Scope:    "hash-pg-123",
+		Model:    "gpt-4",
+		Vector:   []byte{0x01, 0x02, 0x03},
+		Response: `{"choices": []}`,
+		Enabled:  true,
+		HitCount: 0,
+		ExpiresAt: time.Now().Add(1 * time.Hour).UTC(),
+	}
+
+	if err := cacheRepo.Store(ctx, entry); err != nil {
+		t.Fatalf("Failed to store cache entry: %v", err)
+	}
+
+	candidates, err := cacheRepo.ListCandidates(ctx, "hash-pg-123", "gpt-4")
+	if err != nil {
+		t.Fatalf("Failed to list candidates: %v", err)
+	}
+	if len(candidates) != 1 {
+		t.Fatalf("Expected 1 candidate, got %d", len(candidates))
+	}
+	if candidates[0].ID != "sc-pg-1" {
+		t.Errorf("Expected ID sc-pg-1, got %s", candidates[0].ID)
+	}
+	if len(candidates[0].Vector) != 3 || candidates[0].Vector[0] != 0x01 {
+		t.Errorf("Unexpected vector data")
+	}
+
+	if err := cacheRepo.RecordHit(ctx, "sc-pg-1"); err != nil {
+		t.Fatalf("Failed to record hit: %v", err)
+	}
+
+	if err := cacheRepo.Disable(ctx, "sc-pg-1"); err != nil {
+		t.Fatalf("Failed to disable entry: %v", err)
+	}
+
+	candidates, err = cacheRepo.ListCandidates(ctx, "hash-pg-123", "gpt-4")
+	if err != nil {
+		t.Fatalf("Failed to list candidates after disable: %v", err)
+	}
+	if len(candidates) != 0 {
+		t.Errorf("Expected 0 candidates after disable, got %d", len(candidates))
 	}
 }
