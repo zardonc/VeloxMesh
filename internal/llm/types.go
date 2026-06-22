@@ -55,3 +55,19 @@ type LLMResponse struct {
 	AttemptCount int
 	FallbackUsed bool
 }
+
+type Usage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+}
+
+type StreamEvent struct {
+	DeltaContent string
+	FinishReason string
+	Done         bool
+	Usage        *Usage
+	Provider     string
+	Model        string
+	Error        error
+}

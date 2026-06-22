@@ -29,8 +29,8 @@ func TestAdapter_Capabilities(t *testing.T) {
 	if len(caps.OutputModalities) != 1 || caps.OutputModalities[0] != providers.ModalityText {
 		t.Errorf("expected text output modality, got %v", caps.OutputModalities)
 	}
-	if caps.Streaming {
-		t.Error("expected streaming to be false")
+	if !caps.Streaming {
+		t.Error("expected streaming to be true")
 	}
 	if caps.ToolCalling {
 		t.Error("expected tool calling to be false")
@@ -209,7 +209,7 @@ func TestAdapter_Conformance(t *testing.T) {
 			SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
 			InputModalities:     []providers.Modality{providers.ModalityText},
 			OutputModalities:    []providers.Modality{providers.ModalityText},
-			Streaming:           false,
+			Streaming:           true,
 			ToolCalling:         false,
 			GenerationParameters: []providers.GenerationParameter{
 				providers.GenerationParameterTemperature,
@@ -293,4 +293,50 @@ func TestAdapter_Conformance(t *testing.T) {
 	}
 
 	adaptertest.RunConformance(t, spec)
+}
+
+func TestAdapter_Stream(t *testing.T) {
+	mockResponse := "data: {\"model\":\"gpt-4\",\"choices\":[{\"delta\":{\"content\":\"Hello \"}}]}\n\ndata: {\"model\":\"gpt-4\",\"choices\":[{\"delta\":{\"content\":\"World\"}}]}\n\ndata: [DONE]\n\n"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(mockResponse))
+	}))
+	defer server.Close()
+
+	adapter := NewAdapter("test-openai", server.URL, "test-key", "gpt-4")
+
+	req := &llm.LLMRequest{
+		Model: "gpt-4",
+		Messages: []llm.Message{
+			{Role: llm.RoleUser, Content: "Say Hello World"},
+		},
+	}
+
+	ch, err := adapter.Stream(context.Background(), req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	var contents []string
+	var done bool
+	for event := range ch {
+		if event.Error != nil {
+			t.Fatalf("unexpected event error: %v", event.Error)
+		}
+		if event.Done {
+			done = true
+		} else {
+			contents = append(contents, event.DeltaContent)
+		}
+	}
+
+	if !done {
+		t.Error("expected done event")
+	}
+
+	if len(contents) != 2 || contents[0] != "Hello " || contents[1] != "World" {
+		t.Errorf("unexpected chunks: %v", contents)
+	}
 }
