@@ -31,7 +31,7 @@ Planning rule: every Phase 4 plan must state whether each feature works in lite 
 | 2.9 | Provider Model Catalog and Routing Eligibility | Complete | 1/1 complete | model/provider capability eligibility |
 | 2.10 | Adapter Conformance Test Harness | Complete | 1/1 complete | reusable adapter contract tests |
 | 3 | Durable Control State | Complete | 7/7 complete | CTRL-01..03 |
-| 4 | Streaming, Rate Limits, Cache, and Cost | Testing (04-09) | 12/12 complete | STRM-01, RATE-01, CACHE-01, COST-01, CB-01 |
+| 4 | Streaming, Rate Limits, Cache, and Cost | Testing (04-10) | 12/12 complete | STRM-01, RATE-01, CACHE-01, COST-01, CB-01 |
 
 ## Phase Details
 
@@ -498,7 +498,7 @@ Plans:
 ### Phase 4: Streaming, Rate Limits, Cache, and Cost
 
 **Goal:** Add advanced gateway features after routing and adapters are stable.
-**Status:** Testing (04-09)
+**Status:** Testing (04-10)
 
 **Success Criteria:**
 
