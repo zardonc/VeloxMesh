@@ -15,10 +15,11 @@ func TestRedisHotState_PubSub(t *testing.T) {
 	if redisAddr == "" {
 		t.Skip("Skipping redis tests, REDIS_ADDR not set")
 	}
+	redisPassword := os.Getenv("REDIS_PASSWORD")
 
 	ctx := context.Background()
 	namespace := "veloxmesh:test:" + time.Now().Format("20060102150405")
-	client, err := hotstate.NewRedisClient(ctx, redisAddr, "", 0, namespace)
+	client, err := hotstate.NewRedisClient(ctx, redisAddr, redisPassword, 0, namespace)
 	if err != nil {
 		t.Fatalf("failed to connect to redis: %v", err)
 	}
