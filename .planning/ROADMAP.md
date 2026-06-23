@@ -54,7 +54,6 @@ The local development environment has been verified and configured. The followin
   - PostgreSQL Database
   - Redis Cache
 - **LLM Providers**:
-  - `sanf` (OpenAI Primary)
   - `sans` (SANS Primary, with multiple models configured)
 
 ---

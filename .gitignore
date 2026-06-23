@@ -8,6 +8,7 @@ Agent-gateway
 # Agent documentation
 GEMINI.md
 AGENT.md
+AGENTS.md
 
 # Build output
 bin/
