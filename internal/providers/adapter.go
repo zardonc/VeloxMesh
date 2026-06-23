@@ -19,3 +19,13 @@ type ProviderAdapter interface {
 	// Capabilities returns the provider-neutral capabilities of this adapter.
 	Capabilities() CapabilitySet
 }
+
+type StreamAdapter interface {
+	ProviderAdapter
+	Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.StreamEvent, error)
+}
+
+type EmbedAdapter interface {
+	ProviderAdapter
+	Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error)
+}

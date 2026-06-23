@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -8,11 +9,29 @@ import (
 	"strings"
 	"time"
 	"veloxmesh/internal/config"
+	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/errors"
 	"veloxmesh/internal/hotstate"
 )
 
-func Auth(cfg *config.Config, cache hotstate.Client) func(http.Handler) http.Handler {
+type AuthIdentity struct {
+	ID            string
+	Role          string
+	CreditBalance int64
+}
+
+type authContextKey string
+
+const AuthIdentityKey authContextKey = "auth_identity"
+
+func GetAuthIdentity(ctx context.Context) *AuthIdentity {
+	if identity, ok := ctx.Value(AuthIdentityKey).(*AuthIdentity); ok {
+		return identity
+	}
+	return nil
+}
+
+func Auth(cfg *config.Config, cache hotstate.Client, repo controlstate.Repository) func(http.Handler) http.Handler {
 	var ttl time.Duration
 	if cfg.RedisAuthCacheTTL != "" {
 		ttl, _ = time.ParseDuration(cfg.RedisAuthCacheTTL)
@@ -40,20 +59,54 @@ func Auth(cfg *config.Config, cache hotstate.Client) func(http.Handler) http.Han
 			hash := sha256.Sum256([]byte(token))
 			tokenHash := hex.EncodeToString(hash[:])
 
+			var identity *AuthIdentity
+
 			if cache != nil {
 				if allowed, err := cache.GetCachedAuthResult(r.Context(), tokenHash); err == nil {
 					if allowed {
-						next.ServeHTTP(w, r)
+						// Note: Cache doesn't hold the full identity in Phase 1's simplistic form.
+						// To properly cache identity, we would need to store the identity object in cache.
+						// For now, if we have repo, we MUST query it to get credits.
+						if repo == nil {
+							next.ServeHTTP(w, r)
+							return
+						}
+						// If repo exists, we skip cache return here because we need CreditBalance
+						// A full cache implementation would cache the APIKeyRecord itself.
+					} else {
+						sendAuthError(w, "invalid_api_key", "Invalid API key")
 						return
 					}
-					sendAuthError(w, "invalid_api_key", "Invalid API key")
-					return
 				}
 			}
 
-			allowed := (token == cfg.DevAPIKey)
+			allowed := false
 
-			if cache != nil {
+			if repo != nil && repo.APIKeys() != nil {
+				if keyRecord, err := repo.APIKeys().GetByHash(r.Context(), tokenHash); err == nil && keyRecord != nil {
+					if keyRecord.Enabled {
+						allowed = true
+						identity = &AuthIdentity{
+							ID:            keyRecord.ID,
+							Role:          keyRecord.Role,
+							CreditBalance: keyRecord.CreditBalance,
+						}
+					}
+				}
+			} else {
+				// Disabled mode / dev fallback
+				if token == cfg.DevAPIKey {
+					allowed = true
+					identity = &AuthIdentity{
+						ID:            "dev-key",
+						Role:          "admin",
+						CreditBalance: 999999, // Dev key has unlimited credits conceptually, or check handles it
+					}
+				}
+			}
+
+			if cache != nil && repo == nil {
+				// Only cache the boolean result in disabled mode for now
 				_ = cache.CacheAuthResult(r.Context(), tokenHash, allowed, ttl)
 			}
 
@@ -62,7 +115,8 @@ func Auth(cfg *config.Config, cache hotstate.Client) func(http.Handler) http.Han
 				return
 			}
 
-			next.ServeHTTP(w, r)
+			ctx := context.WithValue(r.Context(), AuthIdentityKey, identity)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }

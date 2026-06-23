@@ -72,18 +72,32 @@ func Readyz(cfg *config.Config, svc *gateway.Service) http.HandlerFunc {
 			status = http.StatusServiceUnavailable
 		}
 
+		strategy := cfg.RoutingStrategy
 		probeEnabled := false
 		if cfg.HealthCheck.Enabled != nil {
 			probeEnabled = *cfg.HealthCheck.Enabled
 		}
 
+		type MetadataProvider interface {
+			RoutingStrategy() string
+			ProbeEnabled() bool
+		}
+
+		if mp, ok := svc.Router().(MetadataProvider); ok {
+			s := mp.RoutingStrategy()
+			if s != "" {
+				strategy = s
+			}
+			probeEnabled = mp.ProbeEnabled()
+		}
+
 		response := map[string]interface{}{
 			"status":               overall,
-			"configured_providers": len(cfg.Providers),
+			"configured_providers": len(caps),
 			"healthy":              healthyCount,
 			"degraded":             degradedCount,
 			"unhealthy":            unhealthyCount,
-			"routing_strategy":     cfg.RoutingStrategy,
+			"routing_strategy":     strategy,
 			"probe_enabled":        probeEnabled,
 			"providers":            providerDetails,
 		}

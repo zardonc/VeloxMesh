@@ -33,11 +33,6 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Stream {
-		sendError(w, "not_supported", "Streaming is not yet supported in Phase 1", http.StatusBadRequest)
-		return
-	}
-
 	for _, msg := range req.Messages {
 		if msg.Role != llm.RoleSystem && msg.Role != llm.RoleUser && msg.Role != llm.RoleAssistant {
 			sendError(w, "invalid_request", "Invalid message role", http.StatusBadRequest)
@@ -60,10 +55,105 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		RouteOverride: routeOverride,
 	}
 
+	if req.Stream {
+		ch, respMeta, err := h.service.HandleChatCompletionStream(r.Context(), llmReq)
+		if err != nil {
+			if gwErr, ok := err.(*errors.GatewayError); ok {
+				sendGatewayError(w, gwErr)
+			} else {
+				sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
+			}
+			return
+		}
+
+		duration := time.Since(start)
+
+		w.Header().Set("X-Request-ID", reqID)
+		w.Header().Set("X-Provider", respMeta.Provider)
+		w.Header().Set("X-Model", respMeta.Model)
+		w.Header().Set("X-Cache-Hit", "false")
+		w.Header().Set("X-Cache-Level", "none")
+		w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
+		w.Header().Set("X-Queue-Wait-Ms", "0")
+		if respMeta.Strategy != "" {
+			w.Header().Set("X-Routing-Strategy", respMeta.Strategy)
+		}
+		if respMeta.AttemptCount > 0 {
+			w.Header().Set("X-Provider-Attempts", fmt.Sprintf("%d", respMeta.AttemptCount))
+		}
+		if respMeta.FallbackUsed {
+			w.Header().Set("X-Fallback-Used", "true")
+		} else {
+			w.Header().Set("X-Fallback-Used", "false")
+		}
+
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			sendError(w, "not_supported", "Streaming not supported by client", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		flusher.Flush()
+
+		encoder := json.NewEncoder(w)
+		first := true
+
+		for event := range ch {
+			if event.Error != nil {
+				break
+			}
+			if event.Done {
+				fmt.Fprintf(w, "data: [DONE]\n\n")
+				flusher.Flush()
+				break
+			}
+
+			var fr *string
+			if event.FinishReason != "" {
+				s := event.FinishReason
+				fr = &s
+			}
+
+			chunk := llm.ChatCompletionChunkResponse{
+				ID:      reqID,
+				Object:  "chat.completion.chunk",
+				Created: time.Now().Unix(),
+				Model:   respMeta.Model,
+				Choices: []llm.ChunkChoice{
+					{
+						Index: 0,
+						Delta: llm.Delta{
+							Content: event.DeltaContent,
+						},
+						FinishReason: fr,
+					},
+				},
+				Usage: event.Usage,
+			}
+
+			if first {
+				chunk.Choices[0].Delta.Role = llm.RoleAssistant
+				first = false
+			}
+
+			fmt.Fprintf(w, "data: ")
+			_ = encoder.Encode(chunk)
+			fmt.Fprintf(w, "\n")
+			flusher.Flush()
+		}
+
+		return
+	}
+
 	resp, err := h.service.HandleChatCompletion(r.Context(), llmReq)
 	if err != nil {
 		if gwErr, ok := err.(*errors.GatewayError); ok {
-			sendError(w, gwErr.Code, gwErr.Message, gwErr.HTTPStatus)
+			sendGatewayError(w, gwErr)
 		} else {
 			sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
 		}
@@ -75,8 +165,13 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Request-ID", reqID)
 	w.Header().Set("X-Provider", resp.Provider)
 	w.Header().Set("X-Model", resp.Model)
-	w.Header().Set("X-Cache-Hit", "false")
-	w.Header().Set("X-Cache-Level", "none")
+	if resp.CacheHit {
+		w.Header().Set("X-Cache-Hit", "true")
+		w.Header().Set("X-Cache-Level", resp.CacheLevel)
+	} else {
+		w.Header().Set("X-Cache-Hit", "false")
+		w.Header().Set("X-Cache-Level", "none")
+	}
 	w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
 	w.Header().Set("X-Queue-Wait-Ms", "0")
 	if resp.Strategy != "" {
@@ -108,4 +203,15 @@ func sendError(w http.ResponseWriter, code, message string, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(errors.NewGatewayError(code, message, status))
+}
+
+func sendGatewayError(w http.ResponseWriter, gwErr *errors.GatewayError) {
+	w.Header().Set("Content-Type", "application/json")
+	if gwErr.Headers != nil {
+		for k, v := range gwErr.Headers {
+			w.Header().Set(k, v)
+		}
+	}
+	w.WriteHeader(gwErr.HTTPStatus)
+	_ = json.NewEncoder(w).Encode(gwErr)
 }

@@ -2,16 +2,22 @@ package controlstate
 
 import (
 	"context"
+	"errors"
 )
+
+var ErrRoutingConfigNotFound = errors.New("routing config not found")
 
 type Repository interface {
 	Providers() ProviderRepository
 	Routing() RoutingRepository
 	APIKeys() APIKeyRepository
+	Rates() RateRepository
 	Usage() UsageRepository
 	Audit() AuditRepository
 	Idempotency() IdempotencyRepository
+	SemanticCache() SemanticCacheRepository
 	BeginTx(ctx context.Context) (Transaction, error)
+	Settle(ctx context.Context, usage *UsageRecord) error
 	Close() error
 }
 
@@ -43,6 +49,12 @@ type APIKeyRepository interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type RateRepository interface {
+	Save(ctx context.Context, rate *ProviderModelRate) error
+	Get(ctx context.Context, providerID, model string) (*ProviderModelRate, error)
+	Delete(ctx context.Context, providerID, model string) error
+}
+
 type UsageRepository interface {
 	Log(ctx context.Context, record *UsageRecord) error
 }
@@ -60,4 +72,11 @@ type IdempotencyRepository interface {
 
 type Migrator interface {
 	Migrate(ctx context.Context) error
+}
+
+type SemanticCacheRepository interface {
+	Store(ctx context.Context, entry *SemanticCacheEntry) error
+	ListCandidates(ctx context.Context, scope, model string) ([]*SemanticCacheEntry, error)
+	RecordHit(ctx context.Context, id string) error
+	Disable(ctx context.Context, id string) error
 }

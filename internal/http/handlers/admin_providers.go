@@ -217,6 +217,94 @@ func (h *AdminProvidersHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *AdminProvidersHandler) SetRate(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	model := chi.URLParam(r, "model")
+	if id == "" || model == "" {
+		sendAdminError(w, gwErr.NewGatewayError("invalid_request", "missing id or model", http.StatusBadRequest))
+		return
+	}
+
+	key := controlstate.IdempotencyKeyFromRequest(r)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		sendAdminError(w, gwErr.NewGatewayError("invalid_request", "failed to read body", http.StatusBadRequest))
+		return
+	}
+
+	res, err := h.service.WithIdempotency(r.Context(), key, "rate.set", r.Method, r.URL.Path, body, func(ctx context.Context) (interface{}, error) {
+		var req controlstate.RateRequest
+		if err := json.Unmarshal(body, &req); err != nil {
+			return nil, gwErr.NewGatewayError("invalid_request", "invalid JSON body", http.StatusBadRequest)
+		}
+		return h.service.SetRate(ctx, id, model, &req)
+	})
+
+	if err != nil {
+		sendAdminError(w, err)
+		return
+	}
+
+	if idemRes, ok := res.(*controlstate.IdempotencyResult); ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(idemRes.Status)
+		w.Write(idemRes.Response)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(res)
+}
+
+func (h *AdminProvidersHandler) GetRate(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	model := chi.URLParam(r, "model")
+	if id == "" || model == "" {
+		sendAdminError(w, gwErr.NewGatewayError("invalid_request", "missing id or model", http.StatusBadRequest))
+		return
+	}
+
+	res, err := h.service.GetRate(r.Context(), id, model)
+	if err != nil {
+		sendAdminError(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(res)
+}
+
+func (h *AdminProvidersHandler) DeleteRate(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	model := chi.URLParam(r, "model")
+	if id == "" || model == "" {
+		sendAdminError(w, gwErr.NewGatewayError("invalid_request", "missing id or model", http.StatusBadRequest))
+		return
+	}
+
+	key := controlstate.IdempotencyKeyFromRequest(r)
+	res, err := h.service.WithIdempotency(r.Context(), key, "rate.delete", r.Method, r.URL.Path, nil, func(ctx context.Context) (interface{}, error) {
+		return nil, h.service.DeleteRate(ctx, id, model)
+	})
+
+	if err != nil {
+		sendAdminError(w, err)
+		return
+	}
+
+	if idemRes, ok := res.(*controlstate.IdempotencyResult); ok {
+		if idemRes.Status != http.StatusNoContent {
+			w.Header().Set("Content-Type", "application/json")
+		}
+		w.WriteHeader(idemRes.Status)
+		w.Write(idemRes.Response)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func sendAdminError(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json")
 

@@ -8,6 +8,7 @@ Agent-gateway
 # Agent documentation
 GEMINI.md
 AGENT.md
+AGENTS.md
 
 # Build output
 bin/
@@ -16,6 +17,7 @@ veloxmesh
 
 # Environment variables
 .env
+.env.local
 
 # IDE and Editor folders
 .idea/

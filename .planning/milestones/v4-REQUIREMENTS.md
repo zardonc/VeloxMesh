@@ -1,3 +1,12 @@
+# Requirements Archive: v4 Streaming, Rate Limits, Cache, and Cost
+
+**Archived:** 2026-06-23
+**Status:** SHIPPED
+
+For current requirements, see `.planning/REQUIREMENTS.md`.
+
+---
+
 # Requirements: VeloxMesh
 
 **Defined:** 2026-06-15
@@ -115,6 +124,7 @@
 | CTRL-03 | Phase 3 | Complete |
 
 **Coverage:**
+
 - v1 requirements: 26 total
 - Mapped to phases: 26
 - Unmapped: 0

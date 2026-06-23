@@ -66,6 +66,7 @@ func TestAdminProvidersIntegration(t *testing.T) {
 		provRepo:  provRepo,
 		auditRepo: &dummyAuditRepo{},
 		idemRepo:  &dummyIdemRepo{},
+		usageRepo: &memoryUsageRepo{},
 	}
 	cipher := &memoryCipher{secrets: make(map[string]string)}
 
@@ -73,8 +74,8 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	adminHandler := handlers.NewAdminProvidersHandler(adminService)
 
 	admissionCtrl := admission.NewPassThroughController()
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil)
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil, repo)
 
 	// 1. Initial reload with empty repo
 	err = a.ReloadProviders(context.Background(), repo, cipher)
@@ -161,5 +162,85 @@ func TestAdminProvidersIntegration(t *testing.T) {
 
 	if resp.StatusCode != http.StatusServiceUnavailable {
 		t.Fatalf("expected 503 after disabling provider, got %d", resp.StatusCode)
+	}
+}
+
+func TestAdminProvidersRates(t *testing.T) {
+	cfg := &config.Config{
+		RoutingStrategy: "round-robin",
+		AdminAPIKey:     "test-admin-key",
+	}
+
+	a, err := app.New()
+	if err != nil {
+		t.Fatalf("app.New failed: %v", err)
+	}
+	a.Config = cfg
+
+	provRepo := &memoryProviderRepo{
+		records: []*controlstate.ProviderRecord{
+			{
+				ID:      "test-prov",
+				Type:    "openai-compatible",
+				Enabled: true,
+				Models:  []string{"gpt-4"},
+			},
+		},
+		secrets: make(map[string]string),
+	}
+	rateRepo := &memoryRateRepo{rates: make(map[string]*controlstate.ProviderModelRate)}
+	repo := &memoryRepository{
+		provRepo:  provRepo,
+		rateRepo:  rateRepo,
+		auditRepo: &dummyAuditRepo{},
+		idemRepo:  &dummyIdemRepo{},
+		usageRepo: &memoryUsageRepo{},
+	}
+	cipher := &memoryCipher{secrets: make(map[string]string)}
+
+	adminService := controlstate.NewAdminProviderService(repo, cipher, a.RuntimeProviderManager, nil)
+	adminHandler := handlers.NewAdminProvidersHandler(adminService)
+
+	a.Router = router.NewRouter(a.Config, nil, adminHandler, nil, repo)
+
+	server := httptest.NewServer(a.Router)
+	defer server.Close()
+
+	// 1. Put rate
+	reqBody := `{"input_credit_rate": 150, "output_credit_rate": 300}`
+	req, _ := http.NewRequest(http.MethodPut, server.URL+"/admin/v1/providers/test-prov/models/gpt-4/rate", bytes.NewBufferString(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer test-admin-key")
+	resp, _ := http.DefaultClient.Do(req)
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 OK for PUT rate, got %d", resp.StatusCode)
+	}
+
+	var pResp map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&pResp)
+	if pResp["input_credit_rate"].(float64) != 150 {
+		t.Fatalf("expected rate to be 150, got %v", pResp["input_credit_rate"])
+	}
+
+	// 2. Get rate
+	req, _ = http.NewRequest(http.MethodGet, server.URL+"/admin/v1/providers/test-prov/models/gpt-4/rate", nil)
+	req.Header.Set("Authorization", "Bearer test-admin-key")
+	resp, _ = http.DefaultClient.Do(req)
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 OK for GET rate, got %d", resp.StatusCode)
+	}
+
+	// 3. Delete rate
+	req, _ = http.NewRequest(http.MethodDelete, server.URL+"/admin/v1/providers/test-prov/models/gpt-4/rate", nil)
+	req.Header.Set("Authorization", "Bearer test-admin-key")
+	resp, _ = http.DefaultClient.Do(req)
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("expected 204 No Content for DELETE rate, got %d", resp.StatusCode)
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"veloxmesh/internal/config"
 	gwErr "veloxmesh/internal/errors"
@@ -20,9 +21,10 @@ import (
 )
 
 type RuntimeSnapshot struct {
-	Registry *providers.Registry
-	Router   routing.Router
-	Prober   *health.Prober
+	Registry      *providers.Registry
+	Router        routing.Router
+	Prober        *health.Prober
+	RoutingConfig *RoutingConfig
 }
 
 type ActivationValidator func(ctx context.Context, adapters []providers.ProviderAdapter) error
@@ -77,11 +79,20 @@ func (m *RuntimeProviderManager) Start(ctx context.Context) {
 }
 
 func (m *RuntimeProviderManager) ActivateStatic(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter) error {
+	return m.activateInternal(providersCfg, adapters, nil)
+}
+
+func (m *RuntimeProviderManager) activateInternal(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter, rCfg *RoutingConfig) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	cfgClone := *m.cfg
 	cfgClone.Providers = providersCfg
+
+	strategy := cfgClone.RoutingStrategy
+	if rCfg != nil {
+		strategy = rCfg.Strategy
+	}
 
 	for _, p := range providersCfg {
 		fail := 3
@@ -98,13 +109,14 @@ func (m *RuntimeProviderManager) ActivateStatic(providersCfg []config.ProviderCo
 	}
 
 	registry := providers.NewRegistry(&cfgClone, adapters...)
-	router := routing.NewHealthAwareRouter(registry, m.healthStore, cfgClone.RoutingStrategy)
+	router := routing.NewHealthAwareRouter(registry, m.healthStore, strategy)
 	prober := health.NewProber(registry, m.healthStore, &cfgClone, m.logger)
 
 	snap := &RuntimeSnapshot{
-		Registry: registry,
-		Router:   router,
-		Prober:   prober,
+		Registry:      registry,
+		Router:        router,
+		Prober:        prober,
+		RoutingConfig: rCfg,
 	}
 
 	m.snapshot.Store(snap)
@@ -122,6 +134,10 @@ func (m *RuntimeProviderManager) ActivateStatic(providersCfg []config.ProviderCo
 }
 
 func (m *RuntimeProviderManager) ActivateProviderSet(ctx context.Context, records []*ProviderRecord, secrets map[string]string, validator ActivationValidator) error {
+	return m.ActivateDurable(ctx, records, secrets, nil, validator)
+}
+
+func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []*ProviderRecord, secrets map[string]string, rCfg *RoutingConfig, validator ActivationValidator) error {
 	providerConfigs, err := BuildRuntimeConfig(records)
 	if err != nil {
 		return err
@@ -138,7 +154,7 @@ func (m *RuntimeProviderManager) ActivateProviderSet(ctx context.Context, record
 		}
 	}
 
-	return m.ActivateStatic(providerConfigs, adapters)
+	return m.activateInternal(providerConfigs, adapters, rCfg)
 }
 
 // Router delegates
@@ -172,6 +188,48 @@ func (m *RuntimeProviderManager) GetAvailableModels() []string {
 		return nil
 	}
 	return snap.Router.GetAvailableModels()
+}
+
+func (m *RuntimeProviderManager) FallbackConfig() (bool, int) {
+	snap := m.Snapshot()
+	if snap != nil && snap.RoutingConfig != nil {
+		return snap.RoutingConfig.FallbackEnabled, snap.RoutingConfig.MaxAttempts
+	}
+	return m.cfg.FallbackEnabled, m.cfg.MaxAttempts
+}
+
+func (m *RuntimeProviderManager) RoutingStrategy() string {
+	snap := m.Snapshot()
+	if snap != nil && snap.RoutingConfig != nil {
+		return snap.RoutingConfig.Strategy
+	}
+	return m.cfg.RoutingStrategy
+}
+
+func (m *RuntimeProviderManager) CircuitBreakerConfig() (int, time.Duration) {
+	threshold := m.cfg.HealthCheck.FailureThreshold
+	if threshold <= 0 {
+		threshold = 5 // fallback default
+	}
+	timeoutStr := m.cfg.HealthCheck.Interval
+	if timeoutStr == "" {
+		timeoutStr = "30s"
+	}
+	timeout, err := time.ParseDuration(timeoutStr)
+	if err != nil {
+		timeout = 30 * time.Second
+	}
+	return threshold, timeout
+}
+
+func (m *RuntimeProviderManager) ProbeEnabled() bool {
+	// The plan says probing uses durable provider health config.
+	// We can report whether probe is running.
+	// For simplicity, we just look at m.proberCancel or m.cfg
+	if m.cfg.HealthCheck.Enabled != nil {
+		return *m.cfg.HealthCheck.Enabled
+	}
+	return len(m.cfg.Providers) > 1
 }
 
 // LoadActiveProviderRecords returns all enabled provider records from the repository.

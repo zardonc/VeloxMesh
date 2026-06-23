@@ -317,6 +317,9 @@ func TestEnvFallback(t *testing.T) {
 
 func TestRedisConfigDefaults(t *testing.T) {
 	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
 	cfg, err := LoadConfig()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -325,8 +328,8 @@ func TestRedisConfigDefaults(t *testing.T) {
 	if cfg.RedisEnabled {
 		t.Errorf("expected Redis to be disabled by default")
 	}
-	if cfg.RedisNamespace != "veloxmesh:local" {
-		t.Errorf("expected default namespace veloxmesh:local, got %s", cfg.RedisNamespace)
+	if cfg.RedisNamespace != "" {
+		t.Errorf("expected default namespace empty, got %s", cfg.RedisNamespace)
 	}
 	if cfg.RedisHealthTTL != "1m" {
 		t.Errorf("expected default health TTL 1m, got %s", cfg.RedisHealthTTL)
@@ -341,6 +344,9 @@ func TestRedisConfigDefaults(t *testing.T) {
 
 func TestRedisConfigEnv(t *testing.T) {
 	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
 	t.Setenv("REDIS_ENABLED", "true")
 	t.Setenv("REDIS_ADDR", "redis:6379")
 	t.Setenv("REDIS_NAMESPACE", "prod")

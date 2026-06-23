@@ -46,6 +46,26 @@ type ChatCompletionResponse struct {
 	Choices []Choice `json:"choices"`
 }
 
+type Delta struct {
+	Role    Role   `json:"role,omitempty"`
+	Content string `json:"content,omitempty"`
+}
+
+type ChunkChoice struct {
+	Index        int     `json:"index"`
+	Delta        Delta   `json:"delta"`
+	FinishReason *string `json:"finish_reason,omitempty"`
+}
+
+type ChatCompletionChunkResponse struct {
+	ID      string        `json:"id"`
+	Object  string        `json:"object"`
+	Created int64         `json:"created"`
+	Model   string        `json:"model"`
+	Choices []ChunkChoice `json:"choices"`
+	Usage   *Usage        `json:"usage,omitempty"`
+}
+
 type LLMResponse struct {
 	GatewayID    string
 	Model        string
@@ -54,4 +74,39 @@ type LLMResponse struct {
 	Choices      []Choice
 	AttemptCount int
 	FallbackUsed bool
+	Usage        *Usage
+	CacheHit     bool
+	CacheLevel   string
+}
+
+type Usage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+}
+
+type StreamEvent struct {
+	DeltaContent string
+	FinishReason string
+	Done         bool
+	Usage        *Usage
+	Provider     string
+	Model        string
+	Error        error
+}
+
+type EmbeddingRequest struct {
+	Model string   `json:"model"`
+	Input []string `json:"input"`
+}
+
+type Embedding struct {
+	Index     int       `json:"index"`
+	Embedding []float32 `json:"embedding"`
+}
+
+type EmbeddingResponse struct {
+	Model string      `json:"model"`
+	Data  []Embedding `json:"data"`
+	Usage *Usage      `json:"usage,omitempty"`
 }

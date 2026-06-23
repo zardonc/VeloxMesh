@@ -61,6 +61,11 @@ type ProviderCreateRequest struct {
 	Weight       *int     `json:"weight,omitempty"`
 }
 
+type RateRequest struct {
+	InputCreditRate  int64 `json:"input_credit_rate"`
+	OutputCreditRate int64 `json:"output_credit_rate"`
+}
+
 type ProviderUpdateRequest struct {
 	Name         string   `json:"name"`
 	Type         string   `json:"type"`
@@ -560,6 +565,114 @@ func (s *AdminProviderService) reloadRuntime(ctx context.Context) error {
 		return gwErr.NewGatewayError("provider_activation_failed", fmt.Sprintf("activation failed: %v", err), 500)
 	}
 
+	return nil
+}
+
+func (s *AdminProviderService) SetRate(ctx context.Context, providerID, model string, req *RateRequest) (*ProviderModelRate, error) {
+	outcome := "success"
+	var meta map[string]interface{}
+	var err error
+	defer func() {
+		if err != nil {
+			if IsValidationError(err) {
+				outcome = "validation_failed"
+			} else {
+				outcome = "rate_failed"
+			}
+		}
+		s.RecordAudit(ctx, "rate.set", providerID+":"+model, outcome, meta)
+	}()
+
+	if s.repo == nil || s.repo.Rates() == nil {
+		err = gwErr.NewGatewayError("rate_management_unavailable", "rate management unavailable", 400)
+		return nil, err
+	}
+
+	if providerID == "" || model == "" {
+		err = newValidationError([]FieldError{{Field: "model", Code: "invalid", Message: "provider ID and model are required"}})
+		return nil, err
+	}
+
+	if req.InputCreditRate < 0 || req.OutputCreditRate < 0 {
+		err = newValidationError([]FieldError{{Field: "rate", Code: "invalid", Message: "rates cannot be negative"}})
+		return nil, err
+	}
+
+	rec, getErr := s.repo.Providers().Get(ctx, providerID)
+	if getErr != nil {
+		err = getErr
+		return nil, err
+	}
+	if rec == nil {
+		err = newValidationError([]FieldError{{Field: "provider_id", Code: "invalid", Message: "provider not found"}})
+		return nil, err
+	}
+
+	foundModel := false
+	for _, m := range rec.Models {
+		if m == model {
+			foundModel = true
+			break
+		}
+	}
+	if !foundModel {
+		err = newValidationError([]FieldError{{Field: "model", Code: "invalid", Message: "model does not belong to provider"}})
+		return nil, err
+	}
+
+	rate := &ProviderModelRate{
+		ProviderID:       providerID,
+		Model:            model,
+		InputCreditRate:  req.InputCreditRate,
+		OutputCreditRate: req.OutputCreditRate,
+	}
+
+	err = s.repo.Rates().Save(ctx, rate)
+	if err != nil {
+		err = fmt.Errorf("failed to save rate: %w", err)
+		return nil, err
+	}
+
+	return s.repo.Rates().Get(ctx, providerID, model)
+}
+
+func (s *AdminProviderService) GetRate(ctx context.Context, providerID, model string) (*ProviderModelRate, error) {
+	if s.repo == nil || s.repo.Rates() == nil {
+		return nil, gwErr.NewGatewayError("rate_management_unavailable", "rate management unavailable", 400)
+	}
+
+	rate, err := s.repo.Rates().Get(ctx, providerID, model)
+	if err != nil {
+		return nil, err
+	}
+	if rate == nil {
+		return nil, gwErr.NewGatewayError("rate_not_found", "rate not found", 404)
+	}
+
+	return rate, nil
+}
+
+func (s *AdminProviderService) DeleteRate(ctx context.Context, providerID, model string) error {
+	outcome := "success"
+	var meta map[string]interface{}
+	var err error
+	defer func() {
+		if err != nil && err.Error() != "rate management unavailable" {
+			outcome = "rate_failed"
+			s.RecordAudit(ctx, "rate.delete", providerID+":"+model, outcome, meta)
+		}
+	}()
+
+	if s.repo == nil || s.repo.Rates() == nil {
+		err = gwErr.NewGatewayError("rate_management_unavailable", "rate management unavailable", 400)
+		return err
+	}
+
+	err = s.repo.Rates().Delete(ctx, providerID, model)
+	if err != nil {
+		err = fmt.Errorf("failed to delete rate: %w", err)
+		return err
+	}
 	return nil
 }
 

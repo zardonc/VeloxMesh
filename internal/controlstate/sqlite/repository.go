@@ -40,6 +40,81 @@ func (r *Repository) BeginTx(ctx context.Context) (controlstate.Transaction, err
 	return &SqliteTransaction{tx: tx}, nil
 }
 
+func (r *Repository) Settle(ctx context.Context, usage *controlstate.UsageRecord) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if usage.Timestamp.IsZero() {
+		usage.Timestamp = time.Now().UTC()
+	}
+
+	// 1. Get rate
+	row := tx.QueryRowContext(ctx, `
+		SELECT input_credit_rate, output_credit_rate
+		FROM provider_model_rates
+		WHERE provider_id = ? AND model = ?`, usage.ProviderID, usage.Model)
+	var inputRate, outputRate int64
+	err = row.Scan(&inputRate, &outputRate)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			usage.Status = controlstate.SettlementStatusMissingRate
+			_, err = tx.ExecContext(ctx, `
+				INSERT INTO usage_records (id, api_key_id, provider_id, model, prompt_tokens, response_tokens, total_tokens, duration_ms, timestamp, status)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				usage.ID, usage.APIKeyID, usage.ProviderID, usage.Model, usage.PromptTokens, usage.ResponseTokens, usage.TotalTokens, usage.DurationMs, usage.Timestamp, usage.Status,
+			)
+			if err != nil {
+				return err
+			}
+			return tx.Commit()
+		}
+		return err
+	}
+
+	usage.InputRate = &inputRate
+	usage.OutputRate = &outputRate
+
+	credits := (int64(usage.PromptTokens)*inputRate + 999) / 1000
+	outCredits := (int64(usage.ResponseTokens)*outputRate + 999) / 1000
+	totalCredits := credits + outCredits
+	usage.CreditsConsumed = &totalCredits
+	usage.Status = controlstate.SettlementStatusSettled
+
+	// 2. Lock and update API key
+	if usage.APIKeyID != nil {
+		row = tx.QueryRowContext(ctx, `SELECT credit_balance FROM api_keys WHERE id = ?`, *usage.APIKeyID)
+		var balance int64
+		if err := row.Scan(&balance); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return errors.New("api key not found")
+			}
+			return err
+		}
+
+		balance -= totalCredits
+
+		_, err = tx.ExecContext(ctx, `UPDATE api_keys SET credit_balance = ?, updated_at = ? WHERE id = ?`, balance, time.Now().UTC(), *usage.APIKeyID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 3. Insert usage record
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO usage_records (id, api_key_id, provider_id, model, prompt_tokens, response_tokens, total_tokens, duration_ms, timestamp, input_rate, output_rate, credits_consumed, status)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		usage.ID, usage.APIKeyID, usage.ProviderID, usage.Model, usage.PromptTokens, usage.ResponseTokens, usage.TotalTokens, usage.DurationMs, usage.Timestamp, usage.InputRate, usage.OutputRate, usage.CreditsConsumed, usage.Status,
+	)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 type SqliteTransaction struct {
 	tx *sql.Tx
 }
@@ -62,6 +137,10 @@ func (r *Repository) Routing() controlstate.RoutingRepository {
 
 func (r *Repository) APIKeys() controlstate.APIKeyRepository {
 	return &apiKeyRepo{db: r.db}
+}
+
+func (r *Repository) Rates() controlstate.RateRepository {
+	return &rateRepo{db: r.db}
 }
 
 func (r *Repository) Usage() controlstate.UsageRepository {
@@ -299,22 +378,189 @@ func (p *providerRepo) PutEncryptedSecret(ctx context.Context, id string, cipher
 
 type routingRepo struct{ db *sql.DB }
 
-func (r *routingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error)       { return nil, nil }
-func (r *routingRepo) Save(ctx context.Context, config *controlstate.RoutingConfig) error { return nil }
+func (r *routingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error) {
+	row := r.db.QueryRowContext(ctx, `
+		SELECT id, strategy, default_provider, fallback_enabled, max_attempts, revision, created_at, updated_at
+		FROM routing_configs
+		WHERE id = 'global'`)
+
+	rec := &controlstate.RoutingConfig{}
+	var defaultProvider sql.NullString
+	if err := row.Scan(&rec.ID, &rec.Strategy, &defaultProvider, &rec.FallbackEnabled, &rec.MaxAttempts, &rec.Revision, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, controlstate.ErrRoutingConfigNotFound
+		}
+		return nil, err
+	}
+	if defaultProvider.Valid {
+		rec.DefaultProvider = defaultProvider.String
+	}
+	return rec, nil
+}
+
+func (r *routingRepo) Save(ctx context.Context, config *controlstate.RoutingConfig) error {
+	if config.ID == "" {
+		config.ID = "global"
+	}
+	if config.CreatedAt.IsZero() {
+		config.CreatedAt = time.Now().UTC()
+	}
+
+	var defaultProvider sql.NullString
+	if config.DefaultProvider != "" {
+		defaultProvider.String = config.DefaultProvider
+		defaultProvider.Valid = true
+	}
+
+	_, err := r.db.ExecContext(ctx, `
+		INSERT INTO routing_configs (id, strategy, default_provider, fallback_enabled, max_attempts, revision, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+		ON CONFLICT(id) DO UPDATE SET
+			strategy=excluded.strategy,
+			default_provider=excluded.default_provider,
+			fallback_enabled=excluded.fallback_enabled,
+			max_attempts=excluded.max_attempts,
+			revision=routing_configs.revision + 1,
+			updated_at=CURRENT_TIMESTAMP`,
+		config.ID, config.Strategy, defaultProvider, config.FallbackEnabled, config.MaxAttempts, config.Revision, config.CreatedAt,
+	)
+	return err
+}
 
 type apiKeyRepo struct{ db *sql.DB }
 
 func (a *apiKeyRepo) GetByHash(ctx context.Context, hash string) (*controlstate.APIKeyRecord, error) {
-	return nil, nil
+	row := a.db.QueryRowContext(ctx, `
+		SELECT id, prefix, hash, name, role, enabled, credit_balance, created_at, updated_at
+		FROM api_keys
+		WHERE hash = ?`, hash)
+	rec := &controlstate.APIKeyRecord{}
+	if err := row.Scan(&rec.ID, &rec.Prefix, &rec.Hash, &rec.Name, &rec.Role, &rec.Enabled, &rec.CreditBalance, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return rec, nil
 }
-func (a *apiKeyRepo) List(ctx context.Context) ([]*controlstate.APIKeyRecord, error)   { return nil, nil }
-func (a *apiKeyRepo) Create(ctx context.Context, key *controlstate.APIKeyRecord) error { return nil }
-func (a *apiKeyRepo) Update(ctx context.Context, key *controlstate.APIKeyRecord) error { return nil }
-func (a *apiKeyRepo) Delete(ctx context.Context, id string) error                      { return nil }
+
+func (a *apiKeyRepo) List(ctx context.Context) ([]*controlstate.APIKeyRecord, error) {
+	rows, err := a.db.QueryContext(ctx, `
+		SELECT id, prefix, hash, name, role, enabled, credit_balance, created_at, updated_at
+		FROM api_keys
+		ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []*controlstate.APIKeyRecord
+	for rows.Next() {
+		rec := &controlstate.APIKeyRecord{}
+		if err := rows.Scan(&rec.ID, &rec.Prefix, &rec.Hash, &rec.Name, &rec.Role, &rec.Enabled, &rec.CreditBalance, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+			return nil, err
+		}
+		result = append(result, rec)
+	}
+	return result, rows.Err()
+}
+
+func (a *apiKeyRepo) Create(ctx context.Context, key *controlstate.APIKeyRecord) error {
+	if key.CreatedAt.IsZero() {
+		key.CreatedAt = time.Now().UTC()
+	}
+	if key.UpdatedAt.IsZero() {
+		key.UpdatedAt = time.Now().UTC()
+	}
+	_, err := a.db.ExecContext(ctx, `
+		INSERT INTO api_keys (id, prefix, hash, name, role, enabled, credit_balance, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		key.ID, key.Prefix, key.Hash, key.Name, key.Role, key.Enabled, key.CreditBalance, key.CreatedAt, key.UpdatedAt,
+	)
+	return err
+}
+
+func (a *apiKeyRepo) Update(ctx context.Context, key *controlstate.APIKeyRecord) error {
+	key.UpdatedAt = time.Now().UTC()
+	res, err := a.db.ExecContext(ctx, `
+		UPDATE api_keys
+		SET name = ?, role = ?, enabled = ?, credit_balance = ?, updated_at = ?
+		WHERE id = ?`,
+		key.Name, key.Role, key.Enabled, key.CreditBalance, key.UpdatedAt, key.ID,
+	)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("api key not found")
+	}
+	return nil
+}
+
+func (a *apiKeyRepo) Delete(ctx context.Context, id string) error {
+	_, err := a.db.ExecContext(ctx, `DELETE FROM api_keys WHERE id = ?`, id)
+	return err
+}
 
 type usageRepo struct{ db *sql.DB }
 
-func (u *usageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error { return nil }
+func (u *usageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error {
+	if record.Timestamp.IsZero() {
+		record.Timestamp = time.Now().UTC()
+	}
+	if record.Status == "" {
+		record.Status = controlstate.SettlementStatusUnsettled
+	}
+	_, err := u.db.ExecContext(ctx, `
+		INSERT INTO usage_records (id, api_key_id, provider_id, model, prompt_tokens, response_tokens, total_tokens, duration_ms, timestamp, input_rate, output_rate, credits_consumed, status)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		record.ID, record.APIKeyID, record.ProviderID, record.Model, record.PromptTokens, record.ResponseTokens, record.TotalTokens, record.DurationMs, record.Timestamp, record.InputRate, record.OutputRate, record.CreditsConsumed, record.Status,
+	)
+	return err
+}
+
+type rateRepo struct{ db *sql.DB }
+
+func (r *rateRepo) Save(ctx context.Context, rate *controlstate.ProviderModelRate) error {
+	if rate.CreatedAt.IsZero() {
+		rate.CreatedAt = time.Now().UTC()
+	}
+	rate.UpdatedAt = time.Now().UTC()
+	_, err := r.db.ExecContext(ctx, `
+		INSERT INTO provider_model_rates (provider_id, model, input_credit_rate, output_credit_rate, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)
+		ON CONFLICT(provider_id, model) DO UPDATE SET
+			input_credit_rate=excluded.input_credit_rate,
+			output_credit_rate=excluded.output_credit_rate,
+			updated_at=excluded.updated_at`,
+		rate.ProviderID, rate.Model, rate.InputCreditRate, rate.OutputCreditRate, rate.CreatedAt, rate.UpdatedAt,
+	)
+	return err
+}
+
+func (r *rateRepo) Get(ctx context.Context, providerID, model string) (*controlstate.ProviderModelRate, error) {
+	row := r.db.QueryRowContext(ctx, `
+		SELECT provider_id, model, input_credit_rate, output_credit_rate, created_at, updated_at
+		FROM provider_model_rates
+		WHERE provider_id = ? AND model = ?`, providerID, model)
+	rate := &controlstate.ProviderModelRate{}
+	if err := row.Scan(&rate.ProviderID, &rate.Model, &rate.InputCreditRate, &rate.OutputCreditRate, &rate.CreatedAt, &rate.UpdatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return rate, nil
+}
+
+func (r *rateRepo) Delete(ctx context.Context, providerID, model string) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM provider_model_rates WHERE provider_id = ? AND model = ?`, providerID, model)
+	return err
+}
 
 type auditRepo struct{ db *sql.DB }
 
@@ -405,4 +651,72 @@ func (i *idempotencyRepo) Save(ctx context.Context, record *controlstate.Idempot
 
 func (r *Repository) DBForTest() *sql.DB {
 	return r.db
+}
+
+func (r *Repository) SemanticCache() controlstate.SemanticCacheRepository {
+	return &semanticCacheRepo{db: r.db}
+}
+
+type semanticCacheRepo struct{ db *sql.DB }
+
+func (s *semanticCacheRepo) Store(ctx context.Context, entry *controlstate.SemanticCacheEntry) error {
+	if entry.CreatedAt.IsZero() {
+		entry.CreatedAt = time.Now().UTC()
+	}
+	var usageID sql.NullString
+	if entry.UsageID != nil {
+		usageID.String = *entry.UsageID
+		usageID.Valid = true
+	}
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO semantic_cache_entries (id, scope, model, vector, response, usage_id, hit_count, enabled, created_at, expires_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			scope=excluded.scope,
+			model=excluded.model,
+			vector=excluded.vector,
+			response=excluded.response,
+			usage_id=excluded.usage_id,
+			hit_count=excluded.hit_count,
+			enabled=excluded.enabled,
+			expires_at=excluded.expires_at`,
+		entry.ID, entry.Scope, entry.Model, entry.Vector, entry.Response, usageID, entry.HitCount, entry.Enabled, entry.CreatedAt, entry.ExpiresAt,
+	)
+	return err
+}
+
+func (s *semanticCacheRepo) ListCandidates(ctx context.Context, scope, model string) ([]*controlstate.SemanticCacheEntry, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, scope, model, vector, response, usage_id, hit_count, enabled, created_at, expires_at
+		FROM semantic_cache_entries
+		WHERE scope = ? AND model = ? AND enabled = 1 AND expires_at > ?
+		ORDER BY created_at DESC`, scope, model, time.Now().UTC())
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []*controlstate.SemanticCacheEntry
+	for rows.Next() {
+		entry := &controlstate.SemanticCacheEntry{}
+		var usageID sql.NullString
+		if err := rows.Scan(&entry.ID, &entry.Scope, &entry.Model, &entry.Vector, &entry.Response, &usageID, &entry.HitCount, &entry.Enabled, &entry.CreatedAt, &entry.ExpiresAt); err != nil {
+			return nil, err
+		}
+		if usageID.Valid {
+			entry.UsageID = &usageID.String
+		}
+		results = append(results, entry)
+	}
+	return results, rows.Err()
+}
+
+func (s *semanticCacheRepo) RecordHit(ctx context.Context, id string) error {
+	_, err := s.db.ExecContext(ctx, `UPDATE semantic_cache_entries SET hit_count = hit_count + 1 WHERE id = ?`, id)
+	return err
+}
+
+func (s *semanticCacheRepo) Disable(ctx context.Context, id string) error {
+	_, err := s.db.ExecContext(ctx, `UPDATE semantic_cache_entries SET enabled = 0 WHERE id = ?`, id)
+	return err
 }

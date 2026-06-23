@@ -66,25 +66,49 @@ type RoutingConfig struct {
 }
 
 type APIKeyRecord struct {
-	ID        string    `json:"id"`
-	Prefix    string    `json:"prefix"`
-	Hash      string    `json:"-"`
-	Name      string    `json:"name"`
-	Role      string    `json:"role"`
-	Enabled   bool      `json:"enabled"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID            string    `json:"id"`
+	Prefix        string    `json:"prefix"`
+	Hash          string    `json:"-"`
+	Name          string    `json:"name"`
+	Role          string    `json:"role"`
+	Enabled       bool      `json:"enabled"`
+	CreditBalance int64     `json:"credit_balance"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+type SettlementStatus string
+
+const (
+	SettlementStatusUnsettled    SettlementStatus = "unsettled"
+	SettlementStatusSettled      SettlementStatus = "settled"
+	SettlementStatusMissingRate  SettlementStatus = "missing_rate"
+	SettlementStatusMissingUsage SettlementStatus = "missing_usage"
+)
+
+type ProviderModelRate struct {
+	ProviderID       string    `json:"provider_id"`
+	Model            string    `json:"model"`
+	InputCreditRate  int64     `json:"input_credit_rate"`
+	OutputCreditRate int64     `json:"output_credit_rate"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 }
 
 type UsageRecord struct {
-	ID             string    `json:"id"`
-	ProviderID     string    `json:"provider_id"`
-	Model          string    `json:"model"`
-	PromptTokens   int       `json:"prompt_tokens"`
-	ResponseTokens int       `json:"response_tokens"`
-	TotalTokens    int       `json:"total_tokens"`
-	DurationMs     int64     `json:"duration_ms"`
-	Timestamp      time.Time `json:"timestamp"`
+	ID              string           `json:"id"`
+	APIKeyID        *string          `json:"api_key_id,omitempty"`
+	ProviderID      string           `json:"provider_id"`
+	Model           string           `json:"model"`
+	PromptTokens    int              `json:"prompt_tokens"`
+	ResponseTokens  int              `json:"response_tokens"`
+	TotalTokens     int              `json:"total_tokens"`
+	DurationMs      int64            `json:"duration_ms"`
+	Timestamp       time.Time        `json:"timestamp"`
+	InputRate       *int64           `json:"input_rate,omitempty"`
+	OutputRate      *int64           `json:"output_rate,omitempty"`
+	CreditsConsumed *int64           `json:"credits_consumed,omitempty"`
+	Status          SettlementStatus `json:"status"`
 }
 
 type AuditEvent struct {
@@ -121,4 +145,17 @@ func RedactProviderRecord(p *ProviderRecord) *ProviderRecord {
 	clone := *p
 	// Already safe because ProviderRecord doesn't contain raw API keys
 	return &clone
+}
+
+type SemanticCacheEntry struct {
+	ID        string    `json:"id"`
+	Scope     string    `json:"scope"` // e.g. API key identity
+	Model     string    `json:"model"`
+	Vector    []byte    `json:"vector"`
+	Response  string    `json:"response"`
+	UsageID   *string   `json:"usage_id,omitempty"`
+	HitCount  int       `json:"hit_count"`
+	Enabled   bool      `json:"enabled"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at"`
 }

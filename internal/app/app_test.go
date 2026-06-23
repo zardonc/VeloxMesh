@@ -16,6 +16,21 @@ func (d *dummyRepo) Providers() controlstate.ProviderRepository {
 	return d.prov
 }
 
+func (d *dummyRepo) Routing() controlstate.RoutingRepository {
+	return &dummyRoutingRepo{}
+}
+
+type dummyRoutingRepo struct {
+}
+
+func (d *dummyRoutingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error) {
+	return nil, controlstate.ErrRoutingConfigNotFound
+}
+
+func (d *dummyRoutingRepo) Save(ctx context.Context, config *controlstate.RoutingConfig) error {
+	return nil
+}
+
 type dummyProvRepo struct {
 	controlstate.ProviderRepository
 	records []*controlstate.ProviderRecord
@@ -45,6 +60,13 @@ func (d *dummyCipher) DecryptProviderSecret(secret *controlstate.EncryptedSecret
 }
 
 func TestApp_ReloadProviders(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+
 	a, err := New()
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)

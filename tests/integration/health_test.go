@@ -3,10 +3,13 @@ package integration
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
+
 	"veloxmesh/internal/app"
 	"veloxmesh/internal/health"
 )
@@ -69,8 +72,8 @@ func TestHealthEndpoints(t *testing.T) {
 		if caps["provider_type"] != "openai-compatible" {
 			t.Errorf("expected provider_type openai-compatible, got %v", caps["provider_type"])
 		}
-		if caps["streaming"] != false {
-			t.Errorf("expected streaming false, got %v", caps["streaming"])
+		if caps["streaming"] != true {
+			t.Errorf("expected streaming true, got %v", caps["streaming"])
 		}
 
 		// Ensure no secrets
@@ -116,7 +119,31 @@ func TestHealthRecovery(t *testing.T) {
 	pFail := setupFakeProvider(t, "p-fail", 0, 500)
 	defer pFail.Close()
 
-	cfgPath := writeConfig(t, pFail, pFail, "round-robin")
+	configJSON := fmt.Sprintf(`{
+		"routing_strategy": "round-robin",
+		"health_check": {
+			"interval": "10ms",
+			"failure_threshold": 3
+		},
+		"providers": [
+			{
+				"id": "p1",
+				"type": "openai-compatible",
+				"base_url": "%s",
+				"api_key": "test-key",
+				"models": ["gpt-4o"]
+			}
+		]
+	}`, pFail.URL)
+
+	f, err := os.CreateTemp("", "config-*.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Write([]byte(configJSON))
+	f.Close()
+	cfgPath := f.Name()
+
 	defer os.Remove(cfgPath)
 	os.Setenv("CONFIG_FILE", cfgPath)
 	defer os.Unsetenv("CONFIG_FILE")
@@ -156,6 +183,8 @@ func TestHealthRecovery(t *testing.T) {
 	if snap.Status != health.StatusHealthy {
 		t.Errorf("expected p1 to be healthy after probe, got %s", snap.Status)
 	}
+
+	time.Sleep(15 * time.Millisecond)
 
 	// Gateway should route again, even if the upstream still returns 500
 	rec, _ = doChatReq(t, application, "p1")

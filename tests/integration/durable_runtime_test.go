@@ -36,13 +36,71 @@ func (d *dummyIdemRepo) Save(ctx context.Context, record *controlstate.Idempoten
 type memoryRepository struct {
 	controlstate.Repository
 	provRepo  *memoryProviderRepo
+	rateRepo  *memoryRateRepo
 	idemRepo  controlstate.IdempotencyRepository
 	auditRepo controlstate.AuditRepository
+	usageRepo controlstate.UsageRepository
+}
+
+type memoryUsageRepo struct {
+	records []*controlstate.UsageRecord
+}
+
+func (m *memoryUsageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error {
+	m.records = append(m.records, record)
+	return nil
+}
+
+type memoryRateRepo struct {
+	controlstate.RateRepository
+	rates map[string]*controlstate.ProviderModelRate
+}
+
+func (m *memoryRateRepo) Save(ctx context.Context, rate *controlstate.ProviderModelRate) error {
+	if m.rates == nil {
+		m.rates = make(map[string]*controlstate.ProviderModelRate)
+	}
+	key := rate.ProviderID + ":" + rate.Model
+	m.rates[key] = rate
+	return nil
+}
+
+func (m *memoryRateRepo) Get(ctx context.Context, providerID, model string) (*controlstate.ProviderModelRate, error) {
+	if m.rates == nil {
+		return nil, nil
+	}
+	key := providerID + ":" + model
+	if rate, ok := m.rates[key]; ok {
+		return rate, nil
+	}
+	return nil, nil
+}
+
+func (m *memoryRateRepo) Delete(ctx context.Context, providerID, model string) error {
+	if m.rates != nil {
+		key := providerID + ":" + model
+		delete(m.rates, key)
+	}
+	return nil
 }
 
 func (m *memoryRepository) Providers() controlstate.ProviderRepository      { return m.provRepo }
+func (m *memoryRepository) Rates() controlstate.RateRepository              { return m.rateRepo }
+func (m *memoryRepository) Usage() controlstate.UsageRepository             { return m.usageRepo }
 func (m *memoryRepository) Idempotency() controlstate.IdempotencyRepository { return m.idemRepo }
 func (m *memoryRepository) Audit() controlstate.AuditRepository             { return m.auditRepo }
+func (m *memoryRepository) Routing() controlstate.RoutingRepository         { return &dummyRoutingRepo{} }
+func (m *memoryRepository) APIKeys() controlstate.APIKeyRepository          { return nil }
+
+type dummyRoutingRepo struct{}
+
+func (d *dummyRoutingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error) {
+	return nil, controlstate.ErrRoutingConfigNotFound
+}
+
+func (d *dummyRoutingRepo) Save(ctx context.Context, config *controlstate.RoutingConfig) error {
+	return nil
+}
 
 type memoryProviderRepo struct {
 	controlstate.ProviderRepository
@@ -109,6 +167,14 @@ func (m *memoryRepository) BeginTx(ctx context.Context) (controlstate.Transactio
 	return &mockTx{}, nil
 }
 
+func (m *memoryRepository) Settle(ctx context.Context, usage *controlstate.UsageRecord) error {
+	repo, ok := m.usageRepo.(*memoryUsageRepo)
+	if ok {
+		repo.records = append(repo.records, usage)
+	}
+	return nil
+}
+
 type mockTx struct{}
 
 func (m *mockTx) Commit() error   { return nil }
@@ -166,10 +232,6 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	a.Config = cfg
 	a.Config.DevAPIKey = "test-dev-key"
 
-	admissionCtrl := admission.NewPassThroughController()
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil)
-
 	provRepo := &memoryProviderRepo{
 		records: []*controlstate.ProviderRecord{},
 	}
@@ -177,8 +239,13 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 		provRepo:  provRepo,
 		auditRepo: &dummyAuditRepo{},
 		idemRepo:  &dummyIdemRepo{},
+		usageRepo: &memoryUsageRepo{},
 	}
 	cipher := &memoryCipher{}
+
+	admissionCtrl := admission.NewPassThroughController()
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, repo)
 
 	// 1. Initial reload with empty repo
 	err = a.ReloadProviders(context.Background(), repo, cipher)
