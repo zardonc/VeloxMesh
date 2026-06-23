@@ -98,11 +98,11 @@ type Config struct {
 
 func LoadConfig() (*Config, error) {
 	cfg := &Config{
-		GatewayDataAddr:    getEnv("GATEWAY_DATA_ADDR", ":8080"),
-		GatewayAdminAddr:   getEnv("GATEWAY_ADMIN_ADDR", ":8081"),
-		GatewayMetricsAddr: getEnv("GATEWAY_METRICS_ADDR", ":9090"),
+		GatewayDataAddr:    getEnv("GATEWAY_DATA_ADDR", ""),
+		GatewayAdminAddr:   getEnv("GATEWAY_ADMIN_ADDR", ""),
+		GatewayMetricsAddr: getEnv("GATEWAY_METRICS_ADDR", ""),
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
-		DevAPIKey:          getEnv("DEV_API_KEY", "vx-dev"),
+		DevAPIKey:          getEnv("DEV_API_KEY", ""),
 		RoutingStrategy:    getEnv("ROUTING_STRATEGY", "least-latency"),
 
 		ControlStateBackend:          getEnv("CONTROL_STATE_BACKEND", "disabled"),
@@ -114,10 +114,10 @@ func LoadConfig() (*Config, error) {
 		AuditRetention:               getEnv("AUDIT_RETENTION", "720h"),
 
 		RedisEnabled:        getEnv("REDIS_ENABLED", "false") == "true",
-		RedisAddr:           getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisAddr:           getEnv("REDIS_ADDR", ""),
 		RedisPassword:       getEnv("REDIS_PASSWORD", ""),
 		RedisDB:             0, // Simplification, can override via JSON if needed, or parse env
-		RedisNamespace:      getEnv("REDIS_NAMESPACE", "veloxmesh:local"),
+		RedisNamespace:      getEnv("REDIS_NAMESPACE", ""),
 		RedisHealthTTL:      getEnv("REDIS_HEALTH_TTL", "1m"),
 		RedisAuthCacheTTL:   getEnv("REDIS_AUTH_CACHE_TTL", "5m"),
 		RedisDegradeToLocal: getEnv("REDIS_DEGRADE_TO_LOCAL", "true") == "true",
@@ -242,10 +242,10 @@ func LoadConfig() (*Config, error) {
 		}
 	} else {
 		// Fallback to backward-compatible env config
-		providerID := getEnv("DEFAULT_PROVIDER", "openai-primary")
+		providerID := getEnv("DEFAULT_PROVIDER", "")
 		cfg.DefaultProvider = providerID
 
-		modelsRaw := getEnv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+		modelsRaw := getEnv("OPENAI_PRIMARY_MODELS", "")
 		var models []string
 		for _, m := range strings.Split(modelsRaw, ",") {
 			m = strings.TrimSpace(m)
@@ -253,18 +253,15 @@ func LoadConfig() (*Config, error) {
 				models = append(models, m)
 			}
 		}
-		if len(models) == 0 {
-			models = []string{"gpt-4o-mini"}
-		}
 
 		cfg.Providers = []ProviderConfig{
 			{
 				ID:           providerID,
 				Type:         "openai-compatible",
-				BaseURL:      getEnv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1"),
+				BaseURL:      getEnv("OPENAI_PRIMARY_BASE_URL", ""),
 				APIKey:       getEnv("OPENAI_PRIMARY_API_KEY", ""),
 				Models:       models,
-				DefaultModel: getEnv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini"),
+				DefaultModel: getEnv("OPENAI_PRIMARY_DEFAULT_MODEL", ""),
 				Timeout:      "30s",
 			},
 		}

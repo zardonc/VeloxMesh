@@ -60,6 +60,13 @@ func (d *dummyCipher) DecryptProviderSecret(secret *controlstate.EncryptedSecret
 }
 
 func TestApp_ReloadProviders(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+
 	a, err := New()
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)

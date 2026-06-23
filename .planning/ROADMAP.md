@@ -515,6 +515,7 @@ Plans:
 - When a solution is explicitly introduced as a temporary transitional measure during a development phase, its goal is only to meet the current phase's requirements. Do not spend excessive time optimizing, refining, or designing it for long-term maintainability unless it is expected to remain in use in future phases.
 - Do not add streaming, semantic cache, rate limiting, or cost governance until their later phase is explicitly scoped.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
+- **Rule**: Source code committed to git must not contain any hardcoded configuration information (e.g., API keys, DB addresses, default upstream URLs, model names, or infrastructure ports). Configuration must only be obtained from local environment variables, configuration files, or the database.
 
 ## Local Development Resources
 
