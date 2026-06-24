@@ -87,6 +87,9 @@ func mapMessages(msgs []llm.Message) []map[string]any {
 		} else {
 			mapped["content"] = m.Content
 		}
+		if m.ToolCallID != "" {
+			mapped["tool_call_id"] = m.ToolCallID
+		}
 		out = append(out, mapped)
 	}
 	return out
