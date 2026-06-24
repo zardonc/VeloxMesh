@@ -68,9 +68,28 @@ func (a *Adapter) Capabilities() providers.CapabilitySet {
 		InputModalities:      []providers.Modality{providers.ModalityText},
 		OutputModalities:     []providers.Modality{providers.ModalityText},
 		Streaming:            true,
-		ToolCalling:          false,
+		ToolCalling:          true,
 		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
 	}
+}
+
+func mapMessages(msgs []llm.Message) []map[string]any {
+	out := make([]map[string]any, 0, len(msgs))
+	for _, m := range msgs {
+		mapped := map[string]any{
+			"role": m.Role,
+		}
+		if len(m.ToolCalls) > 0 {
+			mapped["tool_calls"] = m.ToolCalls
+		}
+		if len(m.MultiContent) > 0 {
+			mapped["content"] = m.MultiContent
+		} else {
+			mapped["content"] = m.Content
+		}
+		out = append(out, mapped)
+	}
+	return out
 }
 
 func (a *Adapter) HealthCheck(ctx context.Context) providers.HealthStatus {
@@ -84,13 +103,19 @@ func (a *Adapter) HealthCheck(ctx context.Context) providers.HealthStatus {
 func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	openAIReq := map[string]interface{}{
 		"model":    req.Model,
-		"messages": req.Messages,
+		"messages": mapMessages(req.Messages),
 	}
 	if req.Temperature != nil {
 		openAIReq["temperature"] = *req.Temperature
 	}
 	if req.MaxTokens != nil {
 		openAIReq["max_tokens"] = *req.MaxTokens
+	}
+	if len(req.Tools) > 0 {
+		openAIReq["tools"] = req.Tools
+	}
+	if req.ToolChoice != nil {
+		openAIReq["tool_choice"] = req.ToolChoice
 	}
 
 	body, err := json.Marshal(openAIReq)
@@ -165,7 +190,8 @@ type streamChunk struct {
 
 type chunkChoice struct {
 	Delta struct {
-		Content string `json:"content"`
+		Content   string              `json:"content"`
+		ToolCalls []llm.ToolCallChunk `json:"tool_calls,omitempty"`
 	} `json:"delta"`
 	FinishReason *string `json:"finish_reason"`
 }
@@ -173,7 +199,7 @@ type chunkChoice struct {
 func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.StreamEvent, error) {
 	openAIReq := map[string]interface{}{
 		"model":    req.Model,
-		"messages": req.Messages,
+		"messages": mapMessages(req.Messages),
 		"stream":   true,
 	}
 	if req.Temperature != nil {
@@ -181,6 +207,12 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 	}
 	if req.MaxTokens != nil {
 		openAIReq["max_tokens"] = *req.MaxTokens
+	}
+	if len(req.Tools) > 0 {
+		openAIReq["tools"] = req.Tools
+	}
+	if req.ToolChoice != nil {
+		openAIReq["tool_choice"] = req.ToolChoice
 	}
 
 	body, err := json.Marshal(openAIReq)
@@ -288,6 +320,7 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 
 			if len(chunk.Choices) > 0 {
 				event.DeltaContent = chunk.Choices[0].Delta.Content
+				event.ToolCalls = chunk.Choices[0].Delta.ToolCalls
 				if chunk.Choices[0].FinishReason != nil {
 					event.FinishReason = *chunk.Choices[0].FinishReason
 				}

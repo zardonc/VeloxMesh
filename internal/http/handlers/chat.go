@@ -22,10 +22,49 @@ func NewChatHandler(svc *gateway.Service) *ChatHandler {
 func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
-	var req llm.ChatCompletionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	type proxyMessage struct {
+		Role      llm.Role        `json:"role"`
+		Content   json.RawMessage `json:"content,omitempty"`
+		ToolCalls []llm.ToolCall  `json:"tool_calls,omitempty"`
+	}
+
+	type proxyReq struct {
+		Model       string         `json:"model"`
+		Messages    []proxyMessage `json:"messages"`
+		Temperature *float64       `json:"temperature,omitempty"`
+		MaxTokens   *int           `json:"max_tokens,omitempty"`
+		Stream      bool           `json:"stream,omitempty"`
+		Tools       []llm.Tool     `json:"tools,omitempty"`
+		ToolChoice  any            `json:"tool_choice,omitempty"`
+	}
+
+	var pReq proxyReq
+	if err := json.NewDecoder(r.Body).Decode(&pReq); err != nil {
 		sendError(w, "invalid_request", "Failed to parse JSON body", http.StatusBadRequest)
 		return
+	}
+
+	var req llm.ChatCompletionRequest
+	req.Model = pReq.Model
+	req.Temperature = pReq.Temperature
+	req.MaxTokens = pReq.MaxTokens
+	req.Stream = pReq.Stream
+	req.Tools = pReq.Tools
+	req.ToolChoice = pReq.ToolChoice
+
+	for _, pm := range pReq.Messages {
+		m := llm.Message{
+			Role:      pm.Role,
+			ToolCalls: pm.ToolCalls,
+		}
+		if len(pm.Content) > 0 {
+			if pm.Content[0] == '"' {
+				_ = json.Unmarshal(pm.Content, &m.Content)
+			} else if pm.Content[0] == '[' {
+				_ = json.Unmarshal(pm.Content, &m.MultiContent)
+			}
+		}
+		req.Messages = append(req.Messages, m)
 	}
 
 	if len(req.Messages) == 0 {
@@ -128,7 +167,8 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 					{
 						Index: 0,
 						Delta: llm.Delta{
-							Content: event.DeltaContent,
+							Content:   event.DeltaContent,
+							ToolCalls: event.ToolCalls,
 						},
 						FinishReason: fr,
 					},

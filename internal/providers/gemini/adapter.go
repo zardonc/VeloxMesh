@@ -2,7 +2,10 @@ package gemini
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -68,8 +71,8 @@ func (a *Adapter) Capabilities() providers.CapabilitySet {
 		SupportedOperations:  []providers.Operation{providers.OperationChatCompletions},
 		InputModalities:      []providers.Modality{providers.ModalityText},
 		OutputModalities:     []providers.Modality{providers.ModalityText},
-		Streaming:            false,
-		ToolCalling:          false,
+		Streaming:            true,
+		ToolCalling:          true,
 		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
 	}
 }
@@ -78,7 +81,7 @@ func (a *Adapter) HealthCheck(ctx context.Context) providers.HealthStatus {
 	return providers.HealthStatus{Available: true, Message: "Gemini native health check not implemented"}
 }
 
-func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func (a *Adapter) buildParams(req *llm.LLMRequest) (string, []*genai.Content, *genai.GenerateContentConfig, error) {
 	model := req.Model
 	if model == "" {
 		model = a.defaultModel
@@ -103,16 +106,57 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 			role = "model"
 		}
 
+		var parts []*genai.Part
+		if len(msg.MultiContent) > 0 {
+			for _, p := range msg.MultiContent {
+				if p.Type == llm.ContentTypeText {
+					parts = append(parts, &genai.Part{Text: p.Text})
+				} else if p.Type == llm.ContentTypeImageURL && p.ImageURL != nil {
+					if strings.HasPrefix(p.ImageURL.URL, "data:image/") {
+						arr := strings.SplitN(p.ImageURL.URL, ";base64,", 2)
+						if len(arr) == 2 {
+							mimeType := strings.TrimPrefix(arr[0], "data:")
+							dataBytes, _ := base64.StdEncoding.DecodeString(arr[1])
+							parts = append(parts, &genai.Part{
+								InlineData: &genai.Blob{
+									MIMEType: mimeType,
+									Data:     dataBytes,
+								},
+							})
+						}
+					}
+				}
+			}
+		} else {
+			parts = append(parts, &genai.Part{Text: msg.Content})
+		}
+
 		contents = append(contents, &genai.Content{
-			Role: role,
-			Parts: []*genai.Part{
-				{Text: msg.Content},
-			},
+			Role:  role,
+			Parts: parts,
 		})
+	}
+
+	var funcs []*genai.FunctionDeclaration
+	if len(req.Tools) > 0 {
+		for _, t := range req.Tools {
+			if t.Type == llm.ToolTypeFunction && t.Function != nil {
+				funcs = append(funcs, &genai.FunctionDeclaration{
+					Name:                 t.Function.Name,
+					Description:          t.Function.Description,
+					ParametersJsonSchema: t.Function.Parameters,
+				})
+			}
+		}
 	}
 
 	config := &genai.GenerateContentConfig{
 		SystemInstruction: systemInstruction,
+	}
+	if len(funcs) > 0 {
+		config.Tools = []*genai.Tool{
+			{FunctionDeclarations: funcs},
+		}
 	}
 	if req.Temperature != nil {
 		f := float32(*req.Temperature)
@@ -120,6 +164,15 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 	}
 	if req.MaxTokens != nil {
 		config.MaxOutputTokens = int32(*req.MaxTokens)
+	}
+
+	return model, contents, config, nil
+}
+
+func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+	model, contents, config, err := a.buildParams(req)
+	if err != nil {
+		return nil, err
 	}
 
 	resp, err := a.client.Models.GenerateContent(ctx, model, contents, config)
@@ -133,16 +186,29 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 
 	candidate := resp.Candidates[0]
 	content := ""
+	var toolCalls []llm.ToolCall
+
 	if candidate.Content != nil {
 		for _, part := range candidate.Content.Parts {
 			if part.Text != "" {
 				content += part.Text
 			}
+			if part.FunctionCall != nil {
+				argsBytes, _ := json.Marshal(part.FunctionCall.Args)
+				toolCalls = append(toolCalls, llm.ToolCall{
+					ID:   fmt.Sprintf("call_%d", len(toolCalls)+1),
+					Type: llm.ToolTypeFunction,
+					Function: llm.FunctionCall{
+						Name:      part.FunctionCall.Name,
+						Arguments: string(argsBytes),
+					},
+				})
+			}
 		}
 	}
 
-	if content == "" && candidate.FinishReason != "SAFETY" && candidate.FinishReason != "RECITATION" && candidate.FinishReason != "OTHER" {
-		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no text content", http.StatusBadGateway)
+	if content == "" && len(toolCalls) == 0 && candidate.FinishReason != "SAFETY" && candidate.FinishReason != "RECITATION" && candidate.FinishReason != "OTHER" {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no valid output", http.StatusBadGateway)
 	}
 
 	finishReason := "stop"
@@ -164,8 +230,9 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 			{
 				Index: 0,
 				Message: llm.Message{
-					Role:    llm.RoleAssistant,
-					Content: content,
+					Role:      llm.RoleAssistant,
+					Content:   content,
+					ToolCalls: toolCalls,
 				},
 				FinishReason: finishReason,
 			},
@@ -211,4 +278,84 @@ func (a *Adapter) mapError(err error) error {
 		return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
 	}
 	return gatewayErr.NewGatewayError(gatewayErr.ProviderUnavailable, "Failed to communicate with Gemini", http.StatusBadGateway)
+}
+
+func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.StreamEvent, error) {
+	model, contents, config, err := a.buildParams(req)
+	if err != nil {
+		return nil, err
+	}
+
+	stream := a.client.Models.GenerateContentStream(ctx, model, contents, config)
+	ch := make(chan llm.StreamEvent)
+
+	go func() {
+		defer close(ch)
+		var usage llm.Usage
+
+		toolCallIdx := 0
+
+		for resp, err := range stream {
+			if err != nil {
+				ch <- llm.StreamEvent{Error: a.mapError(err)}
+				return
+			}
+
+			if len(resp.Candidates) > 0 {
+				candidate := resp.Candidates[0]
+				if candidate.Content != nil {
+					for _, part := range candidate.Content.Parts {
+						if part.Text != "" {
+							ch <- llm.StreamEvent{DeltaContent: part.Text}
+						}
+						if part.FunctionCall != nil {
+							argsBytes, _ := json.Marshal(part.FunctionCall.Args)
+							idx := toolCallIdx
+							toolType := llm.ToolTypeFunction
+							id := fmt.Sprintf("call_%d", idx+1)
+							argsStr := string(argsBytes)
+							ch <- llm.StreamEvent{
+								ToolCalls: []llm.ToolCallChunk{
+									{
+										Index: &idx,
+										ID:    &id,
+										Type:  &toolType,
+										Function: &llm.FunctionCallChunk{
+											Name:      &part.FunctionCall.Name,
+											Arguments: &argsStr,
+										},
+									},
+								},
+							}
+							toolCallIdx++
+						}
+					}
+				}
+
+				if candidate.FinishReason != "" {
+					fr := "stop"
+					switch candidate.FinishReason {
+					case "STOP":
+						fr = "stop"
+					case "MAX_TOKENS":
+						fr = "length"
+					case "SAFETY", "RECITATION", "OTHER":
+						fr = strings.ToLower(string(candidate.FinishReason))
+					}
+					ch <- llm.StreamEvent{FinishReason: fr}
+				}
+			}
+
+			if resp.UsageMetadata != nil {
+				usage.PromptTokens = int(resp.UsageMetadata.PromptTokenCount)
+				usage.CompletionTokens = int(resp.UsageMetadata.CandidatesTokenCount)
+				usage.TotalTokens = int(resp.UsageMetadata.TotalTokenCount)
+				ch <- llm.StreamEvent{Usage: &usage}
+			}
+		}
+
+		ch <- llm.StreamEvent{Done: true}
+	}()
+
+	return ch, nil
 }
