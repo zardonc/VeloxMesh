@@ -8,10 +8,71 @@ const (
 	RoleAssistant Role = "assistant"
 )
 
-type Message struct {
-	Role    Role   `json:"role"`
-	Content string `json:"content"`
+type ContentType string
+
+const (
+	ContentTypeText     ContentType = "text"
+	ContentTypeImageURL ContentType = "image_url"
+)
+
+type ContentPart struct {
+	Type     ContentType `json:"type"`
+	Text     string      `json:"text,omitempty"`
+	ImageURL *ImageURL   `json:"image_url,omitempty"`
 }
+
+type ImageURL struct {
+	URL    string `json:"url"`
+	Detail string `json:"detail,omitempty"`
+}
+
+type Message struct {
+	Role         Role          `json:"role"`
+	Content      string        `json:"content,omitempty"`
+	MultiContent []ContentPart `json:"-"` // Handled via custom marshaling/unmarshaling in the handler if needed, or mapped accordingly. Wait, the plan says 'support multimodal content (MultiContent []ContentPart)'
+	ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
+}
+
+type ToolType string
+
+const (
+	ToolTypeFunction ToolType = "function"
+)
+
+type Function struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Parameters  any    `json:"parameters,omitempty"` // Usually JSON Schema
+}
+
+type Tool struct {
+	Type     ToolType  `json:"type"`
+	Function *Function `json:"function,omitempty"`
+}
+
+type ToolCall struct {
+	ID       string       `json:"id"`
+	Type     ToolType     `json:"type"`
+	Function FunctionCall `json:"function"`
+}
+
+type FunctionCall struct {
+	Name      string `json:"name,omitempty"`
+	Arguments string `json:"arguments,omitempty"` // JSON string
+}
+
+type ToolCallChunk struct {
+	Index    *int               `json:"index,omitempty"`
+	ID       *string            `json:"id,omitempty"`
+	Type     *ToolType          `json:"type,omitempty"`
+	Function *FunctionCallChunk `json:"function,omitempty"`
+}
+
+type FunctionCallChunk struct {
+	Name      *string `json:"name,omitempty"`
+	Arguments *string `json:"arguments,omitempty"`
+}
+
 
 type ChatCompletionRequest struct {
 	Model       string    `json:"model"`
@@ -19,6 +80,8 @@ type ChatCompletionRequest struct {
 	Temperature *float64  `json:"temperature,omitempty"`
 	MaxTokens   *int      `json:"max_tokens,omitempty"`
 	Stream      bool      `json:"stream,omitempty"`
+	Tools       []Tool    `json:"tools,omitempty"`
+	ToolChoice  any       `json:"tool_choice,omitempty"`
 }
 
 type LLMRequest struct {
@@ -30,6 +93,8 @@ type LLMRequest struct {
 	Stream        bool
 	PriorityClass string
 	RouteOverride string
+	Tools         []Tool
+	ToolChoice    any
 }
 
 type Choice struct {
@@ -47,8 +112,9 @@ type ChatCompletionResponse struct {
 }
 
 type Delta struct {
-	Role    Role   `json:"role,omitempty"`
-	Content string `json:"content,omitempty"`
+	Role      Role            `json:"role,omitempty"`
+	Content   string          `json:"content,omitempty"`
+	ToolCalls []ToolCallChunk `json:"tool_calls,omitempty"`
 }
 
 type ChunkChoice struct {
@@ -93,6 +159,7 @@ type StreamEvent struct {
 	Provider     string
 	Model        string
 	Error        error
+	ToolCalls    []ToolCallChunk
 }
 
 type EmbeddingRequest struct {

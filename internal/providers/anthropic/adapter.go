@@ -2,6 +2,7 @@ package anthropic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
@@ -68,8 +69,8 @@ func (a *Adapter) Capabilities() providers.CapabilitySet {
 		SupportedOperations:  []providers.Operation{providers.OperationChatCompletions},
 		InputModalities:      []providers.Modality{providers.ModalityText},
 		OutputModalities:     []providers.Modality{providers.ModalityText},
-		Streaming:            false,
-		ToolCalling:          false,
+		Streaming:            false, // Anthropic streaming skipped for now
+		ToolCalling:          true,
 		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
 	}
 }
@@ -94,11 +95,54 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 				Text: msg.Content,
 			})
 		case llm.RoleUser:
-			anthropicMessages = append(anthropicMessages, anthropic.NewUserMessage(anthropic.NewTextBlock(msg.Content)))
+			if len(msg.MultiContent) > 0 {
+				var blocks []anthropic.ContentBlockParamUnion
+				for _, part := range msg.MultiContent {
+					if part.Type == llm.ContentTypeText {
+						blocks = append(blocks, anthropic.NewTextBlock(part.Text))
+					} else if part.Type == llm.ContentTypeImageURL && part.ImageURL != nil {
+						if strings.HasPrefix(part.ImageURL.URL, "data:image/") {
+							parts := strings.SplitN(part.ImageURL.URL, ";base64,", 2)
+							if len(parts) == 2 {
+								mediaType := strings.TrimPrefix(parts[0], "data:")
+								blocks = append(blocks, anthropic.NewImageBlockBase64(mediaType, parts[1]))
+							}
+						}
+					}
+				}
+				anthropicMessages = append(anthropicMessages, anthropic.NewUserMessage(blocks...))
+			} else {
+				anthropicMessages = append(anthropicMessages, anthropic.NewUserMessage(anthropic.NewTextBlock(msg.Content)))
+			}
 		case llm.RoleAssistant:
 			anthropicMessages = append(anthropicMessages, anthropic.NewAssistantMessage(anthropic.NewTextBlock(msg.Content)))
 		default:
 			anthropicMessages = append(anthropicMessages, anthropic.NewUserMessage(anthropic.NewTextBlock(msg.Content)))
+		}
+	}
+
+	var anthropicTools []anthropic.ToolUnionParam
+	if len(req.Tools) > 0 {
+		for _, t := range req.Tools {
+			if t.Type == llm.ToolTypeFunction && t.Function != nil {
+				var schemaMap struct {
+					Properties any      `json:"properties"`
+					Required   []string `json:"required"`
+				}
+				if t.Function.Parameters != nil {
+					b, _ := json.Marshal(t.Function.Parameters)
+					_ = json.Unmarshal(b, &schemaMap)
+				}
+				tool := anthropic.ToolParam{
+					Name:        t.Function.Name,
+					Description: anthropic.String(t.Function.Description),
+					InputSchema: anthropic.ToolInputSchemaParam{
+						Properties: schemaMap.Properties,
+						Required:   schemaMap.Required,
+					},
+				}
+				anthropicTools = append(anthropicTools, anthropic.ToolUnionParam{OfTool: &tool})
+			}
 		}
 	}
 
@@ -117,6 +161,10 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 		params.System = systemBlocks
 	}
 
+	if len(anthropicTools) > 0 {
+		params.Tools = anthropicTools
+	}
+
 	if req.Temperature != nil {
 		params.Temperature = anthropic.Float(*req.Temperature)
 	}
@@ -131,14 +179,34 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 	}
 
 	content := ""
-	for _, block := range resp.Content {
-		if block.Type == "text" {
-			content += block.Text
+	var toolCalls []llm.ToolCall
+
+	for _, blockUnion := range resp.Content {
+		b, _ := json.Marshal(blockUnion)
+		var m map[string]any
+		_ = json.Unmarshal(b, &m)
+		if m["type"] == "text" {
+			if txt, ok := m["text"].(string); ok {
+				content += txt
+			}
+		} else if m["type"] == "tool_use" {
+			id, _ := m["id"].(string)
+			name, _ := m["name"].(string)
+			input, _ := m["input"]
+			inputBytes, _ := json.Marshal(input)
+			toolCalls = append(toolCalls, llm.ToolCall{
+				ID:   id,
+				Type: llm.ToolTypeFunction,
+				Function: llm.FunctionCall{
+					Name:      name,
+					Arguments: string(inputBytes),
+				},
+			})
 		}
 	}
 
-	if content == "" {
-		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no text content", http.StatusBadGateway)
+	if content == "" && len(toolCalls) == 0 {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no text content or tool calls", http.StatusBadGateway)
 	}
 
 	finishReason := "stop"
@@ -160,8 +228,9 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 			{
 				Index: 0,
 				Message: llm.Message{
-					Role:    llm.RoleAssistant,
-					Content: content,
+					Role:      llm.RoleAssistant,
+					Content:   content,
+					ToolCalls: toolCalls,
 				},
 				FinishReason: finishReason,
 			},

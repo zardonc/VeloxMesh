@@ -2,7 +2,10 @@ package gemini
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -69,7 +72,7 @@ func (a *Adapter) Capabilities() providers.CapabilitySet {
 		InputModalities:      []providers.Modality{providers.ModalityText},
 		OutputModalities:     []providers.Modality{providers.ModalityText},
 		Streaming:            false,
-		ToolCalling:          false,
+		ToolCalling:          true,
 		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
 	}
 }
@@ -103,16 +106,57 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 			role = "model"
 		}
 
+		var parts []*genai.Part
+		if len(msg.MultiContent) > 0 {
+			for _, p := range msg.MultiContent {
+				if p.Type == llm.ContentTypeText {
+					parts = append(parts, &genai.Part{Text: p.Text})
+				} else if p.Type == llm.ContentTypeImageURL && p.ImageURL != nil {
+					if strings.HasPrefix(p.ImageURL.URL, "data:image/") {
+						arr := strings.SplitN(p.ImageURL.URL, ";base64,", 2)
+						if len(arr) == 2 {
+							mimeType := strings.TrimPrefix(arr[0], "data:")
+							dataBytes, _ := base64.StdEncoding.DecodeString(arr[1])
+							parts = append(parts, &genai.Part{
+								InlineData: &genai.Blob{
+									MIMEType: mimeType,
+									Data:     dataBytes,
+								},
+							})
+						}
+					}
+				}
+			}
+		} else {
+			parts = append(parts, &genai.Part{Text: msg.Content})
+		}
+
 		contents = append(contents, &genai.Content{
-			Role: role,
-			Parts: []*genai.Part{
-				{Text: msg.Content},
-			},
+			Role:  role,
+			Parts: parts,
 		})
+	}
+
+	var funcs []*genai.FunctionDeclaration
+	if len(req.Tools) > 0 {
+		for _, t := range req.Tools {
+			if t.Type == llm.ToolTypeFunction && t.Function != nil {
+				funcs = append(funcs, &genai.FunctionDeclaration{
+					Name:                 t.Function.Name,
+					Description:          t.Function.Description,
+					ParametersJsonSchema: t.Function.Parameters,
+				})
+			}
+		}
 	}
 
 	config := &genai.GenerateContentConfig{
 		SystemInstruction: systemInstruction,
+	}
+	if len(funcs) > 0 {
+		config.Tools = []*genai.Tool{
+			{FunctionDeclarations: funcs},
+		}
 	}
 	if req.Temperature != nil {
 		f := float32(*req.Temperature)
@@ -133,16 +177,29 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 
 	candidate := resp.Candidates[0]
 	content := ""
+	var toolCalls []llm.ToolCall
+
 	if candidate.Content != nil {
 		for _, part := range candidate.Content.Parts {
 			if part.Text != "" {
 				content += part.Text
 			}
+			if part.FunctionCall != nil {
+				argsBytes, _ := json.Marshal(part.FunctionCall.Args)
+				toolCalls = append(toolCalls, llm.ToolCall{
+					ID:   fmt.Sprintf("call_%d", len(toolCalls)+1),
+					Type: llm.ToolTypeFunction,
+					Function: llm.FunctionCall{
+						Name:      part.FunctionCall.Name,
+						Arguments: string(argsBytes),
+					},
+				})
+			}
 		}
 	}
 
-	if content == "" && candidate.FinishReason != "SAFETY" && candidate.FinishReason != "RECITATION" && candidate.FinishReason != "OTHER" {
-		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no text content", http.StatusBadGateway)
+	if content == "" && len(toolCalls) == 0 && candidate.FinishReason != "SAFETY" && candidate.FinishReason != "RECITATION" && candidate.FinishReason != "OTHER" {
+		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no valid output", http.StatusBadGateway)
 	}
 
 	finishReason := "stop"
@@ -164,8 +221,9 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 			{
 				Index: 0,
 				Message: llm.Message{
-					Role:    llm.RoleAssistant,
-					Content: content,
+					Role:      llm.RoleAssistant,
+					Content:   content,
+					ToolCalls: toolCalls,
 				},
 				FinishReason: finishReason,
 			},

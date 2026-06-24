@@ -12,6 +12,7 @@ import (
 	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/observability"
+	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
 )
@@ -25,6 +26,7 @@ type Service struct {
 	cb              *CircuitBreaker
 	repo            controlstate.Repository
 	semanticCache   *cache.SemanticCacheService
+	pipeline        *pipeline.Pipeline
 }
 
 func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int, repo controlstate.Repository, semanticCache *cache.SemanticCacheService) *Service {
@@ -42,6 +44,7 @@ func NewService(r routing.Router, a admission.Controller, hs health.Store, fallb
 		cb:              NewCircuitBreaker(breakerCfg),
 		repo:            repo,
 		semanticCache:   semanticCache,
+		pipeline:        pipeline.New(),
 	}
 }
 
@@ -164,6 +167,10 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	}
 
 	for attempts < maxAllowedAttempts {
+		if err := s.pipeline.ProcessRequest(ctx, req); err != nil {
+			return nil, err
+		}
+
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
 		if err != nil {
 			if lastErr != nil {
@@ -251,6 +258,10 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		resp.FallbackUsed = attempts > 1
 		resp.Usage = resp.Usage // Usually adapters set Usage directly on resp
 
+		if err := s.pipeline.ProcessResponse(ctx, resp); err != nil {
+			return nil, err
+		}
+
 		// Record success
 		observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, 200)
 		observability.DefaultMetrics.RecordProviderLatency(decision.ProviderID, float64(latency.Milliseconds()))
@@ -307,6 +318,10 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 	}
 
 	for attempts < maxAllowedAttempts {
+		if err := s.pipeline.ProcessRequest(ctx, req); err != nil {
+			return nil, nil, err
+		}
+
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
 		if err != nil {
 			if lastErr != nil {
@@ -399,6 +414,10 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 			Strategy:     decision.Strategy,
 			AttemptCount: attempts,
 			FallbackUsed: attempts > 1,
+		}
+
+		if err := s.pipeline.ProcessResponse(ctx, respMeta); err != nil {
+			return nil, nil, err
 		}
 
 		outCh := make(chan llm.StreamEvent)
