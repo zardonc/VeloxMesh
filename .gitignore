@@ -19,6 +19,7 @@ veloxmesh
 # Environment variables
 .env
 .env.local
+.env2.local
 
 # IDE and Editor folders
 .idea/
