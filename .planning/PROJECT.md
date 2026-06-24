@@ -26,12 +26,18 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ### Active
 
-- [ ] Plan Phase 5...
+- [ ] Phase 5: Tool/Function Calling and Multimodal capabilities
+- [ ] Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
 
-### Out of Scope
+### Deferred to Future Milestones
 
-- Admin Console UI — deferred; Phase 3 added backend Admin provider APIs but no frontend console.
-- Tool/function calling and multimodal provider normalization — deferred until text chat adapters are working.
+- Observability & Telemetry (Phase 7)
+- Multi-tenancy and Advanced Auth (Phase 8)
+- Admin Console UI (Phase 9)
+
+### Long-Term / Architectural Goals
+
+- **Heuristic Rules System**: User-configurable pluggable rules for compression, input/output processing. Must pre-allocate extension points during early phases (Phase 5/6) to avoid major refactoring.
 
 ## Context
 
