@@ -10,9 +10,18 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 
 ## Milestones
 
+- 🚧 **v5** — Phases 5-6 (planning)
 - ✅ **v4** — Phases 1-4 (shipped 2026-06-23)
 
 ## Phases
+
+<details open>
+<summary>🚧 v5 (Phases 5-6) — IN PROGRESS</summary>
+
+- [ ] Phase 5: Tool/Function Calling and Multimodal capabilities
+- [ ] Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
+
+</details>
 
 <details>
 <summary>✅ v4 (Phases 1-4) — SHIPPED 2026-06-23</summary>

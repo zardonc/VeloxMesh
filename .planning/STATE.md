@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Awaiting next milestone
-last_updated: "2026-06-23T15:17:11.889Z"
-last_activity: 2026-06-23 — Milestone v4 completed and archived
+milestone: v5.0
+milestone_name: milestone-v5
+status: Planning Phase 5
+last_updated: "2026-06-24T18:14:00Z"
+last_activity: 2026-06-24 — Planned Milestone v5 (Phases 5-6)
 progress:
   total_phases: 21
   completed_phases: 2
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 3 durable control state is complete and UAT verified. Next milestone slice is Phase 4 - Streaming, Rate Limits, Cache, and Cost.
+**Current focus:** Planning Phase 5 (Tool/Function Calling and Multimodal capabilities) and Phase 6 (Combo Feature).
 
 ## Current Implementation State
 
@@ -61,21 +61,22 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 ## Planned Next
 
-1. Plan Phase 4 streaming, rate limits, cache, cost, and circuit-breaker/fallback-chain scope.
-2. Keep Phase 4 advanced gateway features out of Phase 3 maintenance unless explicitly scoped.
+1. Complete Phase 5: Tool/Function Calling and Multimodal capabilities.
+2. Architect plugin points for future heuristic rules during Phase 5/6.
+3. Complete Phase 6: Model Combo Feature (RR, Fusion, capability-based routing).
 
 ## Useful Commands
 
-- `$gsd-plan-phase 4` - plan streaming, rate limits, cache, cost, and circuit-breaker/fallback-chain work.
+- `$gsd-plan-phase 5` - plan tool calling and multimodal support.
 - `go test ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: Milestone v4 complete
+Phase: Milestone v5 planning
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-23 — Milestone v4 completed and archived
+Status: Planning
+Last activity: 2026-06-24 — Planned Milestone v5 (Phases 5-6)
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Execute `/gsd-plan-phase 5` to begin Phase 5.
