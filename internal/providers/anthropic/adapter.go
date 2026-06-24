@@ -69,7 +69,7 @@ func (a *Adapter) Capabilities() providers.CapabilitySet {
 		SupportedOperations:  []providers.Operation{providers.OperationChatCompletions},
 		InputModalities:      []providers.Modality{providers.ModalityText},
 		OutputModalities:     []providers.Modality{providers.ModalityText},
-		Streaming:            false, // Anthropic streaming skipped for now
+		Streaming:            true,
 		ToolCalling:          true,
 		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
 	}
@@ -79,7 +79,7 @@ func (a *Adapter) HealthCheck(ctx context.Context) providers.HealthStatus {
 	return providers.HealthStatus{Available: true, Message: "Anthropic native health check not implemented"}
 }
 
-func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func (a *Adapter) buildParams(req *llm.LLMRequest) (anthropic.MessageNewParams, error) {
 	model := req.Model
 	if model == "" {
 		model = a.defaultModel
@@ -167,6 +167,15 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 
 	if req.Temperature != nil {
 		params.Temperature = anthropic.Float(*req.Temperature)
+	}
+
+	return params, nil
+}
+
+func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+	params, err := a.buildParams(req)
+	if err != nil {
+		return nil, err
 	}
 
 	resp, err := a.client.Messages.New(ctx, params)
@@ -260,4 +269,121 @@ func (a *Adapter) mapError(err error) error {
 		return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
 	}
 	return gatewayErr.NewGatewayError(gatewayErr.ProviderUnavailable, "Failed to communicate with Anthropic", http.StatusBadGateway)
+}
+
+func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.StreamEvent, error) {
+	params, err := a.buildParams(req)
+	if err != nil {
+		return nil, err
+	}
+
+	respStream := a.client.Messages.NewStreaming(ctx, params)
+	ch := make(chan llm.StreamEvent)
+
+	go func() {
+		defer close(ch)
+		var usage llm.Usage
+
+		for respStream.Next() {
+			event := respStream.Current()
+			
+			b, _ := json.Marshal(event)
+			var m map[string]any
+			_ = json.Unmarshal(b, &m)
+			
+			typ, _ := m["type"].(string)
+
+			switch typ {
+			case "message_start":
+				if msg, ok := m["message"].(map[string]any); ok {
+					if usg, ok := msg["usage"].(map[string]any); ok {
+						if in, ok := usg["input_tokens"].(float64); ok {
+							usage.PromptTokens = int(in)
+						}
+					}
+				}
+				ch <- llm.StreamEvent{Usage: &usage}
+			
+			case "content_block_start":
+				if block, ok := m["content_block"].(map[string]any); ok {
+					if bType, _ := block["type"].(string); bType == "tool_use" {
+						id, _ := block["id"].(string)
+						name, _ := block["name"].(string)
+						idx, _ := m["index"].(float64)
+						
+						idxInt := int(idx)
+						toolType := llm.ToolTypeFunction
+						ch <- llm.StreamEvent{
+							ToolCalls: []llm.ToolCallChunk{
+								{
+									Index: &idxInt,
+									ID:    &id,
+									Type:  &toolType,
+									Function: &llm.FunctionCallChunk{
+										Name: &name,
+									},
+								},
+							},
+						}
+					}
+				}
+			
+			case "content_block_delta":
+				if delta, ok := m["delta"].(map[string]any); ok {
+					dType, _ := delta["type"].(string)
+					if dType == "text_delta" {
+						if txt, ok := delta["text"].(string); ok {
+							ch <- llm.StreamEvent{DeltaContent: txt}
+						}
+					} else if dType == "input_json_delta" {
+						if partial, ok := delta["partial_json"].(string); ok {
+							idx, _ := m["index"].(float64)
+							idxInt := int(idx)
+							ch <- llm.StreamEvent{
+								ToolCalls: []llm.ToolCallChunk{
+									{
+										Index: &idxInt,
+										Function: &llm.FunctionCallChunk{
+											Arguments: &partial,
+										},
+									},
+								},
+							}
+						}
+					}
+				}
+			
+			case "message_delta":
+				if delta, ok := m["delta"].(map[string]any); ok {
+					if stopR, ok := delta["stop_reason"].(string); ok {
+						fr := "stop"
+						switch stopR {
+						case "end_turn":
+							fr = "stop"
+						case "max_tokens":
+							fr = "length"
+						case "tool_use":
+							fr = "tool_calls"
+						}
+						ch <- llm.StreamEvent{FinishReason: fr}
+					}
+				}
+				if usg, ok := m["usage"].(map[string]any); ok {
+					if out, ok := usg["output_tokens"].(float64); ok {
+						usage.CompletionTokens += int(out)
+						usage.TotalTokens = usage.PromptTokens + usage.CompletionTokens
+						ch <- llm.StreamEvent{Usage: &usage}
+					}
+				}
+			}
+		}
+
+		if err := respStream.Err(); err != nil {
+			ch <- llm.StreamEvent{Error: a.mapError(err)}
+		} else {
+			ch <- llm.StreamEvent{Done: true}
+		}
+	}()
+
+	return ch, nil
 }

@@ -71,7 +71,7 @@ func (a *Adapter) Capabilities() providers.CapabilitySet {
 		SupportedOperations:  []providers.Operation{providers.OperationChatCompletions},
 		InputModalities:      []providers.Modality{providers.ModalityText},
 		OutputModalities:     []providers.Modality{providers.ModalityText},
-		Streaming:            false,
+		Streaming:            true,
 		ToolCalling:          true,
 		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
 	}
@@ -81,7 +81,7 @@ func (a *Adapter) HealthCheck(ctx context.Context) providers.HealthStatus {
 	return providers.HealthStatus{Available: true, Message: "Gemini native health check not implemented"}
 }
 
-func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+func (a *Adapter) buildParams(req *llm.LLMRequest) (string, []*genai.Content, *genai.GenerateContentConfig, error) {
 	model := req.Model
 	if model == "" {
 		model = a.defaultModel
@@ -164,6 +164,15 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 	}
 	if req.MaxTokens != nil {
 		config.MaxOutputTokens = int32(*req.MaxTokens)
+	}
+
+	return model, contents, config, nil
+}
+
+func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+	model, contents, config, err := a.buildParams(req)
+	if err != nil {
+		return nil, err
 	}
 
 	resp, err := a.client.Models.GenerateContent(ctx, model, contents, config)
@@ -269,4 +278,84 @@ func (a *Adapter) mapError(err error) error {
 		return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
 	}
 	return gatewayErr.NewGatewayError(gatewayErr.ProviderUnavailable, "Failed to communicate with Gemini", http.StatusBadGateway)
+}
+
+func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.StreamEvent, error) {
+	model, contents, config, err := a.buildParams(req)
+	if err != nil {
+		return nil, err
+	}
+
+	stream := a.client.Models.GenerateContentStream(ctx, model, contents, config)
+	ch := make(chan llm.StreamEvent)
+
+	go func() {
+		defer close(ch)
+		var usage llm.Usage
+
+		toolCallIdx := 0
+
+		for resp, err := range stream {
+			if err != nil {
+				ch <- llm.StreamEvent{Error: a.mapError(err)}
+				return
+			}
+
+			if len(resp.Candidates) > 0 {
+				candidate := resp.Candidates[0]
+				if candidate.Content != nil {
+					for _, part := range candidate.Content.Parts {
+						if part.Text != "" {
+							ch <- llm.StreamEvent{DeltaContent: part.Text}
+						}
+						if part.FunctionCall != nil {
+							argsBytes, _ := json.Marshal(part.FunctionCall.Args)
+							idx := toolCallIdx
+							toolType := llm.ToolTypeFunction
+							id := fmt.Sprintf("call_%d", idx+1)
+							argsStr := string(argsBytes)
+							ch <- llm.StreamEvent{
+								ToolCalls: []llm.ToolCallChunk{
+									{
+										Index: &idx,
+										ID:    &id,
+										Type:  &toolType,
+										Function: &llm.FunctionCallChunk{
+											Name:      &part.FunctionCall.Name,
+											Arguments: &argsStr,
+										},
+									},
+								},
+							}
+							toolCallIdx++
+						}
+					}
+				}
+
+				if candidate.FinishReason != "" {
+					fr := "stop"
+					switch candidate.FinishReason {
+					case "STOP":
+						fr = "stop"
+					case "MAX_TOKENS":
+						fr = "length"
+					case "SAFETY", "RECITATION", "OTHER":
+						fr = strings.ToLower(string(candidate.FinishReason))
+					}
+					ch <- llm.StreamEvent{FinishReason: fr}
+				}
+			}
+
+			if resp.UsageMetadata != nil {
+				usage.PromptTokens = int(resp.UsageMetadata.PromptTokenCount)
+				usage.CompletionTokens = int(resp.UsageMetadata.CandidatesTokenCount)
+				usage.TotalTokens = int(resp.UsageMetadata.TotalTokenCount)
+				ch <- llm.StreamEvent{Usage: &usage}
+			}
+		}
+
+		ch <- llm.StreamEvent{Done: true}
+	}()
+
+	return ch, nil
 }
