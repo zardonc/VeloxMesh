@@ -3,6 +3,7 @@
 .codex/
 .opencode/
 .tmp/
+.assets
 Agent-gateway
 
 # Agent documentation
@@ -18,6 +19,7 @@ veloxmesh
 # Environment variables
 .env
 .env.local
+.env2.local
 
 # IDE and Editor folders
 .idea/
@@ -26,3 +28,6 @@ veloxmesh
 # Dependencies
 node_modules/
 OPENCODE.jsonc
+
+# Local Test Configs
+tests/config.json

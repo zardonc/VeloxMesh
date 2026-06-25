@@ -6,6 +6,7 @@ const (
 	RoleSystem    Role = "system"
 	RoleUser      Role = "user"
 	RoleAssistant Role = "assistant"
+	RoleTool      Role = "tool"
 )
 
 type ContentType string
@@ -31,6 +32,7 @@ type Message struct {
 	Content      string        `json:"content,omitempty"`
 	MultiContent []ContentPart `json:"-"` // Handled via custom marshaling/unmarshaling in the handler if needed, or mapped accordingly. Wait, the plan says 'support multimodal content (MultiContent []ContentPart)'
 	ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
+	ToolCallID   string        `json:"tool_call_id,omitempty"`
 }
 
 type ToolType string

@@ -88,36 +88,49 @@ func (a *Adapter) buildParams(req *llm.LLMRequest) (anthropic.MessageNewParams, 
 	var systemBlocks []anthropic.TextBlockParam
 	var anthropicMessages []anthropic.MessageParam
 
-	for _, msg := range req.Messages {
+	for i := 0; i < len(req.Messages); i++ {
+		msg := req.Messages[i]
 		switch msg.Role {
 		case llm.RoleSystem:
 			systemBlocks = append(systemBlocks, anthropic.TextBlockParam{
 				Text: msg.Content,
 			})
-		case llm.RoleUser:
-			if len(msg.MultiContent) > 0 {
-				var blocks []anthropic.ContentBlockParamUnion
-				for _, part := range msg.MultiContent {
-					if part.Type == llm.ContentTypeText {
-						blocks = append(blocks, anthropic.NewTextBlock(part.Text))
-					} else if part.Type == llm.ContentTypeImageURL && part.ImageURL != nil {
-						if strings.HasPrefix(part.ImageURL.URL, "data:image/") {
-							parts := strings.SplitN(part.ImageURL.URL, ";base64,", 2)
-							if len(parts) == 2 {
-								mediaType := strings.TrimPrefix(parts[0], "data:")
-								blocks = append(blocks, anthropic.NewImageBlockBase64(mediaType, parts[1]))
-							}
-						}
-					}
-				}
-				anthropicMessages = append(anthropicMessages, anthropic.NewUserMessage(blocks...))
-			} else {
-				anthropicMessages = append(anthropicMessages, anthropic.NewUserMessage(anthropic.NewTextBlock(msg.Content)))
-			}
 		case llm.RoleAssistant:
 			anthropicMessages = append(anthropicMessages, anthropic.NewAssistantMessage(anthropic.NewTextBlock(msg.Content)))
-		default:
-			anthropicMessages = append(anthropicMessages, anthropic.NewUserMessage(anthropic.NewTextBlock(msg.Content)))
+		case llm.RoleUser, llm.RoleTool, "":
+			var blocks []anthropic.ContentBlockParamUnion
+			for j := i; j < len(req.Messages); j++ {
+				subMsg := req.Messages[j]
+				if subMsg.Role == llm.RoleSystem || subMsg.Role == llm.RoleAssistant {
+					break
+				}
+				i = j
+
+				if subMsg.Role == llm.RoleTool {
+					blocks = append(blocks, anthropic.NewToolResultBlock(subMsg.ToolCallID, subMsg.Content, false))
+				} else {
+					if len(subMsg.MultiContent) > 0 {
+						for _, part := range subMsg.MultiContent {
+							if part.Type == llm.ContentTypeText && part.Text != "" {
+								blocks = append(blocks, anthropic.NewTextBlock(part.Text))
+							} else if part.Type == llm.ContentTypeImageURL && part.ImageURL != nil {
+								if strings.HasPrefix(part.ImageURL.URL, "data:image/") {
+									parts := strings.SplitN(part.ImageURL.URL, ";base64,", 2)
+									if len(parts) == 2 {
+										mediaType := strings.TrimPrefix(parts[0], "data:")
+										blocks = append(blocks, anthropic.NewImageBlockBase64(mediaType, parts[1]))
+									}
+								}
+							}
+						}
+					} else if subMsg.Content != "" {
+						blocks = append(blocks, anthropic.NewTextBlock(subMsg.Content))
+					}
+				}
+			}
+			if len(blocks) > 0 {
+				anthropicMessages = append(anthropicMessages, anthropic.NewUserMessage(blocks...))
+			}
 		}
 	}
 

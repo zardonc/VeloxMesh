@@ -18,7 +18,7 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 <details open>
 <summary>🚧 v5 (Phases 5-6) — IN PROGRESS</summary>
 
-- [ ] Phase 5: Tool/Function Calling and Multimodal capabilities
+- [x] Phase 5: Tool/Function Calling and Multimodal capabilities
 - [ ] Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
 
 ### Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)

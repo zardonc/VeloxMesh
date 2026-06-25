@@ -29,11 +29,11 @@ func TestAdapter_Capabilities(t *testing.T) {
 	if len(caps.OutputModalities) != 1 || caps.OutputModalities[0] != providers.ModalityText {
 		t.Errorf("expected text output modality, got %v", caps.OutputModalities)
 	}
-	if caps.Streaming {
-		t.Error("expected streaming to be false")
+	if !caps.Streaming {
+		t.Error("expected streaming to be true")
 	}
-	if caps.ToolCalling {
-		t.Error("expected tool calling to be false")
+	if !caps.ToolCalling {
+		t.Error("expected tool calling to be true")
 	}
 	expectedParams := []providers.GenerationParameter{
 		providers.GenerationParameterTemperature,
@@ -250,8 +250,8 @@ func TestAdapter_Conformance(t *testing.T) {
 			SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
 			InputModalities:     []providers.Modality{providers.ModalityText},
 			OutputModalities:    []providers.Modality{providers.ModalityText},
-			Streaming:           false,
-			ToolCalling:         false,
+			Streaming:           true,
+			ToolCalling:         true,
 			GenerationParameters: []providers.GenerationParameter{
 				providers.GenerationParameterTemperature,
 				providers.GenerationParameterMaxTokens,
