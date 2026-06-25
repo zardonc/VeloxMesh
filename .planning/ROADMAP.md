@@ -21,6 +21,16 @@ VeloxMesh is being built as vertical gateway slices. Phase 1 established the run
 - [ ] Phase 5: Tool/Function Calling and Multimodal capabilities
 - [ ] Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
 
+### Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
+
+**Goal:** Add user-defined combo models that can route through multiple provider models using round-robin, fusion, and capability-aware filtering.
+**Requirements**: Phase 6 Model Combo Feature
+**Depends on:** Phase 5
+**Plans:** 1 plan
+
+Plans:
+- [ ] 06-01 Persistent Combo Models and Routing
+
 </details>
 
 <details>
