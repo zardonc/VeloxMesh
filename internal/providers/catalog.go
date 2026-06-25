@@ -21,6 +21,15 @@ func (mp ModelProvider) Clone() ModelProvider {
 type ModelEntry struct {
 	ModelID   string
 	Providers []ModelProvider
+	Combo     *Combo
+}
+
+type Combo struct {
+	ID       string
+	Name     string
+	Strategy string
+	Members  []string
+	Judge    string
 }
 
 type ModelCatalog struct {
@@ -28,7 +37,7 @@ type ModelCatalog struct {
 	models  []string // preserves order of first seen
 }
 
-func NewModelCatalog(cfg *config.Config, adapters ...ProviderAdapter) *ModelCatalog {
+func NewModelCatalog(cfg *config.Config, adapters []ProviderAdapter, combos []Combo) *ModelCatalog {
 	c := &ModelCatalog{
 		entries: make(map[string]ModelEntry),
 	}
@@ -65,6 +74,18 @@ func NewModelCatalog(cfg *config.Config, adapters ...ProviderAdapter) *ModelCata
 			c.entries[modelID] = entry
 		}
 	}
+
+	for _, combo := range combos {
+		entry, ok := c.entries[combo.Name]
+		if !ok {
+			entry = ModelEntry{ModelID: combo.Name}
+			c.models = append(c.models, combo.Name)
+		}
+		comboCopy := combo
+		entry.Combo = &comboCopy
+		c.entries[combo.Name] = entry
+	}
+
 	return c
 }
 
@@ -111,4 +132,12 @@ func (c *ModelCatalog) DefaultModel(providerID string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func (c *ModelCatalog) GetCombo(model string) (*Combo, bool) {
+	entry, ok := c.entries[model]
+	if !ok || entry.Combo == nil {
+		return nil, false
+	}
+	return entry.Combo, true
 }

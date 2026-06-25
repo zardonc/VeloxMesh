@@ -20,6 +20,10 @@ func (d *dummyRepo) Routing() controlstate.RoutingRepository {
 	return &dummyRoutingRepo{}
 }
 
+func (d *dummyRepo) Combos() controlstate.ComboRepository {
+	return nil
+}
+
 type dummyRoutingRepo struct {
 }
 

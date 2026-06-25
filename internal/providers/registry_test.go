@@ -44,7 +44,7 @@ func TestRegistry(t *testing.T) {
 	p1 := &mockAdapter{id: "p1", models: []string{"modelA", "modelB"}}
 	p2 := &mockAdapter{id: "p2", models: []string{"modelB", "modelC"}}
 
-	registry := providers.NewRegistry(cfg, p1, p2)
+	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1, p2}, nil)
 
 	t.Run("Get", func(t *testing.T) {
 		got, err := registry.Get("p2")
@@ -202,7 +202,7 @@ func TestRegistry(t *testing.T) {
 				{ID: "p2", DefaultModel: "modelB"},
 			},
 		}
-		reg2 := providers.NewRegistry(cfgWithDefaults, p1, p2)
+		reg2 := providers.NewRegistry(cfgWithDefaults, []providers.ProviderAdapter{p1, p2}, nil)
 		m1, ok1 := reg2.DefaultModel("p1")
 		if !ok1 || m1 != "modelA" {
 			t.Errorf("expected p1 to have default modelA, got %s (ok=%v)", m1, ok1)

@@ -9,6 +9,7 @@ var ErrRoutingConfigNotFound = errors.New("routing config not found")
 
 type Repository interface {
 	Providers() ProviderRepository
+	Combos() ComboRepository
 	Routing() RoutingRepository
 	APIKeys() APIKeyRepository
 	Rates() RateRepository
@@ -34,6 +35,14 @@ type ProviderRepository interface {
 	Delete(ctx context.Context, id string) error
 	GetEncryptedSecret(ctx context.Context, id string) ([]byte, []byte, string, error) // Returns ciphertext, nonce, key_id
 	PutEncryptedSecret(ctx context.Context, id string, ciphertext, nonce []byte, keyID string) error
+}
+
+type ComboRepository interface {
+	Get(ctx context.Context, id string) (*ComboRecord, error)
+	List(ctx context.Context, filter ComboFilter) ([]*ComboRecord, error)
+	Create(ctx context.Context, c *ComboMutation) (*ComboRecord, error)
+	Update(ctx context.Context, c *ComboMutation) (*ComboRecord, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type RoutingRepository interface {

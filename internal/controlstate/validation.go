@@ -125,3 +125,51 @@ func ValidateRoutingConfig(rc *RoutingConfig, providers []*ProviderRecord, backe
 
 	return errs
 }
+
+func ValidateComboMutation(m *ComboMutation, activeModels []string) []FieldError {
+	var errs []FieldError
+
+	if m.ID == "" {
+		errs = append(errs, FieldError{Field: "id", Code: "required", Message: "Combo ID is required"})
+	}
+	if m.Name == "" {
+		errs = append(errs, FieldError{Field: "name", Code: "required", Message: "Combo Name is required"})
+	}
+
+	if m.Strategy != "round-robin" && m.Strategy != "fusion" && m.Strategy != "capacity-auto-switch" {
+		errs = append(errs, FieldError{Field: "strategy", Code: "invalid_strategy", Message: fmt.Sprintf("Unsupported strategy: %s", m.Strategy)})
+	}
+
+	if len(m.Members) == 0 {
+		errs = append(errs, FieldError{Field: "members", Code: "required", Message: "Combo must have at least one member"})
+	}
+
+	if m.Strategy == "fusion" {
+		if m.Judge == nil || *m.Judge == "" {
+			errs = append(errs, FieldError{Field: "judge", Code: "required_for_fusion", Message: "Judge model is required for fusion strategy"})
+		}
+	}
+
+	validModels := make(map[string]bool)
+	for _, pm := range activeModels {
+		validModels[pm] = true
+	}
+
+	if validModels[m.Name] {
+		errs = append(errs, FieldError{Field: "name", Code: "conflict", Message: fmt.Sprintf("Combo name %q conflicts with an active provider model", m.Name)})
+	}
+
+	for _, member := range m.Members {
+		if !validModels[member] {
+			errs = append(errs, FieldError{Field: "members", Code: "invalid_model", Message: fmt.Sprintf("Member model %q is not a currently connected provider model", member)})
+		}
+	}
+
+	if m.Judge != nil && *m.Judge != "" {
+		if !validModels[*m.Judge] {
+			errs = append(errs, FieldError{Field: "judge", Code: "invalid_model", Message: fmt.Sprintf("Judge model %q is not a currently connected provider model", *m.Judge)})
+		}
+	}
+
+	return errs
+}

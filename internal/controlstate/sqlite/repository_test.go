@@ -272,13 +272,13 @@ func TestSQLiteSemanticCache(t *testing.T) {
 	cacheRepo := repo.SemanticCache()
 
 	entry := &controlstate.SemanticCacheEntry{
-		ID:       "sc-1",
-		Scope:    "hash123",
-		Model:    "gpt-4",
-		Vector:   []byte{0x01, 0x02, 0x03},
-		Response: `{"choices": []}`,
-		Enabled:  true,
-		HitCount: 0,
+		ID:        "sc-1",
+		Scope:     "hash123",
+		Model:     "gpt-4",
+		Vector:    []byte{0x01, 0x02, 0x03},
+		Response:  `{"choices": []}`,
+		Enabled:   true,
+		HitCount:  0,
 		ExpiresAt: time.Now().Add(1 * time.Hour).UTC(),
 	}
 

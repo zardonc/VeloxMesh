@@ -10,8 +10,12 @@ import (
 )
 
 type RoutingDecision struct {
-	ProviderID string
-	Strategy   string
+	ProviderID      string
+	Strategy        string
+	ComboID         string
+	IsFusion        bool
+	FusionProviders []providers.ProviderAdapter
+	FusionJudge     string
 }
 
 type Router interface {
@@ -49,6 +53,11 @@ func (r *HealthAwareRouter) SelectExcluding(ctx context.Context, req *llm.LLMReq
 		return r.selectOverride(req.RouteOverride, req.Model)
 	}
 
+	combo, isCombo := r.registry.ModelCatalog().GetCombo(req.Model)
+	if isCombo {
+		return r.selectCombo(ctx, combo, excluded)
+	}
+
 	eligible := r.registry.EligibleProviders(req.Model, providers.OperationChatCompletions)
 	if len(eligible) == 0 {
 		return nil, RoutingDecision{}, errors.ErrNoEligibleProvider
@@ -82,6 +91,82 @@ func (r *HealthAwareRouter) SelectExcluding(ctx context.Context, req *llm.LLMReq
 		ProviderID: selected.ID(),
 		Strategy:   strategyUsed,
 	}, nil
+}
+
+func (r *HealthAwareRouter) selectCombo(ctx context.Context, combo *providers.Combo, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error) {
+	switch combo.Strategy {
+	case "round-robin":
+		// round-robin across members
+		count := atomic.AddUint64(&r.rrCounter, 1)
+		idx := (count - 1) % uint64(len(combo.Members))
+		targetModel := combo.Members[idx]
+
+		eligible := r.registry.EligibleProviders(targetModel, providers.OperationChatCompletions)
+		healthyProviders := r.getHealthyProviders(eligible, excluded)
+		if len(healthyProviders) == 0 {
+			return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
+		}
+
+		selected := r.selectLeastLatency(healthyProviders)
+		if selected == nil {
+			selected = r.selectRoundRobin(healthyProviders)
+		}
+
+		return selected, RoutingDecision{
+			ProviderID: selected.ID(),
+			Strategy:   "combo:round-robin",
+			ComboID:    combo.ID,
+		}, nil
+
+	case "capacity-auto-switch":
+		// iterate through members until we find one with a healthy, non-excluded provider
+		for _, member := range combo.Members {
+			eligible := r.registry.EligibleProviders(member, providers.OperationChatCompletions)
+			healthyProviders := r.getHealthyProviders(eligible, excluded)
+			if len(healthyProviders) > 0 {
+				selected := r.selectLeastLatency(healthyProviders)
+				if selected == nil {
+					selected = r.selectRoundRobin(healthyProviders)
+				}
+				return selected, RoutingDecision{
+					ProviderID: selected.ID(),
+					Strategy:   "combo:capacity-auto-switch",
+					ComboID:    combo.ID,
+				}, nil
+			}
+		}
+		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
+
+	case "fusion":
+		// Fusion requires multiple providers
+		var fusionAdapters []providers.ProviderAdapter
+		for _, member := range combo.Members {
+			eligible := r.registry.EligibleProviders(member, providers.OperationChatCompletions)
+			healthyProviders := r.getHealthyProviders(eligible, excluded) // should we exclude for fusion? yes, if one failed. Actually fusion handles its own partial failures typically, but let's respect excluded.
+			if len(healthyProviders) > 0 {
+				selected := r.selectLeastLatency(healthyProviders)
+				if selected == nil {
+					selected = r.selectRoundRobin(healthyProviders)
+				}
+				fusionAdapters = append(fusionAdapters, selected)
+			}
+		}
+		if len(fusionAdapters) == 0 {
+			return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
+		}
+
+		return nil, RoutingDecision{
+			ProviderID:      "fusion-ensemble",
+			Strategy:        "combo:fusion",
+			ComboID:         combo.ID,
+			IsFusion:        true,
+			FusionProviders: fusionAdapters,
+			FusionJudge:     combo.Judge,
+		}, nil
+
+	default:
+		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider // or unsupported strategy
+	}
 }
 
 func (r *HealthAwareRouter) getHealthyProviders(eligible []providers.ModelProvider, excluded map[string]bool) []providers.ProviderAdapter {

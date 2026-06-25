@@ -79,10 +79,10 @@ func (m *RuntimeProviderManager) Start(ctx context.Context) {
 }
 
 func (m *RuntimeProviderManager) ActivateStatic(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter) error {
-	return m.activateInternal(providersCfg, adapters, nil)
+	return m.activateInternal(providersCfg, adapters, nil, nil)
 }
 
-func (m *RuntimeProviderManager) activateInternal(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter, rCfg *RoutingConfig) error {
+func (m *RuntimeProviderManager) activateInternal(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter, rCfg *RoutingConfig, combos []providers.Combo) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -108,7 +108,7 @@ func (m *RuntimeProviderManager) activateInternal(providersCfg []config.Provider
 		m.healthStore.EnsureProvider(p.ID, fail, succ)
 	}
 
-	registry := providers.NewRegistry(&cfgClone, adapters...)
+	registry := providers.NewRegistry(&cfgClone, adapters, combos)
 	router := routing.NewHealthAwareRouter(registry, m.healthStore, strategy)
 	prober := health.NewProber(registry, m.healthStore, &cfgClone, m.logger)
 
@@ -134,10 +134,10 @@ func (m *RuntimeProviderManager) activateInternal(providersCfg []config.Provider
 }
 
 func (m *RuntimeProviderManager) ActivateProviderSet(ctx context.Context, records []*ProviderRecord, secrets map[string]string, validator ActivationValidator) error {
-	return m.ActivateDurable(ctx, records, secrets, nil, validator)
+	return m.ActivateDurable(ctx, records, secrets, nil, nil, validator)
 }
 
-func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []*ProviderRecord, secrets map[string]string, rCfg *RoutingConfig, validator ActivationValidator) error {
+func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []*ProviderRecord, secrets map[string]string, rCfg *RoutingConfig, combos []providers.Combo, validator ActivationValidator) error {
 	providerConfigs, err := BuildRuntimeConfig(records)
 	if err != nil {
 		return err
@@ -154,7 +154,7 @@ func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []
 		}
 	}
 
-	return m.activateInternal(providerConfigs, adapters, rCfg)
+	return m.activateInternal(providerConfigs, adapters, rCfg, combos)
 }
 
 // Router delegates

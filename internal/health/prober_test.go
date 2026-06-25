@@ -46,7 +46,7 @@ func TestProber_ProbeProvider(t *testing.T) {
 		status: providers.HealthStatus{Available: false, Message: "degraded"},
 	}
 
-	registry := providers.NewRegistry(cfg, adapter1, adapter2)
+	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{adapter1, adapter2}, nil)
 	store := health.NewInMemoryStore()
 	store.EnsureProvider("p1", 3, 1)
 	store.EnsureProvider("p2", 3, 1)
@@ -100,7 +100,7 @@ func TestProber_ProbeOnce(t *testing.T) {
 		status: providers.HealthStatus{Available: false},
 	}
 
-	registry := providers.NewRegistry(cfg, adapter1, adapter2)
+	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{adapter1, adapter2}, nil)
 	store := health.NewInMemoryStore()
 	store.EnsureProvider("p1", 3, 1)
 	store.EnsureProvider("p2", 3, 1)
@@ -124,7 +124,7 @@ func TestProber_StartStop(t *testing.T) {
 		},
 	}
 
-	registry := providers.NewRegistry(cfg)
+	registry := providers.NewRegistry(cfg, nil, nil)
 	store := health.NewInMemoryStore()
 	prober := health.NewProber(registry, store, cfg, nil)
 

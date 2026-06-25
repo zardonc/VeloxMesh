@@ -46,7 +46,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 	cfg := &config.Config{DefaultProvider: "p1"}
 	p1 := &mockAdapter{id: "p1", models: []string{"m1", "m_shared"}}
 	p2 := &mockAdapter{id: "p2", models: []string{"m2", "m_shared"}}
-	registry := providers.NewRegistry(cfg, p1, p2)
+	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1, p2}, nil)
 	healthStore := health.NewInMemoryStore()
 
 	healthStore.EnsureProvider("p1", 3, 1)
@@ -144,7 +144,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 	t.Run("All Unhealthy", func(t *testing.T) {
 		store2 := health.NewInMemoryStore()
 		store2.EnsureProvider("p1", 3, 1)
-		router2 := routing.NewHealthAwareRouter(providers.NewRegistry(cfg, p1), store2, "round-robin")
+		router2 := routing.NewHealthAwareRouter(providers.NewRegistry(cfg, []providers.ProviderAdapter{p1}, nil), store2, "round-robin")
 
 		// Make p1 unhealthy
 		for i := 0; i < 3; i++ {
@@ -162,7 +162,7 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 	t.Run("Override Unhealthy", func(t *testing.T) {
 		store2 := health.NewInMemoryStore()
 		store2.EnsureProvider("p1", 3, 1)
-		router2 := routing.NewHealthAwareRouter(providers.NewRegistry(cfg, p1), store2, "round-robin")
+		router2 := routing.NewHealthAwareRouter(providers.NewRegistry(cfg, []providers.ProviderAdapter{p1}, nil), store2, "round-robin")
 
 		for i := 0; i < 3; i++ {
 			store2.BeginRequest("p1")
@@ -244,7 +244,7 @@ func TestHealthAwareRouter_GetProviderCapabilities(t *testing.T) {
 	cfg := &config.Config{DefaultProvider: "p1"}
 	p1 := &mockAdapter{id: "p1", models: []string{"m1"}}
 	p2 := &mockAdapter{id: "p2", models: []string{"m2"}}
-	registry := providers.NewRegistry(cfg, p1, p2)
+	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1, p2}, nil)
 	healthStore := health.NewInMemoryStore()
 	router := routing.NewHealthAwareRouter(registry, healthStore, "round-robin")
 

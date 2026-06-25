@@ -12,7 +12,7 @@ type Registry struct {
 	catalog   *ModelCatalog
 }
 
-func NewRegistry(cfg *config.Config, adapters ...ProviderAdapter) *Registry {
+func NewRegistry(cfg *config.Config, adapters []ProviderAdapter, combos []Combo) *Registry {
 	r := &Registry{
 		providers: make(map[string]ProviderAdapter),
 		defaultID: cfg.DefaultProvider,
@@ -23,7 +23,7 @@ func NewRegistry(cfg *config.Config, adapters ...ProviderAdapter) *Registry {
 		r.ids = append(r.ids, a.ID())
 	}
 
-	r.catalog = NewModelCatalog(cfg, adapters...)
+	r.catalog = NewModelCatalog(cfg, adapters, combos)
 
 	return r
 }
@@ -78,6 +78,7 @@ func (r *Registry) DefaultModel(providerID string) (string, bool) {
 }
 
 // ProviderCapabilities groups a provider's ID, its supported models, and its capabilities.
+// For combos, we might need a separate capability if needed.
 type ProviderCapabilities struct {
 	ID           string
 	Models       []string

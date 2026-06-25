@@ -15,8 +15,8 @@ type mockEmbedAdapter struct {
 	embeddings map[string][]float32
 }
 
-func (m *mockEmbedAdapter) ID() string             { return "mock" }
-func (m *mockEmbedAdapter) Models() []string       { return []string{"mock-model"} }
+func (m *mockEmbedAdapter) ID() string       { return "mock" }
+func (m *mockEmbedAdapter) Models() []string { return []string{"mock-model"} }
 func (m *mockEmbedAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	return nil, nil
 }

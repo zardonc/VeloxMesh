@@ -131,6 +131,10 @@ func (r *Repository) Providers() controlstate.ProviderRepository {
 	return &providerRepo{db: r.db}
 }
 
+func (r *Repository) Combos() controlstate.ComboRepository {
+	return &comboRepo{db: r.db}
+}
+
 func (r *Repository) Routing() controlstate.RoutingRepository {
 	return &routingRepo{db: r.db}
 }
@@ -371,6 +375,151 @@ func (p *providerRepo) PutEncryptedSecret(ctx context.Context, id string, cipher
 			updated_at=CURRENT_TIMESTAMP`,
 		id, ciphertext, nonce, keyID,
 	)
+	return err
+}
+
+// -- comboRepo --
+
+type comboRepo struct{ db *sql.DB }
+
+func (c *comboRepo) Get(ctx context.Context, id string) (*controlstate.ComboRecord, error) {
+	row := c.db.QueryRowContext(ctx, `
+		SELECT id, name, enabled, strategy, members, judge, revision, created_at, updated_at
+		FROM combos
+		WHERE id = ?`, id)
+
+	rec := &controlstate.ComboRecord{}
+	var membersJSON sql.NullString
+	var judge sql.NullString
+
+	err := row.Scan(
+		&rec.ID, &rec.Name, &rec.Enabled, &rec.Strategy,
+		&membersJSON, &judge,
+		&rec.Revision, &rec.CreatedAt, &rec.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if membersJSON.Valid {
+		_ = json.Unmarshal([]byte(membersJSON.String), &rec.Members)
+	}
+	if judge.Valid {
+		rec.Judge = judge.String
+	}
+
+	return rec, nil
+}
+
+func (c *comboRepo) List(ctx context.Context, filter controlstate.ComboFilter) ([]*controlstate.ComboRecord, error) {
+	rows, err := c.db.QueryContext(ctx, `
+		SELECT id, name, enabled, strategy, members, judge, revision, created_at, updated_at
+		FROM combos
+		ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []*controlstate.ComboRecord
+	for rows.Next() {
+		rec := &controlstate.ComboRecord{}
+		var membersJSON sql.NullString
+		var judge sql.NullString
+
+		if err := rows.Scan(
+			&rec.ID, &rec.Name, &rec.Enabled, &rec.Strategy,
+			&membersJSON, &judge,
+			&rec.Revision, &rec.CreatedAt, &rec.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		if filter.Enabled != nil && rec.Enabled != *filter.Enabled {
+			continue
+		}
+		if filter.Search != "" {
+			// very naive substring search
+			if rec.Name != filter.Search && rec.ID != filter.Search {
+				// not a perfect search, but follows basic logic
+				continue
+			}
+		}
+
+		if membersJSON.Valid {
+			_ = json.Unmarshal([]byte(membersJSON.String), &rec.Members)
+		}
+		if judge.Valid {
+			rec.Judge = judge.String
+		}
+
+		result = append(result, rec)
+	}
+
+	return result, nil
+}
+
+func (c *comboRepo) Create(ctx context.Context, m *controlstate.ComboMutation) (*controlstate.ComboRecord, error) {
+	b, _ := json.Marshal(m.Members)
+	membersJSON := string(b)
+
+	var judge sql.NullString
+	if m.Judge != nil {
+		judge.String = *m.Judge
+		judge.Valid = true
+	}
+
+	_, err := c.db.ExecContext(ctx, `
+		INSERT INTO combos (id, name, enabled, strategy, members, judge, revision, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+		m.ID, m.Name, m.Enabled, m.Strategy, membersJSON, judge,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return c.Get(ctx, m.ID)
+}
+
+func (c *comboRepo) Update(ctx context.Context, m *controlstate.ComboMutation) (*controlstate.ComboRecord, error) {
+	if m.Revision == nil {
+		return nil, errors.New("optimistic concurrency: missing revision")
+	}
+
+	b, _ := json.Marshal(m.Members)
+	membersJSON := string(b)
+
+	var judge sql.NullString
+	if m.Judge != nil {
+		judge.String = *m.Judge
+		judge.Valid = true
+	}
+
+	res, err := c.db.ExecContext(ctx, `
+		UPDATE combos 
+		SET name = ?, enabled = ?, strategy = ?, members = ?, judge = ?, revision = revision + 1, updated_at = CURRENT_TIMESTAMP
+		WHERE id = ? AND revision = ?`,
+		m.Name, m.Enabled, m.Strategy, membersJSON, judge,
+		m.ID, *m.Revision,
+	)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if rows == 0 {
+		return nil, errors.New("optimistic concurrency conflict: record modified or not found")
+	}
+
+	return c.Get(ctx, m.ID)
+}
+
+func (c *comboRepo) Delete(ctx context.Context, id string) error {
+	_, err := c.db.ExecContext(ctx, `DELETE FROM combos WHERE id = ?`, id)
 	return err
 }
 

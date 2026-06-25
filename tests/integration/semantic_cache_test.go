@@ -25,7 +25,7 @@ type mockEmbedAdapter struct {
 	id string
 }
 
-func (m *mockEmbedAdapter) ID() string { return m.id }
+func (m *mockEmbedAdapter) ID() string       { return m.id }
 func (m *mockEmbedAdapter) Models() []string { return []string{"emb"} }
 func (m *mockEmbedAdapter) Capabilities() providers.CapabilitySet {
 	return providers.CapabilitySet{
@@ -40,12 +40,14 @@ func (m *mockEmbedAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*
 		Provider: m.id,
 		Model:    req.Model,
 		Choices: []llm.Choice{{
-			Index: 0,
+			Index:   0,
 			Message: llm.Message{Role: llm.RoleAssistant, Content: "Cached response"},
 		}},
 	}, nil
 }
-func (m *mockEmbedAdapter) HealthCheck(ctx context.Context) providers.HealthStatus { return providers.HealthStatus{} }
+func (m *mockEmbedAdapter) HealthCheck(ctx context.Context) providers.HealthStatus {
+	return providers.HealthStatus{}
+}
 func (m *mockEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
 	return &llm.EmbeddingResponse{
 		Data: []llm.Embedding{{Index: 0, Embedding: []float32{1.0, 0.0, 0.0}}},
@@ -64,7 +66,7 @@ func (m *memorySemanticCacheRepo) ListCandidates(ctx context.Context, scope, mod
 	return m.entries, nil
 }
 func (m *memorySemanticCacheRepo) RecordHit(ctx context.Context, id string) error { return nil }
-func (m *memorySemanticCacheRepo) Disable(ctx context.Context, id string) error { return nil }
+func (m *memorySemanticCacheRepo) Disable(ctx context.Context, id string) error   { return nil }
 
 func TestSemanticCache_CacheHeaders(t *testing.T) {
 	ctx := context.Background()
@@ -72,10 +74,14 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 	store := health.NewInMemoryStore()
 	store.EnsureProvider("p1", 3, 1)
 
+	cfg := &config.Config{
+		DevAPIKey: "dev-key",
+	}
+
 	p1 := &mockEmbedAdapter{id: "p1"}
-	registry := providers.NewRegistry(&config.Config{}, p1)
+	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1}, nil)
 	route := routing.NewHealthAwareRouter(registry, store, "round-robin")
-	
+
 	cacheRepo := &memorySemanticCacheRepo{}
 	semanticCacheSvc := cache.NewSemanticCacheService(cache.SemanticCacheConfig{
 		Enabled:       true,
@@ -86,14 +92,10 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 
 	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc)
 
-	cfg := &config.Config{
-		DevAPIKey: "dev-key",
-	}
-
-	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil)
+	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil)
 
 	reqBody, _ := json.Marshal(llm.ChatCompletionRequest{
-		Model: "emb",
+		Model:    "emb",
 		Messages: []llm.Message{{Role: llm.RoleUser, Content: "Hello"}},
 	})
 

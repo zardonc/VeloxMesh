@@ -42,6 +42,10 @@ type memoryRepository struct {
 	usageRepo controlstate.UsageRepository
 }
 
+func (m *memoryRepository) Combos() controlstate.ComboRepository {
+	return nil
+}
+
 type memoryUsageRepo struct {
 	records []*controlstate.UsageRecord
 }
@@ -245,7 +249,7 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, repo)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, nil, repo)
 
 	// 1. Initial reload with empty repo
 	err = a.ReloadProviders(context.Background(), repo, cipher)

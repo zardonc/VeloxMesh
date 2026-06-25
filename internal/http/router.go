@@ -10,7 +10,7 @@ import (
 	"veloxmesh/internal/http/middleware"
 )
 
-func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handlers.AdminProvidersHandler, hotStateClient hotstate.Client, repo controlstate.Repository) *chi.Mux {
+func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handlers.AdminProvidersHandler, adminCombosHandler *handlers.AdminCombosHandler, hotStateClient hotstate.Client, repo controlstate.Repository) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -40,6 +40,17 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 			r.Put("/admin/v1/providers/{id}/models/{model}/rate", adminProvHandler.SetRate)
 			r.Get("/admin/v1/providers/{id}/models/{model}/rate", adminProvHandler.GetRate)
 			r.Delete("/admin/v1/providers/{id}/models/{model}/rate", adminProvHandler.DeleteRate)
+		})
+	}
+
+	if adminCombosHandler != nil {
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AdminAuth(cfg))
+			r.Get("/admin/v1/combos", adminCombosHandler.List)
+			r.Post("/admin/v1/combos", adminCombosHandler.Create)
+			r.Get("/admin/v1/combos/{id}", adminCombosHandler.Get)
+			r.Put("/admin/v1/combos/{id}", adminCombosHandler.Update)
+			r.Delete("/admin/v1/combos/{id}", adminCombosHandler.Delete)
 		})
 	}
 

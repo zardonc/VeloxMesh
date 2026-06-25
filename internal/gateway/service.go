@@ -2,8 +2,8 @@ package gateway
 
 import (
 	"context"
-	"time"
 	"encoding/json"
+	"time"
 	"veloxmesh/internal/admission"
 	"veloxmesh/internal/cache"
 	"veloxmesh/internal/controlstate"
@@ -54,11 +54,11 @@ func (s *Service) settle(ctx context.Context, req *llm.LLMRequest, decision rout
 	}
 
 	record := &controlstate.UsageRecord{
-		ID:           req.RequestID,
-		ProviderID:   decision.ProviderID,
-		Model:        req.Model,
-		DurationMs:   latency.Milliseconds(),
-		Timestamp:    time.Now().UTC(),
+		ID:         req.RequestID,
+		ProviderID: decision.ProviderID,
+		Model:      req.Model,
+		DurationMs: latency.Milliseconds(),
+		Timestamp:  time.Now().UTC(),
 	}
 
 	if usage != nil {
@@ -177,6 +177,19 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 				return nil, lastErr // Return the last provider error rather than no_healthy_provider
 			}
 			return nil, err
+		}
+
+		if decision.IsFusion {
+			release, _, err := s.admission.Admit(ctx, req, decision)
+			if err != nil {
+				return nil, err
+			}
+			resp, err := s.executeFusion(ctx, req, decision)
+			release()
+			if err != nil {
+				return nil, err
+			}
+			return resp, nil
 		}
 
 		if !s.cb.Allow(decision.ProviderID) {
@@ -328,6 +341,19 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 				return nil, nil, lastErr
 			}
 			return nil, nil, err
+		}
+
+		if decision.IsFusion {
+			release, _, err := s.admission.Admit(ctx, req, decision)
+			if err != nil {
+				return nil, nil, err
+			}
+			streamCh, respMeta, err := s.executeFusionStream(ctx, req, decision)
+			release()
+			if err != nil {
+				return nil, nil, err
+			}
+			return streamCh, respMeta, nil
 		}
 
 		streamAdapter, ok := adapter.(providers.StreamAdapter)

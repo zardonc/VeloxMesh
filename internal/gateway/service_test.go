@@ -55,7 +55,7 @@ func TestService_HandleChatCompletion_AttemptLoopHealth(t *testing.T) {
 	p2 := &mockAdapter{id: "p2", err: nil} // success
 
 	// Router that returns p1, then p2 (simulating exclusion logic properly implemented in HealthAwareRouter)
-	registry := providers.NewRegistry(&config.Config{}, p1, p2)
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2}, nil)
 	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
 
 	admissionCtrl := admission.NewPassThroughController()
@@ -94,7 +94,7 @@ func TestService_GetProviderCapabilities(t *testing.T) {
 	store := health.NewInMemoryStore()
 	p1 := &mockAdapter{id: "p1"}
 	p2 := &mockAdapter{id: "p2"}
-	registry := providers.NewRegistry(&config.Config{}, p1, p2)
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2}, nil)
 	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
 	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil)
 
@@ -141,7 +141,7 @@ func TestService_HandleChatCompletion_CircuitBreaker(t *testing.T) {
 	p1Err := errors.NewGatewayError(errors.ProviderUnavailable, "p1 offline", 503)
 	p1 := &mockAdapter{id: "p1", err: p1Err}
 
-	registry := providers.NewRegistry(&config.Config{}, p1)
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
 	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
 
 	// Create a router that sets threshold to 2
@@ -194,7 +194,7 @@ func TestService_HandleChatCompletion_StrictOverride(t *testing.T) {
 	p1Err := errors.NewGatewayError(errors.ProviderUnavailable, "p1 offline", 503)
 	p1 := &mockAdapter{id: "p1", err: p1Err}
 
-	registry := providers.NewRegistry(&config.Config{}, p1)
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
 	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
 
 	mockRouter := &fallbackMockRouter{
@@ -221,4 +221,3 @@ func TestService_HandleChatCompletion_StrictOverride(t *testing.T) {
 		t.Errorf("expected provider_circuit_open, got %v", err)
 	}
 }
-

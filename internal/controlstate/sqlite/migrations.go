@@ -20,13 +20,7 @@ func NewMigrator(db *sql.DB) controlstate.Migrator {
 func (m *Migrator) Migrate(ctx context.Context) error {
 	fs := controlstate.GetSQLiteMigrations()
 
-	data, err := fs.ReadFile("migrations/sqlite/0001_control_state.sql")
-	if err != nil {
-		return fmt.Errorf("failed to read sqlite migration: %w", err)
-	}
-
-	// We apply only the "Up" part of the goose migration
-	sqlStr := string(data)
+	files := []string{"migrations/sqlite/0001_control_state.sql", "migrations/sqlite/0002_combos.sql"}
 
 	// A real migrator would use a library like goose, but for this milestone we
 	// can do a simple split or just execute the whole file. Wait, we should only
@@ -47,21 +41,27 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 	}
 
 	if !exists {
-		// Only execute the Up section
-		upSQL := sqlStr
-		importIdx := strings.Index(sqlStr, "-- +goose Down")
-		if importIdx != -1 {
-			upSQL = sqlStr[:importIdx]
-		}
-
-		statements := strings.Split(upSQL, ";")
-		for _, stmt := range statements {
-			stmt = strings.TrimSpace(stmt)
-			if stmt == "" {
-				continue
+		for _, file := range files {
+			data, err := fs.ReadFile(file)
+			if err != nil {
+				return err
 			}
-			if _, err := tx.ExecContext(ctx, stmt); err != nil {
-				return fmt.Errorf("failed to execute sqlite migration statement: %w", err)
+			sqlStr := string(data)
+			upSQL := sqlStr
+			importIdx := strings.Index(sqlStr, "-- +goose Down")
+			if importIdx != -1 {
+				upSQL = sqlStr[:importIdx]
+			}
+
+			statements := strings.Split(upSQL, ";")
+			for _, stmt := range statements {
+				stmt = strings.TrimSpace(stmt)
+				if stmt == "" {
+					continue
+				}
+				if _, err := tx.ExecContext(ctx, stmt); err != nil {
+					return fmt.Errorf("failed to execute sqlite migration statement %s: %w", file, err)
+				}
 			}
 		}
 
