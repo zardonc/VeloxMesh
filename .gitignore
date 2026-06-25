@@ -30,4 +30,4 @@ node_modules/
 OPENCODE.jsonc
 
 # Local Test Configs
-tests/config.json
+tests/
