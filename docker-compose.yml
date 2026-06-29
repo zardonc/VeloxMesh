@@ -20,8 +20,20 @@ services:
       - redisinsightdata:/data
     restart: unless-stopped
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: veloxmesh_qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrantdata:/qdrant/storage
+    restart: unless-stopped
+
 volumes:
   redisdata:
     name: veloxmesh_redis_stack_data
   redisinsightdata:
     name: veloxmesh_redisinsight_data
+  qdrantdata:
+    name: veloxmesh_qdrant_data
