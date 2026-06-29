@@ -1,6 +1,9 @@
 package storage
 
-import "context"
+import (
+	"context"
+	"veloxmesh/internal/controlstate"
+)
 
 // CacheAdapter defines the interface for distributed caching (e.g., Redis).
 type CacheAdapter interface {
@@ -27,4 +30,10 @@ type DBAdapter interface {
 type VectorAdapter interface {
 	Insert(ctx context.Context, collection string, vectors [][]float32, metadata []map[string]interface{}) error
 	Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error)
+}
+
+// SemanticCacheAdapter defines the interface for semantic caching operations.
+type SemanticCacheAdapter interface {
+	Lookup(ctx context.Context, scope, model string, text string) (*controlstate.SemanticCacheEntry, error)
+	Store(ctx context.Context, id, scope, model string, text string, response string, usageID *string) error
 }

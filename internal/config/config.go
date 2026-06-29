@@ -95,6 +95,8 @@ type Config struct {
 	SemanticCacheEnabled      bool   `json:"semantic_cache_enabled"`
 	SemanticCacheProvider     string `json:"semantic_cache_provider"`
 	SemanticCacheVectorStore  string `json:"semantic_cache_vector_store"`
+	QdrantAddr                string `json:"qdrant_addr"`
+	QdrantAPIKey              string `json:"qdrant_api_key"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -126,6 +128,8 @@ func LoadConfig() (*Config, error) {
 		SemanticCacheEnabled:     getEnv("SEMANTIC_CACHE_ENABLED", "false") == "true",
 		SemanticCacheProvider:    getEnv("SEMANTIC_CACHE_PROVIDER", ""),
 		SemanticCacheVectorStore: getEnv("SEMANTIC_CACHE_VECTOR_STORE", ""),
+		QdrantAddr:               getEnv("QDRANT_ADDR", ""),
+		QdrantAPIKey:             getEnv("QDRANT_API_KEY", ""),
 	}
 
 	configFile := getEnv("CONFIG_FILE", "")
@@ -163,6 +167,8 @@ func LoadConfig() (*Config, error) {
 			SemanticCacheEnabled      *bool  `json:"semantic_cache_enabled"`
 			SemanticCacheProvider     string `json:"semantic_cache_provider"`
 			SemanticCacheVectorStore  string `json:"semantic_cache_vector_store"`
+			QdrantAddr                string `json:"qdrant_addr"`
+			QdrantAPIKey              string `json:"qdrant_api_key"`
 		}
 		if err := json.Unmarshal(data, &fileCfg); err != nil {
 			return nil, fmt.Errorf("failed to parse config file: %v", err)
@@ -241,6 +247,12 @@ func LoadConfig() (*Config, error) {
 		}
 		if fileCfg.SemanticCacheVectorStore != "" {
 			cfg.SemanticCacheVectorStore = fileCfg.SemanticCacheVectorStore
+		}
+		if fileCfg.QdrantAddr != "" {
+			cfg.QdrantAddr = fileCfg.QdrantAddr
+		}
+		if fileCfg.QdrantAPIKey != "" {
+			cfg.QdrantAPIKey = fileCfg.QdrantAPIKey
 		}
 
 		if !fallbackEnabledSet {
@@ -331,14 +343,21 @@ func (c *Config) Validate() error {
 		return err
 	}
 
+	if c.ControlStateBackend != "disabled" && c.ControlStateBackend != "sqlite" && c.ControlStateBackend != "postgres" {
+		return fmt.Errorf("invalid control state backend: %s. Must be 'sqlite', 'postgres', or 'disabled'", c.ControlStateBackend)
+	}
+
 	if c.ControlStateBackend == "sqlite" {
 		if c.ControlStateDSN == "" {
-			return fmt.Errorf("sqlite control state backend requires a DSN (e.g. file:veloxmesh.db?cache=shared)")
+			return fmt.Errorf("sqlite control state backend requires a DSN (e.g. file:veloxmesh.db?cache=shared). This is the default Plan 1 deployment")
 		}
 	}
 	if c.ControlStateBackend == "sqlite" || c.ControlStateBackend == "postgres" {
 		if c.ControlStateEncryptionKey != "" && len(c.ControlStateEncryptionKey) != 32 {
-			return fmt.Errorf("control state encryption key must be exactly 32 bytes")
+			return fmt.Errorf("control state encryption key must be exactly 32 bytes (required when durable backend is used)")
+		}
+		if c.ControlStateEncryptionKey == "" {
+			return fmt.Errorf("control state encryption key is required when a durable backend (%s) is used", c.ControlStateBackend)
 		}
 	}
 
@@ -348,6 +367,12 @@ func (c *Config) Validate() error {
 
 	seen := make(map[string]bool)
 	defaultFound := false
+
+	if c.SemanticCacheEnabled && c.SemanticCacheVectorStore == "qdrant" {
+		if c.QdrantAddr == "" {
+			return fmt.Errorf("qdrant_addr is required when semantic_cache_vector_store is qdrant")
+		}
+	}
 
 	for i := range c.Providers {
 		p := &c.Providers[i]

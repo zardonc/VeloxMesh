@@ -111,8 +111,18 @@ CREATE TABLE semantic_cache_entries (
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
+CREATE TABLE fallback_log (
+    id VARCHAR(255) PRIMARY KEY,
+    type VARCHAR(255) NOT NULL,
+    payload TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
 -- +goose Down
 
+DROP TABLE fallback_log;
 DROP TABLE semantic_cache_entries;
 DROP TABLE idempotency_keys;
 DROP TABLE audit_events;

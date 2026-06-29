@@ -1,3 +1,5 @@
+//go:build lancedb && windows
+
 package storage
 
 import (

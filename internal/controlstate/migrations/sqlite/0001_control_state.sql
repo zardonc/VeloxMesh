@@ -113,6 +113,7 @@ CREATE TABLE semantic_cache_entries (
 
 CREATE TABLE fallback_log (
     id TEXT PRIMARY KEY,
+    type TEXT NOT NULL,
     payload TEXT NOT NULL,
     status TEXT NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -146,9 +146,21 @@ func New() (*App, error) {
 					if cfg.SemanticCacheVectorStore == "lancedb" {
 						lancedbAdapter, err := storage.NewLanceDBVectorAdapter("data/lancedb")
 						if err != nil {
-							return nil, fmt.Errorf("failed to initialize LanceDB: %w", err)
+							logger.Warn("failed to initialize LanceDB (Plan 3 Edge only); vector capabilities degraded", "error", err)
+							vectorAdapter = storage.NewDegradedVectorAdapter()
+						} else {
+							vectorAdapter = lancedbAdapter
 						}
-						vectorAdapter = lancedbAdapter
+					} else if cfg.SemanticCacheVectorStore == "qdrant" {
+						qdrantAdapter, err := storage.NewQdrantVectorAdapter(cfg.QdrantAddr, cfg.QdrantAPIKey)
+						if err != nil {
+							logger.Warn("failed to initialize Qdrant; vector capabilities degraded", "error", err)
+							vectorAdapter = storage.NewDegradedVectorAdapter()
+						} else {
+							vectorAdapter = qdrantAdapter
+						}
+					} else {
+						vectorAdapter = storage.NewNoopVectorAdapter()
 					}
 					
 					semanticCache = cache.NewSemanticCacheService(cache.SemanticCacheConfig{

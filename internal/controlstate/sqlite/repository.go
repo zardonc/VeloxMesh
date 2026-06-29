@@ -902,16 +902,16 @@ func (f *fallbackLogRepo) Insert(ctx context.Context, record *controlstate.Fallb
 		record.UpdatedAt = record.CreatedAt
 	}
 	_, err := f.db.ExecContext(ctx, `
-		INSERT INTO fallback_log (id, payload, status, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)`,
-		record.ID, record.Payload, record.Status, record.CreatedAt, record.UpdatedAt,
+		INSERT INTO fallback_log (id, type, payload, status, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)`,
+		record.ID, record.Type, record.Payload, record.Status, record.CreatedAt, record.UpdatedAt,
 	)
 	return err
 }
 
 func (f *fallbackLogRepo) ListPending(ctx context.Context, limit int) ([]*controlstate.FallbackLogRecord, error) {
 	rows, err := f.db.QueryContext(ctx, `
-		SELECT id, payload, status, created_at, updated_at
+		SELECT id, type, payload, status, created_at, updated_at
 		FROM fallback_log
 		WHERE status = 'pending'
 		ORDER BY created_at ASC
@@ -924,7 +924,7 @@ func (f *fallbackLogRepo) ListPending(ctx context.Context, limit int) ([]*contro
 	var results []*controlstate.FallbackLogRecord
 	for rows.Next() {
 		rec := &controlstate.FallbackLogRecord{}
-		if err := rows.Scan(&rec.ID, &rec.Payload, &rec.Status, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+		if err := rows.Scan(&rec.ID, &rec.Type, &rec.Payload, &rec.Status, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
 			return nil, err
 		}
 		results = append(results, rec)
