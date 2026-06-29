@@ -53,10 +53,15 @@ func (s *Service) settle(ctx context.Context, req *llm.LLMRequest, decision rout
 		return
 	}
 
+	model := req.Model
+	if decision.UpstreamModel != "" {
+		model = decision.UpstreamModel
+	}
+
 	record := &controlstate.UsageRecord{
 		ID:         req.RequestID,
 		ProviderID: decision.ProviderID,
-		Model:      req.Model,
+		Model:      model,
 		DurationMs: latency.Milliseconds(),
 		Timestamp:  time.Now().UTC(),
 	}
@@ -215,7 +220,11 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 		s.healthStore.BeginRequest(decision.ProviderID)
 		start := time.Now()
-		resp, err := adapter.Complete(ctx, req)
+		upstreamReq := *req
+		if decision.UpstreamModel != "" {
+			upstreamReq.Model = decision.UpstreamModel
+		}
+		resp, err := adapter.Complete(ctx, &upstreamReq)
 		latency := time.Since(start)
 
 		healthErr := err
@@ -266,6 +275,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 		release() // Release admission quickly
 		resp.Provider = decision.ProviderID
+		resp.Model = req.Model
 		resp.Strategy = decision.Strategy
 		resp.AttemptCount = attempts
 		resp.FallbackUsed = attempts > 1
@@ -387,7 +397,11 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		s.healthStore.BeginRequest(decision.ProviderID)
 		start := time.Now()
 
-		ch, err := streamAdapter.Stream(ctx, req)
+		upstreamReq := *req
+		if decision.UpstreamModel != "" {
+			upstreamReq.Model = decision.UpstreamModel
+		}
+		ch, err := streamAdapter.Stream(ctx, &upstreamReq)
 
 		if err != nil {
 			latency := time.Since(start)

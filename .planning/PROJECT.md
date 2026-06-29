@@ -43,7 +43,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 - Source architecture: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\gateway-architecture.md`.
 - The original gateway design is Go-first. TypeScript/Node gateway plans were superseded.
-- Current code includes Phase 1 through Phase 4: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable PostgreSQL/SQLite provider control state, versioned Admin provider CRUD, test-connection, audit/idempotency, runtime reload, optional Redis hot state, Redis config-change pub/sub notifications, SSE streaming, rate limiting, semantic caching, and usage tracking.
+- Current code includes Phase 1 through Phase 4: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, test-connection, audit/idempotency, runtime reload, optional Redis hot state, Redis config-change pub/sub notifications, SSE streaming, rate limiting, semantic caching, and usage tracking. Architecture v2.0 makes SQLite the primary path; PostgreSQL remains a later adapter extension.
 - Downstream clients should continue to see OpenAI-compatible responses.
 
 ## Constraints
@@ -63,11 +63,11 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Gateway is implemented in Go with Chi | Low-latency, stdlib-compatible, architecture-aligned gateway path | ✓ Good |
 | Public data plane is OpenAI-compatible | Keeps downstream clients simple and provider-agnostic | ✓ Good |
 | Provider-specific behavior lives behind adapters | Allows Anthropic/Gemini/Gemini-native formats without changing handlers | ✓ Good |
-| Phase 1 uses static dev auth and env config | Proves the call chain without pulling in PostgreSQL/Redis early | ✓ Good |
+| Phase 1 uses static dev auth and env config | Proves the call chain without pulling in durable storage/Redis early | ✓ Good |
 | Phase 2 should use in-memory/static control surfaces before Redis/Admin API | Builds routing value before persistence/control-plane scope | ✓ Good |
 | Anthropic adapter should prefer official SDK after Go baseline verification | User preference; reduces provider mapping risk if SDK fits | ✓ Good |
 | Static JSON multi-provider config is transitional | It satisfies Phase 2 provider/routing requirements but durable provider configuration is now the intended source of truth after Phase 3 | Temporary |
-| Durable provider configuration is database-backed | Phase 3 introduced PostgreSQL/SQLite repositories plus Admin provider APIs and runtime reload | ✓ Good |
+| Durable provider configuration is database-backed | Phase 3 introduced SQLite/PostgreSQL repositories plus Admin provider APIs and runtime reload; SQLite is now the primary v2.0 path | ✓ Good |
 | Redis hot state is optional | Phase 3 Redis support coordinates health/probe/auth-cache/config-change hot state while no-Redis mode remains local/single-instance for reload consistency | ✓ Good |
 | Phase 4 implemented SSE streaming and semantic cache natively | Fulfills advanced gateway functionality | ✓ Good |
 

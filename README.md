@@ -123,9 +123,16 @@ When starting the gateway, the configuration is strictly validated to ensure rob
 
 By default, fallback across providers is enabled if more than one provider is configured. You can use the `X-Route-To` header to strictly override routing to a specific provider. When a strict override is used, fallback attempts are disabled.
 
-### Durable Control State & Redis Hot State (Phase 3)
+### Durable Control State & Redis Hot State
 
-VeloxMesh supports dynamic provider configuration management via an Admin API. The control plane uses PostgreSQL or SQLite for durable storage, while Redis optionally handles multi-instance consistency and distributed caching.
+VeloxMesh supports dynamic provider configuration management via an Admin API. The v2.0 control plane is SQLite-first for durable storage; PostgreSQL is kept as a later adapter extension. Redis Stack is optional and only handles hot state, multi-instance consistency, and distributed caching when enabled.
+
+#### SQLite Configuration
+- `CONTROL_STATE_BACKEND`: Use `sqlite` for the v2.0 primary path, or `disabled` for legacy static config.
+- `CONTROL_STATE_DSN`: SQLite database path, for example `./data/veloxmesh.db`.
+- `CONTROL_STATE_MIGRATE_ON_STARTUP`: Run embedded migrations on startup when enabled.
+- `CONTROL_STATE_LOCAL_SEED_ENABLED`: Seed durable provider records from local static provider config.
+- `CONTROL_STATE_ENCRYPTION_KEY`: Local secret encryption key. Do not commit real values.
 
 #### Redis Configuration
 Redis is optional but recommended for multi-instance deployments. Configure it via environment variables or `CONFIG_FILE`:
@@ -147,4 +154,4 @@ VeloxMesh guarantees that **Redis never stores provider secrets, decrypted crede
 - **With Redis (Recommended)**: Admin API mutations publish a config-change event via Redis pub/sub. All connected VeloxMesh instances subscribe to this channel and automatically reload their runtime provider state to ensure cluster-wide consistency.
 - **Without Redis (Local Only)**: If Redis is disabled or degraded, runtime reload is guaranteed **only for the gateway instance handling the Admin API request**. Other instances will not receive the update until restarted or manually reloaded.
 
-*Note: Features like advanced routing, SSE streaming proxy, rate limiting, semantic cache, cost governance, or live model discovery are explicitly deferred to later phases.*
+PostgreSQL and pgvector are not required for the default deployment path; they are reserved for the low-priority extension tier.

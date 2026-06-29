@@ -13,9 +13,15 @@ type RoutingDecision struct {
 	ProviderID      string
 	Strategy        string
 	ComboID         string
+	UpstreamModel   string
 	IsFusion        bool
-	FusionProviders []providers.ProviderAdapter
+	FusionProviders []FusionProvider
 	FusionJudge     string
+}
+
+type FusionProvider struct {
+	Adapter providers.ProviderAdapter
+	Model   string
 }
 
 type Router interface {
@@ -113,9 +119,10 @@ func (r *HealthAwareRouter) selectCombo(ctx context.Context, combo *providers.Co
 		}
 
 		return selected, RoutingDecision{
-			ProviderID: selected.ID(),
-			Strategy:   "combo:round-robin",
-			ComboID:    combo.ID,
+			ProviderID:    selected.ID(),
+			Strategy:      "combo:round-robin",
+			ComboID:       combo.ID,
+			UpstreamModel: targetModel,
 		}, nil
 
 	case "capacity-auto-switch":
@@ -129,9 +136,10 @@ func (r *HealthAwareRouter) selectCombo(ctx context.Context, combo *providers.Co
 					selected = r.selectRoundRobin(healthyProviders)
 				}
 				return selected, RoutingDecision{
-					ProviderID: selected.ID(),
-					Strategy:   "combo:capacity-auto-switch",
-					ComboID:    combo.ID,
+					ProviderID:    selected.ID(),
+					Strategy:      "combo:capacity-auto-switch",
+					ComboID:       combo.ID,
+					UpstreamModel: member,
 				}, nil
 			}
 		}
@@ -139,7 +147,7 @@ func (r *HealthAwareRouter) selectCombo(ctx context.Context, combo *providers.Co
 
 	case "fusion":
 		// Fusion requires multiple providers
-		var fusionAdapters []providers.ProviderAdapter
+		var fusionProviders []FusionProvider
 		for _, member := range combo.Members {
 			eligible := r.registry.EligibleProviders(member, providers.OperationChatCompletions)
 			healthyProviders := r.getHealthyProviders(eligible, excluded) // should we exclude for fusion? yes, if one failed. Actually fusion handles its own partial failures typically, but let's respect excluded.
@@ -148,10 +156,10 @@ func (r *HealthAwareRouter) selectCombo(ctx context.Context, combo *providers.Co
 				if selected == nil {
 					selected = r.selectRoundRobin(healthyProviders)
 				}
-				fusionAdapters = append(fusionAdapters, selected)
+				fusionProviders = append(fusionProviders, FusionProvider{Adapter: selected, Model: member})
 			}
 		}
-		if len(fusionAdapters) == 0 {
+		if len(fusionProviders) == 0 {
 			return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
 		}
 
@@ -160,7 +168,7 @@ func (r *HealthAwareRouter) selectCombo(ctx context.Context, combo *providers.Co
 			Strategy:        "combo:fusion",
 			ComboID:         combo.ID,
 			IsFusion:        true,
-			FusionProviders: fusionAdapters,
+			FusionProviders: fusionProviders,
 			FusionJudge:     combo.Judge,
 		}, nil
 

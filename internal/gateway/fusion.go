@@ -31,16 +31,16 @@ func (s *Service) executeFusion(ctx context.Context, req *llm.LLMRequest, decisi
 
 	var mu sync.Mutex
 
-	for i, adapter := range decision.FusionProviders {
+	for i, target := range decision.FusionProviders {
 		wg.Add(1)
-		go func(idx int, p providers.ProviderAdapter) {
+		go func(idx int, p routing.FusionProvider) {
 			defer wg.Done()
 			// Need a modified request for the member (non-streaming)
 			memberReq := *req
 			memberReq.Stream = false
-			memberReq.Model = p.Models()[0] // use the adapter's first model or just leave it if adapter resolves it
+			memberReq.Model = p.Model
 
-			mResp, err := p.Complete(ctx, &memberReq)
+			mResp, err := p.Adapter.Complete(ctx, &memberReq)
 			if err != nil {
 				errs[idx] = err
 				return
@@ -55,7 +55,7 @@ func (s *Service) executeFusion(ctx context.Context, req *llm.LLMRequest, decisi
 				results[idx] = mResp.Choices[0].Message.Content
 			}
 			mu.Unlock()
-		}(i, adapter)
+		}(i, target)
 	}
 	wg.Wait()
 
@@ -145,15 +145,15 @@ func (s *Service) executeFusionStream(ctx context.Context, req *llm.LLMRequest, 
 	var promptTokens, completionTokens int
 	var mu sync.Mutex
 
-	for i, adapter := range decision.FusionProviders {
+	for i, target := range decision.FusionProviders {
 		wg.Add(1)
-		go func(idx int, p providers.ProviderAdapter) {
+		go func(idx int, p routing.FusionProvider) {
 			defer wg.Done()
 			memberReq := *req
 			memberReq.Stream = false
-			memberReq.Model = p.Models()[0]
+			memberReq.Model = p.Model
 
-			mResp, err := p.Complete(ctx, &memberReq)
+			mResp, err := p.Adapter.Complete(ctx, &memberReq)
 			if err != nil {
 				errs[idx] = err
 				return
@@ -168,7 +168,7 @@ func (s *Service) executeFusionStream(ctx context.Context, req *llm.LLMRequest, 
 				results[idx] = mResp.Choices[0].Message.Content
 			}
 			mu.Unlock()
-		}(i, adapter)
+		}(i, target)
 	}
 	wg.Wait()
 

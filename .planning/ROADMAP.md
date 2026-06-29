@@ -140,6 +140,7 @@ Key deliverables:
 **Goal:** Add user-defined combo models that can route through multiple provider models using round-robin, fusion, and capability-aware filtering.
 **Requirements**: Phase 6 Model Combo Feature
 **Depends on:** Phase 5
+**Architecture note:** Keep completed combo functionality where it fits, but align persistence/runtime loading with architecture v2.0: SQLite-first, Redis optional for hot-state, PostgreSQL deferred to Phase 12 adapter extension.
 **Plans:** 1 plan
 
 Plans:

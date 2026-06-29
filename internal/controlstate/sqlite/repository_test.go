@@ -2,10 +2,35 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 	"veloxmesh/internal/controlstate"
 )
+
+func TestOpenConfiguresSQLitePragmas(t *testing.T) {
+	dsn := "file:pragma-test?mode=memory&cache=shared"
+	repo, err := Open(dsn)
+	if err != nil {
+		t.Fatalf("Failed to open sqlite: %v", err)
+	}
+	defer repo.Close()
+
+	checkPragma(t, repo.db, "foreign_keys", "1")
+	checkPragma(t, repo.db, "busy_timeout", "5000")
+	checkPragma(t, repo.db, "synchronous", "1")
+}
+
+func checkPragma(t *testing.T, db *sql.DB, name, expected string) {
+	t.Helper()
+	var got string
+	if err := db.QueryRow("PRAGMA " + name).Scan(&got); err != nil {
+		t.Fatalf("Failed to read pragma %s: %v", name, err)
+	}
+	if got != expected {
+		t.Fatalf("Expected pragma %s=%s, got %s", name, expected, got)
+	}
+}
 
 func TestSQLiteRepository(t *testing.T) {
 	dsn := "file::memory:?cache=shared"

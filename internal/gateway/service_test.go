@@ -17,8 +17,9 @@ import (
 )
 
 type mockAdapter struct {
-	id  string
-	err error
+	id        string
+	err       error
+	lastModel string
 }
 
 func (m *mockAdapter) ID() string {
@@ -36,6 +37,7 @@ func (m *mockAdapter) Capabilities() providers.CapabilitySet {
 	}
 }
 func (m *mockAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+	m.lastModel = req.Model
 	return &llm.LLMResponse{}, m.err
 }
 func (m *mockAdapter) HealthCheck(ctx context.Context) providers.HealthStatus {
@@ -87,6 +89,30 @@ func TestService_HandleChatCompletion_AttemptLoopHealth(t *testing.T) {
 		// p2 failed, p1 succeeded
 	} else {
 		t.Errorf("expected one provider to have 1 failure and the other 0, got p1:%d, p2:%d", snap1.ConsecutiveFailures, snap2.ConsecutiveFailures)
+	}
+}
+
+func TestService_HandleChatCompletion_UsesComboUpstreamModel(t *testing.T) {
+	ctx := context.Background()
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+
+	p1 := &mockAdapter{id: "p1"}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, []providers.Combo{
+		{ID: "combo-1", Name: "fast-combo", Strategy: "round-robin", Members: []string{"gpt-4o"}},
+	})
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil)
+
+	resp, err := svc.HandleChatCompletion(ctx, &llm.LLMRequest{Model: "fast-combo"})
+	if err != nil {
+		t.Fatalf("expected combo request to route, got %v", err)
+	}
+	if p1.lastModel != "gpt-4o" {
+		t.Fatalf("expected upstream provider model gpt-4o, got %q", p1.lastModel)
+	}
+	if resp.Model != "fast-combo" {
+		t.Fatalf("expected client-facing combo model to stay fast-combo, got %q", resp.Model)
 	}
 }
 

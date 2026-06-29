@@ -20,12 +20,26 @@ func Open(dsn string) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Enable foreign keys
-	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
+	if err := configureConnection(db); err != nil {
 		db.Close()
 		return nil, err
 	}
 	return &Repository{db: db}, nil
+}
+
+func configureConnection(db *sql.DB) error {
+	pragmas := []string{
+		"PRAGMA foreign_keys = ON",
+		"PRAGMA journal_mode = WAL",
+		"PRAGMA busy_timeout = 5000",
+		"PRAGMA synchronous = NORMAL",
+	}
+	for _, pragma := range pragmas {
+		if _, err := db.Exec(pragma); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *Repository) Close() error {
