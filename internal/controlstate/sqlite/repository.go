@@ -177,6 +177,10 @@ func (r *Repository) Idempotency() controlstate.IdempotencyRepository {
 	return &idempotencyRepo{db: r.db}
 }
 
+func (r *Repository) FallbackLog() controlstate.FallbackLogRepository {
+	return &fallbackLogRepo{db: r.db}
+}
+
 // -- providerRepo --
 
 type providerRepo struct {
@@ -885,5 +889,53 @@ func (s *semanticCacheRepo) RecordHit(ctx context.Context, id string) error {
 
 func (s *semanticCacheRepo) Disable(ctx context.Context, id string) error {
 	_, err := s.db.ExecContext(ctx, `UPDATE semantic_cache_entries SET enabled = 0 WHERE id = ?`, id)
+	return err
+}
+
+type fallbackLogRepo struct{ db *sql.DB }
+
+func (f *fallbackLogRepo) Insert(ctx context.Context, record *controlstate.FallbackLogRecord) error {
+	if record.CreatedAt.IsZero() {
+		record.CreatedAt = time.Now().UTC()
+	}
+	if record.UpdatedAt.IsZero() {
+		record.UpdatedAt = record.CreatedAt
+	}
+	_, err := f.db.ExecContext(ctx, `
+		INSERT INTO fallback_log (id, payload, status, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?)`,
+		record.ID, record.Payload, record.Status, record.CreatedAt, record.UpdatedAt,
+	)
+	return err
+}
+
+func (f *fallbackLogRepo) ListPending(ctx context.Context, limit int) ([]*controlstate.FallbackLogRecord, error) {
+	rows, err := f.db.QueryContext(ctx, `
+		SELECT id, payload, status, created_at, updated_at
+		FROM fallback_log
+		WHERE status = 'pending'
+		ORDER BY created_at ASC
+		LIMIT ?`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []*controlstate.FallbackLogRecord
+	for rows.Next() {
+		rec := &controlstate.FallbackLogRecord{}
+		if err := rows.Scan(&rec.ID, &rec.Payload, &rec.Status, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+			return nil, err
+		}
+		results = append(results, rec)
+	}
+	return results, rows.Err()
+}
+
+func (f *fallbackLogRepo) UpdateStatus(ctx context.Context, id, status string) error {
+	_, err := f.db.ExecContext(ctx, `
+		UPDATE fallback_log 
+		SET status = ?, updated_at = ? 
+		WHERE id = ?`, status, time.Now().UTC(), id)
 	return err
 }

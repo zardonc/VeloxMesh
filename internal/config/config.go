@@ -325,6 +325,17 @@ func (c *Config) Validate() error {
 		return err
 	}
 
+	if c.ControlStateBackend == "sqlite" {
+		if c.ControlStateDSN == "" {
+			return fmt.Errorf("sqlite control state backend requires a DSN (e.g. file:veloxmesh.db?cache=shared)")
+		}
+	}
+	if c.ControlStateBackend == "sqlite" || c.ControlStateBackend == "postgres" {
+		if c.ControlStateEncryptionKey != "" && len(c.ControlStateEncryptionKey) != 32 {
+			return fmt.Errorf("control state encryption key must be exactly 32 bytes")
+		}
+	}
+
 	if len(c.Providers) == 0 {
 		return fmt.Errorf("no providers configured")
 	}

@@ -156,6 +156,10 @@ func (r *Repository) Idempotency() controlstate.IdempotencyRepository {
 	return &idempotencyRepo{pool: r.pool}
 }
 
+func (r *Repository) FallbackLog() controlstate.FallbackLogRepository {
+	return &fallbackLogRepo{pool: r.pool}
+}
+
 // -- providerRepo --
 
 type providerRepo struct {
@@ -840,5 +844,53 @@ func (s *semanticCacheRepo) RecordHit(ctx context.Context, id string) error {
 
 func (s *semanticCacheRepo) Disable(ctx context.Context, id string) error {
 	_, err := s.pool.Exec(ctx, `UPDATE semantic_cache_entries SET enabled = false WHERE id = $1`, id)
+	return err
+}
+
+type fallbackLogRepo struct{ pool *pgxpool.Pool }
+
+func (f *fallbackLogRepo) Insert(ctx context.Context, record *controlstate.FallbackLogRecord) error {
+	if record.CreatedAt.IsZero() {
+		record.CreatedAt = time.Now().UTC()
+	}
+	if record.UpdatedAt.IsZero() {
+		record.UpdatedAt = record.CreatedAt
+	}
+	_, err := f.pool.Exec(ctx, `
+		INSERT INTO fallback_log (id, payload, status, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5)`,
+		record.ID, record.Payload, record.Status, record.CreatedAt, record.UpdatedAt,
+	)
+	return err
+}
+
+func (f *fallbackLogRepo) ListPending(ctx context.Context, limit int) ([]*controlstate.FallbackLogRecord, error) {
+	rows, err := f.pool.Query(ctx, `
+		SELECT id, payload, status, created_at, updated_at
+		FROM fallback_log
+		WHERE status = 'pending'
+		ORDER BY created_at ASC
+		LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []*controlstate.FallbackLogRecord
+	for rows.Next() {
+		rec := &controlstate.FallbackLogRecord{}
+		if err := rows.Scan(&rec.ID, &rec.Payload, &rec.Status, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+			return nil, err
+		}
+		results = append(results, rec)
+	}
+	return results, rows.Err()
+}
+
+func (f *fallbackLogRepo) UpdateStatus(ctx context.Context, id, status string) error {
+	_, err := f.pool.Exec(ctx, `
+		UPDATE fallback_log 
+		SET status = $1, updated_at = $2 
+		WHERE id = $3`, status, time.Now().UTC(), id)
 	return err
 }

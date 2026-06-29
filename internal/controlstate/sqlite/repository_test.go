@@ -341,3 +341,48 @@ func TestSQLiteSemanticCache(t *testing.T) {
 		t.Errorf("Expected 0 candidates after disable, got %d", len(candidates))
 	}
 }
+
+func TestSQLiteFallbackLog(t *testing.T) {
+	dsn := "file::memory:?cache=shared"
+	repo, err := Open(dsn)
+	if err != nil {
+		t.Fatalf("Failed to open sqlite: %v", err)
+	}
+	defer repo.Close()
+
+	ctx := context.Background()
+	migrator := NewMigrator(repo.db)
+	if err := migrator.Migrate(ctx); err != nil {
+		t.Fatalf("Migration failed: %v", err)
+	}
+
+	record := &controlstate.FallbackLogRecord{
+		ID:      "log-1",
+		Payload: `{"key": "value"}`,
+		Status:  "pending",
+	}
+
+	if err := repo.FallbackLog().Insert(ctx, record); err != nil {
+		t.Fatalf("Insert failed: %v", err)
+	}
+
+	pending, err := repo.FallbackLog().ListPending(ctx, 10)
+	if err != nil {
+		t.Fatalf("ListPending failed: %v", err)
+	}
+	if len(pending) != 1 {
+		t.Fatalf("Expected 1 pending record, got %d", len(pending))
+	}
+	if pending[0].ID != "log-1" {
+		t.Errorf("Expected ID 'log-1', got %s", pending[0].ID)
+	}
+
+	if err := repo.FallbackLog().UpdateStatus(ctx, "log-1", "processed"); err != nil {
+		t.Fatalf("UpdateStatus failed: %v", err)
+	}
+
+	pending, _ = repo.FallbackLog().ListPending(ctx, 10)
+	if len(pending) != 0 {
+		t.Fatalf("Expected 0 pending records after update, got %d", len(pending))
+	}
+}

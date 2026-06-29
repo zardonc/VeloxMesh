@@ -17,6 +17,7 @@ type Repository interface {
 	Audit() AuditRepository
 	Idempotency() IdempotencyRepository
 	SemanticCache() SemanticCacheRepository
+	FallbackLog() FallbackLogRepository
 	BeginTx(ctx context.Context) (Transaction, error)
 	Settle(ctx context.Context, usage *UsageRecord) error
 	Close() error
@@ -88,4 +89,10 @@ type SemanticCacheRepository interface {
 	ListCandidates(ctx context.Context, scope, model string) ([]*SemanticCacheEntry, error)
 	RecordHit(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
+}
+
+type FallbackLogRepository interface {
+	Insert(ctx context.Context, record *FallbackLogRecord) error
+	ListPending(ctx context.Context, limit int) ([]*FallbackLogRecord, error)
+	UpdateStatus(ctx context.Context, id, status string) error
 }
