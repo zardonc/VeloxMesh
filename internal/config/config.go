@@ -92,8 +92,9 @@ type Config struct {
 	RedisDegradeToLocal bool   `json:"redis_degrade_to_local"`
 
 	// Phase 4 Semantic Cache Fields
-	SemanticCacheEnabled  bool   `json:"semantic_cache_enabled"`
-	SemanticCacheProvider string `json:"semantic_cache_provider"`
+	SemanticCacheEnabled      bool   `json:"semantic_cache_enabled"`
+	SemanticCacheProvider     string `json:"semantic_cache_provider"`
+	SemanticCacheVectorStore  string `json:"semantic_cache_vector_store"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -122,8 +123,9 @@ func LoadConfig() (*Config, error) {
 		RedisAuthCacheTTL:   getEnv("REDIS_AUTH_CACHE_TTL", "5m"),
 		RedisDegradeToLocal: getEnv("REDIS_DEGRADE_TO_LOCAL", "true") == "true",
 
-		SemanticCacheEnabled:  getEnv("SEMANTIC_CACHE_ENABLED", "false") == "true",
-		SemanticCacheProvider: getEnv("SEMANTIC_CACHE_PROVIDER", ""),
+		SemanticCacheEnabled:     getEnv("SEMANTIC_CACHE_ENABLED", "false") == "true",
+		SemanticCacheProvider:    getEnv("SEMANTIC_CACHE_PROVIDER", ""),
+		SemanticCacheVectorStore: getEnv("SEMANTIC_CACHE_VECTOR_STORE", ""),
 	}
 
 	configFile := getEnv("CONFIG_FILE", "")
@@ -158,8 +160,9 @@ func LoadConfig() (*Config, error) {
 			RedisAuthCacheTTL   string `json:"redis_auth_cache_ttl"`
 			RedisDegradeToLocal *bool  `json:"redis_degrade_to_local"`
 
-			SemanticCacheEnabled  *bool  `json:"semantic_cache_enabled"`
-			SemanticCacheProvider string `json:"semantic_cache_provider"`
+			SemanticCacheEnabled      *bool  `json:"semantic_cache_enabled"`
+			SemanticCacheProvider     string `json:"semantic_cache_provider"`
+			SemanticCacheVectorStore  string `json:"semantic_cache_vector_store"`
 		}
 		if err := json.Unmarshal(data, &fileCfg); err != nil {
 			return nil, fmt.Errorf("failed to parse config file: %v", err)
@@ -235,6 +238,9 @@ func LoadConfig() (*Config, error) {
 		}
 		if fileCfg.SemanticCacheProvider != "" {
 			cfg.SemanticCacheProvider = fileCfg.SemanticCacheProvider
+		}
+		if fileCfg.SemanticCacheVectorStore != "" {
+			cfg.SemanticCacheVectorStore = fileCfg.SemanticCacheVectorStore
 		}
 
 		if !fallbackEnabledSet {

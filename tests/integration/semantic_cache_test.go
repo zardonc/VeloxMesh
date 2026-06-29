@@ -87,8 +87,8 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 		Enabled:       true,
 		Threshold:     0.9,
 		MaxCandidates: 10,
-		TTL:           24 * time.Hour,
-	}, cacheRepo, p1)
+		TTL:           1 * time.Hour,
+	}, cacheRepo, nil, p1)
 
 	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc)
 

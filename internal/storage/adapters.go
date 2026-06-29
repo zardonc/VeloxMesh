@@ -97,7 +97,9 @@ func (s *SQLiteDBAdapter) Close() error {
 	return nil
 }
 
-// LanceDBVectorAdapter provides a stub/no-op implementation of VectorAdapter.
+// LanceDBVectorAdapter provides a disabled implementation of VectorAdapter.
+// LanceDB Go bindings require CGO_ENABLED=1, which is not supported in this
+// pure Go (CGO_ENABLED=0) deployment environment.
 type LanceDBVectorAdapter struct{}
 
 func NewLanceDBVectorAdapter() *LanceDBVectorAdapter {
@@ -105,9 +107,9 @@ func NewLanceDBVectorAdapter() *LanceDBVectorAdapter {
 }
 
 func (l *LanceDBVectorAdapter) Insert(ctx context.Context, collection string, vectors [][]float32, metadata []map[string]interface{}) error {
-	return nil
+	return errors.New("lancedb vector adapter is disabled: requires CGO_ENABLED=1")
 }
 
 func (l *LanceDBVectorAdapter) Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error) {
-	return nil, nil
+	return nil, errors.New("lancedb vector adapter is disabled: requires CGO_ENABLED=1")
 }

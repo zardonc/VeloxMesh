@@ -99,7 +99,7 @@ func TestSemanticCacheService_Hit(t *testing.T) {
 		Threshold:     0.8,
 		MaxCandidates: 10,
 		TTL:           1 * time.Hour,
-	}, repo, adapter)
+	}, repo, nil, adapter)
 
 	ctx := context.Background()
 
@@ -147,7 +147,7 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 		Threshold:     0.8,
 		MaxCandidates: 10,
 		TTL:           1 * time.Hour,
-	}, repo, adapter)
+	}, repo, nil, adapter)
 
 	ctx := context.Background()
 	_ = svc.Store(ctx, "id-1", "scope-1", "gpt-4", "test", `{}`, nil)
@@ -167,7 +167,7 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 	// Miss: disabled globally
 	svcDisabled := NewSemanticCacheService(SemanticCacheConfig{
 		Enabled: false,
-	}, repo, adapter)
+	}, repo, nil, adapter)
 	e, _ = svcDisabled.Lookup(ctx, "scope-1", "gpt-4", "test")
 	if e != nil {
 		t.Errorf("Expected miss when globally disabled")
@@ -179,7 +179,7 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 		Threshold:     0.8,
 		MaxCandidates: 10,
 		TTL:           -1 * time.Hour,
-	}, repo, adapter)
+	}, repo, nil, adapter)
 	_ = svcExp.Store(ctx, "id-exp", "scope-1", "gpt-4", "test", `{}`, nil)
 	e, _ = svcExp.Lookup(ctx, "scope-1", "gpt-4", "test")
 	// the first store might be found if we don't clear the repo, but the ID-exp will be expired

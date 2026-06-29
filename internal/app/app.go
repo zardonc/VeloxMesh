@@ -23,6 +23,7 @@ import (
 	"veloxmesh/internal/providers/anthropic"
 	"veloxmesh/internal/providers/gemini"
 	"veloxmesh/internal/providers/openai"
+	"veloxmesh/internal/storage"
 )
 
 type App struct {
@@ -141,12 +142,17 @@ func New() (*App, error) {
 			adapter, err := snapshot.Registry.Get(cfg.SemanticCacheProvider)
 			if err == nil {
 				if embedAdapter, ok := adapter.(providers.EmbedAdapter); ok {
+					var vectorAdapter storage.VectorAdapter
+					if cfg.SemanticCacheVectorStore == "lancedb" {
+						vectorAdapter = storage.NewLanceDBVectorAdapter()
+					}
+					
 					semanticCache = cache.NewSemanticCacheService(cache.SemanticCacheConfig{
 						Enabled:       true,
 						Threshold:     0.9,
 						MaxCandidates: 10,
 						TTL:           24 * time.Hour,
-					}, repo.SemanticCache(), embedAdapter)
+					}, repo.SemanticCache(), vectorAdapter, embedAdapter)
 				} else {
 					logger.Warn("semantic cache provider is not an embed adapter", "provider", cfg.SemanticCacheProvider)
 				}
