@@ -7,6 +7,7 @@ import (
 
 func TestConfigFallbackDefaults(t *testing.T) {
 	c1 := &Config{
+		ControlStateBackend: "disabled",
 		Providers: []ProviderConfig{{ID: "p1"}},
 	}
 	c1.FallbackEnabled = len(c1.Providers) > 1
@@ -15,6 +16,7 @@ func TestConfigFallbackDefaults(t *testing.T) {
 	}
 
 	c2 := &Config{
+		ControlStateBackend: "disabled",
 		Providers: []ProviderConfig{{ID: "p1"}, {ID: "p2"}},
 	}
 	c2.FallbackEnabled = len(c2.Providers) > 1
@@ -25,6 +27,7 @@ func TestConfigFallbackDefaults(t *testing.T) {
 
 func TestConfigValidationSuccess(t *testing.T) {
 	c := &Config{
+		ControlStateBackend: "disabled",
 		RoutingStrategy: "round-robin",
 		FallbackEnabled: true,
 		MaxAttempts:     2,
@@ -194,6 +197,7 @@ func TestConfigValidationFailures(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
+				ControlStateBackend: "disabled",
 				RoutingStrategy: "round-robin",
 				FallbackEnabled: true,
 				MaxAttempts:     2,
@@ -239,6 +243,7 @@ func TestSecretSafety(t *testing.T) {
 	// do not contain raw API keys, authorization header values, raw prompts, raw upstream bodies.
 
 	c := &Config{
+		ControlStateBackend: "disabled",
 		RoutingStrategy: "round-robin",
 		HealthCheck: HealthCheckConfig{
 			Interval:         "30s",

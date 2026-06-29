@@ -19,17 +19,7 @@ func NewMigrator(pool *pgxpool.Pool) controlstate.Migrator {
 
 func (m *Migrator) Migrate(ctx context.Context) error {
 	fs := controlstate.GetPostgreSQLMigrations()
-	data, err := fs.ReadFile("migrations/postgres/0001_control_state.sql")
-	if err != nil {
-		return fmt.Errorf("failed to read postgres migration: %w", err)
-	}
-
-	sqlStr := string(data)
-	upSQL := sqlStr
-	importIdx := strings.Index(sqlStr, "-- +goose Down")
-	if importIdx != -1 {
-		upSQL = sqlStr[:importIdx]
-	}
+	files := []string{"migrations/postgres/0001_control_state.sql", "migrations/postgres/0002_combos.sql"}
 
 	tx, err := m.pool.Begin(ctx)
 	if err != nil {
@@ -44,8 +34,20 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 	}
 
 	if !exists {
-		if _, err := tx.Exec(ctx, upSQL); err != nil {
-			return fmt.Errorf("failed to execute postgres migration: %w", err)
+		for _, file := range files {
+			data, err := fs.ReadFile(file)
+			if err != nil {
+				return err
+			}
+			sqlStr := string(data)
+			upSQL := sqlStr
+			importIdx := strings.Index(sqlStr, "-- +goose Down")
+			if importIdx != -1 {
+				upSQL = sqlStr[:importIdx]
+			}
+			if _, err := tx.Exec(ctx, upSQL); err != nil {
+				return fmt.Errorf("failed to execute postgres migration %s: %w", file, err)
+			}
 		}
 		if _, err := tx.Exec(ctx, "INSERT INTO schema_migrations (version, dirty) VALUES (1, false)"); err != nil {
 			return err

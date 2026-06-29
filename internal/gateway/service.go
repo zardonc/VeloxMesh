@@ -2,8 +2,8 @@ package gateway
 
 import (
 	"context"
-	"time"
 	"encoding/json"
+	"time"
 	"veloxmesh/internal/admission"
 	"veloxmesh/internal/cache"
 	"veloxmesh/internal/controlstate"
@@ -53,12 +53,17 @@ func (s *Service) settle(ctx context.Context, req *llm.LLMRequest, decision rout
 		return
 	}
 
+	model := req.Model
+	if decision.UpstreamModel != "" {
+		model = decision.UpstreamModel
+	}
+
 	record := &controlstate.UsageRecord{
-		ID:           req.RequestID,
-		ProviderID:   decision.ProviderID,
-		Model:        req.Model,
-		DurationMs:   latency.Milliseconds(),
-		Timestamp:    time.Now().UTC(),
+		ID:         req.RequestID,
+		ProviderID: decision.ProviderID,
+		Model:      model,
+		DurationMs: latency.Milliseconds(),
+		Timestamp:  time.Now().UTC(),
 	}
 
 	if usage != nil {
@@ -179,6 +184,19 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			return nil, err
 		}
 
+		if decision.IsFusion {
+			release, _, err := s.admission.Admit(ctx, req, decision)
+			if err != nil {
+				return nil, err
+			}
+			resp, err := s.executeFusion(ctx, req, decision)
+			release()
+			if err != nil {
+				return nil, err
+			}
+			return resp, nil
+		}
+
 		if !s.cb.Allow(decision.ProviderID) {
 			attempted[decision.ProviderID] = true
 			if req.RouteOverride != "" {
@@ -202,7 +220,11 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 		s.healthStore.BeginRequest(decision.ProviderID)
 		start := time.Now()
-		resp, err := adapter.Complete(ctx, req)
+		upstreamReq := *req
+		if decision.UpstreamModel != "" {
+			upstreamReq.Model = decision.UpstreamModel
+		}
+		resp, err := adapter.Complete(ctx, &upstreamReq)
 		latency := time.Since(start)
 
 		healthErr := err
@@ -253,6 +275,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 		release() // Release admission quickly
 		resp.Provider = decision.ProviderID
+		resp.Model = req.Model
 		resp.Strategy = decision.Strategy
 		resp.AttemptCount = attempts
 		resp.FallbackUsed = attempts > 1
@@ -330,6 +353,19 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 			return nil, nil, err
 		}
 
+		if decision.IsFusion {
+			release, _, err := s.admission.Admit(ctx, req, decision)
+			if err != nil {
+				return nil, nil, err
+			}
+			streamCh, respMeta, err := s.executeFusionStream(ctx, req, decision)
+			release()
+			if err != nil {
+				return nil, nil, err
+			}
+			return streamCh, respMeta, nil
+		}
+
 		streamAdapter, ok := adapter.(providers.StreamAdapter)
 		if !ok {
 			attempted[decision.ProviderID] = true
@@ -361,7 +397,11 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		s.healthStore.BeginRequest(decision.ProviderID)
 		start := time.Now()
 
-		ch, err := streamAdapter.Stream(ctx, req)
+		upstreamReq := *req
+		if decision.UpstreamModel != "" {
+			upstreamReq.Model = decision.UpstreamModel
+		}
+		ch, err := streamAdapter.Stream(ctx, &upstreamReq)
 
 		if err != nil {
 			latency := time.Since(start)

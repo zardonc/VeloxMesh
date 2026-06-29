@@ -299,11 +299,11 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 
 		for respStream.Next() {
 			event := respStream.Current()
-			
+
 			b, _ := json.Marshal(event)
 			var m map[string]any
 			_ = json.Unmarshal(b, &m)
-			
+
 			typ, _ := m["type"].(string)
 
 			switch typ {
@@ -316,14 +316,14 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 					}
 				}
 				ch <- llm.StreamEvent{Usage: &usage}
-			
+
 			case "content_block_start":
 				if block, ok := m["content_block"].(map[string]any); ok {
 					if bType, _ := block["type"].(string); bType == "tool_use" {
 						id, _ := block["id"].(string)
 						name, _ := block["name"].(string)
 						idx, _ := m["index"].(float64)
-						
+
 						idxInt := int(idx)
 						toolType := llm.ToolTypeFunction
 						ch <- llm.StreamEvent{
@@ -340,7 +340,7 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 						}
 					}
 				}
-			
+
 			case "content_block_delta":
 				if delta, ok := m["delta"].(map[string]any); ok {
 					dType, _ := delta["type"].(string)
@@ -365,7 +365,7 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 						}
 					}
 				}
-			
+
 			case "message_delta":
 				if delta, ok := m["delta"].(map[string]any); ok {
 					if stopR, ok := delta["stop_reason"].(string); ok {

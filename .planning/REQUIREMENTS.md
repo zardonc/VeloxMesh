@@ -17,8 +17,10 @@ Implement advanced LLM capabilities (Tool Calling, Multimodal), and introduce th
 - **Capability-Based Routing**: 
   - If a request includes specific requirements (e.g., multimodal input) that some models in the combo do not support, the gateway must automatically filter and route only to the models capable of handling the request.
 
-## Future / Long-Term Backlog
-- Phase 7: Observability & Telemetry (OpenTelemetry, Prometheus metrics, Tracing)
-- Phase 8: Multi-tenancy and Advanced Auth (API keys, Org-level quotas, Consumer management)
-- Phase 9: Admin Console UI (Frontend for the existing backend Admin APIs)
-- Long Term: User-configurable Pluggable Heuristic Rules System
+## Future / Long-Term Backlog (v7)
+- Phase 7: Adapter Interfaces & SQLite Foundation (v7 architecture refactor)
+- Phase 8: BFF Layer & Admin Console
+- Phase 9: Semantic Pipeline
+- Phase 10: Redis Stack Integration
+- Phase 11: Multi-Node Coordination
+- Phase 12: PostgreSQL Extension

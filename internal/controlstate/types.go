@@ -54,6 +54,33 @@ type ProviderFilter struct {
 	Search  string
 }
 
+type ComboRecord struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Enabled   bool      `json:"enabled"`
+	Strategy  string    `json:"strategy"` // round-robin, fusion, capacity-auto-switch
+	Members   []string  `json:"members"`
+	Judge     string    `json:"judge,omitempty"`
+	Revision  int64     `json:"revision"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type ComboMutation struct {
+	ID       string   `json:"id"`
+	Name     string   `json:"name"`
+	Enabled  bool     `json:"enabled"`
+	Strategy string   `json:"strategy"`
+	Members  []string `json:"members"`
+	Judge    *string  `json:"judge,omitempty"`
+	Revision *int64   `json:"revision,omitempty"`
+}
+
+type ComboFilter struct {
+	Enabled *bool
+	Search  string
+}
+
 type RoutingConfig struct {
 	ID              string    `json:"id"`
 	Strategy        string    `json:"strategy"`
@@ -158,4 +185,13 @@ type SemanticCacheEntry struct {
 	Enabled   bool      `json:"enabled"`
 	CreatedAt time.Time `json:"created_at"`
 	ExpiresAt time.Time `json:"expires_at"`
+}
+
+type FallbackLogRecord struct {
+	ID        string    `json:"id"`
+	Type      string    `json:"type"`
+	Payload   string    `json:"payload"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

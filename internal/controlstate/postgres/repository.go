@@ -128,6 +128,10 @@ func (r *Repository) Providers() controlstate.ProviderRepository {
 	return &providerRepo{pool: r.pool}
 }
 
+func (r *Repository) Combos() controlstate.ComboRepository {
+	return &comboRepo{pool: r.pool}
+}
+
 func (r *Repository) Routing() controlstate.RoutingRepository {
 	return &routingRepo{pool: r.pool}
 }
@@ -150,6 +154,10 @@ func (r *Repository) Audit() controlstate.AuditRepository {
 
 func (r *Repository) Idempotency() controlstate.IdempotencyRepository {
 	return &idempotencyRepo{pool: r.pool}
+}
+
+func (r *Repository) FallbackLog() controlstate.FallbackLogRepository {
+	return &fallbackLogRepo{pool: r.pool}
 }
 
 // -- providerRepo --
@@ -363,6 +371,145 @@ func (p *providerRepo) PutEncryptedSecret(ctx context.Context, id string, cipher
 			updated_at=NOW()`,
 		id, ciphertext, nonce, keyID,
 	)
+	return err
+}
+
+// -- comboRepo --
+
+type comboRepo struct{ pool *pgxpool.Pool }
+
+func (c *comboRepo) Get(ctx context.Context, id string) (*controlstate.ComboRecord, error) {
+	row := c.pool.QueryRow(ctx, `
+		SELECT id, name, enabled, strategy, members, judge, revision, created_at, updated_at
+		FROM combos
+		WHERE id = $1`, id)
+
+	rec := &controlstate.ComboRecord{}
+	var membersJSON *string
+	var judge *string
+
+	err := row.Scan(
+		&rec.ID, &rec.Name, &rec.Enabled, &rec.Strategy,
+		&membersJSON, &judge,
+		&rec.Revision, &rec.CreatedAt, &rec.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if membersJSON != nil {
+		_ = json.Unmarshal([]byte(*membersJSON), &rec.Members)
+	}
+	if judge != nil {
+		rec.Judge = *judge
+	}
+
+	return rec, nil
+}
+
+func (c *comboRepo) List(ctx context.Context, filter controlstate.ComboFilter) ([]*controlstate.ComboRecord, error) {
+	rows, err := c.pool.Query(ctx, `
+		SELECT id, name, enabled, strategy, members, judge, revision, created_at, updated_at
+		FROM combos
+		ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []*controlstate.ComboRecord
+	for rows.Next() {
+		rec := &controlstate.ComboRecord{}
+		var membersJSON *string
+		var judge *string
+
+		if err := rows.Scan(
+			&rec.ID, &rec.Name, &rec.Enabled, &rec.Strategy,
+			&membersJSON, &judge,
+			&rec.Revision, &rec.CreatedAt, &rec.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		if filter.Enabled != nil && rec.Enabled != *filter.Enabled {
+			continue
+		}
+		if filter.Search != "" {
+			if rec.Name != filter.Search && rec.ID != filter.Search {
+				continue
+			}
+		}
+
+		if membersJSON != nil {
+			_ = json.Unmarshal([]byte(*membersJSON), &rec.Members)
+		}
+		if judge != nil {
+			rec.Judge = *judge
+		}
+
+		result = append(result, rec)
+	}
+
+	return result, nil
+}
+
+func (c *comboRepo) Create(ctx context.Context, m *controlstate.ComboMutation) (*controlstate.ComboRecord, error) {
+	b, _ := json.Marshal(m.Members)
+	membersJSON := string(b)
+
+	var judge *string
+	if m.Judge != nil {
+		str := *m.Judge
+		judge = &str
+	}
+
+	_, err := c.pool.Exec(ctx, `
+		INSERT INTO combos (id, name, enabled, strategy, members, judge, revision, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, 1, NOW(), NOW())`,
+		m.ID, m.Name, m.Enabled, m.Strategy, membersJSON, judge,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return c.Get(ctx, m.ID)
+}
+
+func (c *comboRepo) Update(ctx context.Context, m *controlstate.ComboMutation) (*controlstate.ComboRecord, error) {
+	if m.Revision == nil {
+		return nil, errors.New("optimistic concurrency: missing revision")
+	}
+
+	b, _ := json.Marshal(m.Members)
+	membersJSON := string(b)
+
+	var judge *string
+	if m.Judge != nil {
+		str := *m.Judge
+		judge = &str
+	}
+
+	res, err := c.pool.Exec(ctx, `
+		UPDATE combos 
+		SET name = $1, enabled = $2, strategy = $3, members = $4, judge = $5, revision = revision + 1, updated_at = NOW()
+		WHERE id = $6 AND revision = $7`,
+		m.Name, m.Enabled, m.Strategy, membersJSON, judge,
+		m.ID, *m.Revision,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if res.RowsAffected() == 0 {
+		return nil, errors.New("optimistic concurrency conflict: record modified or not found")
+	}
+
+	return c.Get(ctx, m.ID)
+}
+
+func (c *comboRepo) Delete(ctx context.Context, id string) error {
+	_, err := c.pool.Exec(ctx, `DELETE FROM combos WHERE id = $1`, id)
 	return err
 }
 
@@ -697,5 +844,53 @@ func (s *semanticCacheRepo) RecordHit(ctx context.Context, id string) error {
 
 func (s *semanticCacheRepo) Disable(ctx context.Context, id string) error {
 	_, err := s.pool.Exec(ctx, `UPDATE semantic_cache_entries SET enabled = false WHERE id = $1`, id)
+	return err
+}
+
+type fallbackLogRepo struct{ pool *pgxpool.Pool }
+
+func (f *fallbackLogRepo) Insert(ctx context.Context, record *controlstate.FallbackLogRecord) error {
+	if record.CreatedAt.IsZero() {
+		record.CreatedAt = time.Now().UTC()
+	}
+	if record.UpdatedAt.IsZero() {
+		record.UpdatedAt = record.CreatedAt
+	}
+	_, err := f.pool.Exec(ctx, `
+		INSERT INTO fallback_log (id, type, payload, status, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)`,
+		record.ID, record.Type, record.Payload, record.Status, record.CreatedAt, record.UpdatedAt,
+	)
+	return err
+}
+
+func (f *fallbackLogRepo) ListPending(ctx context.Context, limit int) ([]*controlstate.FallbackLogRecord, error) {
+	rows, err := f.pool.Query(ctx, `
+		SELECT id, type, payload, status, created_at, updated_at
+		FROM fallback_log
+		WHERE status = 'pending'
+		ORDER BY created_at ASC
+		LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []*controlstate.FallbackLogRecord
+	for rows.Next() {
+		rec := &controlstate.FallbackLogRecord{}
+		if err := rows.Scan(&rec.ID, &rec.Type, &rec.Payload, &rec.Status, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+			return nil, err
+		}
+		results = append(results, rec)
+	}
+	return results, rows.Err()
+}
+
+func (f *fallbackLogRepo) UpdateStatus(ctx context.Context, id, status string) error {
+	_, err := f.pool.Exec(ctx, `
+		UPDATE fallback_log 
+		SET status = $1, updated_at = $2 
+		WHERE id = $3`, status, time.Now().UTC(), id)
 	return err
 }

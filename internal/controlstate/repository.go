@@ -9,6 +9,7 @@ var ErrRoutingConfigNotFound = errors.New("routing config not found")
 
 type Repository interface {
 	Providers() ProviderRepository
+	Combos() ComboRepository
 	Routing() RoutingRepository
 	APIKeys() APIKeyRepository
 	Rates() RateRepository
@@ -16,6 +17,7 @@ type Repository interface {
 	Audit() AuditRepository
 	Idempotency() IdempotencyRepository
 	SemanticCache() SemanticCacheRepository
+	FallbackLog() FallbackLogRepository
 	BeginTx(ctx context.Context) (Transaction, error)
 	Settle(ctx context.Context, usage *UsageRecord) error
 	Close() error
@@ -34,6 +36,14 @@ type ProviderRepository interface {
 	Delete(ctx context.Context, id string) error
 	GetEncryptedSecret(ctx context.Context, id string) ([]byte, []byte, string, error) // Returns ciphertext, nonce, key_id
 	PutEncryptedSecret(ctx context.Context, id string, ciphertext, nonce []byte, keyID string) error
+}
+
+type ComboRepository interface {
+	Get(ctx context.Context, id string) (*ComboRecord, error)
+	List(ctx context.Context, filter ComboFilter) ([]*ComboRecord, error)
+	Create(ctx context.Context, c *ComboMutation) (*ComboRecord, error)
+	Update(ctx context.Context, c *ComboMutation) (*ComboRecord, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type RoutingRepository interface {
@@ -79,4 +89,10 @@ type SemanticCacheRepository interface {
 	ListCandidates(ctx context.Context, scope, model string) ([]*SemanticCacheEntry, error)
 	RecordHit(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
+}
+
+type FallbackLogRepository interface {
+	Insert(ctx context.Context, record *FallbackLogRecord) error
+	ListPending(ctx context.Context, limit int) ([]*FallbackLogRecord, error)
+	UpdateStatus(ctx context.Context, id, status string) error
 }

@@ -17,11 +17,13 @@ import (
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/hotstate"
 	router "veloxmesh/internal/http"
+	"veloxmesh/internal/http/handlers"
 	"veloxmesh/internal/observability"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/providers/anthropic"
 	"veloxmesh/internal/providers/gemini"
 	"veloxmesh/internal/providers/openai"
+	"veloxmesh/internal/storage"
 )
 
 type App struct {
@@ -140,12 +142,33 @@ func New() (*App, error) {
 			adapter, err := snapshot.Registry.Get(cfg.SemanticCacheProvider)
 			if err == nil {
 				if embedAdapter, ok := adapter.(providers.EmbedAdapter); ok {
+					var vectorAdapter storage.VectorAdapter
+					if cfg.SemanticCacheVectorStore == "lancedb" {
+						lancedbAdapter, err := storage.NewLanceDBVectorAdapter("data/lancedb")
+						if err != nil {
+							logger.Warn("failed to initialize LanceDB (Plan 3 Edge only); vector capabilities degraded", "error", err)
+							vectorAdapter = storage.NewDegradedVectorAdapter()
+						} else {
+							vectorAdapter = lancedbAdapter
+						}
+					} else if cfg.SemanticCacheVectorStore == "qdrant" {
+						qdrantAdapter, err := storage.NewQdrantVectorAdapter(cfg.QdrantAddr, cfg.QdrantAPIKey)
+						if err != nil {
+							logger.Warn("failed to initialize Qdrant; vector capabilities degraded", "error", err)
+							vectorAdapter = storage.NewDegradedVectorAdapter()
+						} else {
+							vectorAdapter = qdrantAdapter
+						}
+					} else {
+						vectorAdapter = storage.NewNoopVectorAdapter()
+					}
+					
 					semanticCache = cache.NewSemanticCacheService(cache.SemanticCacheConfig{
 						Enabled:       true,
 						Threshold:     0.9,
 						MaxCandidates: 10,
 						TTL:           24 * time.Hour,
-					}, repo.SemanticCache(), embedAdapter)
+					}, repo.SemanticCache(), vectorAdapter, embedAdapter)
 				} else {
 					logger.Warn("semantic cache provider is not an embed adapter", "provider", cfg.SemanticCacheProvider)
 				}
@@ -157,9 +180,19 @@ func New() (*App, error) {
 		}
 	}
 
+	var adminProvHandler *handlers.AdminProvidersHandler
+	var adminCombosHandler *handlers.AdminCombosHandler
+	if repo != nil {
+		adminSvc := controlstate.NewAdminProviderService(repo, cipher, m, hotStateClient)
+		adminProvHandler = handlers.NewAdminProvidersHandler(adminSvc)
+
+		adminComboSvc := controlstate.NewAdminComboService(repo, m, cipher, hotStateClient)
+		adminCombosHandler = handlers.NewAdminCombosHandler(adminComboSvc)
+	}
+
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache)
 
-	r := router.NewRouter(cfg, gatewaySvc, nil, hotStateClient, repo)
+	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, hotStateClient, repo)
 
 	application := &App{
 		Config:                 cfg,
@@ -219,7 +252,25 @@ func (a *App) ReloadProviders(ctx context.Context, repo controlstate.Repository,
 		secrets[r.ID] = string(decrypted)
 	}
 
-	return a.RuntimeProviderManager.ActivateDurable(ctx, records, secrets, rCfg, nil)
+	var combos []providers.Combo
+	if repo.Combos() != nil {
+		enabled := true
+		comboRecords, err := repo.Combos().List(ctx, controlstate.ComboFilter{Enabled: &enabled})
+		if err != nil {
+			return fmt.Errorf("failed to load combos: %w", err)
+		}
+		for _, rec := range comboRecords {
+			combos = append(combos, providers.Combo{
+				ID:       rec.ID,
+				Name:     rec.Name,
+				Strategy: rec.Strategy,
+				Members:  rec.Members,
+				Judge:    rec.Judge,
+			})
+		}
+	}
+
+	return a.RuntimeProviderManager.ActivateDurable(ctx, records, secrets, rCfg, combos, nil)
 }
 
 func (a *App) StartConfigChangeSubscriber(ctx context.Context, repo controlstate.Repository, cipher controlstate.SecretCipher) error {

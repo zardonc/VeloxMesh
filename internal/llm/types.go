@@ -75,7 +75,6 @@ type FunctionCallChunk struct {
 	Arguments *string `json:"arguments,omitempty"`
 }
 
-
 type ChatCompletionRequest struct {
 	Model       string    `json:"model"`
 	Messages    []Message `json:"messages"`

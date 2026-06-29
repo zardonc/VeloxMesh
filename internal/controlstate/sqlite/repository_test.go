@@ -2,10 +2,35 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 	"veloxmesh/internal/controlstate"
 )
+
+func TestOpenConfiguresSQLitePragmas(t *testing.T) {
+	dsn := "file:pragma-test?mode=memory&cache=shared"
+	repo, err := Open(dsn)
+	if err != nil {
+		t.Fatalf("Failed to open sqlite: %v", err)
+	}
+	defer repo.Close()
+
+	checkPragma(t, repo.db, "foreign_keys", "1")
+	checkPragma(t, repo.db, "busy_timeout", "5000")
+	checkPragma(t, repo.db, "synchronous", "1")
+}
+
+func checkPragma(t *testing.T, db *sql.DB, name, expected string) {
+	t.Helper()
+	var got string
+	if err := db.QueryRow("PRAGMA " + name).Scan(&got); err != nil {
+		t.Fatalf("Failed to read pragma %s: %v", name, err)
+	}
+	if got != expected {
+		t.Fatalf("Expected pragma %s=%s, got %s", name, expected, got)
+	}
+}
 
 func TestSQLiteRepository(t *testing.T) {
 	dsn := "file::memory:?cache=shared"
@@ -272,13 +297,13 @@ func TestSQLiteSemanticCache(t *testing.T) {
 	cacheRepo := repo.SemanticCache()
 
 	entry := &controlstate.SemanticCacheEntry{
-		ID:       "sc-1",
-		Scope:    "hash123",
-		Model:    "gpt-4",
-		Vector:   []byte{0x01, 0x02, 0x03},
-		Response: `{"choices": []}`,
-		Enabled:  true,
-		HitCount: 0,
+		ID:        "sc-1",
+		Scope:     "hash123",
+		Model:     "gpt-4",
+		Vector:    []byte{0x01, 0x02, 0x03},
+		Response:  `{"choices": []}`,
+		Enabled:   true,
+		HitCount:  0,
 		ExpiresAt: time.Now().Add(1 * time.Hour).UTC(),
 	}
 
@@ -314,5 +339,50 @@ func TestSQLiteSemanticCache(t *testing.T) {
 	}
 	if len(candidates) != 0 {
 		t.Errorf("Expected 0 candidates after disable, got %d", len(candidates))
+	}
+}
+
+func TestSQLiteFallbackLog(t *testing.T) {
+	dsn := "file::memory:?cache=shared"
+	repo, err := Open(dsn)
+	if err != nil {
+		t.Fatalf("Failed to open sqlite: %v", err)
+	}
+	defer repo.Close()
+
+	ctx := context.Background()
+	migrator := NewMigrator(repo.db)
+	if err := migrator.Migrate(ctx); err != nil {
+		t.Fatalf("Migration failed: %v", err)
+	}
+
+	record := &controlstate.FallbackLogRecord{
+		ID:      "log-1",
+		Payload: `{"key": "value"}`,
+		Status:  "pending",
+	}
+
+	if err := repo.FallbackLog().Insert(ctx, record); err != nil {
+		t.Fatalf("Insert failed: %v", err)
+	}
+
+	pending, err := repo.FallbackLog().ListPending(ctx, 10)
+	if err != nil {
+		t.Fatalf("ListPending failed: %v", err)
+	}
+	if len(pending) != 1 {
+		t.Fatalf("Expected 1 pending record, got %d", len(pending))
+	}
+	if pending[0].ID != "log-1" {
+		t.Errorf("Expected ID 'log-1', got %s", pending[0].ID)
+	}
+
+	if err := repo.FallbackLog().UpdateStatus(ctx, "log-1", "processed"); err != nil {
+		t.Fatalf("UpdateStatus failed: %v", err)
+	}
+
+	pending, _ = repo.FallbackLog().ListPending(ctx, 10)
+	if len(pending) != 0 {
+		t.Fatalf("Expected 0 pending records after update, got %d", len(pending))
 	}
 }
