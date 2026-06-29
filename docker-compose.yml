@@ -9,6 +9,19 @@ services:
       - redisdata:/data
     restart: unless-stopped
 
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: veloxmesh_redisinsight
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+    volumes:
+      - redisinsightdata:/data
+    restart: unless-stopped
+
 volumes:
   redisdata:
     name: veloxmesh_redis_stack_data
+  redisinsightdata:
+    name: veloxmesh_redisinsight_data
