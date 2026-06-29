@@ -1,82 +1,62 @@
 ---
 gsd_state_version: 1.0
-milestone: v5.0
-milestone_name: milestone
-status: executing
-last_updated: "2026-06-25T03:51:13.791Z"
-last_activity: 2026-06-25 -- Phase 06 execution started
+milestone: v7.0
+milestone_name: Architecture Refactor & New Capabilities
+status: planning
+last_updated: "2026-06-29T17:11:00.000Z"
+last_activity: 2026-06-29 -- v5 shipped
 progress:
-  total_phases: 1
+  total_phases: 6
   completed_phases: 0
-  total_plans: 1
+  total_plans: 0
   completed_plans: 0
   percent: 0
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-15)
+See: `.planning/PROJECT.md` (updated 2026-06-29)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 06 — model-combo-feature-rr-fusion-capability-based-routing
+**Current focus:** Phase 7 — Adapter Interfaces & SQLite Foundation
 
 ## Current Implementation State
 
 - Phase 1 gateway walking skeleton is implemented and verified.
-- Phase 2.1 health-aware multi-provider routing has been planned and implemented in source.
-- Phase 2.2 Go baseline verification is complete.
-- Phase 2.3 native Anthropic and Gemini adapters are present.
-- Phase 2.4 provider reliability/error taxonomy has been planned and verified.
-- Phase 2.5 retry/fallback execution is complete and verified 12/12.
-- Phase 2.6 active provider health probing and recovery is complete and verified 15/15.
-- Phase 2.7 provider adapter capability contract is implemented and validated.
-- Phase 2.8 provider configuration schema and secret-safe validation is implemented and UAT verified.
-- Phase 2.9 provider model catalog and routing eligibility is implemented, UAT verified, and security verified.
-- Phase 2.10 adapter conformance test harness is implemented, UAT verified, and security verified.
-- Phase 3 durable control state is implemented and UAT verified across 7/7 plans.
-- Durable provider configuration now supports PostgreSQL/SQLite repositories, encrypted provider secrets, Admin provider CRUD, runtime provider reload without restart, provider test-connection, idempotency, audit events, optional Redis health/probe hot state, auth-cache hot state, and Redis config-change pub/sub notifications.
-- Static JSON multi-provider config remains as a compatibility/local-development seed path only. Durable provider configuration is now the intended provider source of truth.
+- Phase 2 health-aware multi-provider routing has been planned and implemented in source.
+- Phase 3 durable control state is implemented and UAT verified.
+- Phase 4 streaming, rate limits, cache, and cost are implemented.
+- Phase 5 tool/function calling and multimodal capabilities are implemented and verified.
+- Phase 6 model combo feature (RR, fusion, capability-based routing) is implemented and verified.
+- The new v2.0 Architecture (SQLite + LanceDB + optional Redis Stack) is ready to be fully realized in Phase 7.
 
 ## Completed
 
 - Phase 1: Gateway Walking Skeleton.
-- Phase 2.1: Health-Aware Multi-Provider Routing.
-- Phase 2.2: Go Version Baseline for Official Provider SDKs.
-- Phase 2.3: Native Anthropic and Gemini Provider Adapters.
-- Phase 2.4: Provider Reliability and Error Contract.
-- Phase 2.5: Provider Retry and Fallback Execution.
-- Phase 2.6: Active Provider Health Probing and Recovery.
-- Phase 2.7: Provider Adapter Capability Contract.
-- Phase 2.8: Provider Configuration Schema and Secret-Safe Validation.
-- Phase 2.9: Provider Model Catalog and Routing Eligibility.
-- Phase 2.10: Adapter Conformance Test Harness.
-- Phase 3.1: Durable control-state contracts, schema migrations, validation, and encrypted provider secrets.
-- Phase 3.2: PostgreSQL/SQLite repositories, backend config, and local-dev static seed semantics.
-- Phase 3.3: Runtime provider loading, actionable missing-config errors, disabled-provider filtering, and reload without restart.
-- Phase 3.4: Versioned Admin provider CRUD API, dedicated admin bearer auth, transactional runtime activation, and redacted DTOs.
-- Phase 3.5: Provider test-connection action, idempotency keys, audit events, and audit retention.
-- Phase 3.6: Optional Redis health/probe hot state, data-plane auth cache, namespace/TTL handling, and local degradation.
-- Phase 3.7: Redis config-change pub/sub notifications and no-Redis consistency documentation.
+- Phase 2: Health-Aware Multi-Provider Routing.
+- Phase 3: Durable Control State.
+- Phase 4: Streaming, Rate Limits, Cache, and Cost.
+- Phase 5: Tool/Function Calling and Multimodal capabilities.
+- Phase 6: Model Combo Feature (RR, Fusion, capability-based routing).
 
 ## Planned Next
 
-1. Complete Phase 5: Tool/Function Calling and Multimodal capabilities.
-2. Architect plugin points for future heuristic rules during Phase 5/6.
-3. Complete Phase 6: Model Combo Feature (RR, Fusion, capability-based routing).
+1. Complete Phase 7: Adapter Interfaces & SQLite Foundation.
+2. Complete Phase 8: BFF Layer & Admin Console.
 
 ## Useful Commands
 
-- `$gsd-plan-phase 5` - plan tool calling and multimodal support.
+- `$gsd-plan-phase 7` - plan Adapter Interfaces & SQLite Foundation.
 - `go test ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 06 (model-combo-feature-rr-fusion-capability-based-routing) — EXECUTING
-Plan: 1 of 1
-Status: Executing Phase 06
-Last activity: 2026-06-25 -- Phase 06 execution started
+Phase: 07 (Adapter Interfaces & SQLite Foundation) — PLANNING
+Plan: 0
+Status: Planning Phase 07
+Last activity: 2026-06-29 -- v5 shipped
 
 ## Operator Next Steps
 
-- Execute `/gsd-plan-phase 5` to begin Phase 5.
+- Execute `/gsd-plan-phase 7` to begin Phase 7.

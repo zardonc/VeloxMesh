@@ -13,7 +13,7 @@ The architecture has been redesigned (v2.0) to use **SQLite + LanceDB + optional
 ## Milestones
 
 - 🚧 **v7** — Phases 7-12: Architecture Refactor & New Capabilities (planning)
-- 🚧 **v5** — Phases 5-6 (in progress)
+- ✅ **v5** — Phases 5-6 (shipped 2026-06-29)
 - ✅ **v4** — Phases 1-4 (shipped 2026-06-23)
 
 ## Deployment Tiers
@@ -129,11 +129,11 @@ Key deliverables:
 
 </details>
 
-<details open>
-<summary>🚧 v5 (Phases 5-6) — IN PROGRESS</summary>
+<details>
+<summary>✅ v5 (Phases 5-6) — SHIPPED 2026-06-29</summary>
 
 - [x] Phase 5: Tool/Function Calling and Multimodal capabilities
-- [ ] Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
+- [x] Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
 
 ### Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
 
@@ -144,7 +144,7 @@ Key deliverables:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 06-01 Persistent Combo Models and Routing
+- [x] 06-01 Persistent Combo Models and Routing
 
 </details>
 
