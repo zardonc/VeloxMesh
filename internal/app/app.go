@@ -144,7 +144,11 @@ func New() (*App, error) {
 				if embedAdapter, ok := adapter.(providers.EmbedAdapter); ok {
 					var vectorAdapter storage.VectorAdapter
 					if cfg.SemanticCacheVectorStore == "lancedb" {
-						vectorAdapter = storage.NewLanceDBVectorAdapter()
+						lancedbAdapter, err := storage.NewLanceDBVectorAdapter("data/lancedb")
+						if err != nil {
+							return nil, fmt.Errorf("failed to initialize LanceDB: %w", err)
+						}
+						vectorAdapter = lancedbAdapter
 					}
 					
 					semanticCache = cache.NewSemanticCacheService(cache.SemanticCacheConfig{

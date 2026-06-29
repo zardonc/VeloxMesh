@@ -31,3 +31,8 @@ OPENCODE.jsonc
 
 # Local Test Configs
 tests/config.json
+
+# LanceDB Native Binaries
+/lib/
+/include/
+lancedb-native.tar.gz
