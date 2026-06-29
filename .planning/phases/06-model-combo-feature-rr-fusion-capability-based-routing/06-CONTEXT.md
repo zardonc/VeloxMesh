@@ -17,7 +17,7 @@ Implement persistent model combos for the AI gateway. A combo is a saved gateway
 - **D-01:** Combos must be persisted as durable gateway configuration, not just static config.
 - **D-02:** Backend/admin configuration owns combo definition. For client requests, a combo appears as a new model name.
 - **D-03:** The gateway automatically dispatches combo requests to target providers according to the configured algorithm.
-- **D-16:** After the architecture v2.0 refactor, combo persistence and runtime loading are SQLite-first. PostgreSQL support is retained only as a later adapter/extension path under Phase 12.
+- **D-16:** After the architecture v2.1 refactor, combo persistence and runtime loading are SQLite-first. PostgreSQL support is retained only as a later adapter/extension path under Phase 12.
 
 ### Combo-as-Model Contract
 - **D-04:** `/v1/models` must include combo names as available models alongside provider-backed models.
@@ -56,8 +56,8 @@ Implement persistent model combos for the AI gateway. A combo is a saved gateway
 - `.planning/REQUIREMENTS.md` — milestone v5 requirements and Phase 6 combo requirements.
 - `.planning/ROADMAP.md` — Phase 6 goal, dependency on Phase 5, and milestone context.
 - `.planning/phases/05-tool-function-multimodal/05-CONTEXT.md` — Phase 5 decisions for tool/multimodal behavior and future rules pipeline.
-- `Agent-gateway/gateway-refactor-design.md` — updated SQLite + LanceDB + optional Redis Stack refactor direction.
-- `Agent-gateway/gateway-architecture.md` — merged architecture v2.0; downstream planning must treat it as the current source of truth.
+- `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\gateway-refactor-design.md` — updated SQLite + Redis Stack + Qdrant refactor direction.
+- `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\gateway-architecture.md` — merged architecture v2.1; downstream planning must treat it as the current source of truth.
 
 ### Existing Code
 - `internal/routing/router.go` — current health-aware router, round-robin, least-latency, provider eligibility, and provider capability exposure.
@@ -86,8 +86,8 @@ Implement persistent model combos for the AI gateway. A combo is a saved gateway
 
 ### Architecture Conflict Audit
 - The audit scope is system-wide, not limited to Phase 06. Check startup wiring, durable storage, routing/gateway, Admin APIs, deployment defaults, README/project docs, and legacy architecture artifacts before continuing new feature work.
-- SQLite connection setup must follow architecture v2.0 pragmas (`foreign_keys`, WAL mode, busy timeout, and normal synchronous mode) because it is now the primary durable control-state path.
-- Default deployment and developer-facing docs must not present PostgreSQL/pgvector as required middleware. Redis Stack is optional; SQLite/LanceDB are the Plan 1 baseline.
+- SQLite connection setup must follow architecture v2.1 pragmas (`foreign_keys`, WAL mode, busy timeout, and normal synchronous mode) because it is now the primary durable control-state path.
+- Default deployment and developer-facing docs must not present PostgreSQL/pgvector or LanceDB as required middleware. Redis Stack and Qdrant are the Plan 1/2 baseline; LanceDB is Plan 3 edge-only.
 - Existing PostgreSQL code may remain when non-conflicting, but any new default path, test plan, or roadmap item should treat it as Phase 12 extension work.
 
 ### Integration Points

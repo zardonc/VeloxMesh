@@ -2,13 +2,13 @@
 
 **Created:** 2026-06-15
 **Mode:** brownfield retrospective initialization
-**Current focus:** Architecture refactor — SQLite + LanceDB + Redis Stack
+**Current focus:** Architecture refactor — SQLite + Redis Stack + Qdrant
 
 ## Overview
 
 VeloxMesh is being built as vertical gateway slices. Phases 1-4 established the runnable Go/Chi OpenAI-compatible data-plane skeleton with provider adapters, durable control state, streaming, rate limits, caching, and cost governance. Phase 5 added tool/function calling and multimodal capabilities.
 
-The architecture has been redesigned (v2.0) to use **SQLite + LanceDB + optional Redis Stack**, replacing the previous PostgreSQL + pgvector design. The new architecture supports a 4-tier deployment progression: single-node lite → single-node enhanced → multi-node → PostgreSQL extension.
+The architecture has been redesigned (v2.1) to use **SQLite + Redis Stack + Qdrant** for the main Plans 1/2 path. Qdrant replaces LanceDB as the primary vector store and semantic-cache backend. LanceDB is retained only as a Plan 3 edge-only option behind a build tag, while PostgreSQL + pgvector remains a Plan 4 extension.
 
 ## Milestones
 
@@ -22,9 +22,9 @@ The gateway supports progressive deployment tiers, each adding capability withou
 
 | Tier | Components | Priority | Status |
 |---|---|---|---|
-| **Plan 1**: Standalone Lite | App + SQLite + LanceDB (optional) | P0 | Planning |
-| **Plan 2**: Standalone Enhanced | App + Redis Stack + SQLite + LanceDB | P1 | Planning |
-| **Plan 3**: Multi-Node | Multi App + Redis Stack + SQLite + LanceDB | P2 | Planning |
+| **Plan 1**: Standalone Enhanced | App + Redis Stack + SQLite + Qdrant | P0 | Planning |
+| **Plan 2**: Multi-Node | Multi App + Redis Stack + SQLite + Qdrant | P1 | Planning |
+| **Plan 3**: Edge | App + SQLite + LanceDB (`-tags lancedb`, Linux/macOS only) | P3 | Future |
 | **Plan 4**: Extension | App + Redis Stack + PostgreSQL + pgvector | P3 | Future |
 
 ## Phases
@@ -35,13 +35,13 @@ The gateway supports progressive deployment tiers, each adding capability withou
 - [ ] Phase 7: Adapter Interfaces & SQLite Foundation (Plan 1 core)
 - [ ] Phase 8: BFF Layer & Admin Console (JWT + Role-based access)
 - [ ] Phase 9: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
-- [ ] Phase 10: Redis Stack Integration (Plan 2)
-- [ ] Phase 11: Multi-Node Coordination (Plan 3)
+- [ ] Phase 10: Redis Stack + Qdrant Fallback Integration (Plan 1 hardening)
+- [ ] Phase 11: Multi-Node Coordination (Plan 2)
 - [ ] Phase 12: PostgreSQL Extension (Plan 4, low priority)
 
 ### Phase 7: Adapter Interfaces & SQLite Foundation
 
-**Goal:** Replace PostgreSQL with SQLite as the primary data store. Define and implement all adapter interfaces (CacheAdapter, CoordAdapter, DBAdapter, VectorAdapter) with SQLite and in-memory implementations. Migrate existing schema to SQLite with WAL mode.
+**Goal:** Make the v2.1 Plan 1 runtime explicit: SQLite as authoritative relational state, Redis Stack for hot cache/rate/config coordination, Qdrant as the primary vector and semantic-cache store, and narrow adapters for future LanceDB/pgvector extensions. LanceDB is not a Phase 7 mainline implementation.
 **Priority:** P0
 **Depends on:** Phase 6
 
@@ -50,9 +50,10 @@ Key deliverables:
 - CacheAdapter interface + MemoryCacheAdapter implementation
 - CoordAdapter interface + NoopCoordAdapter implementation
 - DBAdapter interface + SQLiteDBAdapter implementation
-- VectorAdapter interface + LanceDBVectorAdapter implementation
+- VectorAdapter interface + QdrantVectorAdapter planning/implementation path
+- Degraded/Noop vector behavior so Qdrant failures do not block core LLM proxying
 - Data Access Layer (DAL) with repository pattern
-- Fallback log table for disaster recovery
+- Fallback log table for disaster recovery, including `VECTOR` replay records
 - Config hot-reload via in-memory TTL cache
 
 ### Phase 8: BFF Layer & Admin Console
@@ -85,13 +86,13 @@ Key deliverables:
 
 ### Phase 10: Redis Stack Integration
 
-**Goal:** Integrate Redis Stack for hot caching, vector similarity search (VSS), atomic rate limiting, Pub/Sub config reload, and token cost aggregation. All features must gracefully degrade when Redis is unavailable.
+**Goal:** Integrate Redis Stack for hot caching, atomic rate limiting, Pub/Sub config reload, token cost aggregation, and optional Redis VSS fallback when Qdrant is degraded or slow. Redis VSS is not the default vector path.
 **Priority:** P1
 **Depends on:** Phase 7
 
 Key deliverables:
 - RedisCacheAdapter implementation
-- Redis VSS hot cache for vector data (hot-cold tiering)
+- Redis VSS fallback for vector data, default off and auto-enabled only by Qdrant degradation policy
 - Atomic rate limiting via Redis INCR (replacing memory counters)
 - Config Pub/Sub hot-reload
 - Token cost aggregation buffer (Redis HINCR → batch SQLite flush)
@@ -100,15 +101,15 @@ Key deliverables:
 
 ### Phase 11: Multi-Node Coordination
 
-**Goal:** Enable multi-node deployment with leader election, WAL-based replication, fencing, and disaster recovery.
+**Goal:** Enable v2.1 Plan 2 multi-node deployment with leader election, SQLite-only WAL replication, SQLite-write fencing, and disaster recovery. Vector sync is removed because Qdrant owns vector storage and replication.
 **Priority:** P2
 **Depends on:** Phase 10
 
 Key deliverables:
 - RedisCoordAdapter implementation
 - Leader election (Redis SET NX + TTL 10s + heartbeat 3s)
-- WAL Stream (Redis Stream Consumer Group) for master→replica sync
-- Fencing mechanism (check lock holder before writes)
+- WAL Stream (Redis Stream Consumer Group) for master→replica SQLite relational sync only
+- Fencing mechanism for SQLite writes only
 - Node registration and health endpoint (/health with role, wal_lag)
 - BFF cluster topology awareness (read/write routing)
 - Fallback log + Recovery Worker
@@ -140,7 +141,7 @@ Key deliverables:
 **Goal:** Add user-defined combo models that can route through multiple provider models using round-robin, fusion, and capability-aware filtering.
 **Requirements**: Phase 6 Model Combo Feature
 **Depends on:** Phase 5
-**Architecture note:** Keep completed combo functionality where it fits, but align persistence/runtime loading with architecture v2.0: SQLite-first, Redis optional for hot-state, PostgreSQL deferred to Phase 12 adapter extension.
+**Architecture note:** Keep completed combo functionality where it fits, but align persistence/runtime loading with architecture v2.1: SQLite relational state, Redis hot-state where configured, Qdrant for vector/semantic-cache features, and PostgreSQL deferred to Phase 12 adapter extension.
 **Plans:** 1 plan
 
 Plans:
@@ -170,15 +171,15 @@ Plans:
 ## Gateway Runtime Modes
 
 VeloxMesh supports progressive deployment tiers:
-- **Plan 1 (Lite)**: SQLite + LanceDB (optional) — no external dependencies. Suitable for personal, edge, and low-concurrency deployments.
-- **Plan 2 (Enhanced)**: SQLite + LanceDB + Redis Stack — adds hot caching, vector VSS, atomic rate limiting, Pub/Sub config reload. Single-node production.
-- **Plan 3 (Multi-Node)**: Same as Plan 2 with leader election, WAL replication, and fencing. High availability.
-- **Plan 4 (Extension)**: PostgreSQL + pgvector replaces SQLite + LanceDB. Enterprise scale with concurrent writes and vector+relational JOINs.
+- **Plan 1 (Standalone Enhanced)**: SQLite + Redis Stack + Qdrant. This is the P0 mainline: single-node production with durable relational state, hot cache/rate/config coordination, and Qdrant semantic cache.
+- **Plan 2 (Multi-Node)**: Multi App + Redis Stack + SQLite + Qdrant. Redis coordinates cluster state and SQLite WAL replication; Qdrant handles vector storage independently.
+- **Plan 3 (Edge)**: SQLite + LanceDB behind `-tags lancedb`, Linux/macOS only, P3. Useful for zero-external-dependency edge deployments, but not the default path.
+- **Plan 4 (Extension)**: PostgreSQL + pgvector. Enterprise scale with concurrent writes and vector+relational JOINs.
 
 ## Notes
 
 - Phase 4 is complete.
-- Architecture v2.0 replaces PostgreSQL + pgvector with SQLite + LanceDB + optional Redis Stack.
+- Architecture v2.1 replaces the v2.0 LanceDB mainline with Qdrant for Plans 1/2. LanceDB remains only for Plan 3 edge builds.
 - All storage access goes through adapter interfaces; switching backends requires only adapter implementation swap.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
 - **Rule**: Source code committed to git must not contain any hardcoded configuration information. Configuration must only be obtained from local environment variables, configuration files, or the database.
@@ -189,10 +190,11 @@ The local development environment has been verified and configured. The followin
 
 - **Infrastructure**:
   - SQLite (embedded, data directory)
-  - Redis Stack (optional, for Plan 2+ features)
-  - LanceDB (embedded, vector store)
+  - Redis Stack (Plan 1/2 hot cache, rate limiting, Pub/Sub, and coordination)
+  - Qdrant (Plan 1/2 vector store and semantic cache)
+  - LanceDB (Plan 3 edge-only, build-tag isolated)
 - **LLM Providers**:
   - `sans` (SANS Primary, with multiple models configured)
 
 ---
-*Roadmap refreshed: 2026-06-29 after architecture v2.0 refactor (SQLite + LanceDB + Redis Stack)*
+*Roadmap refreshed: 2026-06-29 after architecture v2.1 refactor (SQLite + Redis Stack + Qdrant)*
