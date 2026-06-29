@@ -46,6 +46,10 @@ func (r *Repository) Close() error {
 	return r.db.Close()
 }
 
+func (r *Repository) Migrate(ctx context.Context) error {
+	return NewMigrator(r.db).Migrate(ctx)
+}
+
 func (r *Repository) BeginTx(ctx context.Context) (controlstate.Transaction, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {

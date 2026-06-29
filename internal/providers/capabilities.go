@@ -21,7 +21,10 @@ const (
 type Modality string
 
 const (
-	ModalityText Modality = "text"
+	ModalityText  Modality = "text"
+	ModalityImage Modality = "image"
+	ModalityPDF   Modality = "pdf"
+	ModalityAudio Modality = "audio"
 )
 
 // GenerationParameter represents a supported parameter for generation.
@@ -83,4 +86,28 @@ func (c CapabilitySet) SupportsOperation(op Operation) bool {
 		}
 	}
 	return false
+}
+
+// SatisfiesRequirements checks if the capability set satisfies the given requirements.
+// Currently checks Streaming, ToolCalling, and InputModalities based on the provided booleans.
+func (c CapabilitySet) SatisfiesRequirements(requiresStream, requiresTools, requiresImage bool) bool {
+	if requiresStream && !c.Streaming {
+		return false
+	}
+	if requiresTools && !c.ToolCalling {
+		return false
+	}
+	if requiresImage {
+		found := false
+		for _, m := range c.InputModalities {
+			if m == ModalityImage {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
 }
