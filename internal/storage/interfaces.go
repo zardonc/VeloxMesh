@@ -26,10 +26,12 @@ type DBAdapter interface {
 	Close() error
 }
 
-// VectorAdapter defines the interface for vector similarity search (e.g., LanceDB).
+// VectorAdapter defines the interface for vector similarity search.
 type VectorAdapter interface {
+	Ping(ctx context.Context) error
 	Insert(ctx context.Context, collection string, vectors [][]float32, metadata []map[string]interface{}) error
 	Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error)
+	Delete(ctx context.Context, collection string, filter map[string]interface{}) error
 }
 
 // SemanticCacheAdapter defines the interface for semantic caching operations.

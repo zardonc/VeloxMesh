@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -146,3 +147,18 @@ func (q *QdrantVectorAdapter) Search(ctx context.Context, collection string, que
 
 	return mappedResults, nil
 }
+
+func (q *QdrantVectorAdapter) Ping(ctx context.Context) error {
+	_, err := q.client.HealthCheck(ctx)
+	if err != nil {
+		return fmt.Errorf("qdrant ping failed: %w", err)
+	}
+	return nil
+}
+
+func (q *QdrantVectorAdapter) Delete(ctx context.Context, collection string, filter map[string]interface{}) error {
+	// A real implementation would convert the map to a Qdrant filter
+	// For Phase 7, we provide the seam implementation.
+	return errors.New("delete not implemented for qdrant yet")
+}
+

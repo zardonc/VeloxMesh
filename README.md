@@ -123,9 +123,15 @@ When starting the gateway, the configuration is strictly validated to ensure rob
 
 By default, fallback across providers is enabled if more than one provider is configured. You can use the `X-Route-To` header to strictly override routing to a specific provider. When a strict override is used, fallback attempts are disabled.
 
-### Durable Control State, Redis Hot State, & Qdrant Vectors
+### Gateway Runtime Modes (Architecture v2.1)
 
-VeloxMesh supports dynamic provider configuration management via an Admin API. The v2.1 control plane is SQLite-first for durable storage; PostgreSQL is kept as a later adapter extension. Redis Stack is optional and handles hot state, multi-instance consistency, and distributed caching. Qdrant handles high-performance vector storage and semantic caching via gRPC.
+VeloxMesh supports progressive deployment tiers:
+- **Plan 1 (Standalone Enhanced)**: SQLite + Redis Stack + Qdrant. This is the P0 mainline: single-node production with durable relational state, hot cache/rate/config coordination, and Qdrant semantic cache.
+- **Plan 2 (Multi-Node)**: Multi App + Redis Stack + SQLite + Qdrant. Redis coordinates cluster state and SQLite WAL replication; Qdrant handles vector storage independently.
+- **Plan 3 (Edge)**: SQLite + LanceDB. LanceDB is retained only as a Plan 3 edge-only option behind a build tag (`-tags lancedb`, CGO, Linux/macOS only).
+- **Plan 4 (Extension)**: PostgreSQL + pgvector. Enterprise scale with concurrent writes and vector+relational JOINs.
+
+VeloxMesh supports dynamic provider configuration management via an Admin API. The v2.1 control plane is SQLite-first for durable storage; PostgreSQL is kept as a later adapter extension. Redis Stack handles hot state, multi-instance consistency, and distributed caching. Qdrant handles high-performance vector storage and semantic caching via gRPC.
 
 #### SQLite Configuration
 - `CONTROL_STATE_BACKEND`: Use `sqlite` for the v2.0 primary path, or `disabled` for legacy static config.

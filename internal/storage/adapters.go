@@ -104,12 +104,20 @@ func NewNoopVectorAdapter() *NoopVectorAdapter {
 	return &NoopVectorAdapter{}
 }
 
+func (n *NoopVectorAdapter) Ping(ctx context.Context) error {
+	return nil
+}
+
 func (n *NoopVectorAdapter) Insert(ctx context.Context, collection string, vectors [][]float32, metadata []map[string]interface{}) error {
 	return nil
 }
 
 func (n *NoopVectorAdapter) Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error) {
 	return nil, nil
+}
+
+func (n *NoopVectorAdapter) Delete(ctx context.Context, collection string, filter map[string]interface{}) error {
+	return nil
 }
 
 // DegradedVectorAdapter provides a VectorAdapter for degraded state (e.g. failure).
@@ -119,10 +127,18 @@ func NewDegradedVectorAdapter() *DegradedVectorAdapter {
 	return &DegradedVectorAdapter{}
 }
 
+func (d *DegradedVectorAdapter) Ping(ctx context.Context) error {
+	return errors.New("vector capability degraded")
+}
+
 func (d *DegradedVectorAdapter) Insert(ctx context.Context, collection string, vectors [][]float32, metadata []map[string]interface{}) error {
 	return errors.New("vector capability degraded")
 }
 
 func (d *DegradedVectorAdapter) Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error) {
 	return nil, errors.New("vector capability degraded")
+}
+
+func (d *DegradedVectorAdapter) Delete(ctx context.Context, collection string, filter map[string]interface{}) error {
+	return errors.New("vector capability degraded")
 }

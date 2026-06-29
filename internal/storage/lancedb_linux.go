@@ -4,6 +4,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -74,18 +75,13 @@ func (l *LanceDBVectorAdapter) Insert(ctx context.Context, collection string, ve
 }
 
 func (l *LanceDBVectorAdapter) Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error) {
-	table, err := l.db.OpenTable(ctx, collection)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open table %s: %w", collection, err)
-	}
-	defer table.Close()
+	return nil, errors.New("search not implemented for lancedb yet")
+}
 
-	results, err := table.VectorSearch(ctx, "vector", query, limit)
-	if err != nil {
-		return nil, fmt.Errorf("failed to search vectors: %w", err)
-	}
-	log.Printf("LanceDB search returned %v rows", len(results))
+func (l *LanceDBVectorAdapter) Ping(ctx context.Context) error {
+	return nil
+}
 
-	// In real use, map arrow records back to []map[string]interface{}
-	return []map[string]interface{}{}, nil
+func (l *LanceDBVectorAdapter) Delete(ctx context.Context, collection string, filter map[string]interface{}) error {
+	return errors.New("delete not implemented for lancedb yet")
 }
