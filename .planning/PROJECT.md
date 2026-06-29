@@ -24,15 +24,14 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - ✓ COST-01: Gateway tracks usage and cost — Phase 4.
 - ✓ CB-01: Gateway supports circuit breaker and fallback-chain behavior — Phase 4.
 - ✓ Phase 5: Tool/Function Calling and Multimodal capabilities
-- ✓ Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
+- ✓ Phase 7: Adapter Interfaces & SQLite Foundation (v7 architecture refactor)
 
 ### Active
 
-- [ ] Phase 7: Adapter Interfaces & SQLite Foundation (v7 architecture refactor)
+- [ ] Phase 8: BFF Layer & Admin Console
 
 ### Deferred to Future Milestones
 
-- BFF Layer & Admin Console (Phase 8)
 - Semantic Pipeline (Phase 9)
 - Redis Stack Integration (Phase 10)
 - Multi-Node Coordination (Phase 11)

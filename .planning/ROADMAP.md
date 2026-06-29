@@ -32,7 +32,7 @@ The gateway supports progressive deployment tiers, each adding capability withou
 <details open>
 <summary>🚧 v7 (Phases 7-12) — PLANNING</summary>
 
-- [ ] Phase 7: Adapter Interfaces & SQLite Foundation (Plan 1 core)
+- [x] Phase 7: Adapter Interfaces & SQLite Foundation (Plan 1 core)
 - [ ] Phase 8: BFF Layer & Admin Console (JWT + Role-based access)
 - [ ] Phase 9: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
 - [ ] Phase 10: Redis Stack + Qdrant Fallback Integration (Plan 1 hardening)

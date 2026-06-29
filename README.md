@@ -123,9 +123,9 @@ When starting the gateway, the configuration is strictly validated to ensure rob
 
 By default, fallback across providers is enabled if more than one provider is configured. You can use the `X-Route-To` header to strictly override routing to a specific provider. When a strict override is used, fallback attempts are disabled.
 
-### Durable Control State & Redis Hot State
+### Durable Control State, Redis Hot State, & Qdrant Vectors
 
-VeloxMesh supports dynamic provider configuration management via an Admin API. The v2.0 control plane is SQLite-first for durable storage; PostgreSQL is kept as a later adapter extension. Redis Stack is optional and only handles hot state, multi-instance consistency, and distributed caching when enabled.
+VeloxMesh supports dynamic provider configuration management via an Admin API. The v2.1 control plane is SQLite-first for durable storage; PostgreSQL is kept as a later adapter extension. Redis Stack is optional and handles hot state, multi-instance consistency, and distributed caching. Qdrant handles high-performance vector storage and semantic caching via gRPC.
 
 #### SQLite Configuration
 - `CONTROL_STATE_BACKEND`: Use `sqlite` for the v2.0 primary path, or `disabled` for legacy static config.
@@ -149,6 +149,11 @@ Redis is optional but recommended for multi-instance deployments. Configure it v
 #### Key Patterns & No-Secrets Rule
 Keys are prefixed using the configured namespace (e.g., `veloxmesh:prod:health:provider-id`).
 VeloxMesh guarantees that **Redis never stores provider secrets, decrypted credentials, encrypted secret blobs, raw prompts, or upstream payloads**. It only caches ephemeral routing state (health, auth decisions) and configuration change notifications.
+
+#### Qdrant Configuration
+Qdrant is required for semantic caching and vector-related operations.
+- `QDRANT_ADDR`: Qdrant server address (e.g., `192.168.234.129:6334` for gRPC).
+- `QDRANT_API_KEY`: Qdrant API Key.
 
 #### Multi-Instance Consistency Modes
 - **With Redis (Recommended)**: Admin API mutations publish a config-change event via Redis pub/sub. All connected VeloxMesh instances subscribe to this channel and automatically reload their runtime provider state to ensure cluster-wide consistency.
