@@ -26,8 +26,9 @@ Build the Plan 1 foundation for architecture v2.0: SQLite-first durable state, s
 - **D-08:** Do not implement PostgreSQL/pgvector adapter work in Phase 7; Phase 12 owns it.
 
 ### LanceDB / Vector Store
-- **D-09:** LanceDB is optional in Plan 1. Phase 7 should define the vector adapter contract and feature flag path, but the smallest acceptable implementation may be a no-op/disabled adapter if adding real LanceDB bindings would pull in unstable dependencies.
-- **D-10:** Existing semantic cache behavior must keep working without LanceDB; do not rewrite semantic cache around vectors in Phase 7 unless the adapter contract requires a narrow bridge.
+- **D-09:** LanceDB is optional in Plan 1, but Phase 7 should include the first usable LanceDB-backed semantic cache path behind `VectorAdapter` when the dependency is locally viable.
+- **D-10:** Existing SQLite semantic cache behavior must keep working without LanceDB; LanceDB is enabled only by explicit vector-store configuration and degrades to the current SQLite behavior when disabled.
+- **D-13:** Redis VSS hot cache is not part of Phase 7. Phase 10 adds the Redis hot layer on top of the Phase 7 LanceDB warm/cold layer.
 
 ### Runtime Defaults
 - **D-11:** Developer-facing defaults and docs should make SQLite the normal durable path, but tests and legacy local flows may keep `ControlStateBackend=disabled` where needed.
@@ -88,7 +89,7 @@ Build the Plan 1 foundation for architecture v2.0: SQLite-first durable state, s
 <specifics>
 ## Specific Ideas
 
-- Keep Phase 7 as a foundation slice: adapter contracts, SQLite defaults, fallback log, and documentation.
+- Keep Phase 7 as a foundation slice: adapter contracts, SQLite defaults, fallback log, optional LanceDB semantic cache, and documentation.
 - Leave BFF/Admin UI, Semantic Pipeline, Redis VSS, multi-node, and PostgreSQL adapter work to Phases 8-12.
 
 </specifics>
