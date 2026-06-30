@@ -155,8 +155,19 @@ func New() (*App, error) {
 					} else if cfg.SemanticCacheVectorStore == "qdrant" {
 						qdrantAdapter, err := storage.NewQdrantVectorAdapter(cfg.QdrantAddr, cfg.QdrantAPIKey)
 						if err != nil {
-							logger.Warn("failed to initialize Qdrant; vector capabilities degraded", "error", err)
-							vectorAdapter = storage.NewDegradedVectorAdapter()
+							logger.Warn("failed to initialize Qdrant; evaluating fallback", "error", err)
+							if cfg.RedisEnabled {
+								redisVSSAdapter, fallbackErr := storage.NewRedisVSSVectorAdapter(context.Background(), cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB, cfg.RedisNamespace)
+								if fallbackErr != nil {
+									logger.Warn("failed to initialize Redis VSS fallback; vector capabilities degraded", "error", fallbackErr)
+									vectorAdapter = storage.NewDegradedVectorAdapter()
+								} else {
+									logger.Info("activated Redis VSS fallback for vector store")
+									vectorAdapter = redisVSSAdapter
+								}
+							} else {
+								vectorAdapter = storage.NewDegradedVectorAdapter()
+							}
 						} else {
 							vectorAdapter = qdrantAdapter
 						}
@@ -314,14 +325,60 @@ func (a *App) StartConfigChangeSubscriber(ctx context.Context, repo controlstate
 				if msg == nil {
 					return
 				}
-				a.Logger.Info("received config change notification", "provider_id", msg.ProviderID, "action", msg.Action, "revision", msg.Revision)
-				if err := a.ReloadProviders(ctx, repo, cipher); err != nil {
-					a.Logger.Error("failed to reload providers on config change", "error", err)
+				a.Logger.Info("received config change notification", "type", msg.Type, "target_id", msg.TargetID, "action", msg.Action, "revision", msg.Revision)
+				
+				switch msg.Type {
+				case hotstate.EventProvider, hotstate.EventCombo:
+					if err := a.ReloadProviders(ctx, repo, cipher); err != nil {
+						a.Logger.Error("failed to reload providers on config change", "error", err)
+					}
+				case hotstate.EventSemanticRules:
+					if err := a.ReloadSemanticRules(ctx, repo); err != nil {
+						a.Logger.Error("failed to reload semantic rules on config change", "error", err)
+					}
+				case hotstate.EventAPIKey:
+					// Invalidate hot cache for API key
+					if err := a.HotState.Delete(ctx, hotstate.NamespacedKey(a.Config.RedisNamespace, "auth", msg.TargetID)); err != nil {
+						a.Logger.Error("failed to invalidate api key cache", "error", err)
+					}
+				case hotstate.EventLimitRule:
+					a.Logger.Info("limit rule changed, no in-memory reload needed")
+				case hotstate.EventVectorPolicy:
+					a.Logger.Info("vector policy changed, requires restart for now")
+				default:
+					a.Logger.Warn("unknown event type, falling back to full reload", "type", msg.Type)
+					if err := a.ReloadProviders(ctx, repo, cipher); err != nil {
+						a.Logger.Error("failed to reload providers on unknown config change", "error", err)
+					}
 				}
 			}
 		}
 	}()
 
+	return nil
+}
+
+func (a *App) ReloadSemanticRules(ctx context.Context, repo controlstate.Repository) error {
+	if repo.SemanticRules() == nil {
+		return nil
+	}
+
+	global, err := repo.SemanticRules().GetGlobalDefaults(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to load global semantic rules: %w", err)
+	}
+
+	users, err := repo.SemanticRules().ListUserConfigs(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to load user semantic rules: %w", err)
+	}
+
+	semRules := &controlstate.SemanticRuleSnapshot{
+		Global: global,
+		Users:  users,
+	}
+
+	a.RuntimeProviderManager.UpdateSemanticRules(semRules)
 	return nil
 }
 

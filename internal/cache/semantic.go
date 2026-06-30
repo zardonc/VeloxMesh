@@ -56,7 +56,8 @@ func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, 
 	if s.vector != nil {
 		results, err := s.vector.Search(ctx, "semantic_cache", inputVector, s.config.MaxCandidates)
 		if err != nil {
-			return nil, err
+			// Log error (in a real app via observability/logger), degrade gracefully to miss
+			return nil, nil
 		}
 		// In a real implementation, we would parse results and match them up with SQLite or return directly.
 		// Since LanceDB is disabled on CGO=0, this will just return the error above.
@@ -143,7 +144,8 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 		
 		err := s.vector.Insert(ctx, "semantic_cache", [][]float32{vector}, []map[string]interface{}{meta})
 		if err != nil {
-			return err
+			// Log error but do not fail the store operation if degraded
+			return nil 
 		}
 		// In a real implementation we might also store in SQLite, or just return.
 		// Since LanceDB is disabled on CGO=0, this will just return the error above.

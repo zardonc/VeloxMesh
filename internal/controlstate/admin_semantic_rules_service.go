@@ -43,6 +43,8 @@ func (s *AdminSemanticRulesService) SaveGlobalDefaults(ctx context.Context, cfg 
 	}
 	// Publish change
 	s.hotStateClient.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+		Type:       hotstate.EventSemanticRules,
+		TargetID:   "global",
 		ProviderID: "semantic_rules",
 		Action:     "updated",
 		Revision:   0,
@@ -59,6 +61,8 @@ func (s *AdminSemanticRulesService) SaveUserConfig(ctx context.Context, userID s
 	}
 	// Publish change
 	s.hotStateClient.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+		Type:       hotstate.EventSemanticRules,
+		TargetID:   userID,
 		ProviderID: "semantic_rules",
 		Action:     "updated",
 		Revision:   0,
