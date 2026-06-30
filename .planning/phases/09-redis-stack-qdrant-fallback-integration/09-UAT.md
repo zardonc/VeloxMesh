@@ -7,12 +7,12 @@ source:
   - 09-03-SUMMARY.md
   - 09-04-SUMMARY.md
 started: 2026-06-30T14:45:00-07:00
-updated: 2026-06-30T14:45:00-07:00
+updated: 2026-06-30T14:51:00-07:00
 ---
 
 ## Current Test
 
-[testing paused - real Redis Stack verification is blocked]
+[testing paused - Redis VSS real-component verification failed]
 
 ## Tests
 
@@ -23,9 +23,8 @@ evidence: `go test ./internal/hotstate -run TestLocalHotState -timeout 60s -v`
 
 ### 2. Redis hot-state primitives against real Redis
 expected: Redis hot-state integration tests call a real Redis backend for atomic limiter/cache/session blacklist behavior.
-result: blocked
-blocked_by: third-party
-reason: "`REDIS_ADDR` is not set, so `TestRedisHotState_AtomicLimiter` was skipped instead of exercising Redis."
+result: pass
+evidence: `REDIS_ADDR=192.168.234.129:6379 go test ./tests/integration -run TestRedisHotState -timeout 60s -v`
 
 ### 3. SQLite LimitRule persistence
 expected: LimitRule save/list/delete behavior runs against the real SQLite repository and migration-backed schema.
@@ -50,9 +49,10 @@ evidence: CodeGraph found `internal/storage/redis_vss.go`, `RedisVSSVectorAdapte
 
 ### 7. Redis VSS fallback against real Redis Stack
 expected: Redis VSS integration test connects to Redis Stack and exercises vector adapter behavior through RediSearch commands.
-result: blocked
-blocked_by: third-party
-reason: "`TestRedisVSSVectorAdapter_Integration` attempted `localhost:6379`, connection was refused, then the test skipped because Redis Stack is unavailable."
+result: issue
+reported: "With `REDIS_ADDR=192.168.234.129:6379`, `TestRedisVSSVectorAdapter_Integration` inserted a vector but search returned zero results."
+severity: major
+evidence: `go test ./internal/storage -run TestRedisVSSVectorAdapter_Integration -timeout 60s -v`
 
 ### 8. Typed config hot reload routing
 expected: App config-change subscriber routes provider/combo/semantic/api-key/limit/vector events by event type instead of blanket reload.
@@ -67,32 +67,23 @@ evidence: `go test ./internal/cache -run TestSemanticCacheService -timeout 60s -
 ## Summary
 
 total: 9
-passed: 7
-issues: 0
+passed: 8
+issues: 1
 pending: 0
 skipped: 0
-blocked: 2
+blocked: 0
 
 ## Gaps
 
-- truth: "Redis hot-state primitives are verified against a real Redis backend."
-  status: blocked
-  reason: "`REDIS_ADDR` is not set in this environment; Redis integration tests skip."
-  severity: major
-  test: 2
-  artifacts:
-    - path: "tests/integration/redis_hotstate_test.go"
-      issue: "Real Redis verification is environment-gated."
-  missing:
-    - "Run Redis hot-state integration tests with a reachable Redis instance and `REDIS_ADDR` configured."
-
 - truth: "Redis VSS fallback is verified against a real Redis Stack backend with RediSearch support."
-  status: blocked
-  reason: "`localhost:6379` refused connection; Redis VSS integration test skipped."
+  status: failed
+  reason: "With `REDIS_ADDR=192.168.234.129:6379`, Redis VSS insert completed but search returned zero results."
   severity: major
   test: 7
   artifacts:
+    - path: "internal/storage/redis_vss.go"
+      issue: "Real Redis VSS search does not return the inserted vector."
     - path: "internal/storage/redis_vss_test.go"
-      issue: "Real Redis Stack verification is environment-gated."
+      issue: "Test now reads `REDIS_ADDR` so it can call the real local Redis environment."
   missing:
-    - "Run `TestRedisVSSVectorAdapter_Integration` with reachable Redis Stack/RediSearch."
+    - "Diagnose Redis VSS index/query behavior against the real Redis Stack instance."
