@@ -24,21 +24,21 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - ✓ COST-01: Gateway tracks usage and cost — Phase 4.
 - ✓ CB-01: Gateway supports circuit breaker and fallback-chain behavior — Phase 4.
 - ✓ Phase 5: Tool/Function Calling and Multimodal capabilities
+- ✓ Phase 6: Model Combo Feature (RR, Fusion, capability-based routing)
 - ✓ Phase 7: Adapter Interfaces & SQLite Foundation (v7 architecture refactor)
+- ✓ Phase 8: Semantic Pipeline — v7.0
+- ✓ Phase 9: Redis Stack + Qdrant Fallback Integration — v7.0
 
 ### Active
 
-- [ ] Phase 8: Semantic Pipeline
+- [ ] Phase 10: Advanced Routing & Observability
+- [ ] Phase 11: BFF Layer & Admin Console
+- [ ] Phase 12: Multi-Node Coordination
 
 ### Deferred to Future Milestones
 
-- Redis Stack Integration (Phase 9)
-- Advanced Routing & Observability (Phase 10)
-- BFF Layer & Admin Console (Phase 11)
-- Multi-Node Coordination (Phase 12)
 - PostgreSQL Extension (Phase 13)
-- PostgreSQL Extension (Phase 12)
-- Advanced Routing & Observability (Phase 13)
+- Full `LimitRule` unification across all scopes
 
 ### Long-Term / Architectural Goals
 
@@ -48,7 +48,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 - Source architecture: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\gateway-architecture.md`.
 - The original gateway design is Go-first. TypeScript/Node gateway plans were superseded.
-- Current code includes Phase 1 through Phase 4: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, test-connection, audit/idempotency, runtime reload, optional Redis hot state, Redis config-change pub/sub notifications, SSE streaming, rate limiting, semantic caching, and usage tracking. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL remains a later adapter extension; LanceDB is retained only for edge builds.
+- Current code includes Phase 1 through Phase 9: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission direction, and Redis VSS fallback for Qdrant degradation. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL remains a later adapter extension; LanceDB is retained only for edge builds.
 - Downstream clients should continue to see OpenAI-compatible responses.
 
 ## Constraints
@@ -77,6 +77,9 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Phase 4 implemented SSE streaming and semantic cache natively | Fulfills advanced gateway functionality | ✓ Good |
 | Qdrant replaces LanceDB on the main vector path | LanceDB blocked development and is not cross-platform enough for the default runtime; Qdrant provides official Go/gRPC integration, persistence, and cluster options | Active |
 | LanceDB remains edge-only | Embedded vector storage still has value for zero-external-dependency Linux/macOS edge deployments, but it must be isolated behind `-tags lancedb` | Deferred |
+| Redis is hot state, not source of truth | SQLite remains authoritative for user/account/security/billing state while Redis accelerates cache, rate, config, and aggregation paths | ✓ Good |
+| Redis VSS is fallback-only | Qdrant remains primary; Redis VSS activates only for degraded Qdrant paths | ✓ Good |
+| Full LimitRule unification is deferred | Phase 9 shipped the minimal API-key/upstream-account direction; broader scope unification belongs in a future hardening phase | Deferred |
 
 ## Evolution
 
@@ -87,4 +90,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-06-29 after v2.1 Qdrant architecture alignment*
+*Last updated: 2026-06-30 after v7.0 Plan 1 Foundation milestone*

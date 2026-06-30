@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-15
 **Mode:** brownfield retrospective initialization
-**Current focus:** Architecture refactor — SQLite + Redis Stack + Qdrant
+**Current focus:** Next milestone planning — advanced routing, admin UX, and multi-node capabilities
 
 ## Overview
 
@@ -12,7 +12,8 @@ The architecture has been redesigned (v2.1) to use **SQLite + Redis Stack + Qdra
 
 ## Milestones
 
-- 🚧 **v7** — Phases 7-12: Architecture Refactor & New Capabilities (planning)
+- ✅ **v7.0 Plan 1 Foundation** — Phases 7-9 (shipped 2026-06-30; archive: `.planning/milestones/v7.0-ROADMAP.md`)
+- 🚧 **Next milestone** — Phases 10-13: Advanced routing, observability, BFF/Admin Console, multi-node coordination, PostgreSQL extension (planned)
 - ✅ **v5** — Phases 5-6 (shipped 2026-06-29)
 - ✅ **v4** — Phases 1-4 (shipped 2026-06-23)
 
@@ -22,72 +23,31 @@ The gateway supports progressive deployment tiers, each adding capability withou
 
 | Tier | Components | Priority | Status |
 |---|---|---|---|
-| **Plan 1**: Standalone Enhanced | App + Redis Stack + SQLite + Qdrant | P0 | Planning |
+| **Plan 1**: Standalone Enhanced | App + Redis Stack + SQLite + Qdrant | P0 | Shipped in v7.0 |
 | **Plan 2**: Multi-Node | Multi App + Redis Stack + SQLite + Qdrant | P1 | Planning |
 | **Plan 3**: Edge | App + SQLite + LanceDB (`-tags lancedb`, Linux/macOS only) | P3 | Future |
 | **Plan 4**: Extension | App + Redis Stack + PostgreSQL + pgvector | P3 | Future |
 
 ## Phases
 
-<details open>
-<summary>🚧 v7 (Phases 7-12) — PLANNING</summary>
+<details>
+<summary>✅ v7.0 Plan 1 Foundation (Phases 7-9) — SHIPPED 2026-06-30</summary>
 
 - [x] Phase 7: Adapter Interfaces & SQLite Foundation (Plan 1 core)
-- [ ] Phase 8: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
-- [ ] Phase 9: Redis Stack + Qdrant Fallback Integration (Plan 1 hardening)
+- [x] Phase 8: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
+- [x] Phase 9: Redis Stack + Qdrant Fallback Integration (Plan 1 hardening)
+
+Archive: `.planning/milestones/v7.0-ROADMAP.md`
+
+</details>
+
+<details open>
+<summary>🚧 Next milestone (Phases 10-13) — PLANNED</summary>
+
 - [ ] Phase 10: Advanced Routing & Observability
 - [ ] Phase 11: BFF Layer & Admin Console (JWT + Role-based access)
 - [ ] Phase 12: Multi-Node Coordination (Plan 2)
 - [ ] Phase 13: PostgreSQL Extension (Plan 4, low priority)
-
-### Phase 7: Adapter Interfaces & SQLite Foundation
-
-**Goal:** Make the v2.1 Plan 1 runtime explicit: SQLite as authoritative relational state, Redis Stack for hot cache/rate/config coordination, Qdrant as the primary vector and semantic-cache store, and narrow adapters for future LanceDB/pgvector extensions. LanceDB is not a Phase 7 mainline implementation.
-**Priority:** P0
-**Depends on:** Phase 6
-
-Key deliverables:
-- SQLite WAL mode initialization and schema migration
-- CacheAdapter interface + MemoryCacheAdapter implementation
-- CoordAdapter interface + NoopCoordAdapter implementation
-- DBAdapter interface + SQLiteDBAdapter implementation
-- VectorAdapter interface + QdrantVectorAdapter planning/implementation path
-- Degraded/Noop vector behavior so Qdrant failures do not block core LLM proxying
-- Data Access Layer (DAL) with repository pattern
-- Fallback log table for disaster recovery, including `VECTOR` replay records
-- Config hot-reload via in-memory TTL cache
-
-### Phase 8: Semantic Pipeline
-
-**Goal:** Implement the configurable input/output processing pipeline with handler registry, per-rule toggles, and hot-reloadable configuration.
-**Priority:** P1
-**Depends on:** Phase 7
-
-Key deliverables:
-- Handler interface and pipeline executor
-- Input handlers: RTK (token compression), Headroom, PII Redaction, Input Rewrite
-- Output handlers: Caveman, Ponytail, PII Restore, Output Filter
-- YAML configuration with per-rule enabled toggle
-- Pipeline rule registration and hot-reload
-
-### Phase 9: Redis Stack Integration
-
-**Goal:** Integrate Redis Stack for hot caching, atomic rate limiting, Pub/Sub config reload, token cost aggregation, and optional Redis VSS fallback when Qdrant is degraded or slow. Redis VSS is not the default vector path.
-**Priority:** P1
-**Depends on:** Phase 7
-
-Key deliverables:
-**Depends on:** Phase 7
-
-Key deliverables:
-- RedisCacheAdapter implementation
-- Redis VSS fallback for vector data, default off and auto-enabled only by Qdrant degradation policy
-- Atomic rate limiting via Redis INCR (replacing memory counters)
-- `LimitRule` domain/interface direction for API-key and upstream-account gates; full database-wide LimitRule unification is deferred and must be tracked for a later hardening phase
-- Config Pub/Sub hot-reload
-- Token cost aggregation buffer (Redis HINCR → batch SQLite flush)
-- Session blacklist via Redis SET
-- API key hot cache with 5min TTL
 
 ### Phase 10: Advanced Routing & Observability
 
@@ -197,6 +157,8 @@ VeloxMesh supports progressive deployment tiers:
 
 - Phase 4 is complete.
 - Architecture v2.1 replaces the v2.0 LanceDB mainline with Qdrant for Plans 1/2. LanceDB remains only for Plan 3 edge builds.
+- Phase 7-9 shipped as v7.0 Plan 1 Foundation on 2026-06-30.
+- Phase 10-13 remain planned for the next milestone.
 - All storage access goes through adapter interfaces; switching backends requires only adapter implementation swap.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
 - **Rule**: Source code committed to git must not contain any hardcoded configuration information. Configuration must only be obtained from local environment variables, configuration files, or the database.
@@ -214,4 +176,4 @@ The local development environment has been verified and configured. The followin
   - `sans` (SANS Primary, with multiple models configured)
 
 ---
-*Roadmap refreshed: 2026-06-29 after architecture v2.1 refactor (SQLite + Redis Stack + Qdrant)*
+*Roadmap refreshed: 2026-06-30 after v7.0 Plan 1 Foundation close*
