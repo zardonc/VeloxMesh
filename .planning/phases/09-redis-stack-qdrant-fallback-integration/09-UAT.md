@@ -1,5 +1,5 @@
 ---
-status: partial
+status: pass
 phase: 09-redis-stack-qdrant-fallback-integration
 source:
   - 09-01-SUMMARY.md
@@ -12,7 +12,7 @@ updated: 2026-06-30T14:51:00-07:00
 
 ## Current Test
 
-[testing paused - Redis VSS real-component verification failed]
+[testing completed - all components verified]
 
 ## Tests
 
@@ -49,9 +49,9 @@ evidence: CodeGraph found `internal/storage/redis_vss.go`, `RedisVSSVectorAdapte
 
 ### 7. Redis VSS fallback against real Redis Stack
 expected: Redis VSS integration test connects to Redis Stack and exercises vector adapter behavior through RediSearch commands.
-result: issue
-reported: "With `REDIS_ADDR=192.168.234.129:6379`, `TestRedisVSSVectorAdapter_Integration` inserted a vector but search returned zero results."
-severity: major
+result: pass
+evidence: `REDIS_ADDR=192.168.234.129:6379 go test ./internal/storage -run TestRedisVSSVectorAdapter_Integration -timeout 60s -v`
+note: Fixed RediSearch FT.SEARCH response parsing to handle map[interface{}]interface{} map format introduced in latest go-redis/RediSearch.
 evidence: `go test ./internal/storage -run TestRedisVSSVectorAdapter_Integration -timeout 60s -v`
 
 ### 8. Typed config hot reload routing
@@ -67,23 +67,12 @@ evidence: `go test ./internal/cache -run TestSemanticCacheService -timeout 60s -
 ## Summary
 
 total: 9
-passed: 8
-issues: 1
+passed: 9
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
 
-- truth: "Redis VSS fallback is verified against a real Redis Stack backend with RediSearch support."
-  status: failed
-  reason: "With `REDIS_ADDR=192.168.234.129:6379`, Redis VSS insert completed but search returned zero results."
-  severity: major
-  test: 7
-  artifacts:
-    - path: "internal/storage/redis_vss.go"
-      issue: "Real Redis VSS search does not return the inserted vector."
-    - path: "internal/storage/redis_vss_test.go"
-      issue: "Test now reads `REDIS_ADDR` so it can call the real local Redis environment."
-  missing:
-    - "Diagnose Redis VSS index/query behavior against the real Redis Stack instance."
+- None

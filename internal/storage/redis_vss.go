@@ -193,50 +193,79 @@ func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, q
 		return nil, fmt.Errorf("failed to search vectors in redis vss: %w", err)
 	}
 
-	resSlice, ok := res.([]interface{})
-	if !ok || len(resSlice) == 0 {
-		return nil, nil
-	}
-
-	// First element is total results count
-	count, ok := resSlice[0].(int64)
-	if !ok || count == 0 {
-		return nil, nil
-	}
-
 	var results []map[string]interface{}
-	// Iterate through results (pairs of key name and properties array)
-	for i := 1; i < len(resSlice); i += 2 {
-		if i+1 >= len(resSlice) {
-			break
+
+	if resMap, ok := res.(map[interface{}]interface{}); ok {
+		// New map-based format
+		total, _ := resMap["total_results"].(int64)
+		if total == 0 {
+			return nil, nil
 		}
-		props, ok := resSlice[i+1].([]interface{})
+		docs, ok := resMap["results"].([]interface{})
 		if !ok {
-			continue
+			return nil, nil
 		}
-		
-		meta := make(map[string]interface{})
-		for j := 0; j < len(props); j += 2 {
-			if j+1 >= len(props) {
-				break
+		for _, docInf := range docs {
+			doc, ok := docInf.(map[interface{}]interface{})
+			if !ok {
+				continue
 			}
-			kBytes, ok1 := props[j].([]byte)
-			vBytes, ok2 := props[j+1].([]byte)
-			if ok1 && ok2 {
-				k := string(kBytes)
-				v := string(vBytes)
-				if k != "vec" && k != "dist" {
-					meta[k] = v
-				}
-			} else if kStr, ok1Str := props[j].(string); ok1Str {
-				if vStr, ok2Str := props[j+1].(string); ok2Str {
+			meta := make(map[string]interface{})
+			if extra, ok := doc["extra_attributes"].(map[interface{}]interface{}); ok {
+				for k, v := range extra {
+					kStr := fmt.Sprintf("%v", k)
 					if kStr != "vec" && kStr != "dist" {
-						meta[kStr] = vStr
+						if vBytes, isBytes := v.([]byte); isBytes {
+							meta[kStr] = string(vBytes)
+						} else {
+							meta[kStr] = v
+						}
 					}
 				}
 			}
+			results = append(results, meta)
 		}
-		results = append(results, meta)
+	} else if resSlice, ok := res.([]interface{}); ok {
+		// Legacy array-based format
+		if len(resSlice) == 0 {
+			return nil, nil
+		}
+		count, ok := resSlice[0].(int64)
+		if !ok || count == 0 {
+			return nil, nil
+		}
+		for i := 1; i < len(resSlice); i += 2 {
+			if i+1 >= len(resSlice) {
+				break
+			}
+			props, ok := resSlice[i+1].([]interface{})
+			if !ok {
+				continue
+			}
+			
+			meta := make(map[string]interface{})
+			for j := 0; j < len(props); j += 2 {
+				if j+1 >= len(props) {
+					break
+				}
+				kBytes, ok1 := props[j].([]byte)
+				vBytes, ok2 := props[j+1].([]byte)
+				if ok1 && ok2 {
+					k := string(kBytes)
+					v := string(vBytes)
+					if k != "vec" && k != "dist" {
+						meta[k] = v
+					}
+				} else if kStr, ok1Str := props[j].(string); ok1Str {
+					if vStr, ok2Str := props[j+1].(string); ok2Str {
+						if kStr != "vec" && kStr != "dist" {
+							meta[kStr] = vStr
+						}
+					}
+				}
+			}
+			results = append(results, meta)
+		}
 	}
 
 	return results, nil
