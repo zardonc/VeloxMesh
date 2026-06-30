@@ -27,6 +27,14 @@ func (r *Repository) SemanticRules() controlstate.SemanticRuleStore {
 	return nil // TODO: implement for postgres if needed
 }
 
+func (r *Repository) LimitRules() controlstate.LimitRuleRepository {
+	return nil // Deferred for Postgres
+}
+
+func (r *Repository) SessionBlacklist() controlstate.SessionBlacklistRepository {
+	return nil // Deferred for Postgres
+}
+
 func (r *Repository) Close() error {
 	r.pool.Close()
 	return nil

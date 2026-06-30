@@ -171,6 +171,26 @@ func (m *RuntimeProviderManager) activateInternal(providersCfg []config.Provider
 	return nil
 }
 
+func (m *RuntimeProviderManager) UpdateSemanticRules(semRules *SemanticRuleSnapshot) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	snap := m.Snapshot()
+	if snap == nil {
+		return
+	}
+
+	newSnap := &RuntimeSnapshot{
+		Registry:      snap.Registry,
+		Router:        snap.Router,
+		Prober:        snap.Prober,
+		RoutingConfig: snap.RoutingConfig,
+		SemanticRules: semRules,
+	}
+
+	m.snapshot.Store(newSnap)
+}
+
 func (m *RuntimeProviderManager) ActivateProviderSet(ctx context.Context, records []*ProviderRecord, secrets map[string]string, validator ActivationValidator) error {
 	var rCfg *RoutingConfig
 	var semRules *SemanticRuleSnapshot

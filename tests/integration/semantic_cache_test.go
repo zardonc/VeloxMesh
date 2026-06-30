@@ -91,7 +91,7 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 		TTL:           1 * time.Hour,
 	}, cacheRepo, nil, p1)
 
-	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc, pipeline.DefaultRegistry(), nil)
+	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc, pipeline.DefaultRegistry(), nil, nil)
 
 	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil)
 

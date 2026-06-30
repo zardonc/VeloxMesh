@@ -249,7 +249,7 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	cipher := &memoryCipher{}
 
 	admissionCtrl := admission.NewPassThroughController()
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil, pipeline.DefaultRegistry(), nil)
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil, pipeline.DefaultRegistry(), nil, nil)
 	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, nil, nil, repo)
 
 	// 1. Initial reload with empty repo

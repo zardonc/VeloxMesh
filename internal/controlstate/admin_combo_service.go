@@ -153,6 +153,8 @@ func (s *AdminComboService) Create(ctx context.Context, req *ComboCreateRequest)
 
 	if s.publisher != nil {
 		_ = s.publisher.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+			Type:       hotstate.EventCombo,
+			TargetID:   created.ID,
 			ProviderID: "combo-" + created.ID,
 			Action:     "create",
 			Revision:   created.Revision,
@@ -213,6 +215,8 @@ func (s *AdminComboService) Update(ctx context.Context, id string, req *ComboUpd
 
 	if s.publisher != nil {
 		_ = s.publisher.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+			Type:       hotstate.EventCombo,
+			TargetID:   updated.ID,
 			ProviderID: "combo-" + updated.ID,
 			Action:     "update",
 			Revision:   updated.Revision,
@@ -283,6 +287,8 @@ func (s *AdminComboService) Delete(ctx context.Context, id string) (err error) {
 
 	if s.publisher != nil {
 		_ = s.publisher.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+			Type:       hotstate.EventCombo,
+			TargetID:   id,
 			ProviderID: "combo-" + id,
 			Action:     "delete",
 			Revision:   0,

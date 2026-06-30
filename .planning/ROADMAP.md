@@ -83,6 +83,7 @@ Key deliverables:
 - RedisCacheAdapter implementation
 - Redis VSS fallback for vector data, default off and auto-enabled only by Qdrant degradation policy
 - Atomic rate limiting via Redis INCR (replacing memory counters)
+- `LimitRule` domain/interface direction for API-key and upstream-account gates; full database-wide LimitRule unification is deferred and must be tracked for a later hardening phase
 - Config Pub/Sub hot-reload
 - Token cost aggregation buffer (Redis HINCR → batch SQLite flush)
 - Session blacklist via Redis SET

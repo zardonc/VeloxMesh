@@ -18,6 +18,7 @@ type AuthIdentity struct {
 	ID            string
 	Role          string
 	CreditBalance int64
+	Enabled       bool
 }
 
 type authContextKey string
@@ -62,17 +63,18 @@ func Auth(cfg *config.Config, cache hotstate.Client, repo controlstate.Repositor
 			var identity *AuthIdentity
 
 			if cache != nil {
-				if allowed, err := cache.GetCachedAuthResult(r.Context(), tokenHash); err == nil {
-					if allowed {
-						// Note: Cache doesn't hold the full identity in Phase 1's simplistic form.
-						// To properly cache identity, we would need to store the identity object in cache.
-						// For now, if we have repo, we MUST query it to get credits.
-						if repo == nil {
-							next.ServeHTTP(w, r)
-							return
+				if cachedIdent, err := cache.GetCachedIdentity(r.Context(), tokenHash); err == nil && cachedIdent != nil {
+					if cachedIdent.Enabled {
+						identity = &AuthIdentity{
+							ID:            cachedIdent.ID,
+							Role:          cachedIdent.Role,
+							CreditBalance: cachedIdent.CreditBalance,
+							Enabled:       cachedIdent.Enabled,
 						}
-						// If repo exists, we skip cache return here because we need CreditBalance
-						// A full cache implementation would cache the APIKeyRecord itself.
+						// Fast path return via cache
+						ctx := context.WithValue(r.Context(), AuthIdentityKey, identity)
+						next.ServeHTTP(w, r.WithContext(ctx))
+						return
 					} else {
 						sendAuthError(w, "invalid_api_key", "Invalid API key")
 						return
@@ -90,6 +92,7 @@ func Auth(cfg *config.Config, cache hotstate.Client, repo controlstate.Repositor
 							ID:            keyRecord.ID,
 							Role:          keyRecord.Role,
 							CreditBalance: keyRecord.CreditBalance,
+							Enabled:       keyRecord.Enabled,
 						}
 					}
 				}
@@ -100,14 +103,25 @@ func Auth(cfg *config.Config, cache hotstate.Client, repo controlstate.Repositor
 					identity = &AuthIdentity{
 						ID:            "dev-key",
 						Role:          "admin",
-						CreditBalance: 999999, // Dev key has unlimited credits conceptually, or check handles it
+						CreditBalance: 999999, // Dev key has unlimited credits conceptually
+						Enabled:       true,
 					}
 				}
 			}
 
-			if cache != nil && repo == nil {
-				// Only cache the boolean result in disabled mode for now
-				_ = cache.CacheAuthResult(r.Context(), tokenHash, allowed, ttl)
+			if cache != nil && identity != nil {
+				// Cache the identity envelope safely
+				_ = cache.CacheIdentity(r.Context(), tokenHash, &hotstate.CachedIdentity{
+					ID:            identity.ID,
+					Role:          identity.Role,
+					Enabled:       identity.Enabled,
+					CreditBalance: identity.CreditBalance,
+				}, ttl)
+			} else if cache != nil && !allowed {
+				// Cache the negative result safely
+				_ = cache.CacheIdentity(r.Context(), tokenHash, &hotstate.CachedIdentity{
+					Enabled: false,
+				}, ttl)
 			}
 
 			if !allowed {

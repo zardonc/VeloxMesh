@@ -200,6 +200,8 @@ func (s *AdminProviderService) Create(ctx context.Context, req *ProviderCreateRe
 
 	if s.publisher != nil {
 		_ = s.publisher.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+			Type:       hotstate.EventProvider,
+			TargetID:   created.ID,
 			ProviderID: created.ID,
 			Action:     "create",
 			Revision:   created.Revision,
@@ -286,6 +288,8 @@ func (s *AdminProviderService) Update(ctx context.Context, id string, req *Provi
 
 	if s.publisher != nil && updated != nil {
 		_ = s.publisher.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+			Type:       hotstate.EventProvider,
+			TargetID:   updated.ID,
 			ProviderID: updated.ID,
 			Action:     "update",
 			Revision:   updated.Revision,
@@ -465,6 +469,8 @@ func (s *AdminProviderService) Disable(ctx context.Context, id string) (err erro
 		// we need to get the updated revision
 		if updatedRec, err := s.repo.Providers().Get(ctx, id); err == nil && updatedRec != nil {
 			_ = s.publisher.PublishConfigChange(ctx, &hotstate.ConfigChangeMessage{
+				Type:       hotstate.EventProvider,
+				TargetID:   id,
 				ProviderID: id,
 				Action:     "disable",
 				Revision:   updatedRec.Revision,
