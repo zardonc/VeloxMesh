@@ -70,7 +70,7 @@ func TestAdminProviderActions_TestConnectionIdempotencyAndAudit(t *testing.T) {
 	}
 	adminService := controlstate.NewAdminProviderService(repo, cipher, a.RuntimeProviderManager, nil)
 	adminHandler := handlers.NewAdminProvidersHandler(adminService)
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admission.NewPassThroughController(), a.HealthStore(), true, 2, repo, nil, pipeline.DefaultRegistry(), nil)
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admission.NewPassThroughController(), a.HealthStore(), true, 2, repo, nil, pipeline.DefaultRegistry(), nil, nil)
 	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil, nil, nil, repo)
 	if err := a.ReloadProviders(context.Background(), repo, cipher); err != nil {
 		t.Fatalf("initial reload: %v", err)

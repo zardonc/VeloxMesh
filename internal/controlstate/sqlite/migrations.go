@@ -20,7 +20,7 @@ func NewMigrator(db *sql.DB) controlstate.Migrator {
 func (m *Migrator) Migrate(ctx context.Context) error {
 	fs := controlstate.GetSQLiteMigrations()
 
-	files := []string{"migrations/sqlite/0001_control_state.sql", "migrations/sqlite/0002_combos.sql", "migrations/sqlite/0003_semantic_rules.sql", "migrations/sqlite/0004_limit_rules.sql"}
+	files := []string{"migrations/sqlite/0001_control_state.sql", "migrations/sqlite/0002_combos.sql", "migrations/sqlite/0003_semantic_rules.sql", "migrations/sqlite/0004_limit_rules.sql", "migrations/sqlite/0005_session_blacklist.sql"}
 
 	// A real migrator would use a library like goose, but for this milestone we
 	// can do a simple split or just execute the whole file. Wait, we should only

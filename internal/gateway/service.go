@@ -9,6 +9,7 @@ import (
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/errors"
 	"veloxmesh/internal/health"
+	"veloxmesh/internal/hotstate"
 	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/observability"
@@ -33,9 +34,10 @@ type Service struct {
 	semanticCache   *cache.SemanticCacheService
 	registry        *pipeline.Registry
 	ruleResolver    SemanticRuleResolver
+	costAggregator  hotstate.CostAggregator
 }
 
-func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int, repo controlstate.Repository, semanticCache *cache.SemanticCacheService, registry *pipeline.Registry, ruleResolver SemanticRuleResolver) *Service {
+func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int, repo controlstate.Repository, semanticCache *cache.SemanticCacheService, registry *pipeline.Registry, ruleResolver SemanticRuleResolver, costAggregator hotstate.CostAggregator) *Service {
 	// Initialize breaker with some sane defaults, can be overridden or tied to snapshot later
 	breakerCfg := CircuitBreakerConfig{
 		FailureThreshold: 5,
@@ -52,6 +54,7 @@ func NewService(r routing.Router, a admission.Controller, hs health.Store, fallb
 		semanticCache:   semanticCache,
 		registry:        registry,
 		ruleResolver:    ruleResolver,
+		costAggregator:  costAggregator,
 	}
 }
 
@@ -91,6 +94,18 @@ func (s *Service) settle(ctx context.Context, req *llm.LLMRequest, decision rout
 	}
 
 	_ = s.repo.Settle(context.Background(), record)
+
+	// After successful SQLite settlement, aggregate cost in Redis if available
+	if s.costAggregator != nil && record.CreditsConsumed != nil {
+		apiKey := "anonymous"
+		if record.APIKeyID != nil {
+			apiKey = *record.APIKeyID
+		}
+		if err := s.costAggregator.AggregateCost(context.Background(), record.ProviderID, record.Model, apiKey, *record.CreditsConsumed); err != nil {
+			// Log but do not fail the request or hide the SQLite success
+			// observability logger could be used here. For now just swallow to fulfill D-05
+		}
+	}
 }
 
 func (s *Service) HealthStore() health.Store {

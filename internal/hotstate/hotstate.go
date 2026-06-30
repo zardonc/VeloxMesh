@@ -14,10 +14,18 @@ type HealthSnapshotStore interface {
 	SetProbeSnapshot(ctx context.Context, providerID string, data []byte, ttl time.Duration) error
 }
 
+type CachedIdentity struct {
+	ID            string `json:"id"`
+	Role          string `json:"role"`
+	Enabled       bool   `json:"enabled"`
+	CreditBalance int64  `json:"credit_balance"`
+	Revision      int64  `json:"revision,omitempty"`
+}
+
 // AuthCache defines the backend storage for data-plane API key auth caching.
 type AuthCache interface {
-	GetCachedAuthResult(ctx context.Context, tokenHash string) (bool, error)
-	CacheAuthResult(ctx context.Context, tokenHash string, allowed bool, ttl time.Duration) error
+	GetCachedIdentity(ctx context.Context, tokenHash string) (*CachedIdentity, error)
+	CacheIdentity(ctx context.Context, tokenHash string, identity *CachedIdentity, ttl time.Duration) error
 }
 
 // ByteCache defines the backend storage for generic byte-slice caching.
@@ -77,6 +85,11 @@ type ConfigChangeSubscriber interface {
 	SubscribeConfigChanges(ctx context.Context) (Subscription, error)
 }
 
+// CostAggregator defines the backend storage for fast aggregation of usage/costs.
+type CostAggregator interface {
+	AggregateCost(ctx context.Context, providerID, model, apiKeyID string, credits int64) error
+}
+
 // Client represents the hot state storage backend, combining multiple capabilities.
 type Client interface {
 	HealthSnapshotStore
@@ -86,6 +99,7 @@ type Client interface {
 	SessionBlacklist
 	ConfigChangePublisher
 	ConfigChangeSubscriber
+	CostAggregator
 	Ping(ctx context.Context) error
 	Close() error
 }

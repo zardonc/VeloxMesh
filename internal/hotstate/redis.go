@@ -81,23 +81,27 @@ func (r *RedisClient) SetProbeSnapshot(ctx context.Context, providerID string, d
 	return r.client.Set(ctx, key, data, ttl).Err()
 }
 
-func (r *RedisClient) GetCachedAuthResult(ctx context.Context, tokenHash string) (bool, error) {
+func (r *RedisClient) GetCachedIdentity(ctx context.Context, tokenHash string) (*CachedIdentity, error) {
 	key := NamespacedKey(r.namespace, "auth", tokenHash)
-	val, err := r.client.Get(ctx, key).Result()
+	val, err := r.client.Get(ctx, key).Bytes()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return false, ErrCacheMiss
+			return nil, ErrCacheMiss
 		}
-		return false, err
+		return nil, err
 	}
-	return val == "1", nil
+	var identity CachedIdentity
+	if err := json.Unmarshal(val, &identity); err != nil {
+		return nil, err
+	}
+	return &identity, nil
 }
 
-func (r *RedisClient) CacheAuthResult(ctx context.Context, tokenHash string, allowed bool, ttl time.Duration) error {
+func (r *RedisClient) CacheIdentity(ctx context.Context, tokenHash string, identity *CachedIdentity, ttl time.Duration) error {
 	key := NamespacedKey(r.namespace, "auth", tokenHash)
-	val := "0"
-	if allowed {
-		val = "1"
+	val, err := json.Marshal(identity)
+	if err != nil {
+		return err
 	}
 	return r.client.Set(ctx, key, val, ttl).Err()
 }
@@ -214,4 +218,12 @@ func (r *RedisClient) IsBlacklisted(ctx context.Context, sessionID string) (bool
 func (r *RedisClient) BlacklistSession(ctx context.Context, sessionID string, ttl time.Duration) error {
 	key := NamespacedKey(r.namespace, "blacklist", sessionID)
 	return r.client.Set(ctx, key, "1", ttl).Err()
+}
+
+func (r *RedisClient) AggregateCost(ctx context.Context, providerID, model, apiKeyID string, credits int64) error {
+	if apiKeyID == "" {
+		apiKeyID = "anonymous"
+	}
+	key := NamespacedKey(r.namespace, "cost_agg", fmt.Sprintf("%s:%s:%s", providerID, model, apiKeyID))
+	return r.client.IncrBy(ctx, key, credits).Err()
 }

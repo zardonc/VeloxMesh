@@ -8,9 +8,11 @@ import (
 
 	"veloxmesh/internal/admission"
 	"veloxmesh/internal/config"
+	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/errors"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
+	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
@@ -63,7 +65,7 @@ func TestService_HandleChatCompletion_AttemptLoopHealth(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 
-	svc := gateway.NewService(router, admissionCtrl, store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil)
+	svc := gateway.NewService(router, admissionCtrl, store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil, nil)
 
 	// In round-robin, it should select p1 first (because they are both healthy).
 	// Let's ensure p1 is picked first by manipulating internal state if needed, but round-robin
@@ -103,7 +105,7 @@ func TestService_HandleChatCompletion_UsesComboUpstreamModel(t *testing.T) {
 		{ID: "combo-1", Name: "fast-combo", Strategy: "round-robin", Members: []string{"gpt-4o"}},
 	})
 	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
-	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil, nil)
 
 	resp, err := svc.HandleChatCompletion(ctx, &llm.LLMRequest{Model: "fast-combo"})
 	if err != nil {
@@ -123,7 +125,7 @@ func TestService_GetProviderCapabilities(t *testing.T) {
 	p2 := &mockAdapter{id: "p2"}
 	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2}, nil)
 	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
-	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil, nil)
 
 	caps := svc.GetProviderCapabilities()
 	if len(caps) != 2 {
@@ -181,7 +183,7 @@ func TestService_HandleChatCompletion_CircuitBreaker(t *testing.T) {
 	}
 
 	admissionCtrl := admission.NewPassThroughController()
-	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil, nil, pipeline.DefaultRegistry(), nil)
+	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil, nil, pipeline.DefaultRegistry(), nil, nil)
 
 	// Attempt 1 -> Fail
 	_, err := svc.HandleChatCompletion(ctx, req)
@@ -233,7 +235,7 @@ func TestService_HandleChatCompletion_StrictOverride(t *testing.T) {
 	}
 
 	admissionCtrl := admission.NewPassThroughController()
-	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil, nil, pipeline.DefaultRegistry(), nil)
+	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil, nil, pipeline.DefaultRegistry(), nil, nil)
 
 	// Attempt 1 -> Fail -> circuit opens
 	_, _ = svc.HandleChatCompletion(ctx, req)
@@ -246,5 +248,91 @@ func TestService_HandleChatCompletion_StrictOverride(t *testing.T) {
 	var gwErr *errors.GatewayError
 	if !stdlib_errors.As(err, &gwErr) || gwErr.Code != "provider_circuit_open" {
 		t.Errorf("expected provider_circuit_open, got %v", err)
+	}
+}
+
+type mockAggregator struct {
+	Called bool
+}
+
+func (m *mockAggregator) AggregateCost(ctx context.Context, providerID, model, apiKeyID string, credits int64) error {
+	m.Called = true
+	return nil
+}
+
+type mockUsageRepo struct {
+	controlstate.UsageRepository
+}
+
+func (m *mockUsageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error {
+	return nil
+}
+
+type mockRepoWithUsage struct {
+	controlstate.Repository
+	logCalled    bool
+	settleCalled bool
+}
+
+func (m *mockRepoWithUsage) Usage() controlstate.UsageRepository {
+	return &mockUsageRepo{}
+}
+
+func (m *mockRepoWithUsage) Settle(ctx context.Context, usage *controlstate.UsageRecord) error {
+	m.settleCalled = true
+	usage.CreditsConsumed = new(int64)
+	*usage.CreditsConsumed = 10
+	return nil
+}
+
+type mockAdapterWithUsage struct {
+	id string
+}
+
+func (m *mockAdapterWithUsage) ID() string { return m.id }
+func (m *mockAdapterWithUsage) Models() []string { return []string{"gpt-4o"} }
+func (m *mockAdapterWithUsage) Capabilities() providers.CapabilitySet {
+	return providers.CapabilitySet{
+		ProviderType:        providers.ProviderTypeOpenAICompatible,
+		SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+		InputModalities:     []providers.Modality{providers.ModalityText},
+		OutputModalities:    []providers.Modality{providers.ModalityText},
+	}
+}
+func (m *mockAdapterWithUsage) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+	return &llm.LLMResponse{Usage: &llm.Usage{TotalTokens: 10}}, nil
+}
+func (m *mockAdapterWithUsage) HealthCheck(ctx context.Context) providers.HealthStatus { return providers.HealthStatus{} }
+
+func TestService_CostAggregation(t *testing.T) {
+	ctx := context.Background()
+	req := &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1"}
+
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+
+	p1 := &mockAdapterWithUsage{id: "p1"}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
+
+	repo := &mockRepoWithUsage{}
+	agg := &mockAggregator{}
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, repo, nil, pipeline.DefaultRegistry(), nil, agg)
+
+	identity := &middleware.AuthIdentity{ID: "key-1", Role: "user", CreditBalance: 100, Enabled: true}
+	ctx = context.WithValue(ctx, middleware.AuthIdentityKey, identity)
+
+	_, err := svc.HandleChatCompletion(ctx, req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	time.Sleep(50 * time.Millisecond)
+
+	if !repo.settleCalled {
+		t.Errorf("expected Settle to be called")
+	}
+	if !agg.Called {
+		t.Errorf("expected AggregateCost to be called")
 	}
 }

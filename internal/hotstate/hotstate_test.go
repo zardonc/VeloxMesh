@@ -61,30 +61,30 @@ func TestLocalHotState(t *testing.T) {
 	}
 
 	// Auth
-	allowed, err := local.GetCachedAuthResult(ctx, "token1")
+	_, err = local.GetCachedIdentity(ctx, "token1")
 	if err != ErrCacheMiss {
 		t.Errorf("expected ErrCacheMiss, got %v", err)
 	}
 
-	err = local.CacheAuthResult(ctx, "token1", true, time.Minute)
+	err = local.CacheIdentity(ctx, "token1", &CachedIdentity{ID: "token1", Enabled: true}, time.Minute)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	allowed, err = local.GetCachedAuthResult(ctx, "token1")
+	identity, err := local.GetCachedIdentity(ctx, "token1")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if !allowed {
+	if !identity.Enabled {
 		t.Errorf("expected allowed to be true")
 	}
 
 	// TTL
-	err = local.CacheAuthResult(ctx, "token2", true, -time.Minute)
+	err = local.CacheIdentity(ctx, "token2", &CachedIdentity{ID: "token2", Enabled: true}, -time.Minute)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	_, err = local.GetCachedAuthResult(ctx, "token2")
+	_, err = local.GetCachedIdentity(ctx, "token2")
 	if err != ErrCacheMiss {
 		t.Errorf("expected ErrCacheMiss due to ttl expiry, got %v", err)
 	}

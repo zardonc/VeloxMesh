@@ -12,7 +12,7 @@ type cacheItem struct {
 }
 
 type authCacheItem struct {
-	allowed   bool
+	identity  *CachedIdentity
 	expiresAt time.Time
 }
 
@@ -90,21 +90,24 @@ func (l *LocalHotState) SetProbeSnapshot(ctx context.Context, providerID string,
 	return nil
 }
 
-func (l *LocalHotState) GetCachedAuthResult(ctx context.Context, tokenHash string) (bool, error) {
+func (l *LocalHotState) GetCachedIdentity(ctx context.Context, tokenHash string) (*CachedIdentity, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	item, ok := l.authItems[tokenHash]
 	if !ok || time.Now().After(item.expiresAt) {
-		return false, ErrCacheMiss
+		return nil, ErrCacheMiss
 	}
-	return item.allowed, nil
+	// return a copy to prevent mutation
+	identityCopy := *item.identity
+	return &identityCopy, nil
 }
 
-func (l *LocalHotState) CacheAuthResult(ctx context.Context, tokenHash string, allowed bool, ttl time.Duration) error {
+func (l *LocalHotState) CacheIdentity(ctx context.Context, tokenHash string, identity *CachedIdentity, ttl time.Duration) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	identityCopy := *identity
 	l.authItems[tokenHash] = authCacheItem{
-		allowed:   allowed,
+		identity:  &identityCopy,
 		expiresAt: time.Now().Add(ttl),
 	}
 	return nil
@@ -201,5 +204,10 @@ func (l *LocalHotState) BlacklistSession(ctx context.Context, sessionID string, 
 	l.blacklistItems[sessionID] = cacheItem{
 		expiresAt: time.Now().Add(ttl),
 	}
+	return nil
+}
+
+func (l *LocalHotState) AggregateCost(ctx context.Context, providerID, model, apiKeyID string, credits int64) error {
+	// Not implemented in local cache as it's primarily a Redis concern for this task
 	return nil
 }

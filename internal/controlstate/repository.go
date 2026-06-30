@@ -20,6 +20,7 @@ type Repository interface {
 	SemanticRules() SemanticRuleStore
 	FallbackLog() FallbackLogRepository
 	LimitRules() LimitRuleRepository
+	SessionBlacklist() SessionBlacklistRepository
 	BeginTx(ctx context.Context) (Transaction, error)
 	Settle(ctx context.Context, usage *UsageRecord) error
 	Close() error

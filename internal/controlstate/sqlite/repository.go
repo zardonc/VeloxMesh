@@ -185,6 +185,10 @@ func (r *Repository) LimitRules() controlstate.LimitRuleRepository {
 	return &sqliteLimitRuleRepository{db: r.db}
 }
 
+func (r *Repository) SessionBlacklist() controlstate.SessionBlacklistRepository {
+	return &sqliteSessionBlacklistRepo{db: r.db}
+}
+
 // -- providerRepo --
 
 type providerRepo struct {
