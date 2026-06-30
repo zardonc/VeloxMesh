@@ -36,6 +36,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - BFF Layer & Admin Console (Phase 10)
 - Multi-Node Coordination (Phase 11)
 - PostgreSQL Extension (Phase 12)
+- Advanced Routing & Observability (Phase 13)
 
 ### Long-Term / Architectural Goals
 
