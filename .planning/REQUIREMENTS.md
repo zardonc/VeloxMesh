@@ -21,6 +21,7 @@ Implement advanced LLM capabilities (Tool Calling, Multimodal), and introduce th
 - Phase 7: Adapter Interfaces & SQLite Foundation (v7 architecture refactor)
 - Phase 8: Semantic Pipeline
 - Phase 9: Redis Stack Integration
-- Phase 10: BFF Layer & Admin Console
-- Phase 11: Multi-Node Coordination
-- Phase 12: PostgreSQL Extension
+- Phase 10: Advanced Routing & Observability
+- Phase 11: BFF Layer & Admin Console
+- Phase 12: Multi-Node Coordination
+- Phase 13: PostgreSQL Extension

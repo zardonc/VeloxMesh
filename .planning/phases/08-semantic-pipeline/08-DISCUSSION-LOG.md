@@ -74,7 +74,7 @@
 
 - Keep the first implementation small.
 - Do not add provider/model/route override layers in Phase 8.
-- Defer full Admin Console UI to Phase 10 while preserving backend toggle capability.
+- Defer full Admin Console UI to Phase 11 while preserving backend toggle capability.
 
 ## Deferred Ideas
 

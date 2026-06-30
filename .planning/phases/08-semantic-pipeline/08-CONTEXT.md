@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Implement the configurable semantic processing pipeline for chat requests and responses: handler registry, per-user rule configuration, rule toggles, execution ordering, hot-reloadable settings, and exception logging. This phase owns backend pipeline behavior and configuration APIs; the full Admin Console UI for managing those toggles is deferred to Phase 10.
+Implement the configurable semantic processing pipeline for chat requests and responses: handler registry, per-user rule configuration, rule toggles, execution ordering, hot-reloadable settings, and exception logging. This phase owns backend pipeline behavior and configuration APIs; the full Admin Console UI for managing those toggles is deferred to Phase 11.
 
 </domain>
 
@@ -36,7 +36,7 @@ Implement the configurable semantic processing pipeline for chat requests and re
 - **D-14:** Every skipped handler failure must be logged with enough context to debug the rule, user scope, request ID, and exception without leaking prompts, secrets, or raw sensitive content.
 
 ### Admin Console Boundary
-- **D-15:** Admin Console must eventually expose switches for all rules, but Phase 8 should focus on backend configuration, validation, storage, and hot reload. Full UI work belongs to Phase 10 unless a tiny existing admin endpoint is enough to verify the backend.
+- **D-15:** Admin Console must eventually expose switches for all rules, but Phase 8 should focus on backend configuration, validation, storage, and hot reload. Full UI work belongs to Phase 11 unless a tiny existing admin endpoint is enough to verify the backend.
 
 ### the agent's Discretion
 - Keep the first implementation narrow. Reuse the existing `internal/pipeline` package and gateway integration points instead of introducing a broad workflow engine.
@@ -87,7 +87,7 @@ Implement the configurable semantic processing pipeline for chat requests and re
 
 - Keep Phase 8 intentionally small: no provider/model/route override matrix.
 - Caveman/Ponytail request rewriting is a special opt-in because it can change user intent.
-- Admin Console toggle support is required as a capability, but the real UI can wait until BFF/Admin Console Phase 10.
+- Admin Console toggle support is required as a capability, but the real UI can wait until BFF/Admin Console Phase 11.
 
 </specifics>
 
