@@ -43,7 +43,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-29)
 ## Planned Next
 
 1. Complete Phase 7: Adapter Interfaces & SQLite Foundation.
-2. Complete Phase 8: BFF Layer & Admin Console.
+2. Complete Phase 8: Semantic Pipeline.
 
 ## Useful Commands
 

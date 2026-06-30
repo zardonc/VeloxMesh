@@ -33,9 +33,9 @@ The gateway supports progressive deployment tiers, each adding capability withou
 <summary>🚧 v7 (Phases 7-12) — PLANNING</summary>
 
 - [x] Phase 7: Adapter Interfaces & SQLite Foundation (Plan 1 core)
-- [ ] Phase 8: BFF Layer & Admin Console (JWT + Role-based access)
-- [ ] Phase 9: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
-- [ ] Phase 10: Redis Stack + Qdrant Fallback Integration (Plan 1 hardening)
+- [ ] Phase 8: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
+- [ ] Phase 9: Redis Stack + Qdrant Fallback Integration (Plan 1 hardening)
+- [ ] Phase 10: BFF Layer & Admin Console (JWT + Role-based access)
 - [ ] Phase 11: Multi-Node Coordination (Plan 2)
 - [ ] Phase 12: PostgreSQL Extension (Plan 4, low priority)
 
@@ -56,22 +56,7 @@ Key deliverables:
 - Fallback log table for disaster recovery, including `VECTOR` replay records
 - Config hot-reload via in-memory TTL cache
 
-### Phase 8: BFF Layer & Admin Console
-
-**Goal:** Implement the BFF layer with JWT authentication, role-based access control (SUPER_ADMIN/ADMIN/USER), session management, and the Admin Console foundation.
-**Priority:** P0
-**Depends on:** Phase 7
-
-Key deliverables:
-- JWT-based authentication (login, logout, forced logout)
-- Role-based permission system (users table, role field)
-- BFF session verification and route permission checking
-- Dynamic route table per role
-- X-Verified-User-ID / X-Verified-Role header injection
-- Admin Console React SPA foundation
-- Revoked tokens blacklist (SQLite-based for Plan 1)
-
-### Phase 9: Semantic Pipeline
+### Phase 8: Semantic Pipeline
 
 **Goal:** Implement the configurable input/output processing pipeline with handler registry, per-rule toggles, and hot-reloadable configuration.
 **Priority:** P1
@@ -84,7 +69,7 @@ Key deliverables:
 - YAML configuration with per-rule enabled toggle
 - Pipeline rule registration and hot-reload
 
-### Phase 10: Redis Stack Integration
+### Phase 9: Redis Stack Integration
 
 **Goal:** Integrate Redis Stack for hot caching, atomic rate limiting, Pub/Sub config reload, token cost aggregation, and optional Redis VSS fallback when Qdrant is degraded or slow. Redis VSS is not the default vector path.
 **Priority:** P1
@@ -99,11 +84,26 @@ Key deliverables:
 - Session blacklist via Redis SET
 - API key hot cache with 5min TTL
 
+### Phase 10: BFF Layer & Admin Console
+
+**Goal:** Implement the BFF layer with JWT authentication, role-based access control (SUPER_ADMIN/ADMIN/USER), session management, and the Admin Console foundation.
+**Priority:** P0
+**Depends on:** Phase 7
+
+Key deliverables:
+- JWT-based authentication (login, logout, forced logout)
+- Role-based permission system (users table, role field)
+- BFF session verification and route permission checking
+- Dynamic route table per role
+- X-Verified-User-ID / X-Verified-Role header injection
+- Admin Console React SPA foundation
+- Revoked tokens blacklist (SQLite-based for Plan 1)
+
 ### Phase 11: Multi-Node Coordination
 
 **Goal:** Enable v2.1 Plan 2 multi-node deployment with leader election, SQLite-only WAL replication, SQLite-write fencing, and disaster recovery. Vector sync is removed because Qdrant owns vector storage and replication.
 **Priority:** P2
-**Depends on:** Phase 10
+**Depends on:** Phase 9
 
 Key deliverables:
 - RedisCoordAdapter implementation
