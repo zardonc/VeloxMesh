@@ -1,5 +1,35 @@
 # Milestones
 
+## v7.0 Plan 1 Foundation (Shipped: 2026-06-30)
+
+**Delivered:** Completed the Plan 1 architecture foundation: SQLite durable state, Redis Stack hot state, Qdrant vector path, semantic pipeline, and Redis VSS fallback.
+
+**Phases completed:** 7-9 (8 plans total)
+
+**Key accomplishments:**
+
+- Established SQLite-first durable runtime and narrow adapter contracts.
+- Implemented configurable semantic pipeline rules, persistence, execution, and hot reload.
+- Added Redis hot-state primitives, atomic admission checks, and recoverable security/accounting state.
+- Wired Redis VSS fallback and typed config event routing for Qdrant degradation scenarios.
+
+**Known deferred work:**
+
+- Phase 10: Advanced Routing & Observability.
+- Phase 11: BFF Layer & Admin Console.
+- Phase 12: Multi-Node Coordination.
+- Phase 13: PostgreSQL Extension.
+- Full `LimitRule` unification across all future scopes.
+
+**Archived:**
+
+- `.planning/milestones/v7.0-ROADMAP.md`
+- `.planning/milestones/v7.0-REQUIREMENTS.md`
+
+**What's next:** Define the next milestone around Phase 10-13 scope.
+
+---
+
 ## v5 Tool Calling, Multimodality, and Combos (Shipped: 2026-06-29)
 
 **Phases completed:** 2 phases, 3 plans, 0 tasks
