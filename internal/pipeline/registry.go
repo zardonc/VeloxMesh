@@ -40,6 +40,18 @@ func NewRegistry() *Registry {
 	}
 }
 
+func DefaultRegistry() *Registry {
+	r := NewRegistry()
+	r.Register(&FilterHandler{})
+	r.Register(&PIIHandler{})
+	r.Register(&RewriteHandler{})
+	r.Register(&RTKHandler{})
+	r.Register(&HeadroomHandler{})
+	r.Register(&CavemanHandler{})
+	r.Register(&PonytailHandler{})
+	return r
+}
+
 func (r *Registry) Register(h Handler) {
 	r.handlers[h.Name()] = h
 }

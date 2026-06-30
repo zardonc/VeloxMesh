@@ -17,6 +17,7 @@ type Repository interface {
 	Audit() AuditRepository
 	Idempotency() IdempotencyRepository
 	SemanticCache() SemanticCacheRepository
+	SemanticRules() SemanticRuleStore
 	FallbackLog() FallbackLogRepository
 	BeginTx(ctx context.Context) (Transaction, error)
 	Settle(ctx context.Context, usage *UsageRecord) error

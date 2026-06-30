@@ -43,6 +43,15 @@ var responseOrder = []RuleName{
 	RulePII, // PII Restore
 }
 
+func (p *Pipeline) HasResponseRulesEnabled() bool {
+	for _, ruleName := range responseOrder {
+		if p.config.Rules[ruleName].Enabled {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *Pipeline) ProcessRequest(ctx context.Context, scope RequestScope, state *RunState, req *llm.LLMRequest) error {
 	for _, ruleName := range requestOrder {
 		ruleCfg := p.config.Rules[ruleName]

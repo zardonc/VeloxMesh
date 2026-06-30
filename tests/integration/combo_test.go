@@ -22,6 +22,7 @@ import (
 	router "veloxmesh/internal/http"
 	"veloxmesh/internal/http/handlers"
 	"veloxmesh/internal/observability"
+	"veloxmesh/internal/pipeline"
 )
 
 func TestComboRoutingAndAdmin(t *testing.T) {
@@ -61,7 +62,7 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 	healthStore := health.NewInMemoryStore()
 	hotStateClient := hotstate.NewLocalHotState()
 	m := controlstate.NewRuntimeProviderManager(cfg, logger, healthStore)
-	
+
 	ctx := context.Background()
 	sqliteRepo, err := sqlite.Open("file::memory:?cache=shared")
 	if err != nil {
@@ -94,8 +95,8 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 	adminCombosHandler := handlers.NewAdminCombosHandler(adminComboSvc)
 
 	admissionCtrl := admission.NewPassThroughController()
-	gatewaySvc := gateway.NewService(m, admissionCtrl, healthStore, false, 0, repo, nil)
-	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, hotStateClient, repo)
+	gatewaySvc := gateway.NewService(m, admissionCtrl, healthStore, false, 0, repo, nil, pipeline.DefaultRegistry(), nil)
+	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, nil, hotStateClient, repo)
 
 	server := httptest.NewServer(r)
 	defer server.Close()
@@ -151,7 +152,7 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 	// 2. Test Round Robin Routing
 	t.Run("Test Round Robin Combo Routing", func(t *testing.T) {
 		reqBody := `{"model": "smart-rr", "messages": [{"role": "user", "content": "Hello"}]}`
-		
+
 		req1, _ := http.NewRequest(http.MethodPost, server.URL+"/v1/chat/completions", bytes.NewBufferString(reqBody))
 		req1.Header.Set("Authorization", "Bearer test-dev-key")
 		resp1, _ := http.DefaultClient.Do(req1)
@@ -161,7 +162,7 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 			t.Fatalf("req1 failed: %d", resp1.StatusCode)
 		}
 	})
-	
+
 	// 3. Create Fusion Combo
 	t.Run("Create Fusion Combo", func(t *testing.T) {
 		judge := "gpt-4o"
@@ -191,7 +192,7 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 		req.Header.Set("Authorization", "Bearer test-dev-key")
 		resp, _ := http.DefaultClient.Do(req)
 		defer resp.Body.Close()
-		
+
 		if resp.StatusCode != http.StatusOK {
 			t.Fatalf("req failed: %d", resp.StatusCode)
 		}

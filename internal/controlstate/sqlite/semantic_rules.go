@@ -94,6 +94,50 @@ func (r *semanticRuleRepository) GetUserConfig(ctx context.Context, userID strin
 	return cfg, nil
 }
 
+func (r *semanticRuleRepository) ListUserConfigs(ctx context.Context) (map[string]*pipeline.SemanticPipelineConfig, error) {
+	rows, err := r.db.QueryContext(ctx, `SELECT user_id, rule, enabled, options_json FROM semantic_rule_user_configs`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	configs := make(map[string]*pipeline.SemanticPipelineConfig)
+
+	for rows.Next() {
+		var userID string
+		var rule string
+		var enabled bool
+		var optionsJSON string
+		if err := rows.Scan(&userID, &rule, &enabled, &optionsJSON); err != nil {
+			return nil, err
+		}
+
+		if _, exists := configs[userID]; !exists {
+			configs[userID] = &pipeline.SemanticPipelineConfig{
+				Rules: make(map[pipeline.RuleName]pipeline.RuleConfig),
+			}
+		}
+
+		var options map[string]interface{}
+		if optionsJSON != "" && optionsJSON != "{}" && optionsJSON != "null" {
+			if err := json.Unmarshal([]byte(optionsJSON), &options); err != nil {
+				return nil, err
+			}
+		}
+
+		configs[userID].Rules[pipeline.RuleName(rule)] = pipeline.RuleConfig{
+			Enabled: enabled,
+			Options: options,
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return configs, nil
+}
+
 func (r *semanticRuleRepository) SaveGlobalDefaults(ctx context.Context, cfg *pipeline.SemanticPipelineConfig) error {
 	if err := cfg.Validate(); err != nil {
 		return err

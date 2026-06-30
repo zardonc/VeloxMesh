@@ -19,6 +19,7 @@ import (
 	router "veloxmesh/internal/http"
 	"veloxmesh/internal/http/handlers"
 	"veloxmesh/internal/observability"
+	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/providers/anthropic"
 	"veloxmesh/internal/providers/gemini"
@@ -182,17 +183,21 @@ func New() (*App, error) {
 
 	var adminProvHandler *handlers.AdminProvidersHandler
 	var adminCombosHandler *handlers.AdminCombosHandler
+	var adminSemanticRulesHandler *handlers.AdminSemanticRulesHandler
 	if repo != nil {
 		adminSvc := controlstate.NewAdminProviderService(repo, cipher, m, hotStateClient)
 		adminProvHandler = handlers.NewAdminProvidersHandler(adminSvc)
 
 		adminComboSvc := controlstate.NewAdminComboService(repo, m, cipher, hotStateClient)
 		adminCombosHandler = handlers.NewAdminCombosHandler(adminComboSvc)
+		
+		adminSemanticRulesSvc := controlstate.NewAdminSemanticRulesService(repo, hotStateClient)
+		adminSemanticRulesHandler = handlers.NewAdminSemanticRulesHandler(adminSemanticRulesSvc)
 	}
 
-	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache)
+	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m)
 
-	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, hotStateClient, repo)
+	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, hotStateClient, repo)
 
 	application := &App{
 		Config:                 cfg,
@@ -270,7 +275,25 @@ func (a *App) ReloadProviders(ctx context.Context, repo controlstate.Repository,
 		}
 	}
 
-	return a.RuntimeProviderManager.ActivateDurable(ctx, records, secrets, rCfg, combos, nil)
+	var semRules *controlstate.SemanticRuleSnapshot
+	if repo.SemanticRules() != nil {
+		global, err := repo.SemanticRules().GetGlobalDefaults(ctx)
+		if err != nil {
+			a.Logger.Error("failed to load global semantic rules", "error", err)
+		} else {
+			users, err := repo.SemanticRules().ListUserConfigs(ctx)
+			if err != nil {
+				a.Logger.Error("failed to load user semantic rules", "error", err)
+			} else {
+				semRules = &controlstate.SemanticRuleSnapshot{
+					Global: global,
+					Users:  users,
+				}
+			}
+		}
+	}
+
+	return a.RuntimeProviderManager.ActivateDurable(ctx, records, secrets, rCfg, combos, semRules, nil)
 }
 
 func (a *App) StartConfigChangeSubscriber(ctx context.Context, repo controlstate.Repository, cipher controlstate.SecretCipher) error {

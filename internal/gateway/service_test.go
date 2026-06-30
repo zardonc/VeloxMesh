@@ -12,6 +12,7 @@ import (
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/llm"
+	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
 )
@@ -62,7 +63,7 @@ func TestService_HandleChatCompletion_AttemptLoopHealth(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 
-	svc := gateway.NewService(router, admissionCtrl, store, true, 2, nil, nil)
+	svc := gateway.NewService(router, admissionCtrl, store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil)
 
 	// In round-robin, it should select p1 first (because they are both healthy).
 	// Let's ensure p1 is picked first by manipulating internal state if needed, but round-robin
@@ -102,7 +103,7 @@ func TestService_HandleChatCompletion_UsesComboUpstreamModel(t *testing.T) {
 		{ID: "combo-1", Name: "fast-combo", Strategy: "round-robin", Members: []string{"gpt-4o"}},
 	})
 	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
-	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil)
 
 	resp, err := svc.HandleChatCompletion(ctx, &llm.LLMRequest{Model: "fast-combo"})
 	if err != nil {
@@ -122,7 +123,7 @@ func TestService_GetProviderCapabilities(t *testing.T) {
 	p2 := &mockAdapter{id: "p2"}
 	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2}, nil)
 	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
-	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil)
 
 	caps := svc.GetProviderCapabilities()
 	if len(caps) != 2 {
@@ -180,7 +181,7 @@ func TestService_HandleChatCompletion_CircuitBreaker(t *testing.T) {
 	}
 
 	admissionCtrl := admission.NewPassThroughController()
-	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil, nil)
+	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil, nil, pipeline.DefaultRegistry(), nil)
 
 	// Attempt 1 -> Fail
 	_, err := svc.HandleChatCompletion(ctx, req)
@@ -232,7 +233,7 @@ func TestService_HandleChatCompletion_StrictOverride(t *testing.T) {
 	}
 
 	admissionCtrl := admission.NewPassThroughController()
-	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil, nil)
+	svc := gateway.NewService(mockRouter, admissionCtrl, store, true, 3, nil, nil, pipeline.DefaultRegistry(), nil)
 
 	// Attempt 1 -> Fail -> circuit opens
 	_, _ = svc.HandleChatCompletion(ctx, req)

@@ -15,6 +15,7 @@ import (
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/gateway"
 	router "veloxmesh/internal/http"
+	"veloxmesh/internal/pipeline"
 )
 
 // A dummy control state repo using memory for tests
@@ -42,9 +43,7 @@ type memoryRepository struct {
 	usageRepo controlstate.UsageRepository
 }
 
-func (m *memoryRepository) Combos() controlstate.ComboRepository {
-	return nil
-}
+
 
 type memoryUsageRepo struct {
 	records []*controlstate.UsageRecord
@@ -95,6 +94,8 @@ func (m *memoryRepository) Idempotency() controlstate.IdempotencyRepository { re
 func (m *memoryRepository) Audit() controlstate.AuditRepository             { return m.auditRepo }
 func (m *memoryRepository) Routing() controlstate.RoutingRepository         { return &dummyRoutingRepo{} }
 func (m *memoryRepository) APIKeys() controlstate.APIKeyRepository          { return nil }
+func (m *memoryRepository) Combos() controlstate.ComboRepository            { return nil }
+func (m *memoryRepository) SemanticRules() controlstate.SemanticRuleStore   { return nil }
 
 type dummyRoutingRepo struct{}
 
@@ -248,8 +249,8 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	cipher := &memoryCipher{}
 
 	admissionCtrl := admission.NewPassThroughController()
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, nil, repo)
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil, pipeline.DefaultRegistry(), nil)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, nil, nil, repo)
 
 	// 1. Initial reload with empty repo
 	err = a.ReloadProviders(context.Background(), repo, cipher)

@@ -16,6 +16,7 @@ import (
 	"veloxmesh/internal/gateway"
 	router "veloxmesh/internal/http"
 	"veloxmesh/internal/http/handlers"
+	"veloxmesh/internal/pipeline"
 )
 
 func TestAdminProvidersIntegration(t *testing.T) {
@@ -74,8 +75,8 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	adminHandler := handlers.NewAdminProvidersHandler(adminService)
 
 	admissionCtrl := admission.NewPassThroughController()
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil, nil, repo)
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil, pipeline.DefaultRegistry(), nil)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil, nil, nil, repo)
 
 	// 1. Initial reload with empty repo
 	err = a.ReloadProviders(context.Background(), repo, cipher)
@@ -201,7 +202,7 @@ func TestAdminProvidersRates(t *testing.T) {
 	adminService := controlstate.NewAdminProviderService(repo, cipher, a.RuntimeProviderManager, nil)
 	adminHandler := handlers.NewAdminProvidersHandler(adminService)
 
-	a.Router = router.NewRouter(a.Config, nil, adminHandler, nil, nil, repo)
+	a.Router = router.NewRouter(a.Config, nil, adminHandler, nil, nil, nil, repo)
 
 	server := httptest.NewServer(a.Router)
 	defer server.Close()
