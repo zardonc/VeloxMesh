@@ -1,168 +1,202 @@
 # VeloxMesh
 
-VeloxMesh is a lightweight AI gateway and agent orchestration layer for routing, governing, and observing LLM traffic across multiple providers. It combines high-performance request handling with extensible agent workflows, cost control, semantic caching, and production-grade observability.
+VeloxMesh is a lightweight AI gateway for routing, governing, and observing LLM traffic across multiple providers. It gives teams one stable entry point for model access while keeping provider choice, fallback behavior, usage control, and operational visibility outside application code.
 
-## Go Gateway Walking Skeleton (Phase 1)
+The goal is simple: make AI integrations easier to run, safer to change, and clearer to monitor.
 
-This project uses a Go 1.26.1 backend utilizing the `chi` router for the API gateway.
+## How It Fits
 
-### Setup
+```mermaid
+flowchart LR
+    App["Applications / Agents"] --> Gateway["VeloxMesh Gateway"]
+    Gateway --> Policy["Routing, Policy, Usage Controls"]
+    Policy --> Providers["LLM Providers"]
+    Gateway --> Observability["Health, Metrics, Logs"]
 
-1. **Install Go 1.26.1**
-2. **Set Environment Variables**: Copy `.env.example` to `.env` and configure `DEV_API_KEY` and `OPENAI_PRIMARY_API_KEY`.
-   ```bash
-   cp .env.example .env
-   ```
-3. **Run the gateway**:
-   ```bash
-   make run
-   ```
-4. **Run tests**:
-   ```bash
-   make test
-   ```
+    classDef app fill:#e0f2fe,stroke:#0284c7,color:#0f172a
+    classDef gateway fill:#ede9fe,stroke:#7c3aed,color:#0f172a
+    classDef policy fill:#fef3c7,stroke:#d97706,color:#0f172a
+    classDef provider fill:#dcfce7,stroke:#16a34a,color:#0f172a
+    classDef ops fill:#fee2e2,stroke:#dc2626,color:#0f172a
 
-### Curl Examples
-
-#### 1. Liveness Check
-```bash
-curl http://localhost:8080/healthz
+    class App app
+    class Gateway gateway
+    class Policy policy
+    class Providers provider
+    class Observability ops
 ```
 
-#### 2. Readiness Check
+```mermaid
+flowchart TD
+    Request["Incoming LLM Request"] --> Auth["Check Access"]
+    Auth --> Route["Choose Provider"]
+    Route --> Call["Call Model"]
+    Call --> Track["Track Usage"]
+    Track --> Response["Return Response"]
+
+    classDef input fill:#e0f2fe,stroke:#0284c7,color:#0f172a
+    classDef guard fill:#fef3c7,stroke:#d97706,color:#0f172a
+    classDef action fill:#ede9fe,stroke:#7c3aed,color:#0f172a
+    classDef result fill:#dcfce7,stroke:#16a34a,color:#0f172a
+
+    class Request input
+    class Auth,Route,Track guard
+    class Call action
+    class Response result
+```
+
+## Core Highlights
+
+- **Unified LLM gateway**: expose OpenAI-compatible endpoints while routing requests to configured providers.
+- **Multi-provider routing**: support explicit provider selection, default routing, and fallback across providers.
+- **Operational controls**: manage API keys, quotas, rate limits, health checks, and runtime provider state.
+- **Cost and usage awareness**: track request settlement and support budget-oriented admission checks.
+- **Semantic cache ready**: integrate vector-backed caching paths for repeated or similar prompts.
+- **Production-minded defaults**: health endpoints, metrics, structured logging, and durable control state.
+
+## Main Features
+
+VeloxMesh currently focuses on gateway and control-plane workflows:
+
+- Chat completions proxy compatible with common LLM client patterns.
+- Model listing through a gateway API.
+- Provider configuration through environment/static config and durable control state.
+- Health, readiness, and metrics endpoints for deployment checks.
+- Redis-backed hot state for cache, rate limiting, config events, and fast runtime coordination.
+- SQLite-backed durable state for local and single-node deployments.
+- Optional Qdrant/Redis Stack vector support for semantic cache and fallback scenarios.
+
+## Use Cases
+
+VeloxMesh is useful when you want to:
+
+- route one application across OpenAI-compatible, Anthropic, Gemini, or internal providers;
+- test provider fallback without changing every client integration;
+- centralize API key, quota, and usage policy enforcement;
+- add observability around LLM traffic before scaling usage;
+- run a local or single-node AI gateway with a path toward multi-instance deployment.
+
+## Quick Start
+
+### 1. Prerequisites
+
+- Go 1.26.1 or compatible
+- `make`
+- At least one provider API key for live model calls
+
+Optional services:
+
+- Redis Stack for distributed hot state and Redis VSS fallback
+- Qdrant for vector-backed semantic cache
+
+### 2. Configure Environment
+
+Copy the example environment file:
+
 ```bash
+cp .env.example .env
+```
+
+Set at least:
+
+```env
+DEV_API_KEY=vx-dev
+OPENAI_PRIMARY_API_KEY=your-provider-key
+```
+
+For local development, the default gateway address is `:8080`.
+
+### 3. Run the Gateway
+
+```bash
+make run
+```
+
+### 4. Docker Deployment
+
+Docker deployment is planned but not available yet. The intended flow will be:
+
+```bash
+docker compose up
+```
+
+For now, use `make run` for local development. Dockerfile and Compose files will be added later.
+
+### 5. Check Health
+
+```bash
+curl http://localhost:8080/healthz
 curl http://localhost:8080/readyz
 ```
 
-#### 3. List Models
+### 6. List Models
+
 ```bash
 curl http://localhost:8080/v1/models \
   -H "Authorization: Bearer vx-dev"
 ```
 
-#### 4. Chat Completions
+### 7. Send a Chat Request
 
 ```bash
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Authorization: Bearer vx-dev" \
   -H "Content-Type: application/json" \
-  -H "X-Route-To: openai-primary" \
   -d '{
     "model": "gpt-4o-mini",
-    "messages": [{"role": "user", "content": "Hello!"}]
+    "messages": [
+      { "role": "user", "content": "Hello from VeloxMesh" }
+    ]
   }'
 ```
 
-### Multi-Provider Configuration (Phase 2)
+## Configuration Overview
 
-VeloxMesh supports dynamic routing across multiple providers via a JSON configuration file.
-This `CONFIG_FILE` approach is a temporary Phase 2 bootstrap path for local/static configuration. In later development, provider configuration will be managed at runtime through the Admin Console and persisted in the database.
-Set the `CONFIG_FILE` environment variable to a JSON file like:
-```json
-{
-  "routing_strategy": "least-latency",
-  "default_provider": "openai-1",
-  "fallback_enabled": true,
-  "max_attempts": 3,
-  "health_check": {
-    "enabled": true,
-    "interval": "30s",
-    "timeout": "2s",
-    "failure_threshold": 3,
-    "success_threshold": 1,
-    "max_concurrency": 4
-  },
-  "providers": [
-    {
-      "id": "openai-1",
-      "type": "openai-compatible",
-      "base_url": "https://api.openai.com/v1",
-      "auth": {
-        "api_key_env": "OPENAI_API_KEY"
-      },
-      "models": ["gpt-4o", "gpt-4o-mini"],
-      "default_model": "gpt-4o-mini",
-      "timeout": "30s"
-    },
-    {
-      "id": "anthropic-1",
-      "type": "anthropic",
-      "base_url": "https://api.anthropic.com",
-      "auth": {
-        "api_key_env": "ANTHROPIC_API_KEY"
-      },
-      "models": ["claude-3-5-sonnet-20241022", "claude-3-haiku-20240307"],
-      "default_model": "claude-3-5-sonnet-20241022"
-    },
-    {
-      "id": "gemini-1",
-      "type": "gemini",
-      "base_url": "https://generativelanguage.googleapis.com/v1beta",
-      "auth": {
-        "api_key_env": "GEMINI_API_KEY"
-      },
-      "models": ["gemini-2.5-flash", "gemini-1.5-pro"],
-      "default_model": "gemini-2.5-flash"
-    }
-  ]
-}
+VeloxMesh can start with simple environment variables and grow into durable runtime configuration.
+
+Common settings:
+
+| Setting | Purpose |
+| --- | --- |
+| `GATEWAY_DATA_ADDR` | Public gateway API address |
+| `GATEWAY_ADMIN_ADDR` | Admin/control API address |
+| `GATEWAY_METRICS_ADDR` | Metrics endpoint address |
+| `DEV_API_KEY` | Local bearer token for development |
+| `DEFAULT_PROVIDER` | Default provider ID |
+| `OPENAI_PRIMARY_API_KEY` | Example provider key |
+| `CONFIG_FILE` | Optional JSON provider/routing config |
+| `CONTROL_STATE_BACKEND` | Durable control-state backend, such as SQLite |
+| `REDIS_ENABLED` | Enable Redis-backed hot state |
+| `REDIS_ADDR` | Redis server address |
+| `QDRANT_ADDR` | Qdrant server address for vector features |
+
+Keep secrets in environment variables or local secret stores. Do not commit real provider keys.
+
+## Testing
+
+Run the full Go test suite:
+
+```bash
+make test
 ```
 
-#### Secret Safety
-To keep your configuration secret-safe, define API keys as environment variable references (`api_key_env`) rather than hardcoding them in the JSON file. The legacy `api_key` string field remains accepted for backward compatibility, but committing raw keys is strongly discouraged.
+Run formatting and vet checks:
 
-#### Validation Rules
-When starting the gateway, the configuration is strictly validated to ensure robust behavior:
-- **Provider IDs**: Must be non-empty and unique.
-- **Provider Types**: Supported types are `openai-compatible`, `anthropic`, and `gemini`.
-- **Base URLs**: Must be non-empty and use `http` or `https` schemes.
-- **Models**: The `models` list cannot be empty. If `default_model` is set, it must exist in `models`.
-- **Durations**: Timeouts and intervals must be valid, non-negative duration strings (e.g., `"30s"`, `"2s"`).
-- **Health Check Thresholds**: Global and provider-specific success/failure thresholds and `max_concurrency` must be at least `1`.
-- **Fallback**: If enabled, `max_attempts` cannot exceed the number of configured providers. If disabled, `max_attempts` is locked to `1`.
+```bash
+make fmt
+make vet
+```
 
-By default, fallback across providers is enabled if more than one provider is configured. You can use the `X-Route-To` header to strictly override routing to a specific provider. When a strict override is used, fallback attempts are disabled.
+Some integration tests require local services such as Redis Stack or Qdrant. Set the related environment variables before running those tests.
 
-### Gateway Runtime Modes (Architecture v2.1)
+## Technology Snapshot
 
-VeloxMesh supports progressive deployment tiers:
-- **Plan 1 (Standalone Enhanced)**: SQLite + Redis Stack + Qdrant. This is the P0 mainline: single-node production with durable relational state, hot cache/rate/config coordination, and Qdrant semantic cache.
-- **Plan 2 (Multi-Node)**: Multi App + Redis Stack + SQLite + Qdrant. Redis coordinates cluster state and SQLite WAL replication; Qdrant handles vector storage independently.
-- **Plan 3 (Edge)**: SQLite + LanceDB. LanceDB is retained only as a Plan 3 edge-only option behind a build tag (`-tags lancedb`, CGO, Linux/macOS only).
-- **Plan 4 (Extension)**: PostgreSQL + pgvector. Enterprise scale with concurrent writes and vector+relational JOINs.
+VeloxMesh is primarily built with:
 
-VeloxMesh supports dynamic provider configuration management via an Admin API. The v2.1 control plane is SQLite-first for durable storage; PostgreSQL is kept as a later adapter extension. Redis Stack handles hot state, multi-instance consistency, and distributed caching. Qdrant handles high-performance vector storage and semantic caching via gRPC.
+- Go for the gateway and runtime services
+- `chi` for HTTP routing
+- SQLite for durable local control state
+- Redis Stack for hot state, coordination, and selected vector fallback paths
+- Qdrant for vector-backed semantic cache workflows
 
-#### SQLite Configuration
-- `CONTROL_STATE_BACKEND`: Use `sqlite` for the v2.0 primary path, or `disabled` for legacy static config.
-- `CONTROL_STATE_DSN`: SQLite database path, for example `./data/veloxmesh.db`.
-- `CONTROL_STATE_MIGRATE_ON_STARTUP`: Run embedded migrations on startup when enabled.
-- `CONTROL_STATE_LOCAL_SEED_ENABLED`: Seed durable provider records from local static provider config.
-- `CONTROL_STATE_ENCRYPTION_KEY`: Local secret encryption key. Do not commit real values.
-
-#### Redis Configuration
-Redis is optional but recommended for multi-instance deployments. Configure it via environment variables or `CONFIG_FILE`:
-- `REDIS_ENABLED`: Set to `true` to enable Redis (default: `false`).
-- `REDIS_ADDR`: Redis server address (default: `localhost:6379`).
-- `REDIS_PASSWORD`: Redis password (default: empty).
-- `REDIS_DB`: Redis database index (default: `0`).
-- `REDIS_NAMESPACE`: Key prefix for all Redis data (default: `veloxmesh:local`).
-- `REDIS_HEALTH_TTL`: TTL for health check snapshots (default: `1m`).
-- `REDIS_AUTH_CACHE_TTL`: TTL for data-plane API key auth caching (default: `5m`).
-- `REDIS_CONFIG_CHANGE_CHANNEL`: Pattern used for pub/sub notifications, defaulting to `{namespace}:channel:config-change`.
-- `REDIS_DEGRADE_TO_LOCAL`: If `true`, falls back to in-memory local state when Redis is unavailable (default: `true`).
-
-#### Key Patterns & No-Secrets Rule
-Keys are prefixed using the configured namespace (e.g., `veloxmesh:prod:health:provider-id`).
-VeloxMesh guarantees that **Redis never stores provider secrets, decrypted credentials, encrypted secret blobs, raw prompts, or upstream payloads**. It only caches ephemeral routing state (health, auth decisions) and configuration change notifications.
-
-#### Qdrant Configuration
-Qdrant is required for semantic caching and vector-related operations.
-- `QDRANT_ADDR`: Qdrant server address (e.g., `192.168.234.129:6334` for gRPC).
-- `QDRANT_API_KEY`: Qdrant API Key.
-
-#### Multi-Instance Consistency Modes
-- **With Redis (Recommended)**: Admin API mutations publish a config-change event via Redis pub/sub. All connected VeloxMesh instances subscribe to this channel and automatically reload their runtime provider state to ensure cluster-wide consistency.
-- **Without Redis (Local Only)**: If Redis is disabled or degraded, runtime reload is guaranteed **only for the gateway instance handling the Admin API request**. Other instances will not receive the update until restarted or manually reloaded.
-
-PostgreSQL and pgvector are not required for the default deployment path; they are reserved for the low-priority extension tier.
+These dependencies support the gateway experience; most users can start with the basic Go service and add Redis or vector storage only when their deployment needs it.
