@@ -68,3 +68,115 @@ func TestRedisHotState_SecretSafe(t *testing.T) {
 		}
 	}
 }
+
+func getRedisClient(t *testing.T) (*hotstate.RedisClient, string) {
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		t.Skip("Skipping redis tests, REDIS_ADDR not set")
+	}
+	redisPassword := os.Getenv("REDIS_PASSWORD")
+
+	ctx := context.Background()
+	namespace := "veloxmesh:test:" + time.Now().Format("20060102150405.000")
+	client, err := hotstate.NewRedisClient(ctx, redisAddr, redisPassword, 0, namespace)
+	if err != nil {
+		t.Fatalf("failed to connect to redis: %v", err)
+	}
+	return client, namespace
+}
+
+func TestRedisHotState_ByteCache(t *testing.T) {
+	client, _ := getRedisClient(t)
+	defer client.Close()
+	ctx := context.Background()
+
+	// Get missing
+	_, err := client.GetBytes(ctx, "key1")
+	if err != hotstate.ErrCacheMiss {
+		t.Errorf("expected ErrCacheMiss, got %v", err)
+	}
+
+	// Set and Get
+	err = client.SetBytes(ctx, "key1", []byte("data1"), time.Minute)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	data, err := client.GetBytes(ctx, "key1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if string(data) != "data1" {
+		t.Errorf("expected data1, got %s", string(data))
+	}
+
+	// Delete
+	err = client.Delete(ctx, "key1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	_, err = client.GetBytes(ctx, "key1")
+	if err != hotstate.ErrCacheMiss {
+		t.Errorf("expected ErrCacheMiss, got %v", err)
+	}
+}
+
+func TestRedisHotState_AtomicLimiter(t *testing.T) {
+	client, _ := getRedisClient(t)
+	defer client.Close()
+	ctx := context.Background()
+
+	// 1st request
+	count, allowed, err := client.CheckAndIncrement(ctx, "lim1", 2, time.Minute)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if count != 1 || !allowed {
+		t.Errorf("expected 1, true; got %d, %v", count, allowed)
+	}
+
+	// 2nd request
+	count, allowed, err = client.CheckAndIncrement(ctx, "lim1", 2, time.Minute)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if count != 2 || !allowed {
+		t.Errorf("expected 2, true; got %d, %v", count, allowed)
+	}
+
+	// 3rd request (should be rejected)
+	count, allowed, err = client.CheckAndIncrement(ctx, "lim1", 2, time.Minute)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if count != 2 || allowed {
+		t.Errorf("expected 2, false; got %d, %v", count, allowed)
+	}
+}
+
+func TestRedisHotState_SessionBlacklist(t *testing.T) {
+	client, _ := getRedisClient(t)
+	defer client.Close()
+	ctx := context.Background()
+
+	isBlacklisted, err := client.IsBlacklisted(ctx, "sess1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if isBlacklisted {
+		t.Errorf("expected false, got true")
+	}
+
+	err = client.BlacklistSession(ctx, "sess1", time.Minute)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	isBlacklisted, err = client.IsBlacklisted(ctx, "sess1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !isBlacklisted {
+		t.Errorf("expected true, got false")
+	}
+}

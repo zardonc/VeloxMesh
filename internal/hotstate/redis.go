@@ -146,3 +146,72 @@ func (s *redisSubscription) Channel() <-chan *ConfigChangeMessage {
 func (s *redisSubscription) Close() error {
 	return s.pubsub.Close()
 }
+
+func (r *RedisClient) GetBytes(ctx context.Context, key string) ([]byte, error) {
+	val, err := r.client.Get(ctx, key).Bytes()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, ErrCacheMiss
+		}
+		return nil, err
+	}
+	return val, nil
+}
+
+func (r *RedisClient) SetBytes(ctx context.Context, key string, data []byte, ttl time.Duration) error {
+	return r.client.Set(ctx, key, data, ttl).Err()
+}
+
+func (r *RedisClient) Delete(ctx context.Context, key string) error {
+	return r.client.Del(ctx, key).Err()
+}
+
+var checkAndIncScript = redis.NewScript(`
+local current = redis.call("GET", KEYS[1])
+local limit = tonumber(ARGV[1])
+if current and tonumber(current) >= limit then
+	return {tonumber(current), 0}
+end
+current = redis.call("INCR", KEYS[1])
+if tonumber(current) == 1 then
+	redis.call("PEXPIRE", KEYS[1], ARGV[2])
+end
+return {tonumber(current), 1}
+`)
+
+func (r *RedisClient) CheckAndIncrement(ctx context.Context, key string, limit int64, window time.Duration) (int64, bool, error) {
+	res, err := checkAndIncScript.Run(ctx, r.client, []string{key}, limit, window.Milliseconds()).Result()
+	if err != nil {
+		return 0, false, err
+	}
+	
+	vals, ok := res.([]interface{})
+	if !ok || len(vals) != 2 {
+		return 0, false, fmt.Errorf("unexpected script result type: %T", res)
+	}
+	
+	count, ok1 := vals[0].(int64)
+	allowedInt, ok2 := vals[1].(int64)
+	if !ok1 || !ok2 {
+		return 0, false, fmt.Errorf("unexpected script return values")
+	}
+	
+	return count, allowedInt == 1, nil
+}
+
+func (r *RedisClient) IsBlacklisted(ctx context.Context, sessionID string) (bool, error) {
+	key := NamespacedKey(r.namespace, "blacklist", sessionID)
+	val, err := r.client.Get(ctx, key).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return false, nil
+		}
+		return false, err
+	}
+	return val == "1", nil
+}
+
+func (r *RedisClient) BlacklistSession(ctx context.Context, sessionID string, ttl time.Duration) error {
+	key := NamespacedKey(r.namespace, "blacklist", sessionID)
+	return r.client.Set(ctx, key, "1", ttl).Err()
+}
