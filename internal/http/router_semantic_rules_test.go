@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"veloxmesh/internal/config"
@@ -17,21 +19,9 @@ import (
 )
 
 func TestSemanticRulesRoutesUseRealSQLiteStore(t *testing.T) {
-	ctx := context.Background()
-	repo, err := sqlite.Open("file:semantic-rules-route?mode=memory&cache=shared")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-	defer repo.Close()
+	dsn := localSemanticRulesTestDB(t)
 
-	if err := repo.Migrate(ctx); err != nil {
-		t.Fatalf("migrate sqlite: %v", err)
-	}
-
-	hot := hotstate.NewLocalHotState()
-	svc := controlstate.NewAdminSemanticRulesService(repo, hot)
-	handler := handlers.NewAdminSemanticRulesHandler(svc)
-	router := NewRouter(&config.Config{AdminAPIKey: "admin"}, nil, nil, nil, handler, hot, repo)
+	repo, router := semanticRulesTestRouter(t, dsn)
 
 	cfg := pipeline.DefaultSemanticPipelineConfig()
 	cfg.Rules[pipeline.RulePII] = pipeline.RuleConfig{Enabled: true}
@@ -55,6 +45,45 @@ func TestSemanticRulesRoutesUseRealSQLiteStore(t *testing.T) {
 	}
 
 	getRules(t, router, "/admin/v1/semantic-rules", "", http.StatusUnauthorized)
+	if err := repo.Close(); err != nil {
+		t.Fatalf("close sqlite before reopen: %v", err)
+	}
+
+	repo, router = semanticRulesTestRouter(t, dsn)
+	defer repo.Close()
+	reopened := getRules(t, router, "/admin/v1/semantic-rules", "admin", http.StatusOK)
+	if !reopened.Rules[pipeline.RulePII].Enabled {
+		t.Fatalf("expected global PII rule persisted in local sqlite file")
+	}
+}
+
+func localSemanticRulesTestDB(t *testing.T) string {
+	t.Helper()
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatalf("locate test file")
+	}
+	return filepath.Join(filepath.Dir(file), "..", "..", "veloxmesh-test.db")
+}
+
+func semanticRulesTestRouter(t *testing.T, dsn string) (*sqlite.Repository, http.Handler) {
+	t.Helper()
+	ctx := context.Background()
+	repo, err := sqlite.Open(dsn)
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+
+	if err := repo.Migrate(ctx); err != nil {
+		repo.Close()
+		t.Fatalf("migrate sqlite: %v", err)
+	}
+
+	hot := hotstate.NewLocalHotState()
+	svc := controlstate.NewAdminSemanticRulesService(repo, hot)
+	handler := handlers.NewAdminSemanticRulesHandler(svc)
+	router := NewRouter(&config.Config{AdminAPIKey: "admin"}, nil, nil, nil, handler, hot, repo)
+	return repo, router
 }
 
 func putJSON(t *testing.T, router http.Handler, path, adminKey string, body any, want int) {
