@@ -52,11 +52,11 @@ See: `.planning/PROJECT.md` (updated 2026-06-29)
 
 ## Current Position
 
-Phase: 07 (Adapter Interfaces & SQLite Foundation) — PLANNING
-Plan: 0
-Status: Planning Phase 07
-Last activity: 2026-06-29 -- v5 shipped
+Phase: 08 (Semantic Pipeline) — EXECUTING
+Plan: 01 (Completed)
+Status: Executing Phase 08
+Last activity: 2026-06-30 -- Phase 08 Plan 01 completed
 
 ## Operator Next Steps
 
-- Execute `/gsd-plan-phase 7` to begin Phase 7.
+- Execute `/gsd-execute-phase 08-02` to continue Phase 8 execution.
