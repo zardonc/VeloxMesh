@@ -132,7 +132,7 @@ func New() (*App, error) {
 
 	var admissionCtrl admission.Controller
 	if repo != nil {
-		admissionCtrl = admission.NewCreditAdmissionController(repo)
+		admissionCtrl = admission.NewLimitAdmissionController(repo, hotStateClient)
 	} else {
 		admissionCtrl = admission.NewPassThroughController()
 	}

@@ -181,6 +181,10 @@ func (r *Repository) FallbackLog() controlstate.FallbackLogRepository {
 	return &fallbackLogRepo{db: r.db}
 }
 
+func (r *Repository) LimitRules() controlstate.LimitRuleRepository {
+	return &sqliteLimitRuleRepository{db: r.db}
+}
+
 // -- providerRepo --
 
 type providerRepo struct {

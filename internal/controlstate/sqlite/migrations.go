@@ -20,7 +20,7 @@ func NewMigrator(db *sql.DB) controlstate.Migrator {
 func (m *Migrator) Migrate(ctx context.Context) error {
 	fs := controlstate.GetSQLiteMigrations()
 
-	files := []string{"migrations/sqlite/0001_control_state.sql", "migrations/sqlite/0002_combos.sql", "migrations/sqlite/0003_semantic_rules.sql"}
+	files := []string{"migrations/sqlite/0001_control_state.sql", "migrations/sqlite/0002_combos.sql", "migrations/sqlite/0003_semantic_rules.sql", "migrations/sqlite/0004_limit_rules.sql"}
 
 	// A real migrator would use a library like goose, but for this milestone we
 	// can do a simple split or just execute the whole file. Wait, we should only
@@ -49,6 +49,9 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 			sqlStr := string(data)
 			upSQL := sqlStr
 			importIdx := strings.Index(sqlStr, "-- +goose Down")
+			if importIdx == -1 {
+				importIdx = strings.Index(sqlStr, "-- +migrate Down")
+			}
 			if importIdx != -1 {
 				upSQL = sqlStr[:importIdx]
 			}

@@ -19,6 +19,7 @@ type Repository interface {
 	SemanticCache() SemanticCacheRepository
 	SemanticRules() SemanticRuleStore
 	FallbackLog() FallbackLogRepository
+	LimitRules() LimitRuleRepository
 	BeginTx(ctx context.Context) (Transaction, error)
 	Settle(ctx context.Context, usage *UsageRecord) error
 	Close() error
