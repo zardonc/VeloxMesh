@@ -10,12 +10,14 @@ type Registry struct {
 	ids       []string
 	defaultID string
 	catalog   *ModelCatalog
+	combos    []Combo
 }
 
 func NewRegistry(cfg *config.Config, adapters []ProviderAdapter, combos []Combo) *Registry {
 	r := &Registry{
 		providers: make(map[string]ProviderAdapter),
 		defaultID: cfg.DefaultProvider,
+		combos:    combos,
 	}
 
 	for _, a := range adapters {
@@ -30,6 +32,10 @@ func NewRegistry(cfg *config.Config, adapters []ProviderAdapter, combos []Combo)
 
 func (r *Registry) ModelCatalog() *ModelCatalog {
 	return r.catalog
+}
+
+func (r *Registry) Combos() []Combo {
+	return r.combos
 }
 
 func (r *Registry) Get(id string) (ProviderAdapter, error) {

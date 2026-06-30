@@ -24,6 +24,10 @@ func (d *dummyRepo) Combos() controlstate.ComboRepository {
 	return nil
 }
 
+func (d *dummyRepo) SemanticRules() controlstate.SemanticRuleStore {
+	return nil
+}
+
 type dummyRoutingRepo struct {
 }
 

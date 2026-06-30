@@ -19,6 +19,7 @@ import (
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
+	"veloxmesh/internal/pipeline"
 )
 
 type mockEmbedAdapter struct {
@@ -90,9 +91,9 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 		TTL:           1 * time.Hour,
 	}, cacheRepo, nil, p1)
 
-	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc)
+	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc, pipeline.DefaultRegistry(), nil)
 
-	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil)
+	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil)
 
 	reqBody, _ := json.Marshal(llm.ChatCompletionRequest{
 		Model:    "emb",

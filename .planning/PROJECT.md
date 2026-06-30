@@ -28,14 +28,17 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ### Active
 
-- [ ] Phase 8: BFF Layer & Admin Console
+- [ ] Phase 8: Semantic Pipeline
 
 ### Deferred to Future Milestones
 
-- Semantic Pipeline (Phase 9)
-- Redis Stack Integration (Phase 10)
-- Multi-Node Coordination (Phase 11)
+- Redis Stack Integration (Phase 9)
+- Advanced Routing & Observability (Phase 10)
+- BFF Layer & Admin Console (Phase 11)
+- Multi-Node Coordination (Phase 12)
+- PostgreSQL Extension (Phase 13)
 - PostgreSQL Extension (Phase 12)
+- Advanced Routing & Observability (Phase 13)
 
 ### Long-Term / Architectural Goals
 

@@ -15,6 +15,7 @@ AGENTS.md
 bin/
 *.exe
 veloxmesh
+.gocache/
 
 # Environment variables
 .env
@@ -31,6 +32,9 @@ OPENCODE.jsonc
 
 # Local Test Configs
 tests/config.json
+/veloxmesh-test.db
+/veloxmesh-test.db-shm
+/veloxmesh-test.db-wal
 
 # LanceDB Native Binaries
 /lib/

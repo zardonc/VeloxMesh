@@ -33,11 +33,12 @@ The gateway supports progressive deployment tiers, each adding capability withou
 <summary>🚧 v7 (Phases 7-12) — PLANNING</summary>
 
 - [x] Phase 7: Adapter Interfaces & SQLite Foundation (Plan 1 core)
-- [ ] Phase 8: BFF Layer & Admin Console (JWT + Role-based access)
-- [ ] Phase 9: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
-- [ ] Phase 10: Redis Stack + Qdrant Fallback Integration (Plan 1 hardening)
-- [ ] Phase 11: Multi-Node Coordination (Plan 2)
-- [ ] Phase 12: PostgreSQL Extension (Plan 4, low priority)
+- [ ] Phase 8: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
+- [ ] Phase 9: Redis Stack + Qdrant Fallback Integration (Plan 1 hardening)
+- [ ] Phase 10: Advanced Routing & Observability
+- [ ] Phase 11: BFF Layer & Admin Console (JWT + Role-based access)
+- [ ] Phase 12: Multi-Node Coordination (Plan 2)
+- [ ] Phase 13: PostgreSQL Extension (Plan 4, low priority)
 
 ### Phase 7: Adapter Interfaces & SQLite Foundation
 
@@ -56,7 +57,50 @@ Key deliverables:
 - Fallback log table for disaster recovery, including `VECTOR` replay records
 - Config hot-reload via in-memory TTL cache
 
-### Phase 8: BFF Layer & Admin Console
+### Phase 8: Semantic Pipeline
+
+**Goal:** Implement the configurable input/output processing pipeline with handler registry, per-rule toggles, and hot-reloadable configuration.
+**Priority:** P1
+**Depends on:** Phase 7
+
+Key deliverables:
+- Handler interface and pipeline executor
+- Input handlers: RTK (token compression), Headroom, PII Redaction, Input Rewrite
+- Output handlers: Caveman, Ponytail, PII Restore, Output Filter
+- YAML configuration with per-rule enabled toggle
+- Pipeline rule registration and hot-reload
+
+### Phase 9: Redis Stack Integration
+
+**Goal:** Integrate Redis Stack for hot caching, atomic rate limiting, Pub/Sub config reload, token cost aggregation, and optional Redis VSS fallback when Qdrant is degraded or slow. Redis VSS is not the default vector path.
+**Priority:** P1
+**Depends on:** Phase 7
+
+Key deliverables:
+**Depends on:** Phase 7
+
+Key deliverables:
+- RedisCacheAdapter implementation
+- Redis VSS fallback for vector data, default off and auto-enabled only by Qdrant degradation policy
+- Atomic rate limiting via Redis INCR (replacing memory counters)
+- Config Pub/Sub hot-reload
+- Token cost aggregation buffer (Redis HINCR → batch SQLite flush)
+- Session blacklist via Redis SET
+- API key hot cache with 5min TTL
+
+### Phase 10: Advanced Routing & Observability
+
+**Goal:** Implement the Composite Score Router for normalized multi-signal scoring and add comprehensive OpenTelemetry/Prometheus observability.
+**Priority:** P1
+**Depends on:** Phase 9
+
+Key deliverables:
+- Composite Score Router (latency, pending requests, error rates, costs, health bonuses)
+- Z-score normalization for routing signals
+- OpenTelemetry traces (TTFT, TPOT, E2E, cache hit)
+- Prometheus metrics histograms
+
+### Phase 11: BFF Layer & Admin Console
 
 **Goal:** Implement the BFF layer with JWT authentication, role-based access control (SUPER_ADMIN/ADMIN/USER), session management, and the Admin Console foundation.
 **Priority:** P0
@@ -71,39 +115,11 @@ Key deliverables:
 - Admin Console React SPA foundation
 - Revoked tokens blacklist (SQLite-based for Plan 1)
 
-### Phase 9: Semantic Pipeline
-
-**Goal:** Implement the configurable input/output processing pipeline with handler registry, per-rule toggles, and hot-reloadable configuration.
-**Priority:** P1
-**Depends on:** Phase 7
-
-Key deliverables:
-- Handler interface and pipeline executor
-- Input handlers: RTK (token compression), Headroom, PII Redaction, Input Rewrite
-- Output handlers: Caveman, Ponytail, PII Restore, Output Filter
-- YAML configuration with per-rule enabled toggle
-- Pipeline rule registration and hot-reload
-
-### Phase 10: Redis Stack Integration
-
-**Goal:** Integrate Redis Stack for hot caching, atomic rate limiting, Pub/Sub config reload, token cost aggregation, and optional Redis VSS fallback when Qdrant is degraded or slow. Redis VSS is not the default vector path.
-**Priority:** P1
-**Depends on:** Phase 7
-
-Key deliverables:
-- RedisCacheAdapter implementation
-- Redis VSS fallback for vector data, default off and auto-enabled only by Qdrant degradation policy
-- Atomic rate limiting via Redis INCR (replacing memory counters)
-- Config Pub/Sub hot-reload
-- Token cost aggregation buffer (Redis HINCR → batch SQLite flush)
-- Session blacklist via Redis SET
-- API key hot cache with 5min TTL
-
-### Phase 11: Multi-Node Coordination
+### Phase 12: Multi-Node Coordination
 
 **Goal:** Enable v2.1 Plan 2 multi-node deployment with leader election, SQLite-only WAL replication, SQLite-write fencing, and disaster recovery. Vector sync is removed because Qdrant owns vector storage and replication.
 **Priority:** P2
-**Depends on:** Phase 10
+**Depends on:** Phase 9
 
 Key deliverables:
 - RedisCoordAdapter implementation
@@ -116,11 +132,11 @@ Key deliverables:
 - Graceful shutdown with leader lock release
 - Chaos testing (random node kill, network partition)
 
-### Phase 12: PostgreSQL Extension (Low Priority)
+### Phase 13: PostgreSQL Extension (Low Priority)
 
 **Goal:** Implement PostgreSQL + pgvector adapter for enterprise deployments requiring multi-node concurrent writes and vector+relational JOIN queries.
 **Priority:** P3
-**Depends on:** Phase 11
+**Depends on:** Phase 12
 
 Key deliverables:
 - PostgresDBAdapter implementation

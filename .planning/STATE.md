@@ -43,7 +43,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-29)
 ## Planned Next
 
 1. Complete Phase 7: Adapter Interfaces & SQLite Foundation.
-2. Complete Phase 8: BFF Layer & Admin Console.
+2. Complete Phase 8: Semantic Pipeline.
 
 ## Useful Commands
 
@@ -52,11 +52,11 @@ See: `.planning/PROJECT.md` (updated 2026-06-29)
 
 ## Current Position
 
-Phase: 07 (Adapter Interfaces & SQLite Foundation) — PLANNING
-Plan: 0
-Status: Planning Phase 07
-Last activity: 2026-06-29 -- v5 shipped
+Phase: 08 (Semantic Pipeline) — EXECUTING
+Plan: 03 (Completed)
+Status: Executing Phase 08
+Last activity: 2026-06-30 -- Phase 08 Plan 03 completed
 
 ## Operator Next Steps
 
-- Execute `/gsd-plan-phase 7` to begin Phase 7.
+- Execute `/gsd-execute-phase 08-03` to continue Phase 8 execution.

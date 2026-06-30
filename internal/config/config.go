@@ -97,6 +97,9 @@ type Config struct {
 	SemanticCacheVectorStore  string `json:"semantic_cache_vector_store"`
 	QdrantAddr                string `json:"qdrant_addr"`
 	QdrantAPIKey              string `json:"qdrant_api_key"`
+
+	// Phase 8 Semantic Pipeline
+	SemanticPipelineConfigFile string `json:"semantic_pipeline_config_file"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -130,6 +133,8 @@ func LoadConfig() (*Config, error) {
 		SemanticCacheVectorStore: getEnv("SEMANTIC_CACHE_VECTOR_STORE", ""),
 		QdrantAddr:               getEnv("QDRANT_ADDR", ""),
 		QdrantAPIKey:             getEnv("QDRANT_API_KEY", ""),
+
+		SemanticPipelineConfigFile: getEnv("SEMANTIC_PIPELINE_CONFIG_FILE", ""),
 	}
 
 	configFile := getEnv("CONFIG_FILE", "")
@@ -169,6 +174,8 @@ func LoadConfig() (*Config, error) {
 			SemanticCacheVectorStore  string `json:"semantic_cache_vector_store"`
 			QdrantAddr                string `json:"qdrant_addr"`
 			QdrantAPIKey              string `json:"qdrant_api_key"`
+
+			SemanticPipelineConfigFile string `json:"semantic_pipeline_config_file"`
 		}
 		if err := json.Unmarshal(data, &fileCfg); err != nil {
 			return nil, fmt.Errorf("failed to parse config file: %v", err)
@@ -253,6 +260,10 @@ func LoadConfig() (*Config, error) {
 		}
 		if fileCfg.QdrantAPIKey != "" {
 			cfg.QdrantAPIKey = fileCfg.QdrantAPIKey
+		}
+
+		if fileCfg.SemanticPipelineConfigFile != "" {
+			cfg.SemanticPipelineConfigFile = fileCfg.SemanticPipelineConfigFile
 		}
 
 		if !fallbackEnabledSet {

@@ -16,6 +16,7 @@ import (
 	"veloxmesh/internal/gateway"
 	router "veloxmesh/internal/http"
 	"veloxmesh/internal/http/handlers"
+	"veloxmesh/internal/pipeline"
 )
 
 func TestAdminProviderActions_TestConnectionIdempotencyAndAudit(t *testing.T) {
@@ -69,8 +70,8 @@ func TestAdminProviderActions_TestConnectionIdempotencyAndAudit(t *testing.T) {
 	}
 	adminService := controlstate.NewAdminProviderService(repo, cipher, a.RuntimeProviderManager, nil)
 	adminHandler := handlers.NewAdminProvidersHandler(adminService)
-	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admission.NewPassThroughController(), a.HealthStore(), true, 2, repo, nil)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil, nil, repo)
+	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admission.NewPassThroughController(), a.HealthStore(), true, 2, repo, nil, pipeline.DefaultRegistry(), nil)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil, nil, nil, repo)
 	if err := a.ReloadProviders(context.Background(), repo, cipher); err != nil {
 		t.Fatalf("initial reload: %v", err)
 	}

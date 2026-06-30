@@ -13,6 +13,7 @@ import (
 	gwErr "veloxmesh/internal/errors"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/llm"
+	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/providers/anthropic"
 	"veloxmesh/internal/providers/gemini"
@@ -25,6 +26,12 @@ type RuntimeSnapshot struct {
 	Router        routing.Router
 	Prober        *health.Prober
 	RoutingConfig *RoutingConfig
+	SemanticRules *SemanticRuleSnapshot
+}
+
+type SemanticRuleSnapshot struct {
+	Global *pipeline.SemanticPipelineConfig
+	Users  map[string]*pipeline.SemanticPipelineConfig
 }
 
 type ActivationValidator func(ctx context.Context, adapters []providers.ProviderAdapter) error
@@ -65,6 +72,36 @@ func (m *RuntimeProviderManager) Snapshot() *RuntimeSnapshot {
 	return snap
 }
 
+func (m *RuntimeProviderManager) GetGlobalDefaults(ctx context.Context) (*pipeline.SemanticPipelineConfig, error) {
+	snap := m.Snapshot()
+	if snap != nil && snap.SemanticRules != nil && snap.SemanticRules.Global != nil {
+		return snap.SemanticRules.Global, nil
+	}
+	return pipeline.DefaultSemanticPipelineConfig(), nil
+}
+
+func (m *RuntimeProviderManager) GetUserConfig(ctx context.Context, userID string) (*pipeline.SemanticPipelineConfig, error) {
+	snap := m.Snapshot()
+	if snap != nil && snap.SemanticRules != nil && snap.SemanticRules.Users != nil {
+		if cfg, ok := snap.SemanticRules.Users[userID]; ok {
+			return cfg, nil
+		}
+	}
+	return nil, nil
+}
+
+func (m *RuntimeProviderManager) SaveGlobalDefaults(ctx context.Context, cfg *pipeline.SemanticPipelineConfig) error {
+	return fmt.Errorf("read-only rule store")
+}
+
+func (m *RuntimeProviderManager) SaveUserConfig(ctx context.Context, userID string, cfg *pipeline.SemanticPipelineConfig) error {
+	return fmt.Errorf("read-only rule store")
+}
+
+func (m *RuntimeProviderManager) ListUserConfigs(ctx context.Context) (map[string]*pipeline.SemanticPipelineConfig, error) {
+	return nil, fmt.Errorf("read-only rule store")
+}
+
 func (m *RuntimeProviderManager) Start(ctx context.Context) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -79,10 +116,10 @@ func (m *RuntimeProviderManager) Start(ctx context.Context) {
 }
 
 func (m *RuntimeProviderManager) ActivateStatic(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter) error {
-	return m.activateInternal(providersCfg, adapters, nil, nil)
+	return m.activateInternal(providersCfg, adapters, nil, nil, nil)
 }
 
-func (m *RuntimeProviderManager) activateInternal(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter, rCfg *RoutingConfig, combos []providers.Combo) error {
+func (m *RuntimeProviderManager) activateInternal(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter, rCfg *RoutingConfig, combos []providers.Combo, semRules *SemanticRuleSnapshot) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -117,6 +154,7 @@ func (m *RuntimeProviderManager) activateInternal(providersCfg []config.Provider
 		Router:        router,
 		Prober:        prober,
 		RoutingConfig: rCfg,
+		SemanticRules: semRules,
 	}
 
 	m.snapshot.Store(snap)
@@ -134,10 +172,25 @@ func (m *RuntimeProviderManager) activateInternal(providersCfg []config.Provider
 }
 
 func (m *RuntimeProviderManager) ActivateProviderSet(ctx context.Context, records []*ProviderRecord, secrets map[string]string, validator ActivationValidator) error {
-	return m.ActivateDurable(ctx, records, secrets, nil, nil, validator)
+	var rCfg *RoutingConfig
+	var semRules *SemanticRuleSnapshot
+	// Combos are currently not stored in RuntimeSnapshot, they are passed directly to Registry.
+	// We need to fetch combos from repo or registry? Wait, if we fetch them from Registry, we can't easily retrieve them.
+	// Let's just pull them from the snapshot's Registry if possible.
+	var combos []providers.Combo
+	
+	snap := m.Snapshot()
+	if snap != nil {
+		rCfg = snap.RoutingConfig
+		semRules = snap.SemanticRules
+		if snap.Registry != nil {
+			combos = snap.Registry.Combos()
+		}
+	}
+	return m.ActivateDurable(ctx, records, secrets, rCfg, combos, semRules, validator)
 }
 
-func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []*ProviderRecord, secrets map[string]string, rCfg *RoutingConfig, combos []providers.Combo, validator ActivationValidator) error {
+func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []*ProviderRecord, secrets map[string]string, rCfg *RoutingConfig, combos []providers.Combo, semRules *SemanticRuleSnapshot, validator ActivationValidator) error {
 	providerConfigs, err := BuildRuntimeConfig(records)
 	if err != nil {
 		return err
@@ -154,7 +207,7 @@ func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []
 		}
 	}
 
-	return m.activateInternal(providerConfigs, adapters, rCfg, combos)
+	return m.activateInternal(providerConfigs, adapters, rCfg, combos, semRules)
 }
 
 // Router delegates

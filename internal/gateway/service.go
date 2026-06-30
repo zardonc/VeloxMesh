@@ -17,6 +17,11 @@ import (
 	"veloxmesh/internal/routing"
 )
 
+type SemanticRuleResolver interface {
+	GetGlobalDefaults(ctx context.Context) (*pipeline.SemanticPipelineConfig, error)
+	GetUserConfig(ctx context.Context, userID string) (*pipeline.SemanticPipelineConfig, error)
+}
+
 type Service struct {
 	router          routing.Router
 	admission       admission.Controller
@@ -26,10 +31,11 @@ type Service struct {
 	cb              *CircuitBreaker
 	repo            controlstate.Repository
 	semanticCache   *cache.SemanticCacheService
-	pipeline        *pipeline.Pipeline
+	registry        *pipeline.Registry
+	ruleResolver    SemanticRuleResolver
 }
 
-func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int, repo controlstate.Repository, semanticCache *cache.SemanticCacheService) *Service {
+func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int, repo controlstate.Repository, semanticCache *cache.SemanticCacheService, registry *pipeline.Registry, ruleResolver SemanticRuleResolver) *Service {
 	// Initialize breaker with some sane defaults, can be overridden or tied to snapshot later
 	breakerCfg := CircuitBreakerConfig{
 		FailureThreshold: 5,
@@ -44,7 +50,8 @@ func NewService(r routing.Router, a admission.Controller, hs health.Store, fallb
 		cb:              NewCircuitBreaker(breakerCfg),
 		repo:            repo,
 		semanticCache:   semanticCache,
-		pipeline:        pipeline.New(),
+		registry:        registry,
+		ruleResolver:    ruleResolver,
 	}
 }
 
@@ -94,6 +101,19 @@ func (s *Service) Router() routing.Router {
 	return s.router
 }
 
+func (s *Service) buildPipeline(ctx context.Context, identityScope string) *pipeline.Pipeline {
+	if s.registry == nil || s.ruleResolver == nil {
+		return pipeline.New(s.registry, pipeline.DefaultSemanticPipelineConfig())
+	}
+	global, _ := s.ruleResolver.GetGlobalDefaults(ctx)
+	var user *pipeline.SemanticPipelineConfig
+	if identityScope != "" && identityScope != "admin-key" && identityScope != "dev-key" {
+		user, _ = s.ruleResolver.GetUserConfig(ctx, identityScope)
+	}
+	cfg := pipeline.ResolveSemanticRuleConfig(global, user)
+	return pipeline.New(s.registry, cfg)
+}
+
 func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	attempted := make(map[string]bool)
 	attempts := 0
@@ -122,6 +142,14 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	var identityScope string
 	if identity := middleware.GetAuthIdentity(ctx); identity != nil {
 		identityScope = identity.ID
+	}
+
+	p := s.buildPipeline(ctx, identityScope)
+	scope := pipeline.RequestScope{UserID: identityScope, RequestID: req.RequestID}
+	state := &pipeline.RunState{}
+
+	if err := p.ProcessRequest(ctx, scope, state, req); err != nil {
+		return nil, err
 	}
 
 	// 1. Cache Lookup
@@ -161,6 +189,10 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 				CacheHit:   true,
 				CacheLevel: "semantic",
 			}
+
+			if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
+				return nil, err
+			}
 			return resp, nil
 		}
 	}
@@ -172,9 +204,6 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	}
 
 	for attempts < maxAllowedAttempts {
-		if err := s.pipeline.ProcessRequest(ctx, req); err != nil {
-			return nil, err
-		}
 
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
 		if err != nil {
@@ -281,9 +310,10 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		resp.FallbackUsed = attempts > 1
 		resp.Usage = resp.Usage // Usually adapters set Usage directly on resp
 
-		if err := s.pipeline.ProcessResponse(ctx, resp); err != nil {
+		if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
 			return nil, err
 		}
+
 
 		// Record success
 		observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, 200)
@@ -340,10 +370,20 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		maxAllowedAttempts = attemptsLimit
 	}
 
+	var identityScope string
+	if identity := middleware.GetAuthIdentity(ctx); identity != nil {
+		identityScope = identity.ID
+	}
+
+	p := s.buildPipeline(ctx, identityScope)
+	scope := pipeline.RequestScope{UserID: identityScope, RequestID: req.RequestID}
+	state := &pipeline.RunState{}
+
+	if err := p.ProcessRequest(ctx, scope, state, req); err != nil {
+		return nil, nil, err
+	}
+
 	for attempts < maxAllowedAttempts {
-		if err := s.pipeline.ProcessRequest(ctx, req); err != nil {
-			return nil, nil, err
-		}
 
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
 		if err != nil {
@@ -456,7 +496,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 			FallbackUsed: attempts > 1,
 		}
 
-		if err := s.pipeline.ProcessResponse(ctx, respMeta); err != nil {
+		if err := p.ProcessResponse(ctx, scope, state, respMeta); err != nil {
 			return nil, nil, err
 		}
 
