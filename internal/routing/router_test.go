@@ -99,6 +99,33 @@ func TestHealthAwareRouter_Select(t *testing.T) {
 		}
 	})
 
+	t.Run("CompositeScore", func(t *testing.T) {
+		router := routing.NewHealthAwareRouter(registry, healthStore, "composite-score")
+		req := &llm.LLMRequest{Model: "m_shared"}
+
+		healthStore.RecordModelOutcome("p1", "m_shared", true)
+		healthStore.RecordModelOutcome("p1", "m_shared", true)
+		healthStore.RecordModelOutcome("p1", "m_shared", true)
+		healthStore.RecordModelOutcome("p1", "m_shared", true)
+		healthStore.RecordModelOutcome("p1", "m_shared", true)
+		healthStore.RecordModelOutcome("p2", "m_shared", true)
+		healthStore.RecordModelOutcome("p2", "m_shared", true)
+		healthStore.RecordModelOutcome("p2", "m_shared", true)
+		healthStore.RecordModelOutcome("p2", "m_shared", true)
+		healthStore.RecordModelOutcome("p2", "m_shared", true)
+
+		_, dec, err := router.Select(ctx, req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if dec.Strategy != "composite-score" {
+			t.Errorf("expected strategy composite-score")
+		}
+		if dec.CompositeScoreSummary == nil {
+			t.Errorf("expected CompositeScoreSummary to be populated")
+		}
+	})
+
 	t.Run("LeastLatency Cold Start", func(t *testing.T) {
 		store2 := health.NewInMemoryStore()
 		store2.EnsureProvider("p1", 3, 1)

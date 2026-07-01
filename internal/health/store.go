@@ -30,6 +30,14 @@ type ProviderSnapshot struct {
 	LastProbeDuration time.Duration
 }
 
+type ModelSnapshot struct {
+	ProviderID     string
+	Model          string
+	TotalSuccesses int
+	TotalFailures  int
+	LastUpdated    time.Time
+}
+
 type Store interface {
 	EnsureProvider(id string, failureThreshold, successThreshold int)
 	BeginRequest(id string)
@@ -37,11 +45,15 @@ type Store interface {
 	RecordProbe(id string, success bool, latency time.Duration, errMsg string)
 	Snapshot(id string) ProviderSnapshot
 	Snapshots() map[string]ProviderSnapshot
+
+	RecordModelOutcome(providerID, model string, success bool)
+	ModelSnapshot(providerID, model string) ModelSnapshot
 }
 
 type inMemoryStore struct {
 	mu        sync.RWMutex
 	providers map[string]*providerState
+	models    map[string]*modelState
 }
 
 type providerState struct {
@@ -63,9 +75,18 @@ type providerState struct {
 	lastProbeDuration time.Duration
 }
 
+type modelState struct {
+	providerID     string
+	model          string
+	totalSuccesses int
+	totalFailures  int
+	lastUpdated    time.Time
+}
+
 func NewInMemoryStore() Store {
 	return &inMemoryStore{
 		providers: make(map[string]*providerState),
+		models:    make(map[string]*modelState),
 	}
 }
 
@@ -210,5 +231,49 @@ func (s *inMemoryStore) buildSnapshot(state *providerState) ProviderSnapshot {
 		LastProbeSuccess:    state.lastProbeSuccess,
 		LastProbeError:      state.lastProbeError,
 		LastProbeDuration:   state.lastProbeDuration,
+	}
+}
+
+func (s *inMemoryStore) RecordModelOutcome(providerID, model string, success bool) {
+	key := providerID + ":" + model
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	state, exists := s.models[key]
+	if !exists {
+		state = &modelState{
+			providerID: providerID,
+			model:      model,
+		}
+		s.models[key] = state
+	}
+
+	if success {
+		state.totalSuccesses++
+	} else {
+		state.totalFailures++
+	}
+	state.lastUpdated = time.Now()
+}
+
+func (s *inMemoryStore) ModelSnapshot(providerID, model string) ModelSnapshot {
+	key := providerID + ":" + model
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	state, exists := s.models[key]
+	if !exists {
+		return ModelSnapshot{
+			ProviderID: providerID,
+			Model:      model,
+		}
+	}
+
+	return ModelSnapshot{
+		ProviderID:     state.providerID,
+		Model:          state.model,
+		TotalSuccesses: state.totalSuccesses,
+		TotalFailures:  state.totalFailures,
+		LastUpdated:    state.lastUpdated,
 	}
 }

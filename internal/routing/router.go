@@ -17,6 +17,7 @@ type RoutingDecision struct {
 	IsFusion        bool
 	FusionProviders []FusionProvider
 	FusionJudge     string
+	CompositeScoreSummary *CompositeScoreSummary
 }
 
 type FusionProvider struct {
@@ -87,6 +88,16 @@ func (r *HealthAwareRouter) SelectExcluding(ctx context.Context, req *llm.LLMReq
 		}
 	case "round-robin":
 		selected = r.selectRoundRobin(healthyProviders)
+	case "composite-score":
+		sel, summary, err := SelectComposite(healthyProviders, r.healthStore, req, DefaultCompositeConfig())
+		if err != nil {
+			return nil, RoutingDecision{}, err
+		}
+		return sel, RoutingDecision{
+			ProviderID:            sel.ID(),
+			Strategy:              "composite-score",
+			CompositeScoreSummary: &summary,
+		}, nil
 	default:
 		// Default to round-robin if unknown
 		selected = r.selectRoundRobin(healthyProviders)
