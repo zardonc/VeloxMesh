@@ -1,0 +1,110 @@
+{
+  "phase": "10",
+  "phase_name": "Advanced Routing & Observability",
+  "timestamp": "2026-06-30T22:45:00-07:00",
+  "areas_completed": ["Composite score policy", "Cold-start and fallback behavior", "Observability surface", "Configuration and rollout"],
+  "areas_remaining": [],
+  "decisions": {
+    "Composite score policy": [
+      {
+        "question": "How should the router prioritize the scoring signals?",
+        "answer": "Balanced default",
+        "options_presented": ["Reliability first", "Latency first", "Balanced default", "Other"]
+      },
+      {
+        "question": "How should cost behave inside that balanced score?",
+        "answer": "Tie-breaker cost",
+        "options_presented": ["Tie-breaker cost", "Weighted cost", "Budget-aware cost", "Other"]
+      },
+      {
+        "question": "How should the router handle provider health inside the score?",
+        "answer": "Hard exclude unhealthy, penalize degraded",
+        "options_presented": ["Hard exclude unhealthy, penalize degraded", "Score everything except hard failures", "Two-lane routing", "Other"]
+      },
+      {
+        "question": "How should z-score normalization handle tiny candidate pools?",
+        "answer": "Guarded z-score",
+        "options_presented": ["Guarded z-score", "Always z-score", "No normalization fallback", "Other"]
+      }
+    ],
+    "Cold-start and fallback behavior": [
+      {
+        "question": "When provider metrics are missing or stale, what should the router do?",
+        "answer": "Round-robin until warm",
+        "options_presented": ["Round-robin until warm", "Health-probe seeded", "Static priority seed", "Other"]
+      },
+      {
+        "question": "When all candidates are weak, what should happen?",
+        "answer": "Fallback chain",
+        "options_presented": ["Best available", "Fallback chain", "Fail fast", "Other"]
+      },
+      {
+        "question": "How should stale metrics be treated?",
+        "answer": "Stale becomes neutral",
+        "options_presented": ["Stale becomes neutral", "Stale gets penalized", "Stale triggers warm-up mode", "Other"]
+      },
+      {
+        "question": "What should count as warm enough for composite scoring?",
+        "answer": "Minimum successful requests",
+        "options_presented": ["Minimum successful requests", "Minimum age window", "Either live requests or probe data", "Other"]
+      }
+    ],
+    "Observability surface": [
+      {
+        "question": "What should traces capture for each routed request?",
+        "answer": "Request lifecycle",
+        "options_presented": ["Routing decision only", "Request lifecycle", "Deep score breakdown", "Other"]
+      },
+      {
+        "question": "What Prometheus labels are allowed?",
+        "answer": "Low-cardinality only",
+        "options_presented": ["Low-cardinality only", "Add route/account scope", "Debug-only rich labels", "Other"]
+      },
+      {
+        "question": "Should score breakdowns be visible anywhere?",
+        "answer": "Trace attributes only",
+        "options_presented": ["Trace attributes only", "Debug sampled traces", "Structured logs", "Other"]
+      },
+      {
+        "question": "How should sensitive observability fields be handled?",
+        "answer": "Strict sanitization",
+        "options_presented": ["Strict sanitization", "Hashed identity labels", "Configurable redaction", "Other"]
+      }
+    ],
+    "Configuration and rollout": [
+      {
+        "question": "How should composite routing be introduced?",
+        "answer": "Opt-in strategy",
+        "options_presented": ["Opt-in strategy", "Default for new config", "Replace least-latency", "Other"]
+      },
+      {
+        "question": "Where should score weights and thresholds live?",
+        "answer": "Routing config in SQLite",
+        "options_presented": ["Static config only", "Routing config in SQLite", "Built-in defaults only for Phase 10", "Other"]
+      },
+      {
+        "question": "How much tuning surface should Phase 10 expose?",
+        "answer": "Preset plus override",
+        "options_presented": ["Named conservative preset only", "Editable weights and thresholds", "Preset plus override", "Other"]
+      },
+      {
+        "question": "How should invalid or risky routing config be handled?",
+        "answer": "Reject at validation",
+        "options_presented": ["Reject at validation", "Clamp values", "Fallback to round-robin", "Other"]
+      }
+    ]
+  },
+  "deferred_ideas": [],
+  "canonical_refs": [
+    ".planning/ROADMAP.md",
+    ".planning/PROJECT.md",
+    ".planning/REQUIREMENTS.md",
+    ".planning/phases/07-adapter-interfaces-sqlite-foundation/07-CONTEXT.md",
+    ".planning/phases/08-semantic-pipeline/08-CONTEXT.md",
+    ".planning/phases/09-redis-stack-qdrant-fallback-integration/09-CONTEXT.md",
+    "internal/routing/router.go",
+    "internal/health/store.go",
+    "internal/health/redis_store.go",
+    "internal/observability/metrics.go"
+  ]
+}

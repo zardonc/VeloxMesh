@@ -10,6 +10,16 @@ The gateway is intended to remain a unified OpenAI-compatible entry point for do
 
 Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
+## Current Milestone: v7.1 Advanced Routing & Observability
+
+**Goal:** Ship the Composite Score Router and production-grade observability for routing decisions.
+
+**Target features:**
+- Composite Score Router using latency, pending requests, error rates, costs, and health bonuses.
+- Z-score normalization for routing signals.
+- OpenTelemetry traces for TTFT, TPOT, E2E latency, and cache hits.
+- Prometheus histogram metrics for routing and request timing.
+
 ## Requirements
 
 ### Validated
@@ -32,11 +42,11 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 ### Active
 
 - [ ] Phase 10: Advanced Routing & Observability
-- [ ] Phase 11: BFF Layer & Admin Console
-- [ ] Phase 12: Multi-Node Coordination
 
 ### Deferred to Future Milestones
 
+- BFF Layer & Admin Console (Phase 11)
+- Multi-Node Coordination (Phase 12)
 - PostgreSQL Extension (Phase 13)
 - Full `LimitRule` unification across all scopes
 
@@ -90,4 +100,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-06-30 after v7.0 Plan 1 Foundation milestone*
+*Last updated: 2026-06-30 after starting v7.1 Advanced Routing & Observability milestone*

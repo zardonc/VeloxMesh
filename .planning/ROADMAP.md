@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-15
 **Mode:** brownfield retrospective initialization
-**Current focus:** Next milestone planning — advanced routing, admin UX, and multi-node capabilities
+**Current focus:** v7.1 Advanced Routing & Observability
 
 ## Overview
 
@@ -13,7 +13,8 @@ The architecture has been redesigned (v2.1) to use **SQLite + Redis Stack + Qdra
 ## Milestones
 
 - ✅ **v7.0 Plan 1 Foundation** — Phases 7-9 (shipped 2026-06-30; archive: `.planning/milestones/v7.0-ROADMAP.md`)
-- 🚧 **Next milestone** — Phases 10-13: Advanced routing, observability, BFF/Admin Console, multi-node coordination, PostgreSQL extension (planned)
+- 🚧 **v7.1 Advanced Routing & Observability** — Phase 10 (planning)
+- ○ **Future milestones** — BFF/Admin Console, multi-node coordination, PostgreSQL extension (planned)
 - ✅ **v5** — Phases 5-6 (shipped 2026-06-29)
 - ✅ **v4** — Phases 1-4 (shipped 2026-06-23)
 
@@ -42,12 +43,9 @@ Archive: `.planning/milestones/v7.0-ROADMAP.md`
 </details>
 
 <details open>
-<summary>🚧 Next milestone (Phases 10-13) — PLANNED</summary>
+<summary>🚧 v7.1 Advanced Routing & Observability (Phase 10) — PLANNING</summary>
 
 - [ ] Phase 10: Advanced Routing & Observability
-- [ ] Phase 11: BFF Layer & Admin Console (JWT + Role-based access)
-- [ ] Phase 12: Multi-Node Coordination (Plan 2)
-- [ ] Phase 13: PostgreSQL Extension (Plan 4, low priority)
 
 ### Phase 10: Advanced Routing & Observability
 
@@ -60,6 +58,15 @@ Key deliverables:
 - Z-score normalization for routing signals
 - OpenTelemetry traces (TTFT, TPOT, E2E, cache hit)
 - Prometheus metrics histograms
+
+</details>
+
+<details>
+<summary>○ Future milestones — PLANNED</summary>
+
+- [ ] Phase 11: BFF Layer & Admin Console (JWT + Role-based access)
+- [ ] Phase 12: Multi-Node Coordination (Plan 2)
+- [ ] Phase 13: PostgreSQL Extension (Plan 4, low priority)
 
 ### Phase 11: BFF Layer & Admin Console
 
@@ -158,7 +165,8 @@ VeloxMesh supports progressive deployment tiers:
 - Phase 4 is complete.
 - Architecture v2.1 replaces the v2.0 LanceDB mainline with Qdrant for Plans 1/2. LanceDB remains only for Plan 3 edge builds.
 - Phase 7-9 shipped as v7.0 Plan 1 Foundation on 2026-06-30.
-- Phase 10-13 remain planned for the next milestone.
+- Phase 10 is the v7.1 milestone.
+- Phase 11-13 remain planned for future milestones.
 - All storage access goes through adapter interfaces; switching backends requires only adapter implementation swap.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
 - **Rule**: Source code committed to git must not contain any hardcoded configuration information. Configuration must only be obtained from local environment variables, configuration files, or the database.
