@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-15
 **Mode:** brownfield retrospective initialization
-**Current focus:** v7.1 Advanced Routing & Observability
+**Current focus:** Next Milestone
 
 ## Overview
 
@@ -13,7 +13,7 @@ The architecture has been redesigned (v2.1) to use **SQLite + Redis Stack + Qdra
 ## Milestones
 
 - ✅ **v7.0 Plan 1 Foundation** — Phases 7-9 (shipped 2026-06-30; archive: `.planning/milestones/v7.0-ROADMAP.md`)
-- 🚧 **v7.1 Advanced Routing & Observability** — Phase 10 (planning)
+- ✅ **v7.1 Advanced Routing & Observability** — Phase 10 (shipped 2026-07-01; archive: `.planning/milestones/v7.1-ROADMAP.md`)
 - ○ **Future milestones** — BFF/Admin Console, multi-node coordination, PostgreSQL extension (planned)
 - ✅ **v5** — Phases 5-6 (shipped 2026-06-29)
 - ✅ **v4** — Phases 1-4 (shipped 2026-06-23)
@@ -36,28 +36,23 @@ The gateway supports progressive deployment tiers, each adding capability withou
 
 - [x] Phase 7: Adapter Interfaces & SQLite Foundation (Plan 1 core)
 - [x] Phase 8: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
+<details>
+<summary>✅ v7.0 Plan 1 Foundation (Phases 7-9) — SHIPPED 2026-06-30</summary>
+
+- [x] Phase 7: Adapter Interfaces & SQLite Foundation (Plan 1 core)
+- [x] Phase 8: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
 - [x] Phase 9: Redis Stack + Qdrant Fallback Integration (Plan 1 hardening)
 
 Archive: `.planning/milestones/v7.0-ROADMAP.md`
 
 </details>
 
-<details open>
-<summary>🚧 v7.1 Advanced Routing & Observability (Phase 10) — PLANNING</summary>
+<details>
+<summary>✅ v7.1 Advanced Routing & Observability (Phase 10) — SHIPPED 2026-07-01</summary>
 
-- [ ] Phase 10: Advanced Routing & Observability
+- [x] Phase 10: Advanced Routing & Observability
 
-### Phase 10: Advanced Routing & Observability
-
-**Goal:** Implement the Composite Score Router for normalized multi-signal scoring and add comprehensive OpenTelemetry/Prometheus observability.
-**Priority:** P1
-**Depends on:** Phase 9
-
-Key deliverables:
-- Composite Score Router (latency, pending requests, error rates, costs, health bonuses)
-- Z-score normalization for routing signals
-- OpenTelemetry traces (TTFT, TPOT, E2E, cache hit)
-- Prometheus metrics histograms
+Archive: `.planning/milestones/v7.1-ROADMAP.md`
 
 </details>
 
@@ -165,7 +160,7 @@ VeloxMesh supports progressive deployment tiers:
 - Phase 4 is complete.
 - Architecture v2.1 replaces the v2.0 LanceDB mainline with Qdrant for Plans 1/2. LanceDB remains only for Plan 3 edge builds.
 - Phase 7-9 shipped as v7.0 Plan 1 Foundation on 2026-06-30.
-- Phase 10 is the v7.1 milestone.
+- Phase 10 shipped as v7.1 Advanced Routing & Observability on 2026-07-01.
 - Phase 11-13 remain planned for future milestones.
 - All storage access goes through adapter interfaces; switching backends requires only adapter implementation swap.
 - Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
