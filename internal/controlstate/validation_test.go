@@ -90,6 +90,75 @@ func TestValidateRoutingConfig(t *testing.T) {
 			redisConfigured: false,
 			wantErr:         true,
 		},
+		{
+			name: "Valid composite-score",
+			rc: &RoutingConfig{
+				Strategy:        "composite-score",
+				FallbackEnabled: false,
+				MaxAttempts:     1,
+				Composite: &CompositeRoutingConfig{
+					PresetName:        "conservative",
+					LatencyWeight:     0.5,
+					LoadWeight:        0.5,
+					HealthWeight:      0.0,
+					ErrorRateWeight:   0.0,
+					ScoreThreshold:    0.5,
+					NearTieThreshold:  0.1,
+					WarmUpSuccesses:   5,
+					StaleMetricWindow: "2m",
+				},
+			},
+			backend: "sqlite",
+			wantErr: false,
+		},
+		{
+			name: "Invalid composite weight",
+			rc: &RoutingConfig{
+				Strategy:        "composite-score",
+				FallbackEnabled: false,
+				MaxAttempts:     1,
+				Composite: &CompositeRoutingConfig{
+					LatencyWeight:     1.5,
+					LoadWeight:        0.5,
+					WarmUpSuccesses:   5,
+					StaleMetricWindow: "2m",
+				},
+			},
+			backend: "sqlite",
+			wantErr: true,
+		},
+		{
+			name: "Invalid composite warm up successes",
+			rc: &RoutingConfig{
+				Strategy:        "composite-score",
+				FallbackEnabled: false,
+				MaxAttempts:     1,
+				Composite: &CompositeRoutingConfig{
+					LatencyWeight:     0.5,
+					LoadWeight:        0.5,
+					WarmUpSuccesses:   0,
+					StaleMetricWindow: "2m",
+				},
+			},
+			backend: "sqlite",
+			wantErr: true,
+		},
+		{
+			name: "Invalid composite stale window",
+			rc: &RoutingConfig{
+				Strategy:        "composite-score",
+				FallbackEnabled: false,
+				MaxAttempts:     1,
+				Composite: &CompositeRoutingConfig{
+					LatencyWeight:     0.5,
+					LoadWeight:        0.5,
+					WarmUpSuccesses:   5,
+					StaleMetricWindow: "-1m",
+				},
+			},
+			backend: "sqlite",
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {

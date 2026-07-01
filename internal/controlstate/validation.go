@@ -3,6 +3,7 @@ package controlstate
 import (
 	"fmt"
 	"net/url"
+	"time"
 )
 
 func ValidateProviderMutation(m *ProviderMutation, isCreate bool) []FieldError {
@@ -82,7 +83,7 @@ func ValidateRoutingConfig(rc *RoutingConfig, providers []*ProviderRecord, backe
 		return errs
 	}
 
-	if rc.Strategy != "round-robin" && rc.Strategy != "least-latency" && rc.Strategy != "priority" {
+	if rc.Strategy != "round-robin" && rc.Strategy != "least-latency" && rc.Strategy != "priority" && rc.Strategy != "composite-score" {
 		errs = append(errs, FieldError{Field: "strategy", Code: "invalid_strategy", Message: fmt.Sprintf("invalid strategy: %s", rc.Strategy)})
 	}
 
@@ -112,6 +113,55 @@ func ValidateRoutingConfig(rc *RoutingConfig, providers []*ProviderRecord, backe
 		}
 		if rc.MaxAttempts > activeCount && activeCount > 0 {
 			errs = append(errs, FieldError{Field: "max_attempts", Code: "invalid_max_attempts", Message: fmt.Sprintf("max_attempts (%d) cannot exceed active eligible provider count (%d)", rc.MaxAttempts, activeCount)})
+		}
+	}
+
+	if rc.Composite != nil {
+		c := rc.Composite
+		if c.PresetName != "" && c.PresetName != "conservative" {
+			errs = append(errs, FieldError{Field: "composite.preset_name", Code: "invalid_preset", Message: "preset_name must be empty or 'conservative'"})
+		}
+		if c.LatencyWeight < 0 || c.LatencyWeight > 1 {
+			errs = append(errs, FieldError{Field: "composite.latency_weight", Code: "invalid_weight", Message: "latency_weight must be between 0 and 1"})
+		}
+		if c.LoadWeight < 0 || c.LoadWeight > 1 {
+			errs = append(errs, FieldError{Field: "composite.load_weight", Code: "invalid_weight", Message: "load_weight must be between 0 and 1"})
+		}
+		if c.ErrorRateWeight < 0 || c.ErrorRateWeight > 1 {
+			errs = append(errs, FieldError{Field: "composite.error_rate_weight", Code: "invalid_weight", Message: "error_rate_weight must be between 0 and 1"})
+		}
+		if c.HealthWeight < 0 || c.HealthWeight > 1 {
+			errs = append(errs, FieldError{Field: "composite.health_weight", Code: "invalid_weight", Message: "health_weight must be between 0 and 1"})
+		}
+		if c.LatencyWeight == 0 && c.LoadWeight == 0 && c.ErrorRateWeight == 0 && c.HealthWeight == 0 {
+			errs = append(errs, FieldError{Field: "composite.weights", Code: "all_zero", Message: "at least one weight must be greater than 0"})
+		}
+		if c.ScoreThreshold < 0 || c.ScoreThreshold > 1 {
+			errs = append(errs, FieldError{Field: "composite.score_threshold", Code: "invalid_threshold", Message: "score_threshold must be between 0 and 1"})
+		}
+		if c.NearTieThreshold < 0 || c.NearTieThreshold > 1 {
+			errs = append(errs, FieldError{Field: "composite.near_tie_threshold", Code: "invalid_threshold", Message: "near_tie_threshold must be between 0 and 1"})
+		}
+		if c.WarmUpSuccesses <= 0 {
+			errs = append(errs, FieldError{Field: "composite.warm_up_successes", Code: "invalid_count", Message: "warm_up_successes must be greater than 0"})
+		}
+		if c.StaleMetricWindow != "" {
+			d, err := time.ParseDuration(c.StaleMetricWindow)
+			if err != nil {
+				errs = append(errs, FieldError{Field: "composite.stale_metric_window", Code: "invalid_duration", Message: "stale_metric_window must be a valid duration"})
+			} else if d <= 0 {
+				errs = append(errs, FieldError{Field: "composite.stale_metric_window", Code: "invalid_duration", Message: "stale_metric_window must be greater than 0"})
+			}
+		} else {
+			errs = append(errs, FieldError{Field: "composite.stale_metric_window", Code: "required", Message: "stale_metric_window is required"})
+		}
+		for k, v := range c.CostOverrides {
+			if k == "" {
+				errs = append(errs, FieldError{Field: "composite.cost_overrides", Code: "invalid_key", Message: "cost override key cannot be empty"})
+			}
+			if v < 0 {
+				errs = append(errs, FieldError{Field: "composite.cost_overrides", Code: "invalid_rate", Message: "cost override rate must be >= 0"})
+			}
 		}
 	}
 
