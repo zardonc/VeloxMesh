@@ -181,6 +181,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 				"semantic_cache",
 				200,
 				"",
+				"hit",
 				0, // latency negligible
 			)
 
@@ -213,9 +214,13 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	}
 
 	var reqTextForStore string
+	cacheResult := "none"
 	if s.semanticCache != nil && !req.Stream {
 		b, _ := json.Marshal(req.Messages)
 		reqTextForStore = string(b)
+		if identityScope != "" && identityScope != "admin-key" && req.RouteOverride == "" {
+			cacheResult = "miss"
+		}
 	}
 
 	for attempts < maxAllowedAttempts {
@@ -297,6 +302,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			decision.Strategy,
 			status,
 			errCategory,
+			cacheResult,
 			float64(latency.Milliseconds()),
 		)
 
@@ -484,6 +490,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 				decision.Strategy,
 				status,
 				errCategory,
+				"none",
 				float64(latency.Milliseconds()),
 			)
 
@@ -557,6 +564,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 				decision.Strategy,
 				status,
 				errCategory,
+				"none",
 				float64(latency.Milliseconds()),
 			)
 

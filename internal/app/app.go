@@ -47,6 +47,8 @@ func New() (*App, error) {
 
 	logger := observability.SetupLogger(cfg.LogLevel)
 
+	observability.InitPrometheusMetrics()
+
 	var hotStateClient hotstate.Client
 	if cfg.RedisEnabled {
 		redisClient, err := hotstate.NewRedisClient(context.Background(), cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB, cfg.RedisNamespace)
