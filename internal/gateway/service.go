@@ -232,6 +232,11 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
 		if err != nil {
+			if err == errors.ErrCompositeScoreBelowThreshold && attempts < maxAllowedAttempts && decision.ProviderID != "" {
+				attempted[decision.ProviderID] = true
+				lastErr = err
+				continue
+			}
 			if lastErr != nil {
 				return nil, lastErr // Return the last provider error rather than no_healthy_provider
 			}
@@ -300,6 +305,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 		s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
 		s.cb.RecordResult(decision.ProviderID, healthErr == nil)
+		s.healthStore.RecordModelOutcome(decision.ProviderID, req.Model, healthErr == nil)
 
 		observability.DefaultMetrics.RecordRequestOutcome(
 			req.RequestID,
@@ -430,6 +436,11 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
 		if err != nil {
+			if err == errors.ErrCompositeScoreBelowThreshold && attempts < maxAllowedAttempts && decision.ProviderID != "" {
+				attempted[decision.ProviderID] = true
+				lastErr = err
+				continue
+			}
 			if lastErr != nil {
 				return nil, nil, lastErr
 			}
@@ -505,6 +516,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 
 			s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
 			s.cb.RecordResult(decision.ProviderID, healthErr == nil)
+			s.healthStore.RecordModelOutcome(decision.ProviderID, req.Model, healthErr == nil)
 
 			observability.DefaultMetrics.RecordRequestOutcome(
 				req.RequestID,
@@ -598,6 +610,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 
 			s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
 			s.cb.RecordResult(decision.ProviderID, healthErr == nil)
+			s.healthStore.RecordModelOutcome(decision.ProviderID, req.Model, healthErr == nil)
 
 			observability.DefaultMetrics.RecordRequestOutcome(
 				req.RequestID,

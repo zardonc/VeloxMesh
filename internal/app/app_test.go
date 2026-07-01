@@ -24,6 +24,10 @@ func (d *dummyRepo) Combos() controlstate.ComboRepository {
 	return nil
 }
 
+func (d *dummyRepo) Rates() controlstate.RateRepository {
+	return nil
+}
+
 func (d *dummyRepo) SemanticRules() controlstate.SemanticRuleStore {
 	return nil
 }

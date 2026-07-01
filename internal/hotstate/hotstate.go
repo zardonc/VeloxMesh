@@ -53,6 +53,7 @@ const (
 	EventProvider      = "provider"
 	EventCombo         = "combo"
 	EventSemanticRules = "semantic_rules"
+	EventRouting       = "routing"
 	EventAPIKey        = "api_key"
 	EventLimitRule     = "limit_rule"
 	EventVectorPolicy  = "vector_policy"

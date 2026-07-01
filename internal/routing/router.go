@@ -35,15 +35,17 @@ type Router interface {
 type HealthAwareRouter struct {
 	registry    *providers.Registry
 	healthStore health.Store
-	strategy    string
-	rrCounter   uint64
+	strategy     string
+	rrCounter    uint64
+	compositeCfg *CompositeConfig
 }
 
-func NewHealthAwareRouter(registry *providers.Registry, healthStore health.Store, strategy string) *HealthAwareRouter {
+func NewHealthAwareRouter(registry *providers.Registry, healthStore health.Store, strategy string, compositeCfg *CompositeConfig) *HealthAwareRouter {
 	return &HealthAwareRouter{
-		registry:    registry,
-		healthStore: healthStore,
-		strategy:    strategy,
+		registry:     registry,
+		healthStore:  healthStore,
+		strategy:     strategy,
+		compositeCfg: compositeCfg,
 	}
 }
 
@@ -89,8 +91,19 @@ func (r *HealthAwareRouter) SelectExcluding(ctx context.Context, req *llm.LLMReq
 	case "round-robin":
 		selected = r.selectRoundRobin(healthyProviders)
 	case "composite-score":
-		sel, summary, err := SelectComposite(healthyProviders, r.healthStore, req, DefaultCompositeConfig())
+		cfg := DefaultCompositeConfig()
+		if r.compositeCfg != nil {
+			cfg = *r.compositeCfg
+		}
+		sel, summary, err := SelectComposite(healthyProviders, r.healthStore, req, cfg)
 		if err != nil {
+			if err == errors.ErrCompositeScoreBelowThreshold && sel != nil {
+				return sel, RoutingDecision{
+					ProviderID:            sel.ID(),
+					Strategy:              "composite-score",
+					CompositeScoreSummary: &summary,
+				}, err
+			}
 			return nil, RoutingDecision{}, err
 		}
 		return sel, RoutingDecision{

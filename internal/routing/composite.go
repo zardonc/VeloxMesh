@@ -21,6 +21,7 @@ type CompositeConfig struct {
 	ScoreThreshold    float64
 	NearTieThreshold  float64
 	StaleMetricWindow time.Duration
+	CostOverrides     map[string]float64
 }
 
 func DefaultCompositeConfig() CompositeConfig {
@@ -80,8 +81,14 @@ func SelectComposite(
 			adapter:  adapter,
 			latency:  float64(snap.EWMALatency),
 			load:     float64(snap.PendingRequests),
-			cost:     0.0, // Cost typically comes from ModelConfig
+			cost:     0.0,
 			degraded: snap.Status == health.StatusDegraded,
+		}
+
+		if config.CostOverrides != nil {
+			if cost, ok := config.CostOverrides[adapter.ID()+":"+req.Model]; ok {
+				cd.cost = cost
+			}
 		}
 
 		if snap.TotalSuccesses+snap.TotalFailures > 0 {
@@ -141,7 +148,13 @@ func SelectComposite(
 	best := data[0]
 
 	if best.finalScore < config.ScoreThreshold {
-		return nil, CompositeScoreSummary{}, errors.ErrCompositeScoreBelowThreshold
+		return best.adapter, CompositeScoreSummary{
+			ProviderID:  best.adapter.ID(),
+			Model:       req.Model,
+			Score:       best.finalScore,
+			IsWarmUp:    false,
+			CostApplied: false,
+		}, errors.ErrCompositeScoreBelowThreshold
 	}
 
 	costApplied := false

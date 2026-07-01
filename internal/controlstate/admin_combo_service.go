@@ -357,7 +357,7 @@ func (s *AdminComboService) reloadRuntime(ctx context.Context) error {
 		semRules = snap.SemanticRules
 	}
 
-	err = s.manager.ActivateDurable(ctx, records, secrets, rCfg, combos, semRules, nil)
+	err = s.manager.ActivateDurable(ctx, records, secrets, rCfg, combos, semRules, nil, nil)
 	if err != nil {
 		return gwErr.NewGatewayError("activation_failed", fmt.Sprintf("activation failed: %v", err), 500)
 	}
