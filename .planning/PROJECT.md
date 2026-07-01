@@ -10,6 +10,27 @@ The gateway is intended to remain a unified OpenAI-compatible entry point for do
 
 Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
+## Current State
+
+**v7.1 Advanced Routing & Observability** has been shipped. The Composite Score Router and OpenTelemetry/Prometheus integrations are live.
+
+## Next Milestone Goals
+
+The next milestone will focus on BFF Layer & Admin Console (Phase 11) or other planned features, pending new initialization via `/gsd-new-milestone`.
+
+<details>
+<summary>Archived Milestone: v7.1 Advanced Routing & Observability</summary>
+
+**Goal:** Ship the Composite Score Router and production-grade observability for routing decisions.
+
+**Target features:**
+- Composite Score Router using latency, pending requests, error rates, costs, and health bonuses.
+- Z-score normalization for routing signals.
+- OpenTelemetry traces for TTFT, TPOT, E2E latency, and cache hits.
+- Prometheus histogram metrics for routing and request timing.
+
+</details>
+
 ## Requirements
 
 ### Validated
@@ -28,15 +49,17 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - ✓ Phase 7: Adapter Interfaces & SQLite Foundation (v7 architecture refactor)
 - ✓ Phase 8: Semantic Pipeline — v7.0
 - ✓ Phase 9: Redis Stack + Qdrant Fallback Integration — v7.0
+- ✓ Phase 10: Advanced Routing & Observability — v7.1
+
 
 ### Active
 
-- [ ] Phase 10: Advanced Routing & Observability
-- [ ] Phase 11: BFF Layer & Admin Console
-- [ ] Phase 12: Multi-Node Coordination
+- [ ] Awaiting new milestone planning.
 
 ### Deferred to Future Milestones
 
+- BFF Layer & Admin Console (Phase 11)
+- Multi-Node Coordination (Phase 12)
 - PostgreSQL Extension (Phase 13)
 - Full `LimitRule` unification across all scopes
 
@@ -90,4 +113,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-06-30 after v7.0 Plan 1 Foundation milestone*
+*Last updated: 2026-07-01 after shipping v7.1 Advanced Routing & Observability*

@@ -559,13 +559,14 @@ type routingRepo struct{ db *sql.DB }
 
 func (r *routingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, error) {
 	row := r.db.QueryRowContext(ctx, `
-		SELECT id, strategy, default_provider, fallback_enabled, max_attempts, revision, created_at, updated_at
+		SELECT id, strategy, default_provider, fallback_enabled, max_attempts, revision, created_at, updated_at, composite_json
 		FROM routing_configs
 		WHERE id = 'global'`)
 
 	rec := &controlstate.RoutingConfig{}
 	var defaultProvider sql.NullString
-	if err := row.Scan(&rec.ID, &rec.Strategy, &defaultProvider, &rec.FallbackEnabled, &rec.MaxAttempts, &rec.Revision, &rec.CreatedAt, &rec.UpdatedAt); err != nil {
+	var compositeJSON sql.NullString
+	if err := row.Scan(&rec.ID, &rec.Strategy, &defaultProvider, &rec.FallbackEnabled, &rec.MaxAttempts, &rec.Revision, &rec.CreatedAt, &rec.UpdatedAt, &compositeJSON); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, controlstate.ErrRoutingConfigNotFound
 		}
@@ -573,6 +574,13 @@ func (r *routingRepo) Get(ctx context.Context) (*controlstate.RoutingConfig, err
 	}
 	if defaultProvider.Valid {
 		rec.DefaultProvider = defaultProvider.String
+	}
+	if compositeJSON.Valid && compositeJSON.String != "" {
+		var comp controlstate.CompositeRoutingConfig
+		if err := json.Unmarshal([]byte(compositeJSON.String), &comp); err != nil {
+			return nil, err
+		}
+		rec.Composite = &comp
 	}
 	return rec, nil
 }
@@ -591,17 +599,28 @@ func (r *routingRepo) Save(ctx context.Context, config *controlstate.RoutingConf
 		defaultProvider.Valid = true
 	}
 
+	var compositeJSON sql.NullString
+	if config.Composite != nil {
+		b, err := json.Marshal(config.Composite)
+		if err != nil {
+			return err
+		}
+		compositeJSON.String = string(b)
+		compositeJSON.Valid = true
+	}
+
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO routing_configs (id, strategy, default_provider, fallback_enabled, max_attempts, revision, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+		INSERT INTO routing_configs (id, strategy, default_provider, fallback_enabled, max_attempts, revision, created_at, updated_at, composite_json)
+		VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			strategy=excluded.strategy,
 			default_provider=excluded.default_provider,
 			fallback_enabled=excluded.fallback_enabled,
 			max_attempts=excluded.max_attempts,
+			composite_json=excluded.composite_json,
 			revision=routing_configs.revision + 1,
 			updated_at=CURRENT_TIMESTAMP`,
-		config.ID, config.Strategy, defaultProvider, config.FallbackEnabled, config.MaxAttempts, config.Revision, config.CreatedAt,
+		config.ID, config.Strategy, defaultProvider, config.FallbackEnabled, config.MaxAttempts, config.Revision, config.CreatedAt, compositeJSON,
 	)
 	return err
 }

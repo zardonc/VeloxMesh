@@ -143,6 +143,32 @@ func TestSQLiteRepository(t *testing.T) {
 	if updatedRCfg.Revision <= savedRCfg.Revision {
 		t.Errorf("Expected revision to increment, got %d vs %d", updatedRCfg.Revision, savedRCfg.Revision)
 	}
+
+	// 10. Routing - Save config with Composite
+	updatedRCfg.Composite = &controlstate.CompositeRoutingConfig{
+		PresetName: "conservative",
+		LatencyWeight: 0.5,
+	}
+	if err := repo.Routing().Save(ctx, updatedRCfg); err != nil {
+		t.Fatalf("Failed to save composite routing config: %v", err)
+	}
+	compRCfg, err := repo.Routing().Get(ctx)
+	if err != nil {
+		t.Fatalf("Failed to get composite routing config: %v", err)
+	}
+	if compRCfg.Composite == nil || compRCfg.Composite.LatencyWeight != 0.5 {
+		t.Errorf("Expected composite routing config to be saved and retrieved")
+	}
+
+	// 11. Malformed JSON returns error
+	_, err = repo.db.ExecContext(ctx, "UPDATE routing_configs SET composite_json = '{malformed' WHERE id = 'global'")
+	if err != nil {
+		t.Fatalf("Failed to write malformed json: %v", err)
+	}
+	_, err = repo.Routing().Get(ctx)
+	if err == nil {
+		t.Errorf("Expected error when loading malformed JSON, got nil")
+	}
 }
 
 func TestSQLiteAPIKeyCredit(t *testing.T) {

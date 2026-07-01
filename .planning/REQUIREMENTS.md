@@ -2,29 +2,24 @@
 
 ## Current Status
 
-Milestone v7.0 Plan 1 Foundation shipped on 2026-06-30.
+Milestone v7.1 Advanced Routing & Observability has been shipped.
+Awaiting new milestone initialization via `/gsd-new-milestone`.
 
-The next milestone requirements have not been finalized yet. Use `$gsd-new-milestone` to define the next milestone through the normal questioning, requirements, and roadmap flow.
+## Completed in v7.1
 
-## Completed in v7.0
+- [x] Phase 10: Advanced Routing & Observability.
 
-- [x] Phase 7: Adapter Interfaces & SQLite Foundation.
-- [x] Phase 8: Semantic Pipeline.
-- [x] Phase 9: Redis Stack + Qdrant Fallback Integration.
+See `.planning/milestones/v7.1-REQUIREMENTS.md` for the archived requirement outcomes.
 
-See `.planning/milestones/v7.0-REQUIREMENTS.md` for the archived requirement outcomes.
+## Deferred to Future Milestones
 
-## Candidate Next Requirements
-
-- [ ] Phase 10: Advanced Routing & Observability.
-- [ ] Phase 11: BFF Layer & Admin Console.
-- [ ] Phase 12: Multi-Node Coordination.
-- [ ] Phase 13: PostgreSQL Extension.
-- [ ] Full `LimitRule` unification across future scopes.
+- Phase 11: BFF Layer & Admin Console.
+- Phase 12: Multi-Node Coordination.
+- Phase 13: PostgreSQL Extension.
+- Full `LimitRule` unification across future scopes.
 
 ## Traceability
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| v7.0 Plan 1 Foundation | Complete | Archived in `.planning/milestones/v7.0-REQUIREMENTS.md`. |
-| Next milestone | Not started | Define scope before planning Phase 10+. |
+| v7.1 Advanced Routing & Observability | Complete | Archived in `.planning/milestones/v7.1-REQUIREMENTS.md`. |

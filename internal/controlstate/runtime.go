@@ -116,10 +116,10 @@ func (m *RuntimeProviderManager) Start(ctx context.Context) {
 }
 
 func (m *RuntimeProviderManager) ActivateStatic(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter) error {
-	return m.activateInternal(providersCfg, adapters, nil, nil, nil)
+	return m.activateInternal(providersCfg, adapters, nil, nil, nil, nil)
 }
 
-func (m *RuntimeProviderManager) activateInternal(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter, rCfg *RoutingConfig, combos []providers.Combo, semRules *SemanticRuleSnapshot) error {
+func (m *RuntimeProviderManager) activateInternal(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter, rCfg *RoutingConfig, combos []providers.Combo, semRules *SemanticRuleSnapshot, compCfg *routing.CompositeConfig) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -146,7 +146,7 @@ func (m *RuntimeProviderManager) activateInternal(providersCfg []config.Provider
 	}
 
 	registry := providers.NewRegistry(&cfgClone, adapters, combos)
-	router := routing.NewHealthAwareRouter(registry, m.healthStore, strategy)
+	router := routing.NewHealthAwareRouter(registry, m.healthStore, strategy, compCfg)
 	prober := health.NewProber(registry, m.healthStore, &cfgClone, m.logger)
 
 	snap := &RuntimeSnapshot{
@@ -207,10 +207,10 @@ func (m *RuntimeProviderManager) ActivateProviderSet(ctx context.Context, record
 			combos = snap.Registry.Combos()
 		}
 	}
-	return m.ActivateDurable(ctx, records, secrets, rCfg, combos, semRules, validator)
+	return m.ActivateDurable(ctx, records, secrets, rCfg, combos, semRules, nil, validator)
 }
 
-func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []*ProviderRecord, secrets map[string]string, rCfg *RoutingConfig, combos []providers.Combo, semRules *SemanticRuleSnapshot, validator ActivationValidator) error {
+func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []*ProviderRecord, secrets map[string]string, rCfg *RoutingConfig, combos []providers.Combo, semRules *SemanticRuleSnapshot, rates map[string]float64, validator ActivationValidator) error {
 	providerConfigs, err := BuildRuntimeConfig(records)
 	if err != nil {
 		return err
@@ -227,7 +227,32 @@ func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []
 		}
 	}
 
-	return m.activateInternal(providerConfigs, adapters, rCfg, combos, semRules)
+	var compCfg *routing.CompositeConfig
+	if rCfg != nil && rCfg.Composite != nil {
+		c := rCfg.Composite
+		compCfg = &routing.CompositeConfig{
+			LatencyWeight:    c.LatencyWeight,
+			LoadWeight:       c.LoadWeight,
+			ErrorRateWeight:  c.ErrorRateWeight,
+			HealthWeight:     c.HealthWeight,
+			ScoreThreshold:   c.ScoreThreshold,
+			NearTieThreshold: c.NearTieThreshold,
+			DegradedPenalty:  c.DegradedPenalty,
+			WarmUpSuccesses:  c.WarmUpSuccesses,
+			CostOverrides:    rates,
+		}
+		if c.StaleMetricWindow != "" {
+			if d, err := time.ParseDuration(c.StaleMetricWindow); err == nil {
+				compCfg.StaleMetricWindow = d
+			}
+		}
+	} else if len(rates) > 0 {
+		def := routing.DefaultCompositeConfig()
+		def.CostOverrides = rates
+		compCfg = &def
+	}
+
+	return m.activateInternal(providerConfigs, adapters, rCfg, combos, semRules, compCfg)
 }
 
 // Router delegates

@@ -86,10 +86,27 @@ type RoutingConfig struct {
 	Strategy        string    `json:"strategy"`
 	DefaultProvider string    `json:"default_provider"`
 	FallbackEnabled bool      `json:"fallback_enabled"`
-	MaxAttempts     int       `json:"max_attempts"`
-	Revision        int64     `json:"revision"`
+	MaxAttempts     int                     `json:"max_attempts"`
+	Composite       *CompositeRoutingConfig `json:"composite,omitempty"`
+	Revision        int64                   `json:"revision"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+type CompositeRoutingConfig struct {
+	PresetName          string             `json:"preset_name,omitempty"`
+	LatencyWeight       float64            `json:"latency_weight"`
+	LoadWeight          float64            `json:"load_weight"`
+	ErrorRateWeight     float64            `json:"error_rate_weight"`
+	HealthWeight        float64            `json:"health_weight"`
+	ScoreThreshold      float64            `json:"score_threshold"`
+	NearTieThreshold    float64            `json:"near_tie_threshold"`
+	DegradedPenalty     float64            `json:"degraded_penalty"`
+	WarmUpSuccesses     int                `json:"warm_up_successes"`
+	StaleMetricWindow   string             `json:"stale_metric_window"`
+	MinZScoreCandidates int                `json:"min_zscore_candidates"`
+	MinVariance         float64            `json:"min_variance"`
+	CostOverrides       map[string]float64 `json:"cost_overrides,omitempty"`
 }
 
 type APIKeyRecord struct {

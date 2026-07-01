@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/gateway"
@@ -66,6 +67,7 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 
 	r.Get("/healthz", handlers.Healthz)
 	r.Get("/readyz", handlers.Readyz(cfg, svc))
+	r.Handle("/metrics", promhttp.Handler())
 
 	return r
 }

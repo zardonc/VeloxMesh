@@ -17,6 +17,15 @@ type RedisStore struct {
 	// Local state for atomic counters since snapshot is a full struct replacement
 	mu       sync.RWMutex
 	localMap map[string]*RedisProviderState
+	localModels map[string]*RedisModelState
+}
+
+type RedisModelState struct {
+	ProviderID     string    `json:"provider_id"`
+	Model          string    `json:"model"`
+	TotalSuccesses int       `json:"total_successes"`
+	TotalFailures  int       `json:"total_failures"`
+	LastUpdated    time.Time `json:"last_updated"`
 }
 
 type RedisProviderState struct {
@@ -45,9 +54,10 @@ func NewRedisStore(client hotstate.Client, ttlStr string) *RedisStore {
 		ttl = time.Minute
 	}
 	return &RedisStore{
-		client:   client,
-		ttl:      ttl,
-		localMap: make(map[string]*RedisProviderState),
+		client:      client,
+		ttl:         ttl,
+		localMap:    make(map[string]*RedisProviderState),
+		localModels: make(map[string]*RedisModelState),
 	}
 }
 
@@ -245,4 +255,81 @@ func (s *RedisStore) syncToRedis(ctx context.Context, id string, state *RedisPro
 		return fmt.Errorf("failed to marshal health state: %w", err)
 	}
 	return s.client.SetHealthSnapshot(ctx, id, data, s.ttl)
+}
+
+func (s *RedisStore) RecordModelOutcome(providerID, model string, success bool) {
+	key := providerID + ":" + model
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	state, exists := s.localModels[key]
+	if !exists {
+		state = &RedisModelState{
+			ProviderID: providerID,
+			Model:      model,
+		}
+		s.localModels[key] = state
+	}
+
+	if success {
+		state.TotalSuccesses++
+	} else {
+		state.TotalFailures++
+	}
+	state.LastUpdated = time.Now()
+
+	// Sync to Redis byte cache
+	data, err := json.Marshal(state)
+	if err == nil {
+		redisKey := "model_snapshot:" + key
+		_ = s.client.SetBytes(context.Background(), redisKey, data, s.ttl)
+	}
+}
+
+func (s *RedisStore) ModelSnapshot(providerID, model string) ModelSnapshot {
+	key := providerID + ":" + model
+	redisKey := "model_snapshot:" + key
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	data, err := s.client.GetBytes(ctx, redisKey)
+	if err != nil {
+		// Fallback to local
+		s.mu.RLock()
+		defer s.mu.RUnlock()
+		state, exists := s.localModels[key]
+		if !exists {
+			return ModelSnapshot{ProviderID: providerID, Model: model}
+		}
+		return ModelSnapshot{
+			ProviderID:     state.ProviderID,
+			Model:          state.Model,
+			TotalSuccesses: state.TotalSuccesses,
+			TotalFailures:  state.TotalFailures,
+			LastUpdated:    state.LastUpdated,
+		}
+	}
+
+	var state RedisModelState
+	if err := json.Unmarshal(data, &state); err != nil {
+		return ModelSnapshot{ProviderID: providerID, Model: model}
+	}
+
+	// Sync local map
+	s.mu.Lock()
+	if existing, ok := s.localModels[key]; ok {
+		*existing = state
+	} else {
+		s.localModels[key] = &state
+	}
+	s.mu.Unlock()
+
+	return ModelSnapshot{
+		ProviderID:     state.ProviderID,
+		Model:          state.Model,
+		TotalSuccesses: state.TotalSuccesses,
+		TotalFailures:  state.TotalFailures,
+		LastUpdated:    state.LastUpdated,
+	}
 }

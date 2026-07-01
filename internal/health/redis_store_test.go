@@ -52,3 +52,28 @@ func TestRedisStore(t *testing.T) {
 		t.Errorf("expected data in probe snapshot")
 	}
 }
+
+func TestRedisStore_ModelSnapshot(t *testing.T) {
+	cache := hotstate.NewLocalHotState()
+	store := health.NewRedisStore(cache, "1m")
+
+	// Initial unknown state
+	snap := store.ModelSnapshot("p1", "gpt-4")
+	if snap.TotalSuccesses != 0 || snap.TotalFailures != 0 {
+		t.Errorf("expected zero counters for unknown model")
+	}
+
+	// Record success
+	store.RecordModelOutcome("p1", "gpt-4", true)
+	snap = store.ModelSnapshot("p1", "gpt-4")
+	if snap.TotalSuccesses != 1 {
+		t.Errorf("expected 1 success, got %d", snap.TotalSuccesses)
+	}
+
+	// Record failure
+	store.RecordModelOutcome("p1", "gpt-4", false)
+	snap = store.ModelSnapshot("p1", "gpt-4")
+	if snap.TotalFailures != 1 {
+		t.Errorf("expected 1 failure, got %d", snap.TotalFailures)
+	}
+}

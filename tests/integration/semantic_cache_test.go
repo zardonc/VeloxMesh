@@ -81,7 +81,7 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 
 	p1 := &mockEmbedAdapter{id: "p1"}
 	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1}, nil)
-	route := routing.NewHealthAwareRouter(registry, store, "round-robin")
+	route := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
 
 	cacheRepo := &memorySemanticCacheRepo{}
 	semanticCacheSvc := cache.NewSemanticCacheService(cache.SemanticCacheConfig{

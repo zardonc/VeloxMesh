@@ -29,6 +29,7 @@ var (
 	ErrUnknownProviderOverride    = NewGatewayError("unknown_provider_override", "requested provider override is unknown", 400)
 	ErrUnhealthyProviderOverride  = NewGatewayError("unhealthy_provider_override", "requested provider override is unhealthy", 503)
 	ErrIneligibleProviderOverride = NewGatewayError("ineligible_provider_override", "requested provider override does not support the requested model and operation", 400)
+	ErrCompositeScoreBelowThreshold = NewGatewayError("composite_score_below_threshold", "no provider met the minimum composite score threshold", 503)
 
 	// Control state runtime errors
 	ErrNoActiveProviderConfig     = NewGatewayError("no_active_provider_config", "no active provider configuration exists; create and enable a provider through /admin/v1/providers", 503)

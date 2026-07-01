@@ -61,7 +61,7 @@ func TestService_HandleChatCompletion_AttemptLoopHealth(t *testing.T) {
 
 	// Router that returns p1, then p2 (simulating exclusion logic properly implemented in HealthAwareRouter)
 	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2}, nil)
-	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
 
 	admissionCtrl := admission.NewPassThroughController()
 
@@ -104,7 +104,7 @@ func TestService_HandleChatCompletion_UsesComboUpstreamModel(t *testing.T) {
 	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, []providers.Combo{
 		{ID: "combo-1", Name: "fast-combo", Strategy: "round-robin", Members: []string{"gpt-4o"}},
 	})
-	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
 	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil, nil)
 
 	resp, err := svc.HandleChatCompletion(ctx, &llm.LLMRequest{Model: "fast-combo"})
@@ -124,7 +124,7 @@ func TestService_GetProviderCapabilities(t *testing.T) {
 	p1 := &mockAdapter{id: "p1"}
 	p2 := &mockAdapter{id: "p2"}
 	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2}, nil)
-	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
 	svc := gateway.NewService(router, admission.NewPassThroughController(), store, true, 2, nil, nil, pipeline.DefaultRegistry(), nil, nil)
 
 	caps := svc.GetProviderCapabilities()
@@ -171,7 +171,7 @@ func TestService_HandleChatCompletion_CircuitBreaker(t *testing.T) {
 	p1 := &mockAdapter{id: "p1", err: p1Err}
 
 	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
-	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
 
 	// Create a router that sets threshold to 2
 	mockRouter := &fallbackMockRouter{
@@ -224,7 +224,7 @@ func TestService_HandleChatCompletion_StrictOverride(t *testing.T) {
 	p1 := &mockAdapter{id: "p1", err: p1Err}
 
 	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
-	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
 
 	mockRouter := &fallbackMockRouter{
 		Router:    router,
@@ -313,7 +313,7 @@ func TestService_CostAggregation(t *testing.T) {
 
 	p1 := &mockAdapterWithUsage{id: "p1"}
 	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
-	router := routing.NewHealthAwareRouter(registry, store, "round-robin")
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
 
 	repo := &mockRepoWithUsage{}
 	agg := &mockAggregator{}

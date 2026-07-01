@@ -33,6 +33,7 @@ type App struct {
 	Router                 http.Handler
 	RuntimeProviderManager *controlstate.RuntimeProviderManager
 	HotState               hotstate.Client
+	ShutdownTracing        func(context.Context) error
 }
 
 func (a *App) HealthStore() health.Store {
@@ -46,6 +47,14 @@ func New() (*App, error) {
 	}
 
 	logger := observability.SetupLogger(cfg.LogLevel)
+
+	observability.InitPrometheusMetrics()
+
+	shutdownTracing, err := observability.SetupTracing(context.Background())
+	if err != nil {
+		logger.Warn("failed to initialize tracing", "error", err)
+		shutdownTracing = func(context.Context) error { return nil }
+	}
 
 	var hotStateClient hotstate.Client
 	if cfg.RedisEnabled {
@@ -216,6 +225,7 @@ func New() (*App, error) {
 		Router:                 r,
 		RuntimeProviderManager: m,
 		HotState:               hotStateClient,
+		ShutdownTracing:        shutdownTracing,
 	}
 
 	if cfg.ControlStateBackend != "disabled" {
@@ -304,7 +314,21 @@ func (a *App) ReloadProviders(ctx context.Context, repo controlstate.Repository,
 		}
 	}
 
-	return a.RuntimeProviderManager.ActivateDurable(ctx, records, secrets, rCfg, combos, semRules, nil)
+	rates := make(map[string]float64)
+	if repo.Rates() != nil {
+		for _, r := range records {
+			if !r.Enabled {
+				continue
+			}
+			for _, m := range r.Models {
+				if rate, err := repo.Rates().Get(ctx, r.ID, m); err == nil && rate != nil {
+					rates[r.ID+":"+m] = float64(rate.InputCreditRate + rate.OutputCreditRate)
+				}
+			}
+		}
+	}
+
+	return a.RuntimeProviderManager.ActivateDurable(ctx, records, secrets, rCfg, combos, semRules, rates, nil)
 }
 
 func (a *App) StartConfigChangeSubscriber(ctx context.Context, repo controlstate.Repository, cipher controlstate.SecretCipher) error {
@@ -328,7 +352,7 @@ func (a *App) StartConfigChangeSubscriber(ctx context.Context, repo controlstate
 				a.Logger.Info("received config change notification", "type", msg.Type, "target_id", msg.TargetID, "action", msg.Action, "revision", msg.Revision)
 				
 				switch msg.Type {
-				case hotstate.EventProvider, hotstate.EventCombo:
+				case hotstate.EventProvider, hotstate.EventCombo, hotstate.EventRouting:
 					if err := a.ReloadProviders(ctx, repo, cipher); err != nil {
 						a.Logger.Error("failed to reload providers on config change", "error", err)
 					}
@@ -394,8 +418,10 @@ func (a *App) Run(ctx context.Context) error {
 
 	select {
 	case err := <-errChan:
+		a.ShutdownTracing(context.Background())
 		return err
 	case <-ctx.Done():
+		a.ShutdownTracing(context.Background())
 		return nil
 	}
 }

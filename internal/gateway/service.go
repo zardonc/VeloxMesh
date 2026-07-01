@@ -130,6 +130,8 @@ func (s *Service) buildPipeline(ctx context.Context, identityScope string) *pipe
 }
 
 func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+	ctx, rt := observability.StartRequestTrace(ctx, req.RequestID, req.Model)
+
 	attempted := make(map[string]bool)
 	attempts := 0
 	var lastErr error
@@ -174,6 +176,9 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		entry, err := s.semanticCache.Lookup(ctx, identityScope, req.Model, text)
 		if err == nil && entry != nil {
 			// Cache hit
+			rt.RecordRouting("semantic_cache", "hit", "", "")
+			rt.RecordOutcome("cache", 200, "", 0, 0, 0)
+			
 			observability.DefaultMetrics.RecordRequestOutcome(
 				req.RequestID,
 				"cache",
@@ -181,6 +186,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 				"semantic_cache",
 				200,
 				"",
+				"hit",
 				0, // latency negligible
 			)
 
@@ -213,15 +219,24 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	}
 
 	var reqTextForStore string
+	cacheResult := "none"
 	if s.semanticCache != nil && !req.Stream {
 		b, _ := json.Marshal(req.Messages)
 		reqTextForStore = string(b)
+		if identityScope != "" && identityScope != "admin-key" && req.RouteOverride == "" {
+			cacheResult = "miss"
+		}
 	}
 
 	for attempts < maxAllowedAttempts {
 
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
 		if err != nil {
+			if err == errors.ErrCompositeScoreBelowThreshold && attempts < maxAllowedAttempts && decision.ProviderID != "" {
+				attempted[decision.ProviderID] = true
+				lastErr = err
+				continue
+			}
 			if lastErr != nil {
 				return nil, lastErr // Return the last provider error rather than no_healthy_provider
 			}
@@ -244,6 +259,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		if !s.cb.Allow(decision.ProviderID) {
 			attempted[decision.ProviderID] = true
 			if req.RouteOverride != "" {
+				rt.RecordOutcome(decision.ProviderID, 503, "provider_circuit_open", 0, 0, 0)
 				return nil, errors.NewGatewayError("provider_circuit_open", "Provider circuit is open", 503)
 			}
 			continue
@@ -289,6 +305,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 		s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
 		s.cb.RecordResult(decision.ProviderID, healthErr == nil)
+		s.healthStore.RecordModelOutcome(decision.ProviderID, req.Model, healthErr == nil)
 
 		observability.DefaultMetrics.RecordRequestOutcome(
 			req.RequestID,
@@ -297,10 +314,24 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			decision.Strategy,
 			status,
 			errCategory,
+			cacheResult,
 			float64(latency.Milliseconds()),
 		)
 
+		scoreSummary := ""
+		if decision.CompositeScoreSummary != nil {
+			summaryBytes, _ := json.Marshal(decision.CompositeScoreSummary)
+			scoreSummary = string(summaryBytes)
+		}
+		
+		var fallbackReason string
+		if attempts > 1 {
+			fallbackReason = "provider_failure_or_rejected"
+		}
+		rt.RecordRouting(decision.Strategy, cacheResult, fallbackReason, scoreSummary)
+
 		if err != nil {
+			rt.RecordOutcome(decision.ProviderID, status, errCategory, float64(latency.Milliseconds()), 0, float64(latency.Milliseconds()))
 			release() // Release admission quickly
 			observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, status)
 			lastErr = err
@@ -349,6 +380,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		return resp, nil
 	}
 
+	rt.EndWithError(lastErr)
 	return nil, lastErr
 }
 
@@ -361,6 +393,8 @@ func (s *Service) GetProviderCapabilities() []providers.ProviderCapabilities {
 }
 
 func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+	ctx, rt := observability.StartRequestTrace(ctx, req.RequestID, req.Model)
+
 	attempted := make(map[string]bool)
 	attempts := 0
 	var lastErr error
@@ -402,6 +436,11 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
 		if err != nil {
+			if err == errors.ErrCompositeScoreBelowThreshold && attempts < maxAllowedAttempts && decision.ProviderID != "" {
+				attempted[decision.ProviderID] = true
+				lastErr = err
+				continue
+			}
 			if lastErr != nil {
 				return nil, nil, lastErr
 			}
@@ -431,6 +470,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		if !s.cb.Allow(decision.ProviderID) {
 			attempted[decision.ProviderID] = true
 			if req.RouteOverride != "" {
+				rt.RecordOutcome(decision.ProviderID, 503, "provider_circuit_open", 0, 0, 0)
 				return nil, nil, errors.NewGatewayError("provider_circuit_open", "Provider circuit is open", 503)
 			}
 			continue
@@ -476,6 +516,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 
 			s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
 			s.cb.RecordResult(decision.ProviderID, healthErr == nil)
+			s.healthStore.RecordModelOutcome(decision.ProviderID, req.Model, healthErr == nil)
 
 			observability.DefaultMetrics.RecordRequestOutcome(
 				req.RequestID,
@@ -484,8 +525,21 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 				decision.Strategy,
 				status,
 				errCategory,
+				"none",
 				float64(latency.Milliseconds()),
 			)
+
+			scoreSummary := ""
+			if decision.CompositeScoreSummary != nil {
+				summaryBytes, _ := json.Marshal(decision.CompositeScoreSummary)
+				scoreSummary = string(summaryBytes)
+			}
+			var fallbackReason string
+			if attempts > 1 {
+				fallbackReason = "provider_failure_or_rejected"
+			}
+			rt.RecordRouting(decision.Strategy, "none", fallbackReason, scoreSummary)
+			rt.RecordOutcome(decision.ProviderID, status, errCategory, float64(latency.Milliseconds()), 0, float64(latency.Milliseconds()))
 
 			release()
 			observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, status)
@@ -524,7 +578,14 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 			errCategory := ""
 			var finalUsage *llm.Usage
 
+			var ttft time.Duration
+			firstChunk := true
+
 			for event := range ch {
+				if firstChunk {
+					ttft = time.Since(start)
+					firstChunk = false
+				}
 				if event.Usage != nil && finalUsage == nil {
 					finalUsage = event.Usage
 				}
@@ -549,6 +610,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 
 			s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
 			s.cb.RecordResult(decision.ProviderID, healthErr == nil)
+			s.healthStore.RecordModelOutcome(decision.ProviderID, req.Model, healthErr == nil)
 
 			observability.DefaultMetrics.RecordRequestOutcome(
 				req.RequestID,
@@ -557,8 +619,31 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 				decision.Strategy,
 				status,
 				errCategory,
+				"none",
 				float64(latency.Milliseconds()),
 			)
+
+			scoreSummary := ""
+			if decision.CompositeScoreSummary != nil {
+				summaryBytes, _ := json.Marshal(decision.CompositeScoreSummary)
+				scoreSummary = string(summaryBytes)
+			}
+			var fallbackReason string
+			if attempts > 1 {
+				fallbackReason = "provider_failure_or_rejected"
+			}
+			rt.RecordRouting(decision.Strategy, "none", fallbackReason, scoreSummary)
+
+			var tpot float64
+			tokens := 0
+			if finalUsage != nil && finalUsage.CompletionTokens > 0 {
+				tokens = finalUsage.CompletionTokens
+			}
+			if tokens > 0 {
+				tpot = float64(latency - ttft) / float64(tokens) / float64(time.Millisecond)
+			}
+
+			rt.RecordOutcome(decision.ProviderID, status, errCategory, float64(ttft.Milliseconds()), tpot, float64(latency.Milliseconds()))
 
 			release()
 			observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, status)
@@ -571,5 +656,6 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		return outCh, respMeta, nil
 	}
 
+	rt.EndWithError(lastErr)
 	return nil, nil, lastErr
 }
