@@ -33,6 +33,7 @@ type App struct {
 	Router                 http.Handler
 	RuntimeProviderManager *controlstate.RuntimeProviderManager
 	HotState               hotstate.Client
+	ShutdownTracing        func(context.Context) error
 }
 
 func (a *App) HealthStore() health.Store {
@@ -48,6 +49,12 @@ func New() (*App, error) {
 	logger := observability.SetupLogger(cfg.LogLevel)
 
 	observability.InitPrometheusMetrics()
+
+	shutdownTracing, err := observability.SetupTracing(context.Background())
+	if err != nil {
+		logger.Warn("failed to initialize tracing", "error", err)
+		shutdownTracing = func(context.Context) error { return nil }
+	}
 
 	var hotStateClient hotstate.Client
 	if cfg.RedisEnabled {
@@ -218,6 +225,7 @@ func New() (*App, error) {
 		Router:                 r,
 		RuntimeProviderManager: m,
 		HotState:               hotStateClient,
+		ShutdownTracing:        shutdownTracing,
 	}
 
 	if cfg.ControlStateBackend != "disabled" {
@@ -396,8 +404,10 @@ func (a *App) Run(ctx context.Context) error {
 
 	select {
 	case err := <-errChan:
+		a.ShutdownTracing(context.Background())
 		return err
 	case <-ctx.Done():
+		a.ShutdownTracing(context.Background())
 		return nil
 	}
 }
