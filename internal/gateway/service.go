@@ -7,6 +7,7 @@ import (
 	"veloxmesh/internal/admission"
 	"veloxmesh/internal/cache"
 	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/controlstate/replication"
 	"veloxmesh/internal/errors"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/hotstate"
@@ -166,6 +167,9 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	state := &pipeline.RunState{}
 
 	if err := p.ProcessRequest(ctx, scope, state, req); err != nil {
+		if err == replication.ErrWriteNotWritable {
+			return nil, errors.ErrServiceNotWritable
+		}
 		return nil, err
 	}
 
@@ -212,6 +216,9 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			}
 
 			if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
+				if err == replication.ErrWriteNotWritable {
+					return nil, errors.ErrServiceNotWritable
+				}
 				return nil, err
 			}
 			return resp, nil
@@ -357,6 +364,9 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		resp.Usage = resp.Usage // Usually adapters set Usage directly on resp
 
 		if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
+			if err == replication.ErrWriteNotWritable {
+				return nil, errors.ErrServiceNotWritable
+			}
 			return nil, err
 		}
 
@@ -429,6 +439,9 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 	state := &pipeline.RunState{}
 
 	if err := p.ProcessRequest(ctx, scope, state, req); err != nil {
+		if err == replication.ErrWriteNotWritable {
+			return nil, nil, errors.ErrServiceNotWritable
+		}
 		return nil, nil, err
 	}
 
@@ -566,6 +579,9 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		}
 
 		if err := p.ProcessResponse(ctx, scope, state, respMeta); err != nil {
+			if err == replication.ErrWriteNotWritable {
+				return nil, nil, errors.ErrServiceNotWritable
+			}
 			return nil, nil, err
 		}
 
