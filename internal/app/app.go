@@ -12,6 +12,7 @@ import (
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/controlstate/postgres"
+	"veloxmesh/internal/controlstate/replication"
 	"veloxmesh/internal/controlstate/sqlite"
 	"veloxmesh/internal/coordination"
 	"veloxmesh/internal/gateway"
@@ -233,7 +234,22 @@ func New() (*App, error) {
 
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
 
-	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, hotStateClient, repo)
+	var lagReporter handlers.LagReporter
+	if cfg.MultiNodeEnabled && cfg.RedisEnabled && repo != nil {
+		rdb := redis.NewClient(&redis.Options{
+			Addr:     cfg.RedisAddr,
+			Password: cfg.RedisPassword,
+			DB:       cfg.RedisDB,
+		})
+		consumer := replication.NewConsumer(rdb, "controlstate:events", "gateway-group", cfg.NodeID, repo, repo.FallbackLog())
+		consumer.Start(ctx)
+		lagReporter = consumer
+
+		worker := replication.NewRecoveryWorker(repo.FallbackLog(), consumer)
+		worker.Start(ctx)
+	}
+
+	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, hotStateClient, repo, coord, lagReporter)
 
 	application := &App{
 		Config:                 cfg,

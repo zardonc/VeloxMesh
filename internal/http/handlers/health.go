@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"veloxmesh/internal/config"
+	"veloxmesh/internal/controlstate/replication"
+	"veloxmesh/internal/coordination"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
 )
@@ -13,12 +15,16 @@ func Healthz(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("ok"))
 }
 
+type LagReporter interface {
+	ReportLag() replication.LagSnapshot
+}
+
 // Readyz evaluates whether the gateway can route traffic.
 // Decision (Phase 2.4): We do not invoke adapter.HealthCheck() here because doing so
 // accurately for upstream LLM providers could require an expensive model generation call.
 // Instead, readiness is based strictly on the in-memory health snapshots that are updated
 // by real traffic via circuit breaker semantics.
-func Readyz(cfg *config.Config, svc *gateway.Service) http.HandlerFunc {
+func Readyz(cfg *config.Config, svc *gateway.Service, coord coordination.Coordinator, lagReporter LagReporter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		snapshots := svc.HealthStore().Snapshots()
 
@@ -65,11 +71,19 @@ func Readyz(cfg *config.Config, svc *gateway.Service) http.HandlerFunc {
 			providerDetails = append(providerDetails, detail)
 		}
 
-		overall := "ready"
+	overall := "ready"
 		status := http.StatusOK
 		if healthyCount == 0 && degradedCount == 0 {
 			overall = "unavailable"
 			status = http.StatusServiceUnavailable
+		}
+
+		if coord != nil && !coord.IsWritable() && lagReporter != nil {
+			lag := lagReporter.ReportLag()
+			if lag.Elapsed > replication.ElapsedLagThreshold || lag.Pending > replication.StreamDistanceThreshold {
+				overall = "unavailable"
+				status = http.StatusServiceUnavailable
+			}
 		}
 
 		strategy := cfg.RoutingStrategy
@@ -105,5 +119,33 @@ func Readyz(cfg *config.Config, svc *gateway.Service) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(status)
 		_ = json.NewEncoder(w).Encode(response)
+	}
+}
+
+func Topology(coord coordination.Coordinator, lagReporter LagReporter) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		nodeSnap := coord.Snapshot()
+		var lag replication.LagSnapshot
+		if lagReporter != nil {
+			lag = lagReporter.ReportLag()
+		}
+		
+		resp := map[string]interface{}{
+			"node_id":         nodeSnap.NodeID,
+			"role":            nodeSnap.Role,
+			"leader_id":       nodeSnap.LeaderID,
+			"writable":        coord.IsWritable(),
+			"wal_lag_elapsed": lag.Elapsed.Milliseconds(),
+			"wal_lag_pending": lag.Pending,
+		}
+		if !coord.IsWritable() {
+			if lag.Elapsed > replication.ElapsedLagThreshold || lag.Pending > replication.StreamDistanceThreshold {
+				resp["degraded_reason"] = "replication_lag_exceeded"
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(resp)
 	}
 }

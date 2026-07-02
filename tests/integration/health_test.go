@@ -11,7 +11,13 @@ import (
 	"time"
 
 	"veloxmesh/internal/app"
+	"veloxmesh/internal/config"
+	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/controlstate/replication"
+	"veloxmesh/internal/coordination"
+	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
+	"veloxmesh/internal/http/handlers"
 )
 
 func TestHealthEndpoints(t *testing.T) {
@@ -191,5 +197,92 @@ func TestHealthRecovery(t *testing.T) {
 	// The request will be routed, upstream returns 500, gateway maps to 502
 	if rec.Code != http.StatusBadGateway && rec.Code != http.StatusInternalServerError {
 		t.Errorf("expected upstream error mapped to 502, got %d", rec.Code)
+	}
+}
+
+type fakeLagReporter struct {
+	elapsed time.Duration
+	pending int64
+}
+
+func (f *fakeLagReporter) ReportLag() replication.LagSnapshot {
+	return replication.LagSnapshot{
+		Elapsed: f.elapsed,
+		Pending: f.pending,
+	}
+}
+
+func TestTopologyEndpoint(t *testing.T) {
+	cluster := coordination.NewFakeCluster()
+	leader := coordination.NewFakeCoordinator(cluster, "node-1")
+	leader.Start(context.Background())
+	defer leader.Stop(context.Background())
+
+	lagReporter := &fakeLagReporter{elapsed: 1 * time.Second, pending: 0}
+	
+	handler := handlers.Topology(leader, lagReporter)
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/v1/topology", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	var resp map[string]interface{}
+	json.NewDecoder(rec.Body).Decode(&resp)
+
+	if resp["role"] != "leader" {
+		t.Errorf("expected role leader, got %v", resp["role"])
+	}
+	if resp["writable"] != true {
+		t.Errorf("expected writable true, got %v", resp["writable"])
+	}
+}
+
+func TestReadyzLagThreshold(t *testing.T) {
+	cluster := coordination.NewFakeCluster()
+	leader := coordination.NewFakeCoordinator(cluster, "node-1")
+	leader.Start(context.Background())
+	defer leader.Stop(context.Background())
+
+	follower := coordination.NewFakeCoordinator(cluster, "node-2")
+	follower.Start(context.Background())
+	defer follower.Stop(context.Background())
+
+	// Follower is lagged
+	lagReporter := &fakeLagReporter{elapsed: 10 * time.Second, pending: 0}
+	
+	// mock svc for Readyz
+	cfg := &config.Config{}
+	
+	healthStore := health.NewInMemoryStore()
+	rpm := controlstate.NewRuntimeProviderManager(cfg, nil, healthStore)
+	svc := gateway.NewService(rpm, nil, healthStore, false, 0, nil, nil, nil, rpm, nil)
+	
+	handler := handlers.Readyz(cfg, svc, follower, lagReporter)
+
+	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503 for lagged follower, got %d", rec.Code)
+	}
+
+	var resp map[string]interface{}
+	json.NewDecoder(rec.Body).Decode(&resp)
+
+	if resp["status"] != "unavailable" {
+		t.Errorf("expected status unavailable, got %v", resp["status"])
+	}
+	if _, ok := resp["node_id"]; ok {
+		t.Errorf("expected topology to not leak in readyz, found node_id")
+	}
+	if _, ok := resp["role"]; ok {
+		t.Errorf("expected topology to not leak in readyz, found role")
 	}
 }

@@ -9,9 +9,10 @@ import (
 	"veloxmesh/internal/hotstate"
 	"veloxmesh/internal/http/handlers"
 	"veloxmesh/internal/http/middleware"
+	"veloxmesh/internal/coordination"
 )
 
-func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handlers.AdminProvidersHandler, adminCombosHandler *handlers.AdminCombosHandler, adminSemanticRulesHandler *handlers.AdminSemanticRulesHandler, hotStateClient hotstate.Client, repo controlstate.Repository) *chi.Mux {
+func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handlers.AdminProvidersHandler, adminCombosHandler *handlers.AdminCombosHandler, adminSemanticRulesHandler *handlers.AdminSemanticRulesHandler, hotStateClient hotstate.Client, repo controlstate.Repository, coord coordination.Coordinator, lagReporter handlers.LagReporter) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -65,8 +66,13 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 		})
 	}
 
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.AdminAuth(cfg))
+		r.Get("/admin/v1/topology", handlers.Topology(coord, lagReporter))
+	})
+
 	r.Get("/healthz", handlers.Healthz)
-	r.Get("/readyz", handlers.Readyz(cfg, svc))
+	r.Get("/readyz", handlers.Readyz(cfg, svc, coord, lagReporter))
 	r.Handle("/metrics", promhttp.Handler())
 
 	return r
