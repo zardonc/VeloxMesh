@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"veloxmesh/internal/coordination"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/hotstate"
@@ -30,7 +31,7 @@ func TestMetricsRouteIsScrapeable(t *testing.T) {
 	m.RecordRequestOutcome("req-1", "openai", "gpt-4", "test", 200, "", "none", 100)
 
 	svc := gateway.NewService(nil, nil, nil, false, 1, nil, nil, nil, nil, nil)
-	r := NewRouter(cfg, svc, nil, nil, nil, hotstate.NewLocalHotState(), nil)
+	r := NewRouter(cfg, svc, nil, nil, nil, hotstate.NewLocalHotState(), nil, coordination.NewNoopCoordinator(), nil)
 
 	req, _ := http.NewRequest("GET", "/metrics", nil)
 	rr := httptest.NewRecorder()

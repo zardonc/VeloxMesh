@@ -443,6 +443,8 @@ func (a *App) Run(ctx context.Context) error {
 	a.Logger.Info("starting gateway", "addr", a.Config.GatewayDataAddr)
 
 	a.RuntimeProviderManager.Start(ctx)
+	a.Coordinator.Start(ctx)
+	defer a.Coordinator.Stop(context.Background())
 
 	errChan := make(chan error, 1)
 	go func() {

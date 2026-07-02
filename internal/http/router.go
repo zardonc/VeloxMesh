@@ -32,6 +32,7 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 	if adminProvHandler != nil {
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AdminAuth(cfg))
+			r.Use(middleware.RequireWritable(coord))
 			r.Get("/admin/v1/providers", adminProvHandler.List)
 			r.Post("/admin/v1/providers", adminProvHandler.Create)
 			r.Get("/admin/v1/providers/{id}", adminProvHandler.Get)
@@ -48,6 +49,7 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 	if adminCombosHandler != nil {
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AdminAuth(cfg))
+			r.Use(middleware.RequireWritable(coord))
 			r.Get("/admin/v1/combos", adminCombosHandler.List)
 			r.Post("/admin/v1/combos", adminCombosHandler.Create)
 			r.Get("/admin/v1/combos/{id}", adminCombosHandler.Get)
@@ -59,6 +61,7 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 	if adminSemanticRulesHandler != nil {
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AdminAuth(cfg))
+			r.Use(middleware.RequireWritable(coord))
 			r.Get("/admin/v1/semantic-rules", adminSemanticRulesHandler.GetGlobalDefaults)
 			r.Put("/admin/v1/semantic-rules", adminSemanticRulesHandler.SaveGlobalDefaults)
 			r.Get("/admin/v1/semantic-rules/users/{userId}", adminSemanticRulesHandler.GetUserConfig)
