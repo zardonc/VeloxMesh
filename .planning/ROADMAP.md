@@ -1,182 +1,93 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Mode:** brownfield retrospective initialization
-**Current focus:** Next Milestone
+**Updated:** 2026-07-02
+**Current focus:** v7.2 Multi-Node Coordination
 
 ## Overview
 
-VeloxMesh is being built as vertical gateway slices. Phases 1-4 established the runnable Go/Chi OpenAI-compatible data-plane skeleton with provider adapters, durable control state, streaming, rate limits, caching, and cost governance. Phase 5 added tool/function calling and multimodal capabilities.
+VeloxMesh is being built as vertical gateway slices. Phases 1-10 established the runnable Go/Chi OpenAI-compatible data plane, provider adapters, durable control state, streaming, rate limits, semantic caching, Redis/Qdrant Plan 1 infrastructure, advanced routing, and observability.
 
-The architecture has been redesigned (v2.1) to use **SQLite + Redis Stack + Qdrant** for the main Plans 1/2 path. Qdrant replaces LanceDB as the primary vector store and semantic-cache backend. LanceDB is retained only as a Plan 3 edge-only option behind a build tag, while PostgreSQL + pgvector remains a Plan 4 extension.
+The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path. Qdrant owns vector storage and replication. Phase 12 adds Plan 2 multi-node coordination for SQLite relational state and node roles; PostgreSQL + pgvector remains a later Phase 13 extension.
 
 ## Milestones
 
 - ✅ **v7.0 Plan 1 Foundation** — Phases 7-9 (shipped 2026-06-30; archive: `.planning/milestones/v7.0-ROADMAP.md`)
 - ✅ **v7.1 Advanced Routing & Observability** — Phase 10 (shipped 2026-07-01; archive: `.planning/milestones/v7.1-ROADMAP.md`)
-- ○ **Future milestones** — BFF/Admin Console, multi-node coordination, PostgreSQL extension (planned)
+- 🚧 **v7.2 Multi-Node Coordination** — Phase 12 (active)
+- ○ **Future milestones** — BFF/Admin Console, PostgreSQL extension
 - ✅ **v5** — Phases 5-6 (shipped 2026-06-29)
 - ✅ **v4** — Phases 1-4 (shipped 2026-06-23)
 
 ## Deployment Tiers
 
-The gateway supports progressive deployment tiers, each adding capability without redesign:
-
 | Tier | Components | Priority | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Plan 1**: Standalone Enhanced | App + Redis Stack + SQLite + Qdrant | P0 | Shipped in v7.0 |
-| **Plan 2**: Multi-Node | Multi App + Redis Stack + SQLite + Qdrant | P1 | Planning |
+| **Plan 2**: Multi-Node | Multi App + Redis Stack + SQLite + Qdrant | P1 | Active in v7.2 |
 | **Plan 3**: Edge | App + SQLite + LanceDB (`-tags lancedb`, Linux/macOS only) | P3 | Future |
 | **Plan 4**: Extension | App + Redis Stack + PostgreSQL + pgvector | P3 | Future |
 
-## Phases
+## v7.2 Multi-Node Coordination
 
-<details>
-<summary>✅ v7.0 Plan 1 Foundation (Phases 7-9) — SHIPPED 2026-06-30</summary>
+**Goal:** Enable Plan 2 multi-node deployment with Redis coordination, SQLite relational replication, write fencing, recovery, and chaos verification.
+**Requirements:** COORD-01, COORD-02, COORD-03, REPL-01, REPL-02, REPL-03, FENCE-01, FENCE-02, RECOV-01, RECOV-02, HLTH-01, TEST-01
 
-- [x] Phase 7: Adapter Interfaces & SQLite Foundation (Plan 1 core)
-- [x] Phase 8: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
-<details>
-<summary>✅ v7.0 Plan 1 Foundation (Phases 7-9) — SHIPPED 2026-06-30</summary>
+### Phases
 
-- [x] Phase 7: Adapter Interfaces & SQLite Foundation (Plan 1 core)
-- [x] Phase 8: Semantic Pipeline (RTK/Headroom/PII/Caveman/Ponytail)
-- [x] Phase 9: Redis Stack + Qdrant Fallback Integration (Plan 1 hardening)
-
-Archive: `.planning/milestones/v7.0-ROADMAP.md`
-
-</details>
-
-<details>
-<summary>✅ v7.1 Advanced Routing & Observability (Phase 10) — SHIPPED 2026-07-01</summary>
-
-- [x] Phase 10: Advanced Routing & Observability
-
-Archive: `.planning/milestones/v7.1-ROADMAP.md`
-
-</details>
-
-<details>
-<summary>○ Future milestones — PLANNED</summary>
-
-- [ ] Phase 11: BFF Layer & Admin Console (JWT + Role-based access)
-- [ ] Phase 12: Multi-Node Coordination (Plan 2)
-- [ ] Phase 13: PostgreSQL Extension (Plan 4, low priority)
-
-### Phase 11: BFF Layer & Admin Console
-
-**Goal:** Implement the BFF layer with JWT authentication, role-based access control (SUPER_ADMIN/ADMIN/USER), session management, and the Admin Console foundation.
-**Priority:** P0
-**Depends on:** Phase 7
-
-Key deliverables:
-- JWT-based authentication (login, logout, forced logout)
-- Role-based permission system (users table, role field)
-- BFF session verification and route permission checking
-- Dynamic route table per role
-- X-Verified-User-ID / X-Verified-Role header injection
-- Admin Console React SPA foundation
-- Revoked tokens blacklist (SQLite-based for Plan 1)
+- [ ] Phase 12: Multi-Node Coordination
 
 ### Phase 12: Multi-Node Coordination
 
-**Goal:** Enable v2.1 Plan 2 multi-node deployment with leader election, SQLite-only WAL replication, SQLite-write fencing, and disaster recovery. Vector sync is removed because Qdrant owns vector storage and replication.
-**Priority:** P2
+**Goal:** Enable Plan 2 multi-node deployment with leader election, SQLite-only WAL replication, SQLite write fencing, health reporting, recovery, and chaos testing. Vector sync stays out of scope because Qdrant owns vector storage and replication.
+**Priority:** P1
 **Depends on:** Phase 9
+**Requirements:** COORD-01, COORD-02, COORD-03, REPL-01, REPL-02, REPL-03, FENCE-01, FENCE-02, RECOV-01, RECOV-02, HLTH-01, TEST-01
+**Plans:** 4 plans
+
+Success criteria:
+1. Operators can start multiple gateway nodes and inspect each node's identity, role, leader identity, and WAL lag.
+2. Exactly one node owns SQLite relational writes while followers reject or forward write attempts with clear retryable errors.
+3. SQLite relational changes replicate from leader to replicas through Redis Streams without attempting vector replication.
+4. Failed sync operations enter a fallback log and can be replayed by a recovery worker.
+5. Chaos tests cover leader loss, graceful shutdown, and Redis/network disruption without corrupting SQLite state.
 
 Key deliverables:
-- RedisCoordAdapter implementation
-- Leader election (Redis SET NX + TTL 10s + heartbeat 3s)
-- WAL Stream (Redis Stream Consumer Group) for master→replica SQLite relational sync only
-- Fencing mechanism for SQLite writes only
-- Node registration and health endpoint (/health with role, wal_lag)
-- BFF cluster topology awareness (read/write routing)
-- Fallback log + Recovery Worker
-- Graceful shutdown with leader lock release
-- Chaos testing (random node kill, network partition)
-
-### Phase 13: PostgreSQL Extension (Low Priority)
-
-**Goal:** Implement PostgreSQL + pgvector adapter for enterprise deployments requiring multi-node concurrent writes and vector+relational JOIN queries.
-**Priority:** P3
-**Depends on:** Phase 12
-
-Key deliverables:
-- PostgresDBAdapter implementation
-- PgvectorAdapter implementation
-- SQLite → PostgreSQL data migration tool
-- Performance comparison benchmarks
-
-</details>
-
-<details>
-<summary>✅ v5 (Phases 5-6) — SHIPPED 2026-06-29</summary>
-
-- [x] Phase 5: Tool/Function Calling and Multimodal capabilities
-- [x] Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
-
-### Phase 6: Model Combo Feature (RR, Fusion, Capability-based routing)
-
-**Goal:** Add user-defined combo models that can route through multiple provider models using round-robin, fusion, and capability-aware filtering.
-**Requirements**: Phase 6 Model Combo Feature
-**Depends on:** Phase 5
-**Architecture note:** Keep completed combo functionality where it fits, but align persistence/runtime loading with architecture v2.1: SQLite relational state, Redis hot-state where configured, Qdrant for vector/semantic-cache features, and PostgreSQL deferred to Phase 12 adapter extension.
-**Plans:** 1 plan
+- Redis coordination adapter for registration, leadership lock, heartbeat, pub/sub, and stream operations.
+- Leader election using Redis `SET NX` with a 10s TTL and 3s heartbeat.
+- Redis Stream consumer group for leader-to-replica SQLite relational sync only.
+- SQLite write fencing in multi-node mode.
+- Health output with role, node identity, leader identity, and WAL lag.
+- Fallback log integration and recovery worker.
+- Graceful shutdown that releases leadership when possible.
+- Chaos tests for leader loss, node shutdown, and Redis/network disruption.
 
 Plans:
-- [x] 06-01 Persistent Combo Models and Routing
+- [ ] 12-01-PLAN.md - Coordination runtime, Redis leadership, heartbeat, and graceful release.
+- [ ] 12-02-PLAN.md - SQLite write fencing and relational stream producer.
+- [ ] 12-03-PLAN.md - Replica stream consumer, recovery worker, readiness, and internal topology.
+- [ ] 12-04-PLAN.md - In-process multi-node harness and required abnormal scenario coverage.
 
-</details>
+## Future Milestones
 
-<details>
-<summary>✅ v4 (Phases 1-4) — SHIPPED 2026-06-23</summary>
-
-- [x] Phase 1: Gateway Walking Skeleton (1/1 complete)
-- [x] Phase 2.1: Health-Aware Multi-Provider Routing (1/1 complete)
-- [x] Phase 2.2: Go Version Baseline for Official Provider SDKs (1/1 complete)
-- [x] Phase 2.3: Native Anthropic and Gemini Provider Adapters (1/1 complete)
-- [x] Phase 2.4: Provider Reliability and Error Contract (1/1 complete)
-- [x] Phase 2.5: Provider Retry and Fallback Execution (1/1 complete)
-- [x] Phase 2.6: Active Provider Health Probing and Recovery (1/1 complete)
-- [x] Phase 2.7: Provider Adapter Capability Contract (2/2 complete)
-- [x] Phase 2.8: Provider Configuration Schema and Secret-Safe Validation (1/1 complete)
-- [x] Phase 2.9: Provider Model Catalog and Routing Eligibility (1/1 complete)
-- [x] Phase 2.10: Adapter Conformance Test Harness (1/1 complete)
-- [x] Phase 3: Durable Control State (7/7 complete)
-- [x] Phase 4: Streaming, Rate Limits, Cache, and Cost (12/12 complete)
-
-</details>
+- **Phase 11: BFF Layer & Admin Console** — JWT authentication, role-based access control, session management, and Admin Console foundation. Depends on Phase 7.
+- **Phase 13: PostgreSQL Extension** — PostgreSQL + pgvector adapter for enterprise deployments requiring multi-node concurrent writes and vector+relational JOIN queries. Depends on Phase 12.
 
 ## Gateway Runtime Modes
 
 VeloxMesh supports progressive deployment tiers:
-- **Plan 1 (Standalone Enhanced)**: SQLite + Redis Stack + Qdrant. This is the P0 mainline: single-node production with durable relational state, hot cache/rate/config coordination, and Qdrant semantic cache.
-- **Plan 2 (Multi-Node)**: Multi App + Redis Stack + SQLite + Qdrant. Redis coordinates cluster state and SQLite WAL replication; Qdrant handles vector storage independently.
-- **Plan 3 (Edge)**: SQLite + LanceDB behind `-tags lancedb`, Linux/macOS only, P3. Useful for zero-external-dependency edge deployments, but not the default path.
-- **Plan 4 (Extension)**: PostgreSQL + pgvector. Enterprise scale with concurrent writes and vector+relational JOINs.
+- **Plan 1 (Standalone Enhanced)**: SQLite + Redis Stack + Qdrant.
+- **Plan 2 (Multi-Node)**: Multi App + Redis Stack + SQLite + Qdrant.
+- **Plan 3 (Edge)**: SQLite + LanceDB behind `-tags lancedb`, Linux/macOS only.
+- **Plan 4 (Extension)**: Redis Stack + PostgreSQL + pgvector.
 
 ## Notes
 
-- Phase 4 is complete.
-- Architecture v2.1 replaces the v2.0 LanceDB mainline with Qdrant for Plans 1/2. LanceDB remains only for Plan 3 edge builds.
-- Phase 7-9 shipped as v7.0 Plan 1 Foundation on 2026-06-30.
-- Phase 10 shipped as v7.1 Advanced Routing & Observability on 2026-07-01.
-- Phase 11-13 remain planned for future milestones.
-- All storage access goes through adapter interfaces; switching backends requires only adapter implementation swap.
-- Native provider SDK details stay inside adapter packages; handlers and routing consume provider-neutral contracts.
-- **Rule**: Source code committed to git must not contain any hardcoded configuration information. Configuration must only be obtained from local environment variables, configuration files, or the database.
-
-## Local Development Resources
-
-The local development environment has been verified and configured. The following resources are available and their specific connection details, models, and credentials can be found in the local `.env` and `.env.local` files:
-
-- **Infrastructure**:
-  - SQLite (embedded, data directory)
-  - Redis Stack (Plan 1/2 hot cache, rate limiting, Pub/Sub, and coordination)
-  - Qdrant (Plan 1/2 vector store and semantic cache)
-  - LanceDB (Plan 3 edge-only, build-tag isolated)
-- **LLM Providers**:
-  - `sans` (SANS Primary, with multiple models configured)
+- Phase 12 intentionally skips BFF/Admin Console UI; any topology display belongs after Phase 11 exists.
+- Phase 13 remains deferred until Phase 12 defines and verifies the multi-node write and recovery boundaries.
+- All storage access goes through adapter interfaces; switching backends requires adapter implementation swaps.
+- Redis is hot coordination and transport, not relational source of truth.
+- Source code committed to git must not contain hardcoded configuration. Configuration must come from local environment variables, configuration files, or the database.
 
 ---
-*Roadmap refreshed: 2026-06-30 after v7.0 Plan 1 Foundation close*
+*Roadmap refreshed: 2026-07-02 after starting v7.2 Multi-Node Coordination*

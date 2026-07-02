@@ -14,9 +14,18 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 **v7.1 Advanced Routing & Observability** has been shipped. The Composite Score Router and OpenTelemetry/Prometheus integrations are live.
 
+## Current Milestone: v7.2 Multi-Node Coordination
+
+**Goal:** Enable Plan 2 multi-node deployment for the gateway without changing the OpenAI-compatible data-plane contract.
+
+**Target features:**
+- Redis-backed node coordination and leader election.
+- SQLite relational WAL replication with write fencing.
+- Cluster health, recovery, graceful shutdown, and chaos verification.
+
 ## Next Milestone Goals
 
-The next milestone will focus on BFF Layer & Admin Console (Phase 11) or other planned features, pending new initialization via `/gsd-new-milestone`.
+Phase 13 PostgreSQL Extension remains deferred until Phase 12 proves the multi-node coordination boundary.
 
 <details>
 <summary>Archived Milestone: v7.1 Advanced Routing & Observability</summary>
@@ -54,12 +63,11 @@ The next milestone will focus on BFF Layer & Admin Console (Phase 11) or other p
 
 ### Active
 
-- [ ] Awaiting new milestone planning.
+- [ ] Phase 12: Multi-Node Coordination — v7.2
 
 ### Deferred to Future Milestones
 
 - BFF Layer & Admin Console (Phase 11)
-- Multi-Node Coordination (Phase 12)
 - PostgreSQL Extension (Phase 13)
 - Full `LimitRule` unification across all scopes
 
@@ -102,6 +110,8 @@ The next milestone will focus on BFF Layer & Admin Console (Phase 11) or other p
 | LanceDB remains edge-only | Embedded vector storage still has value for zero-external-dependency Linux/macOS edge deployments, but it must be isolated behind `-tags lancedb` | Deferred |
 | Redis is hot state, not source of truth | SQLite remains authoritative for user/account/security/billing state while Redis accelerates cache, rate, config, and aggregation paths | ✓ Good |
 | Redis VSS is fallback-only | Qdrant remains primary; Redis VSS activates only for degraded Qdrant paths | ✓ Good |
+| Phase 12 skips BFF/Admin Console work | Multi-node runtime coordination can ship before Phase 11; topology UI stays deferred | Active |
+| Phase 13 waits for Phase 12 | PostgreSQL/pgvector should follow the finalized multi-node write and recovery boundaries | Deferred |
 | Full LimitRule unification is deferred | Phase 9 shipped the minimal API-key/upstream-account direction; broader scope unification belongs in a future hardening phase | Deferred |
 
 ## Evolution
@@ -113,4 +123,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-01 after shipping v7.1 Advanced Routing & Observability*
+*Last updated: 2026-07-02 after starting v7.2 Multi-Node Coordination*
