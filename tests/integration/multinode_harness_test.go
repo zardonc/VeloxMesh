@@ -11,7 +11,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"veloxmesh/internal/app"
 	"veloxmesh/internal/config"
-
 )
 
 type MultiNodeHarness struct {
@@ -54,34 +53,34 @@ func (h *MultiNodeHarness) startNode(t *testing.T, idx int) *Node {
 	dbPath := f.Name()
 
 	cfg := &config.Config{
-		NodeID:               "node-" + string(rune('0'+idx)),
-		MultiNodeEnabled:     true,
-		RedisEnabled:         true,
-		RedisAddr:            h.mr.Addr(),
-		RedisNamespace:       "test-cluster",
-		ControlStateBackend:  "sqlite",
-		ControlStateDSN:      dbPath,
+		NodeID:                       "node-" + string(rune('0'+idx)),
+		MultiNodeEnabled:             true,
+		RedisEnabled:                 true,
+		RedisAddr:                    h.mr.Addr(),
+		RedisNamespace:               "test-cluster",
+		ControlStateBackend:          "sqlite",
+		ControlStateDSN:              dbPath,
 		ControlStateMigrateOnStartup: true,
 	}
 
 	// To fully instantiate App with real components, we use app.New but we must mock the config load
 	// Since app.New loads from env, we will set env vars for this node.
 	// But it's easier to build it directly, wait, we can just set env vars and call app.New()
-	
-	os.Setenv("MULTI_NODE_ENABLED", "true")
-	os.Setenv("REDIS_ENABLED", "true")
-	os.Setenv("REDIS_ADDR", h.mr.Addr())
-	os.Setenv("REDIS_NAMESPACE", "test-cluster")
-	os.Setenv("NODE_ID", cfg.NodeID)
-	os.Setenv("CONTROL_STATE_BACKEND", "sqlite")
-	os.Setenv("CONTROL_STATE_DSN", dbPath)
-	os.Setenv("CONTROL_STATE_MIGRATE_ON_STARTUP", "true")
-	os.Setenv("CONTROL_STATE_ENCRYPTION_KEY", "12345678901234567890123456789012")
-	os.Setenv("GATEWAY_DATA_ADDR", ":0")
-	os.Setenv("GATEWAY_ADMIN_ADDR", ":0")
-	os.Setenv("GATEWAY_METRICS_ADDR", ":0")
-	os.Setenv("ADMIN_API_KEY", "test-admin-key")
-	
+
+	t.Setenv("MULTI_NODE_ENABLED", "true")
+	t.Setenv("REDIS_ENABLED", "true")
+	t.Setenv("REDIS_ADDR", h.mr.Addr())
+	t.Setenv("REDIS_NAMESPACE", "test-cluster")
+	t.Setenv("NODE_ID", cfg.NodeID)
+	t.Setenv("CONTROL_STATE_BACKEND", "sqlite")
+	t.Setenv("CONTROL_STATE_DSN", dbPath)
+	t.Setenv("CONTROL_STATE_MIGRATE_ON_STARTUP", "true")
+	t.Setenv("CONTROL_STATE_ENCRYPTION_KEY", "12345678901234567890123456789012")
+	t.Setenv("GATEWAY_DATA_ADDR", ":0")
+	t.Setenv("GATEWAY_ADMIN_ADDR", ":0")
+	t.Setenv("GATEWAY_METRICS_ADDR", ":0")
+	t.Setenv("ADMIN_API_KEY", "test-admin-key")
+
 	application, err := app.New()
 	if err != nil {
 		t.Fatalf("failed to create app: %v", err)
@@ -90,7 +89,7 @@ func (h *MultiNodeHarness) startNode(t *testing.T, idx int) *Node {
 	// Start the application context
 	ctx := context.Background()
 	go application.Run(ctx) // This will start the components, but we don't need its internal HTTP server.
-	
+
 	// We'll use our own httptest.Server to simulate routing.
 	server := httptest.NewServer(application.Router)
 
@@ -171,18 +170,18 @@ func TestMultiNodeHarness(t *testing.T) {
 	}
 	if leader == nil {
 		for _, n := range harness.nodes {
-			t.Logf("Node %s: Role %v, Writable: %v, Leader: %s, Error: %s", 
-				n.ID, n.App.Coordinator.Snapshot().Role, n.App.Coordinator.Snapshot().Writable, 
+			t.Logf("Node %s: Role %v, Writable: %v, Leader: %s, Error: %s",
+				n.ID, n.App.Coordinator.Snapshot().Role, n.App.Coordinator.Snapshot().Writable,
 				n.App.Coordinator.Snapshot().LeaderID, n.App.Coordinator.Snapshot().DegradedReason)
 		}
 		t.Fatal("expected to find a leader within 5s")
 	}
-	
+
 	followers := harness.GetFollowers()
 	if len(followers) != 2 {
 		t.Fatalf("expected 2 followers, got %d", len(followers))
 	}
-	
+
 	// Verify distinct SQLite DBs
 	if leader.DBPath == followers[0].DBPath {
 		t.Fatal("expected distinct DB paths")
