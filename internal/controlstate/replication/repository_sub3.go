@@ -12,6 +12,7 @@ type semanticRulesRepo struct {
 	underlying controlstate.SemanticRuleStore
 	r          *replicatedRepository
 }
+
 func (s *semanticRulesRepo) GetGlobalDefaults(ctx context.Context) (*pipeline.SemanticPipelineConfig, error) {
 	return s.underlying.GetGlobalDefaults(ctx)
 }
@@ -28,7 +29,7 @@ func (s *semanticRulesRepo) SaveGlobalDefaults(ctx context.Context, cfg *pipelin
 	err := s.underlying.SaveGlobalDefaults(ctx, cfg)
 	if err == nil {
 		evt, _ := NewChangeEvent("semantic_rules", "UPDATE", "global", cfg)
-		_, _ = s.r.producer.Append(ctx, evt)
+		s.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -39,7 +40,7 @@ func (s *semanticRulesRepo) SaveUserConfig(ctx context.Context, userID string, c
 	err := s.underlying.SaveUserConfig(ctx, userID, cfg)
 	if err == nil {
 		evt, _ := NewChangeEvent("semantic_rules", "UPDATE", userID, cfg)
-		_, _ = s.r.producer.Append(ctx, evt)
+		s.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -49,6 +50,7 @@ type fallbackLogRepo struct {
 	underlying controlstate.FallbackLogRepository
 	r          *replicatedRepository
 }
+
 func (f *fallbackLogRepo) Insert(ctx context.Context, record *controlstate.FallbackLogRecord) error {
 	if !f.r.coord.IsWritable() {
 		return ErrWriteNotWritable
@@ -56,7 +58,7 @@ func (f *fallbackLogRepo) Insert(ctx context.Context, record *controlstate.Fallb
 	err := f.underlying.Insert(ctx, record)
 	if err == nil {
 		evt, _ := NewChangeEvent("fallback_log", "CREATE", record.ID, record)
-		_, _ = f.r.producer.Append(ctx, evt)
+		f.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -70,7 +72,7 @@ func (f *fallbackLogRepo) UpdateStatus(ctx context.Context, id, status string) e
 	err := f.underlying.UpdateStatus(ctx, id, status)
 	if err == nil {
 		evt, _ := NewChangeEvent("fallback_log", "UPDATE", id, map[string]string{"status": status})
-		_, _ = f.r.producer.Append(ctx, evt)
+		f.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -80,6 +82,7 @@ type limitRulesRepo struct {
 	underlying controlstate.LimitRuleRepository
 	r          *replicatedRepository
 }
+
 func (l *limitRulesRepo) ListByTarget(ctx context.Context, scope controlstate.LimitRuleScope, targetID string) ([]*controlstate.LimitRule, error) {
 	return l.underlying.ListByTarget(ctx, scope, targetID)
 }
@@ -90,7 +93,7 @@ func (l *limitRulesRepo) Save(ctx context.Context, rule *controlstate.LimitRule)
 	err := l.underlying.Save(ctx, rule)
 	if err == nil {
 		evt, _ := NewChangeEvent("limit_rules", "CREATE", rule.ID, rule)
-		_, _ = l.r.producer.Append(ctx, evt)
+		l.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -101,7 +104,7 @@ func (l *limitRulesRepo) Delete(ctx context.Context, id string) error {
 	err := l.underlying.Delete(ctx, id)
 	if err == nil {
 		evt, _ := NewChangeEvent("limit_rules", "DELETE", id, nil)
-		_, _ = l.r.producer.Append(ctx, evt)
+		l.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -111,6 +114,7 @@ type sessionBlacklistRepo struct {
 	underlying controlstate.SessionBlacklistRepository
 	r          *replicatedRepository
 }
+
 func (s *sessionBlacklistRepo) IsBlacklisted(ctx context.Context, sessionHash string) (bool, error) {
 	return s.underlying.IsBlacklisted(ctx, sessionHash)
 }
@@ -121,7 +125,7 @@ func (s *sessionBlacklistRepo) Blacklist(ctx context.Context, record *controlsta
 	err := s.underlying.Blacklist(ctx, record)
 	if err == nil {
 		evt, _ := NewChangeEvent("session_blacklist", "CREATE", record.SessionHash, record)
-		_, _ = s.r.producer.Append(ctx, evt)
+		s.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -132,7 +136,7 @@ func (s *sessionBlacklistRepo) PurgeExpired(ctx context.Context) (int64, error) 
 	n, err := s.underlying.PurgeExpired(ctx)
 	if err == nil {
 		evt, _ := NewChangeEvent("session_blacklist", "PURGE", "", nil)
-		_, _ = s.r.producer.Append(ctx, evt)
+		s.r.publish(ctx, evt)
 	}
 	return n, err
 }

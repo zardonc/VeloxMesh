@@ -2,11 +2,14 @@ package replication
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/coordination"
+
 	"github.com/redis/go-redis/v9"
 )
 
@@ -82,11 +85,14 @@ func TestRedisStreamProducer(t *testing.T) {
 type mockCoordinator struct {
 	writable bool
 }
-func (m *mockCoordinator) IsWritable() bool { return m.writable }
+
+func (m *mockCoordinator) IsWritable() bool                    { return m.writable }
 func (m *mockCoordinator) Snapshot() coordination.NodeSnapshot { return coordination.NodeSnapshot{} }
-func (m *mockCoordinator) Topology() coordination.TopologySnapshot { return coordination.TopologySnapshot{} }
-func (m *mockCoordinator) Start(ctx context.Context) {}
-func (m *mockCoordinator) Stop(ctx context.Context) {}
+func (m *mockCoordinator) Topology() coordination.TopologySnapshot {
+	return coordination.TopologySnapshot{}
+}
+func (m *mockCoordinator) Start(ctx context.Context)     {}
+func (m *mockCoordinator) Stop(ctx context.Context)      {}
 func (m *mockCoordinator) WatchChanges() <-chan struct{} { return nil }
 
 type mockProviderRepo struct {
@@ -94,6 +100,7 @@ type mockProviderRepo struct {
 	calledGet    bool
 	calledCreate bool
 }
+
 func (m *mockProviderRepo) Get(ctx context.Context, id string) (*controlstate.ProviderRecord, error) {
 	m.calledGet = true
 	return &controlstate.ProviderRecord{ID: id}, nil
@@ -105,24 +112,37 @@ func (m *mockProviderRepo) Create(ctx context.Context, p *controlstate.ProviderM
 
 type mockRepo struct {
 	controlstate.Repository
-	provRepo *mockProviderRepo
+	provRepo     *mockProviderRepo
+	fallbackRepo *mockFallbackRepo
 }
+
 func (m *mockRepo) Providers() controlstate.ProviderRepository {
 	return m.provRepo
+}
+func (m *mockRepo) FallbackLog() controlstate.FallbackLogRepository {
+	return m.fallbackRepo
+}
+
+type failingProducer struct {
+	err error
+}
+
+func (f *failingProducer) Append(ctx context.Context, event ChangeEvent) (string, error) {
+	return "", f.err
 }
 
 func TestRepositoryFencing(t *testing.T) {
 	mockRedis := &MockRedis{}
 	producer := NewRedisStreamProducer(mockRedis, "test:stream")
 	coord := &mockCoordinator{writable: false}
-	
+
 	provRepo := &mockProviderRepo{}
 	underlying := &mockRepo{provRepo: provRepo}
-	
+
 	repo := NewRepository(underlying, coord, producer)
-	
+
 	ctx := context.Background()
-	
+
 	// Test Read (IsWritable = false)
 	_, err := repo.Providers().Get(ctx, "prov1")
 	if err != nil {
@@ -131,7 +151,7 @@ func TestRepositoryFencing(t *testing.T) {
 	if !provRepo.calledGet {
 		t.Errorf("expected Get to be called on underlying")
 	}
-	
+
 	// Test Write (IsWritable = false)
 	_, err = repo.Providers().Create(ctx, &controlstate.ProviderMutation{ID: "prov1"})
 	if err != ErrWriteNotWritable {
@@ -143,7 +163,7 @@ func TestRepositoryFencing(t *testing.T) {
 	if mockRedis.xaddArgs != nil {
 		t.Errorf("expected no event emitted")
 	}
-	
+
 	// Test Write (IsWritable = true)
 	coord.writable = true
 	_, err = repo.Providers().Create(ctx, &controlstate.ProviderMutation{ID: "prov1"})
@@ -155,5 +175,39 @@ func TestRepositoryFencing(t *testing.T) {
 	}
 	if mockRedis.xaddArgs == nil {
 		t.Errorf("expected event to be emitted")
+	}
+}
+
+func TestRepositoryRecordsPublishFailure(t *testing.T) {
+	coord := &mockCoordinator{writable: true}
+	fallbackRepo := &mockFallbackRepo{}
+	underlying := &mockRepo{
+		provRepo:     &mockProviderRepo{},
+		fallbackRepo: fallbackRepo,
+	}
+	repo := NewRepository(underlying, coord, &failingProducer{err: errors.New("redis down")})
+
+	_, err := repo.Providers().Create(context.Background(), &controlstate.ProviderMutation{ID: "prov1"})
+	if err != nil {
+		t.Fatalf("expected write to succeed locally, got %v", err)
+	}
+	if len(fallbackRepo.records) != 1 {
+		t.Fatalf("expected one fallback record, got %d", len(fallbackRepo.records))
+	}
+
+	record := fallbackRepo.records[0]
+	if record.Type != "sync" || record.Status != "pending" {
+		t.Fatalf("expected pending sync fallback, got type=%s status=%s", record.Type, record.Status)
+	}
+
+	var payload SyncPayload
+	if err := json.Unmarshal([]byte(record.Payload), &payload); err != nil {
+		t.Fatalf("fallback payload should be SyncPayload: %v", err)
+	}
+	if payload.Event.Repository != "providers" || payload.Event.Operation != "CREATE" {
+		t.Fatalf("expected provider create event, got %#v", payload.Event)
+	}
+	if payload.Event.StreamID != "" {
+		t.Fatalf("publish failure event should not have stream id")
 	}
 }

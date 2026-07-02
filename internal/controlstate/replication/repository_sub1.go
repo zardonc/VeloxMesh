@@ -26,7 +26,7 @@ func (p *providerRepo) Create(ctx context.Context, mut *controlstate.ProviderMut
 	rec, err := p.underlying.Create(ctx, mut)
 	if err == nil {
 		evt, _ := NewChangeEvent("providers", "CREATE", rec.ID, mut)
-		_, _ = p.r.producer.Append(ctx, evt)
+		p.r.publish(ctx, evt)
 	}
 	return rec, err
 }
@@ -38,7 +38,7 @@ func (p *providerRepo) Update(ctx context.Context, mut *controlstate.ProviderMut
 	rec, err := p.underlying.Update(ctx, mut)
 	if err == nil {
 		evt, _ := NewChangeEvent("providers", "UPDATE", rec.ID, mut)
-		_, _ = p.r.producer.Append(ctx, evt)
+		p.r.publish(ctx, evt)
 	}
 	return rec, err
 }
@@ -50,7 +50,7 @@ func (p *providerRepo) Delete(ctx context.Context, id string) error {
 	err := p.underlying.Delete(ctx, id)
 	if err == nil {
 		evt, _ := NewChangeEvent("providers", "DELETE", id, nil)
-		_, _ = p.r.producer.Append(ctx, evt)
+		p.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -66,13 +66,13 @@ func (p *providerRepo) PutEncryptedSecret(ctx context.Context, id string, cipher
 	err := p.underlying.PutEncryptedSecret(ctx, id, ciphertext, nonce, keyID)
 	if err == nil {
 		payload := map[string]interface{}{
-			"id": id,
+			"id":         id,
 			"ciphertext": ciphertext,
-			"nonce": nonce,
-			"key_id": keyID,
+			"nonce":      nonce,
+			"key_id":     keyID,
 		}
 		evt, _ := NewChangeEvent("providers_secrets", "UPDATE", id, payload)
-		_, _ = p.r.producer.Append(ctx, evt)
+		p.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -96,7 +96,7 @@ func (c *comboRepo) Create(ctx context.Context, mut *controlstate.ComboMutation)
 	rec, err := c.underlying.Create(ctx, mut)
 	if err == nil {
 		evt, _ := NewChangeEvent("combos", "CREATE", rec.ID, mut)
-		_, _ = c.r.producer.Append(ctx, evt)
+		c.r.publish(ctx, evt)
 	}
 	return rec, err
 }
@@ -107,7 +107,7 @@ func (c *comboRepo) Update(ctx context.Context, mut *controlstate.ComboMutation)
 	rec, err := c.underlying.Update(ctx, mut)
 	if err == nil {
 		evt, _ := NewChangeEvent("combos", "UPDATE", rec.ID, mut)
-		_, _ = c.r.producer.Append(ctx, evt)
+		c.r.publish(ctx, evt)
 	}
 	return rec, err
 }
@@ -118,7 +118,7 @@ func (c *comboRepo) Delete(ctx context.Context, id string) error {
 	err := c.underlying.Delete(ctx, id)
 	if err == nil {
 		evt, _ := NewChangeEvent("combos", "DELETE", id, nil)
-		_, _ = c.r.producer.Append(ctx, evt)
+		c.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -139,7 +139,7 @@ func (ro *routingRepo) Save(ctx context.Context, config *controlstate.RoutingCon
 	err := ro.underlying.Save(ctx, config)
 	if err == nil {
 		evt, _ := NewChangeEvent("routing", "UPDATE", "", config)
-		_, _ = ro.r.producer.Append(ctx, evt)
+		ro.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -163,7 +163,7 @@ func (a *apiKeyRepo) Create(ctx context.Context, key *controlstate.APIKeyRecord)
 	err := a.underlying.Create(ctx, key)
 	if err == nil {
 		evt, _ := NewChangeEvent("api_keys", "CREATE", key.ID, key)
-		_, _ = a.r.producer.Append(ctx, evt)
+		a.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -174,7 +174,7 @@ func (a *apiKeyRepo) Update(ctx context.Context, key *controlstate.APIKeyRecord)
 	err := a.underlying.Update(ctx, key)
 	if err == nil {
 		evt, _ := NewChangeEvent("api_keys", "UPDATE", key.ID, key)
-		_, _ = a.r.producer.Append(ctx, evt)
+		a.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -185,7 +185,7 @@ func (a *apiKeyRepo) Delete(ctx context.Context, id string) error {
 	err := a.underlying.Delete(ctx, id)
 	if err == nil {
 		evt, _ := NewChangeEvent("api_keys", "DELETE", id, nil)
-		_, _ = a.r.producer.Append(ctx, evt)
+		a.r.publish(ctx, evt)
 	}
 	return err
 }

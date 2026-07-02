@@ -11,6 +11,7 @@ type rateRepo struct {
 	underlying controlstate.RateRepository
 	r          *replicatedRepository
 }
+
 func (r *rateRepo) Save(ctx context.Context, rate *controlstate.ProviderModelRate) error {
 	if !r.r.coord.IsWritable() {
 		return ErrWriteNotWritable
@@ -18,7 +19,7 @@ func (r *rateRepo) Save(ctx context.Context, rate *controlstate.ProviderModelRat
 	err := r.underlying.Save(ctx, rate)
 	if err == nil {
 		evt, _ := NewChangeEvent("rates", "UPDATE", rate.ProviderID+":"+rate.Model, rate)
-		_, _ = r.r.producer.Append(ctx, evt)
+		r.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -32,7 +33,7 @@ func (r *rateRepo) Delete(ctx context.Context, providerID, model string) error {
 	err := r.underlying.Delete(ctx, providerID, model)
 	if err == nil {
 		evt, _ := NewChangeEvent("rates", "DELETE", providerID+":"+model, nil)
-		_, _ = r.r.producer.Append(ctx, evt)
+		r.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -42,6 +43,7 @@ type usageRepo struct {
 	underlying controlstate.UsageRepository
 	r          *replicatedRepository
 }
+
 func (u *usageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) error {
 	if !u.r.coord.IsWritable() {
 		return ErrWriteNotWritable
@@ -49,7 +51,7 @@ func (u *usageRepo) Log(ctx context.Context, record *controlstate.UsageRecord) e
 	err := u.underlying.Log(ctx, record)
 	if err == nil {
 		evt, _ := NewChangeEvent("usage", "LOG", record.ID, record)
-		_, _ = u.r.producer.Append(ctx, evt)
+		u.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -59,6 +61,7 @@ type auditRepo struct {
 	underlying controlstate.AuditRepository
 	r          *replicatedRepository
 }
+
 func (a *auditRepo) Log(ctx context.Context, event *controlstate.AuditEvent) error {
 	if !a.r.coord.IsWritable() {
 		return ErrWriteNotWritable
@@ -66,7 +69,7 @@ func (a *auditRepo) Log(ctx context.Context, event *controlstate.AuditEvent) err
 	err := a.underlying.Log(ctx, event)
 	if err == nil {
 		evt, _ := NewChangeEvent("audit", "LOG", event.ID, event)
-		_, _ = a.r.producer.Append(ctx, evt)
+		a.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -80,7 +83,7 @@ func (a *auditRepo) PurgeOld(ctx context.Context, beforeTimestamp string) (int64
 	n, err := a.underlying.PurgeOld(ctx, beforeTimestamp)
 	if err == nil {
 		evt, _ := NewChangeEvent("audit", "PURGE", beforeTimestamp, nil)
-		_, _ = a.r.producer.Append(ctx, evt)
+		a.r.publish(ctx, evt)
 	}
 	return n, err
 }
@@ -90,6 +93,7 @@ type idempotencyRepo struct {
 	underlying controlstate.IdempotencyRepository
 	r          *replicatedRepository
 }
+
 func (i *idempotencyRepo) Get(ctx context.Context, key string) (*controlstate.IdempotencyRecord, error) {
 	return i.underlying.Get(ctx, key)
 }
@@ -100,7 +104,7 @@ func (i *idempotencyRepo) Save(ctx context.Context, record *controlstate.Idempot
 	err := i.underlying.Save(ctx, record)
 	if err == nil {
 		evt, _ := NewChangeEvent("idempotency", "CREATE", record.Key, record)
-		_, _ = i.r.producer.Append(ctx, evt)
+		i.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -110,6 +114,7 @@ type semanticCacheRepo struct {
 	underlying controlstate.SemanticCacheRepository
 	r          *replicatedRepository
 }
+
 func (s *semanticCacheRepo) Store(ctx context.Context, entry *controlstate.SemanticCacheEntry) error {
 	if !s.r.coord.IsWritable() {
 		return ErrWriteNotWritable
@@ -117,7 +122,7 @@ func (s *semanticCacheRepo) Store(ctx context.Context, entry *controlstate.Seman
 	err := s.underlying.Store(ctx, entry)
 	if err == nil {
 		evt, _ := NewChangeEvent("semantic_cache", "CREATE", entry.ID, entry)
-		_, _ = s.r.producer.Append(ctx, evt)
+		s.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -131,7 +136,7 @@ func (s *semanticCacheRepo) RecordHit(ctx context.Context, id string) error {
 	err := s.underlying.RecordHit(ctx, id)
 	if err == nil {
 		evt, _ := NewChangeEvent("semantic_cache", "UPDATE", id, nil) // update hits
-		_, _ = s.r.producer.Append(ctx, evt)
+		s.r.publish(ctx, evt)
 	}
 	return err
 }
@@ -142,7 +147,7 @@ func (s *semanticCacheRepo) Disable(ctx context.Context, id string) error {
 	err := s.underlying.Disable(ctx, id)
 	if err == nil {
 		evt, _ := NewChangeEvent("semantic_cache", "DELETE", id, nil) // logic disable
-		_, _ = s.r.producer.Append(ctx, evt)
+		s.r.publish(ctx, evt)
 	}
 	return err
 }

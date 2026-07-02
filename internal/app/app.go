@@ -41,6 +41,30 @@ type App struct {
 	ShutdownTracing        func(context.Context) error
 }
 
+const (
+	controlRedisDialTimeout     = 100 * time.Millisecond
+	controlRedisReadTimeout     = 1500 * time.Millisecond
+	controlRedisWriteTimeout    = 500 * time.Millisecond
+	controlRedisMaxRetries      = 1
+	controlRedisMinRetryBackoff = 50 * time.Millisecond
+	controlRedisMaxRetryBackoff = 100 * time.Millisecond
+)
+
+func newControlRedisClient(cfg *config.Config) *redis.Client {
+	return redis.NewClient(&redis.Options{
+		Addr:                  cfg.RedisAddr,
+		Password:              cfg.RedisPassword,
+		DB:                    cfg.RedisDB,
+		DialTimeout:           controlRedisDialTimeout,
+		ReadTimeout:           controlRedisReadTimeout,
+		WriteTimeout:          controlRedisWriteTimeout,
+		MaxRetries:            controlRedisMaxRetries,
+		MinRetryBackoff:       controlRedisMinRetryBackoff,
+		MaxRetryBackoff:       controlRedisMaxRetryBackoff,
+		ContextTimeoutEnabled: true,
+	})
+}
+
 func (a *App) HealthStore() health.Store {
 	return a.RuntimeProviderManager.HealthStore()
 }
@@ -87,11 +111,7 @@ func New() (*App, error) {
 
 	var coord coordination.Coordinator
 	if cfg.MultiNodeEnabled && cfg.RedisEnabled {
-		rdb := redis.NewClient(&redis.Options{
-			Addr:     cfg.RedisAddr,
-			Password: cfg.RedisPassword,
-			DB:       cfg.RedisDB,
-		})
+		rdb := newControlRedisClient(cfg)
 		coord = coordination.NewRedisCoordinator(rdb, cfg.RedisNamespace, cfg.NodeID)
 	} else {
 		coord = coordination.NewNoopCoordinator()
@@ -221,11 +241,7 @@ func New() (*App, error) {
 	var lagReporter handlers.LagReporter
 	var consumer *replication.Consumer
 	if cfg.MultiNodeEnabled && cfg.RedisEnabled && repo != nil {
-		rdb := redis.NewClient(&redis.Options{
-			Addr:     cfg.RedisAddr,
-			Password: cfg.RedisPassword,
-			DB:       cfg.RedisDB,
-		})
+		rdb := newControlRedisClient(cfg)
 
 		producer := replication.NewRedisStreamProducer(rdb, replication.ControlStreamName)
 		wrappedRepo := replication.NewRepository(repo, coord, producer)
@@ -235,7 +251,7 @@ func New() (*App, error) {
 		consumer.Start(ctx)
 		lagReporter = consumer
 
-		worker := replication.NewRecoveryWorker(repo.FallbackLog(), consumer)
+		worker := replication.NewRecoveryWorker(repo.FallbackLog(), consumer, producer)
 		worker.Start(ctx)
 
 		repo = wrappedRepo

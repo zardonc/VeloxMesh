@@ -92,19 +92,26 @@ func TestMultiNodeRedisOutage(t *testing.T) {
 	// Wait for election to happen again and the recovery worker to flush the fallback log
 	time.Sleep(4 * time.Second)
 
-	// The recovery worker on the leader should have flushed the log to Redis, and followers should have consumed it.
-	follower := harness.GetFollowers()[0]
-	reqCheck, _ := http.NewRequest(http.MethodGet, follower.Server.URL+"/admin/v1/providers/test-prov-fallback", nil)
-	reqCheck.Header.Set("Authorization", "Bearer test-admin-key")
-	respCheck, err := http.DefaultClient.Do(reqCheck)
-	if err != nil {
-		t.Fatalf("follower check request failed: %v", err)
+	deadline := time.Now().Add(8 * time.Second)
+	for time.Now().Before(deadline) {
+		for _, node := range harness.nodes {
+			if node.ID == leader.ID {
+				continue
+			}
+			reqCheck, _ := http.NewRequest(http.MethodGet, node.Server.URL+"/admin/v1/providers/test-prov-fallback", nil)
+			reqCheck.Header.Set("Authorization", "Bearer test-admin-key")
+			respCheck, err := http.DefaultClient.Do(reqCheck)
+			if err == nil && respCheck.StatusCode == http.StatusOK {
+				respCheck.Body.Close()
+				return
+			}
+			if respCheck != nil {
+				respCheck.Body.Close()
+			}
+		}
+		time.Sleep(250 * time.Millisecond)
 	}
-	defer respCheck.Body.Close()
-
-	if respCheck.StatusCode != http.StatusOK {
-		t.Fatalf("expected 200 on follower after recovery, got %d", respCheck.StatusCode)
-	}
+	t.Fatalf("expected recovered provider on a node that did not perform the original write")
 }
 
 func TestMultiNodeReplication(t *testing.T) {

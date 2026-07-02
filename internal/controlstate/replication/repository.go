@@ -2,6 +2,9 @@ package replication
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"time"
 
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/coordination"
@@ -13,12 +16,43 @@ type replicatedRepository struct {
 	producer   StreamProducer
 }
 
+const publishTimeout = 500 * time.Millisecond
+
 func NewRepository(underlying controlstate.Repository, coord coordination.Coordinator, producer StreamProducer) controlstate.Repository {
 	return &replicatedRepository{
 		underlying: underlying,
 		coord:      coord,
 		producer:   producer,
 	}
+}
+
+func (r *replicatedRepository) publish(ctx context.Context, evt ChangeEvent) {
+	if r.producer == nil {
+		return
+	}
+	publishCtx, cancel := context.WithTimeout(ctx, publishTimeout)
+	defer cancel()
+	if _, err := r.producer.Append(publishCtx, evt); err == nil {
+		return
+	}
+
+	fallback := r.underlying.FallbackLog()
+	if fallback == nil {
+		return
+	}
+	payload, err := json.Marshal(SyncPayload{Event: evt})
+	if err != nil {
+		return
+	}
+	now := time.Now().UTC()
+	_ = fallback.Insert(ctx, &controlstate.FallbackLogRecord{
+		ID:        fmt.Sprintf("sync-publish-%s-%s-%s", evt.Repository, evt.TargetID, now.Format(time.RFC3339Nano)),
+		Type:      "sync",
+		Payload:   string(payload),
+		Status:    "pending",
+		CreatedAt: now,
+		UpdatedAt: now,
+	})
 }
 
 func (r *replicatedRepository) Providers() controlstate.ProviderRepository {
@@ -91,7 +125,7 @@ func (r *replicatedRepository) Settle(ctx context.Context, usage *controlstate.U
 	err := r.underlying.Settle(ctx, usage)
 	if err == nil {
 		evt, _ := NewChangeEvent("repository", "SETTLE", usage.ID, usage)
-		_, _ = r.producer.Append(ctx, evt)
+		r.publish(ctx, evt)
 	}
 	return err
 }
@@ -110,7 +144,7 @@ func (t *transactionWrapper) Commit() error {
 	err := t.underlying.Commit()
 	if err == nil {
 		evt, _ := NewChangeEvent("transaction", "COMMIT", "", nil)
-		_, _ = t.r.producer.Append(context.Background(), evt)
+		t.r.publish(context.Background(), evt)
 	}
 	return err
 }

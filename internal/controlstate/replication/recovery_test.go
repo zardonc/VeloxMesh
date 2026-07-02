@@ -51,6 +51,16 @@ func (m *mockFallbackRepo) UpdateStatus(ctx context.Context, id, status string) 
 	return nil
 }
 
+type mockStreamProducer struct {
+	err error
+	evt ChangeEvent
+}
+
+func (m *mockStreamProducer) Append(ctx context.Context, event ChangeEvent) (string, error) {
+	m.evt = event
+	return "1-0", m.err
+}
+
 func TestConsumerLagSnapshot(t *testing.T) {
 	c := &Consumer{}
 	lag := c.ReportLag()
@@ -73,7 +83,7 @@ func TestRecoveryWorker_Success(t *testing.T) {
 	evt := ChangeEvent{Repository: "test", Operation: "LOG"}
 	payload := SyncPayload{Event: evt, RetryCount: 0}
 	b, _ := json.Marshal(payload)
-	
+
 	rec := &controlstate.FallbackLogRecord{
 		ID:      "1",
 		Type:    "sync",
@@ -92,6 +102,36 @@ func TestRecoveryWorker_Success(t *testing.T) {
 	}
 }
 
+func TestRecoveryWorker_RepublishesUnstreamedEvent(t *testing.T) {
+	repo := &mockFallbackRepo{}
+	applier := &mockApplier{}
+	producer := &mockStreamProducer{}
+	worker := NewRecoveryWorker(repo, applier, producer)
+
+	evt := ChangeEvent{Repository: "providers", Operation: "CREATE"}
+	payload := SyncPayload{Event: evt, RetryCount: 0}
+	b, _ := json.Marshal(payload)
+
+	_ = repo.Insert(context.Background(), &controlstate.FallbackLogRecord{
+		ID:      "1",
+		Type:    "sync",
+		Payload: string(b),
+		Status:  "pending",
+	})
+
+	worker.ProcessPending(context.Background())
+
+	if repo.records[0].Status != "applied" {
+		t.Fatalf("expected applied, got %s", repo.records[0].Status)
+	}
+	if producer.evt.Repository != "providers" {
+		t.Fatalf("expected producer to republish event")
+	}
+	if applier.evt.Repository != "" {
+		t.Fatalf("expected local applier not to be called")
+	}
+}
+
 func TestRecoveryWorker_FailureRetry(t *testing.T) {
 	repo := &mockFallbackRepo{}
 	applier := &mockApplier{err: errors.New("apply error")}
@@ -100,7 +140,7 @@ func TestRecoveryWorker_FailureRetry(t *testing.T) {
 	evt := ChangeEvent{Repository: "test", Operation: "LOG"}
 	payload := SyncPayload{Event: evt, RetryCount: 0}
 	b, _ := json.Marshal(payload)
-	
+
 	_ = repo.Insert(context.Background(), &controlstate.FallbackLogRecord{
 		ID:      "1",
 		Type:    "sync",
@@ -135,7 +175,7 @@ func TestRecoveryWorker_ExhaustsRetries(t *testing.T) {
 	evt := ChangeEvent{Repository: "test", Operation: "LOG"}
 	payload := SyncPayload{Event: evt, RetryCount: 3}
 	b, _ := json.Marshal(payload)
-	
+
 	_ = repo.Insert(context.Background(), &controlstate.FallbackLogRecord{
 		ID:      "1",
 		Type:    "sync",

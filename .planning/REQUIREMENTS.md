@@ -7,30 +7,30 @@
 
 ### Coordination
 
-- [ ] **COORD-01**: Operators can run multiple gateway nodes with Redis-backed node registration and role discovery.
-- [ ] **COORD-02**: Gateway nodes can elect a single leader with TTL-based Redis locks and heartbeat renewal.
-- [ ] **COORD-03**: Gateway nodes release leadership cleanly during graceful shutdown.
+- [x] **COORD-01**: Operators can run multiple gateway nodes with Redis-backed node registration and role discovery.
+- [x] **COORD-02**: Gateway nodes can elect a single leader with TTL-based Redis locks and heartbeat renewal.
+- [x] **COORD-03**: Gateway nodes release leadership cleanly during graceful shutdown.
 
 ### SQLite Replication
 
-- [ ] **REPL-01**: Replica nodes can consume a Redis Stream of SQLite relational changes from the leader.
-- [ ] **REPL-02**: Replica nodes can report WAL lag so operators can detect stale nodes.
-- [ ] **REPL-03**: Vector data stays outside WAL replication because Qdrant owns vector storage and replication.
+- [x] **REPL-01**: Replica nodes can consume a Redis Stream of SQLite relational changes from the leader.
+- [x] **REPL-02**: Replica nodes can report WAL lag so operators can detect stale nodes.
+- [x] **REPL-03**: Vector data stays outside WAL replication because Qdrant owns vector storage and replication.
 
 ### Write Fencing
 
-- [ ] **FENCE-01**: Only the active leader can perform SQLite relational writes in multi-node mode.
-- [ ] **FENCE-02**: Non-leader write attempts fail with a clear retryable error instead of silently diverging state.
+- [x] **FENCE-01**: Only the active leader can perform SQLite relational writes in multi-node mode.
+- [x] **FENCE-02**: Non-leader write attempts fail with a clear retryable error instead of silently diverging state.
 
 ### Recovery
 
-- [ ] **RECOV-01**: Failed relational sync operations are recorded in the fallback log.
-- [ ] **RECOV-02**: A recovery worker can replay failed relational sync operations after Redis or replica disruption.
+- [x] **RECOV-01**: Failed relational sync operations are recorded in the fallback log.
+- [x] **RECOV-02**: A recovery worker can replay failed relational sync operations after Redis or replica disruption.
 
 ### Health and Verification
 
-- [ ] **HLTH-01**: Health output includes node role, node identity, leader identity, and WAL lag.
-- [ ] **TEST-01**: Chaos tests cover leader loss, node shutdown, and Redis/network disruption without corrupting SQLite state.
+- [x] **HLTH-01**: Health output includes node role, node identity, leader identity, and WAL lag.
+- [x] **TEST-01**: Chaos tests cover leader loss, node shutdown, and Redis/network disruption without corrupting SQLite state.
 
 ## Future Requirements
 
@@ -56,18 +56,18 @@
 
 | Requirement | Phase | Status |
 | --- | --- | --- |
-| COORD-01 | Phase 12 | Pending |
-| COORD-02 | Phase 12 | Pending |
-| COORD-03 | Phase 12 | Pending |
-| REPL-01 | Phase 12 | Pending |
-| REPL-02 | Phase 12 | Pending |
-| REPL-03 | Phase 12 | Pending |
-| FENCE-01 | Phase 12 | Pending |
-| FENCE-02 | Phase 12 | Pending |
-| RECOV-01 | Phase 12 | Pending |
-| RECOV-02 | Phase 12 | Pending |
-| HLTH-01 | Phase 12 | Pending |
-| TEST-01 | Phase 12 | Pending |
+| COORD-01 | Phase 12 | Verified |
+| COORD-02 | Phase 12 | Verified |
+| COORD-03 | Phase 12 | Verified |
+| REPL-01 | Phase 12 | Verified |
+| REPL-02 | Phase 12 | Verified |
+| REPL-03 | Phase 12 | Verified |
+| FENCE-01 | Phase 12 | Verified |
+| FENCE-02 | Phase 12 | Verified |
+| RECOV-01 | Phase 12 | Verified |
+| RECOV-02 | Phase 12 | Verified |
+| HLTH-01 | Phase 12 | Verified |
+| TEST-01 | Phase 12 | Verified |
 
 **Coverage:**
 - v7.2 requirements: 12 total
@@ -76,4 +76,4 @@
 
 ---
 *Requirements defined: 2026-07-02*
-*Last updated: 2026-07-02 after starting v7.2 Multi-Node Coordination*
+*Last updated: 2026-07-02 after verifying v7.2 Multi-Node Coordination*

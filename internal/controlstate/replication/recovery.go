@@ -19,14 +19,20 @@ type SyncPayload struct {
 }
 
 type RecoveryWorker struct {
-	repo    controlstate.FallbackLogRepository
-	applier Applier
+	repo     controlstate.FallbackLogRepository
+	applier  Applier
+	producer StreamProducer
 }
 
-func NewRecoveryWorker(repo controlstate.FallbackLogRepository, applier Applier) *RecoveryWorker {
+func NewRecoveryWorker(repo controlstate.FallbackLogRepository, applier Applier, producer ...StreamProducer) *RecoveryWorker {
+	var streamProducer StreamProducer
+	if len(producer) > 0 {
+		streamProducer = producer[0]
+	}
 	return &RecoveryWorker{
-		repo:    repo,
-		applier: applier,
+		repo:     repo,
+		applier:  applier,
+		producer: streamProducer,
 	}
 }
 
@@ -76,12 +82,12 @@ func (w *RecoveryWorker) ProcessPending(ctx context.Context) {
 			}
 		}
 
-		err := w.applier.Apply(ctx, payload.Event)
+		err := w.retry(ctx, payload.Event)
 		if err == nil {
 			_ = w.repo.UpdateStatus(ctx, rec.ID, "applied")
 		} else {
 			_ = w.repo.UpdateStatus(ctx, rec.ID, "failed")
-			
+
 			if payload.RetryCount < 3 {
 				// Insert new immutable retry record
 				payload.RetryCount++
@@ -98,4 +104,14 @@ func (w *RecoveryWorker) ProcessPending(ctx context.Context) {
 			}
 		}
 	}
+}
+
+func (w *RecoveryWorker) retry(ctx context.Context, evt ChangeEvent) error {
+	if w.producer != nil && evt.StreamID == "" {
+		publishCtx, cancel := context.WithTimeout(ctx, publishTimeout)
+		defer cancel()
+		_, err := w.producer.Append(publishCtx, evt)
+		return err
+	}
+	return w.applier.Apply(ctx, evt)
 }

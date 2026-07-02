@@ -3,6 +3,7 @@ package replication
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -16,7 +17,14 @@ type LagSnapshot struct {
 	Pending int64
 }
 
-const reportLagTimeout = 500 * time.Millisecond
+const (
+	reportLagTimeout     = 500 * time.Millisecond
+	consumerGroupTimeout = 500 * time.Millisecond
+	consumerReadTimeout  = time.Second
+	// go-redis omits BLOCK for negative durations; this keeps stale Redis connections from parking the consumer during outages.
+	consumerReadBlockTime = -1 * time.Millisecond
+	consumerReadBackoff   = 250 * time.Millisecond
+)
 
 type Consumer struct {
 	client      redis.Cmdable
@@ -76,10 +84,18 @@ func (c *Consumer) ReportLag() LagSnapshot {
 }
 
 func (c *Consumer) Start(ctx context.Context) {
-	// Ensure group exists
-	_ = c.client.XGroupCreateMkStream(ctx, c.stream, c.group, "0").Err()
+	c.ensureGroup(ctx)
 
 	go c.loop(ctx)
+}
+
+func (c *Consumer) ensureGroup(ctx context.Context) {
+	if c.client == nil {
+		return
+	}
+	groupCtx, cancel := context.WithTimeout(ctx, consumerGroupTimeout)
+	defer cancel()
+	_ = c.client.XGroupCreateMkStream(groupCtx, c.stream, c.group, "0").Err()
 }
 
 func (c *Consumer) loop(ctx context.Context) {
@@ -95,12 +111,17 @@ func (c *Consumer) loop(ctx context.Context) {
 			Consumer: c.consumer,
 			Streams:  []string{c.stream, ">"},
 			Count:    10,
-			Block:    2 * time.Second,
+			Block:    consumerReadBlockTime,
 		}
 
-		streams, err := c.client.XReadGroup(ctx, args).Result()
+		readCtx, cancel := context.WithTimeout(ctx, consumerReadTimeout)
+		streams, err := c.client.XReadGroup(readCtx, args).Result()
+		cancel()
 		if err != nil {
-			time.Sleep(1 * time.Second)
+			if !errors.Is(err, redis.Nil) {
+				c.ensureGroup(ctx)
+			}
+			time.Sleep(consumerReadBackoff)
 			continue
 		}
 
