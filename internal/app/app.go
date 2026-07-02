@@ -13,6 +13,7 @@ import (
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/controlstate/postgres"
 	"veloxmesh/internal/controlstate/sqlite"
+	"veloxmesh/internal/coordination"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/hotstate"
@@ -25,6 +26,8 @@ import (
 	"veloxmesh/internal/providers/gemini"
 	"veloxmesh/internal/providers/openai"
 	"veloxmesh/internal/storage"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type App struct {
@@ -33,6 +36,7 @@ type App struct {
 	Router                 http.Handler
 	RuntimeProviderManager *controlstate.RuntimeProviderManager
 	HotState               hotstate.Client
+	Coordinator            coordination.Coordinator
 	ShutdownTracing        func(context.Context) error
 }
 
@@ -78,6 +82,18 @@ func New() (*App, error) {
 		healthStore = health.NewRedisStore(hotStateClient, cfg.RedisHealthTTL)
 	} else {
 		healthStore = health.NewInMemoryStore()
+	}
+
+	var coord coordination.Coordinator
+	if cfg.MultiNodeEnabled && cfg.RedisEnabled {
+		rdb := redis.NewClient(&redis.Options{
+			Addr:     cfg.RedisAddr,
+			Password: cfg.RedisPassword,
+			DB:       cfg.RedisDB,
+		})
+		coord = coordination.NewRedisCoordinator(rdb, cfg.RedisNamespace, cfg.NodeID)
+	} else {
+		coord = coordination.NewNoopCoordinator()
 	}
 
 	m := controlstate.NewRuntimeProviderManager(cfg, logger, healthStore)
@@ -225,6 +241,7 @@ func New() (*App, error) {
 		Router:                 r,
 		RuntimeProviderManager: m,
 		HotState:               hotStateClient,
+		Coordinator:            coord,
 		ShutdownTracing:        shutdownTracing,
 	}
 
