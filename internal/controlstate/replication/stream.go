@@ -11,6 +11,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const ControlStreamName = "veloxmesh:control:stream"
+
 type StreamProducer interface {
 	Append(ctx context.Context, event ChangeEvent) (string, error)
 }

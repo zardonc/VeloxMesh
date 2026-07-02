@@ -2,6 +2,7 @@ package integration
 
 import (
 	"bytes"
+	"io"
 
 	"net/http"
 	"testing"
@@ -35,7 +36,7 @@ func TestMultiNodeLeaderLoss(t *testing.T) {
 	// To speed up miniredis lease expiration, we can fast forward
 	// Wait, graceful shutdown drops the lock immediately via releaseScript.
 	// So a follower will pick it up on its next heartbeat (within 3 seconds).
-	
+
 	leader2 := waitForLeader(t, harness)
 	if leader2.ID == leader1.ID {
 		t.Fatalf("expected new leader, got same: %s", leader2.ID)
@@ -48,53 +49,113 @@ func TestMultiNodeRedisOutage(t *testing.T) {
 
 	leader := waitForLeader(t, harness)
 
-	// Simulate Redis outage by fast-forwarding time past the lease TTL
-	// This will expire the lock in Redis.
-	// We also need to advance miniredis clock so that when the leader checks its lease, it's expired.
-	harness.mr.FastForward(15 * time.Second)
+	// Simulate Redis outage by closing the miniredis server
+	harness.BreakRedis()
 
-	// Since we fast-forwarded miniredis, the keys are expired.
-	// The nodes have their own Ticker for heartbeat, which is based on real time.
-	// We need to wait for real time heartbeat (up to 3s) for the node to realize its lease is gone.
-	
-	time.Sleep(4 * time.Second)
-
-	// Actually, if Redis is down, it can't renew. Wait, miniredis isn't down, it just expired the key.
-	// So the leader will try to renew, fail because the key is gone, and then try to acquire again.
-	// Since no one else is acquiring (they all try), one of them will become leader.
-	// This tests lease expiration, but not a full outage.
-	
-	// Let's test non-writable rejection instead.
-	follower := harness.GetFollowers()[0]
-
-	// Send a POST request to follower
-	payload := `{"id": "test-prov", "type": "openai-compatible", "base_url": "http://test", "api_key": "test", "models": ["test-model"]}`
-	req, _ := http.NewRequest(http.MethodPost, follower.Server.URL+"/admin/v1/providers", bytes.NewBufferString(payload))
+	// Wait a tiny bit, but NOT 4 seconds. The leader still holds the lock for 2 seconds.
+	// It thinks it's still the leader. Let's make a write!
+	payload := `{"id": "test-prov-fallback", "name": "Fallback Prov", "type": "openai-compatible", "base_url": "http://test", "api_key": "test", "models": ["test-model"]}`
+	req, _ := http.NewRequest(http.MethodPost, leader.Server.URL+"/admin/v1/providers", bytes.NewBufferString(payload))
 	req.Header.Set("Authorization", "Bearer test-admin-key")
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusServiceUnavailable {
-		t.Fatalf("expected 503 for non-writable node, got %d", resp.StatusCode)
+	if resp.StatusCode != http.StatusCreated {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		t.Fatalf("expected 201 Created from leader with fallback log, got %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	// Verify no divergence in SQLite (provider should not be created)
-	// We can check the DB directly or use GET on the leader
-	
-	reqGet, _ := http.NewRequest(http.MethodGet, leader.Server.URL+"/admin/v1/providers/test-prov", nil)
+	// Verify it exists in SQLite on leader
+	reqGet, _ := http.NewRequest(http.MethodGet, leader.Server.URL+"/admin/v1/providers/test-prov-fallback", nil)
 	reqGet.Header.Set("Authorization", "Bearer test-admin-key")
 	respGet, err := http.DefaultClient.Do(reqGet)
 	if err != nil {
 		t.Fatalf("get request failed: %v", err)
 	}
 	defer respGet.Body.Close()
-	
-	if respGet.StatusCode != http.StatusNotFound {
-		t.Fatalf("expected 404, provider should not exist, got %d", respGet.StatusCode)
+
+	if respGet.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, provider should exist on leader, got %d", respGet.StatusCode)
+	}
+
+	// Wait for Redis lease to expire
+	time.Sleep(4 * time.Second)
+
+	// Now restore Redis
+	harness.RestoreRedis(t)
+
+	// Wait for election to happen again and the recovery worker to flush the fallback log
+	time.Sleep(4 * time.Second)
+
+	// The recovery worker on the leader should have flushed the log to Redis, and followers should have consumed it.
+	follower := harness.GetFollowers()[0]
+	reqCheck, _ := http.NewRequest(http.MethodGet, follower.Server.URL+"/admin/v1/providers/test-prov-fallback", nil)
+	reqCheck.Header.Set("Authorization", "Bearer test-admin-key")
+	respCheck, err := http.DefaultClient.Do(reqCheck)
+	if err != nil {
+		t.Fatalf("follower check request failed: %v", err)
+	}
+	defer respCheck.Body.Close()
+
+	if respCheck.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 on follower after recovery, got %d", respCheck.StatusCode)
+	}
+}
+
+func TestMultiNodeReplication(t *testing.T) {
+	harness := NewMultiNodeHarness(t, 2)
+	defer harness.Close()
+
+	leader := waitForLeader(t, harness)
+	followers := harness.GetFollowers()
+	if len(followers) == 0 {
+		t.Fatal("expected at least one follower")
+	}
+	follower := followers[0]
+
+	// Send an admin write to the leader
+	payload := `{"id": "repl-prov", "name": "Repl Prov", "type": "openai-compatible", "base_url": "http://test", "api_key": "test", "models": ["repl-model"]}`
+	req, _ := http.NewRequest(http.MethodPost, leader.Server.URL+"/admin/v1/providers", bytes.NewBufferString(payload))
+	req.Header.Set("Authorization", "Bearer test-admin-key")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("expected 201 Created on leader, got %d", resp.StatusCode)
+	}
+
+	// Wait for Redis stream consumer to pick up the change on follower
+	// Polling is 100ms in consumer.
+	time.Sleep(1 * time.Second)
+
+	// Check if the follower's RuntimeProviderManager got the update
+	// We can test this by checking the models endpoint on the follower (which hits HotState / RuntimeProviderManager)
+	reqGet, _ := http.NewRequest(http.MethodGet, follower.Server.URL+"/v1/models", nil)
+	reqGet.Header.Set("Authorization", "Bearer test-dev-key")
+	respGet, err := http.DefaultClient.Do(reqGet)
+	if err != nil {
+		t.Fatalf("follower get request failed: %v", err)
+	}
+	defer respGet.Body.Close()
+
+	if respGet.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 OK from follower /v1/models, got %d", respGet.StatusCode)
+	}
+
+	// We expect repl-model to be present
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(respGet.Body)
+	if !bytes.Contains(buf.Bytes(), []byte("repl-model")) {
+		t.Fatalf("expected follower to have 'repl-model' in models list, got %s", buf.String())
 	}
 }

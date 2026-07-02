@@ -200,7 +200,7 @@ func New() (*App, error) {
 					} else {
 						vectorAdapter = storage.NewNoopVectorAdapter()
 					}
-					
+
 					semanticCache = cache.NewSemanticCacheService(cache.SemanticCacheConfig{
 						Enabled:       true,
 						Threshold:     0.9,
@@ -218,6 +218,29 @@ func New() (*App, error) {
 		}
 	}
 
+	var lagReporter handlers.LagReporter
+	var consumer *replication.Consumer
+	if cfg.MultiNodeEnabled && cfg.RedisEnabled && repo != nil {
+		rdb := redis.NewClient(&redis.Options{
+			Addr:     cfg.RedisAddr,
+			Password: cfg.RedisPassword,
+			DB:       cfg.RedisDB,
+		})
+
+		producer := replication.NewRedisStreamProducer(rdb, replication.ControlStreamName)
+		wrappedRepo := replication.NewRepository(repo, coord, producer)
+
+		groupName := "gateway-group-" + cfg.NodeID
+		consumer = replication.NewConsumer(rdb, replication.ControlStreamName, groupName, cfg.NodeID, repo, repo.FallbackLog())
+		consumer.Start(ctx)
+		lagReporter = consumer
+
+		worker := replication.NewRecoveryWorker(repo.FallbackLog(), consumer)
+		worker.Start(ctx)
+
+		repo = wrappedRepo
+	}
+
 	var adminProvHandler *handlers.AdminProvidersHandler
 	var adminCombosHandler *handlers.AdminCombosHandler
 	var adminSemanticRulesHandler *handlers.AdminSemanticRulesHandler
@@ -227,27 +250,12 @@ func New() (*App, error) {
 
 		adminComboSvc := controlstate.NewAdminComboService(repo, m, cipher, hotStateClient)
 		adminCombosHandler = handlers.NewAdminCombosHandler(adminComboSvc)
-		
+
 		adminSemanticRulesSvc := controlstate.NewAdminSemanticRulesService(repo, hotStateClient)
 		adminSemanticRulesHandler = handlers.NewAdminSemanticRulesHandler(adminSemanticRulesSvc)
 	}
 
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
-
-	var lagReporter handlers.LagReporter
-	if cfg.MultiNodeEnabled && cfg.RedisEnabled && repo != nil {
-		rdb := redis.NewClient(&redis.Options{
-			Addr:     cfg.RedisAddr,
-			Password: cfg.RedisPassword,
-			DB:       cfg.RedisDB,
-		})
-		consumer := replication.NewConsumer(rdb, "controlstate:events", "gateway-group", cfg.NodeID, repo, repo.FallbackLog())
-		consumer.Start(ctx)
-		lagReporter = consumer
-
-		worker := replication.NewRecoveryWorker(repo.FallbackLog(), consumer)
-		worker.Start(ctx)
-	}
 
 	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, hotStateClient, repo, coord, lagReporter)
 
@@ -267,6 +275,25 @@ func New() (*App, error) {
 		}
 		if err := application.StartConfigChangeSubscriber(ctx, repo, cipher); err != nil {
 			return nil, fmt.Errorf("failed to start config subscriber: %w", err)
+		}
+
+		if consumer != nil {
+			consumer.OnApplied = func(evt replication.ChangeEvent) {
+				switch evt.Repository {
+				case "providers", "providers_secrets", "combos", "routing":
+					if err := application.ReloadProviders(context.Background(), repo, cipher); err != nil {
+						application.Logger.Error("failed to reload providers after replication", "error", err)
+					}
+				case "semantic_rules":
+					if err := application.ReloadSemanticRules(context.Background(), repo); err != nil {
+						application.Logger.Error("failed to reload semantic rules after replication", "error", err)
+					}
+				case "api_keys":
+					if err := application.HotState.Delete(context.Background(), hotstate.NamespacedKey(application.Config.RedisNamespace, "auth", evt.TargetID)); err != nil {
+						application.Logger.Error("failed to invalidate api key cache", "error", err)
+					}
+				}
+			}
 		}
 	}
 
@@ -383,7 +410,7 @@ func (a *App) StartConfigChangeSubscriber(ctx context.Context, repo controlstate
 					return
 				}
 				a.Logger.Info("received config change notification", "type", msg.Type, "target_id", msg.TargetID, "action", msg.Action, "revision", msg.Revision)
-				
+
 				switch msg.Type {
 				case hotstate.EventProvider, hotstate.EventCombo, hotstate.EventRouting:
 					if err := a.ReloadProviders(ctx, repo, cipher); err != nil {

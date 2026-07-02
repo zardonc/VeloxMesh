@@ -16,6 +16,8 @@ type LagSnapshot struct {
 	Pending int64
 }
 
+const reportLagTimeout = 500 * time.Millisecond
+
 type Consumer struct {
 	client      redis.Cmdable
 	stream      string
@@ -23,8 +25,9 @@ type Consumer struct {
 	consumer    string
 	repo        controlstate.Repository
 	fallbackLog controlstate.FallbackLogRepository
-	
+
 	lastEventTime time.Time
+	OnApplied     func(ChangeEvent)
 }
 
 func NewConsumer(client redis.Cmdable, stream, group, consumerName string, repo controlstate.Repository, fallbackLog controlstate.FallbackLogRepository) *Consumer {
@@ -39,17 +42,36 @@ func NewConsumer(client redis.Cmdable, stream, group, consumerName string, repo 
 }
 
 func (c *Consumer) ReportLag() LagSnapshot {
+	var pending int64
+	if c.client != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), reportLagTimeout)
+		defer cancel()
+
+		groups, err := c.client.XInfoGroups(ctx, c.stream).Result()
+		if err != nil {
+			groups = nil
+		}
+		for _, g := range groups {
+			if g.Name == c.group {
+				// g.Lag might be -1 if Redis cannot determine it yet.
+				lag := g.Lag
+				if lag < 0 {
+					lag = 0
+				}
+				pending = g.Pending + lag
+				break
+			}
+		}
+	}
+
 	var elapsed time.Duration
 	if !c.lastEventTime.IsZero() {
 		elapsed = time.Since(c.lastEventTime)
 	}
 
-	// Simplistic pending check for now. For a real system we would XPENDING
-	// Or we can just return Elapsed as the primary metric, and Pending = 0 if not implemented easily.
-	// For testing, we can just return 0 pending.
 	return LagSnapshot{
 		Elapsed: elapsed,
-		Pending: 0,
+		Pending: pending,
 	}
 }
 
@@ -90,8 +112,12 @@ func (c *Consumer) loop(ctx context.Context) {
 						evt.StreamID = msg.ID
 						c.lastEventTime = evt.Timestamp
 						if err := c.Apply(ctx, evt); err != nil {
-							// Record to fallback log
-							c.recordFallback(ctx, evt, err)
+							// Record to fallback log on failure to apply cleanly
+							if c.fallbackLog != nil {
+								c.recordFallback(ctx, evt, err)
+							}
+						} else if c.OnApplied != nil {
+							c.OnApplied(evt)
 						}
 					}
 				}
@@ -144,10 +170,16 @@ func (c *Consumer) Apply(ctx context.Context, evt ChangeEvent) error {
 		}
 	case "providers_secrets":
 		if evt.Operation == "UPDATE" {
-			var m map[string]interface{}
-			if err := json.Unmarshal(evt.Payload, &m); err == nil {
-				// We don't have types for this easily, skip or implement
+			var payload struct {
+				ID         string `json:"id"`
+				Ciphertext []byte `json:"ciphertext"`
+				Nonce      []byte `json:"nonce"`
+				KeyID      string `json:"key_id"`
 			}
+			if err := json.Unmarshal(evt.Payload, &payload); err != nil {
+				return err
+			}
+			return c.repo.Providers().PutEncryptedSecret(ctx, payload.ID, payload.Ciphertext, payload.Nonce, payload.KeyID)
 		}
 	case "combos":
 		switch evt.Operation {

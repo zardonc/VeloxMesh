@@ -58,6 +58,8 @@ func (h *MultiNodeHarness) startNode(t *testing.T, idx int) *Node {
 		RedisEnabled:                 true,
 		RedisAddr:                    h.mr.Addr(),
 		RedisNamespace:               "test-cluster",
+		DevAPIKey:                    "test-dev-key",
+		AdminAPIKey:                  "test-admin-key",
 		ControlStateBackend:          "sqlite",
 		ControlStateDSN:              dbPath,
 		ControlStateMigrateOnStartup: true,
@@ -80,6 +82,7 @@ func (h *MultiNodeHarness) startNode(t *testing.T, idx int) *Node {
 	t.Setenv("GATEWAY_ADMIN_ADDR", ":0")
 	t.Setenv("GATEWAY_METRICS_ADDR", ":0")
 	t.Setenv("ADMIN_API_KEY", "test-admin-key")
+	t.Setenv("DEV_API_KEY", "test-dev-key")
 
 	application, err := app.New()
 	if err != nil {
@@ -153,6 +156,21 @@ func (h *MultiNodeHarness) GetFollowers() []*Node {
 		}
 	}
 	return followers
+}
+
+func (h *MultiNodeHarness) BreakRedis() {
+	if h.mr != nil {
+		h.mr.Close()
+	}
+}
+
+func (h *MultiNodeHarness) RestoreRedis(t *testing.T) {
+	if h.mr != nil {
+		err := h.mr.Restart()
+		if err != nil {
+			t.Fatalf("failed to restart miniredis: %v", err)
+		}
+	}
 }
 
 func TestMultiNodeHarness(t *testing.T) {
