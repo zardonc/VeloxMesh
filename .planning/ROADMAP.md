@@ -54,6 +54,47 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path.
 
 </details>
 
+## v7.3 PostgreSQL Compatibility
+
+**Goal:** Add PostgreSQL-compatible Plan 4 deployment without changing the OpenAI-compatible data-plane contract.
+**Requirements:** PG-01, PG-02, PG-03, CTRL-01, CTRL-02, CTRL-03, VECT-01, VECT-02, MIGR-01, MIGR-02, TEST-01
+
+### Phases
+
+- [ ] Phase 13: PostgreSQL Compatibility
+
+### Phase 13: PostgreSQL Compatibility
+
+**Goal:** Add PostgreSQL-compatible Plan 4 deployment with Redis Stack, PostgreSQL, pgvector, migration guidance, repository parity, and smoke verification. Plans 1/2 stay SQLite + Redis Stack + Qdrant by default.
+**Priority:** P3
+**Depends on:** Phase 12
+**Requirements:** PG-01, PG-02, PG-03, CTRL-01, CTRL-02, CTRL-03, VECT-01, VECT-02, MIGR-01, MIGR-02, TEST-01
+**Plans:** 4 plans
+
+Success criteria:
+
+1. Operators can start a local Plan 4 stack with Redis Stack, PostgreSQL, and pgvector using documented configuration without source-controlled secrets.
+2. PostgreSQL control-state repositories support the active gateway capabilities required for provider CRUD, API keys, routing, usage settlement, semantic cache metadata, and fallback logging.
+3. pgvector is available behind the existing vector adapter boundary for Plan 4 semantic-cache search while preserving tenant/API-key scoping and prompt privacy.
+4. Supported SQLite control-state data can be migrated or replayed into PostgreSQL through a repeatable runbook or command.
+5. Smoke verification proves OpenAI-compatible chat traffic works against the PostgreSQL-compatible Plan 4 deployment.
+
+Key deliverables:
+
+- PostgreSQL + pgvector deployment docs/templates and secret-safe configuration examples.
+- Startup readiness and failure behavior for required Plan 4 dependencies.
+- PostgreSQL capability profile updates that match implemented repository behavior.
+- pgvector vector adapter or equivalent Plan 4 semantic-cache path behind `storage.VectorAdapter`.
+- SQLite to PostgreSQL migration runbook/tooling for supported control-state records.
+- Focused integration/smoke checks gated by externally supplied PostgreSQL test DSNs.
+
+Plans:
+
+- [ ] 13-01-PLAN.md - Deployment, configuration, readiness, and operator runbook.
+- [ ] 13-02-PLAN.md - PostgreSQL repository parity and capability reporting.
+- [ ] 13-03-PLAN.md - pgvector semantic-cache/vector adapter path.
+- [ ] 13-04-PLAN.md - SQLite-to-PostgreSQL migration and Plan 4 smoke verification.
+
 ## Future Milestones
 
 - **Phase 11: BFF Layer & Admin Console** — JWT authentication, role-based access control, session management, and Admin Console foundation. Depends on Phase 7.
