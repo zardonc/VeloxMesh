@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/controlstate/postgres"
+	"veloxmesh/internal/testenv"
 )
 
 const livePostgresTestEncryptionKey = "12345678901234567890123456789012"
@@ -140,6 +141,7 @@ func TestApp_PostgresControlStateFailsClosed(t *testing.T) {
 }
 
 func TestApp_PostgresControlStateStartsWithLiveDSN(t *testing.T) {
+	testenv.Load()
 	dsn := os.Getenv("POSTGRES_TEST_DSN")
 	if dsn == "" {
 		t.Skip("Skipping live postgres startup test because POSTGRES_TEST_DSN is not set")

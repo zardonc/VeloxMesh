@@ -8,6 +8,7 @@ import (
 	"time"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/pipeline"
+	"veloxmesh/internal/testenv"
 )
 
 func TestPostgresRepositoryAccessorsNonNil(t *testing.T) {
@@ -435,6 +436,7 @@ func uniquePostgresID(t *testing.T, prefix string) string {
 
 func openMigratedPostgres(t *testing.T) *Repository {
 	t.Helper()
+	testenv.Load()
 	dsn := os.Getenv("POSTGRES_TEST_DSN")
 	if dsn == "" {
 		t.Skip("Skipping postgres integration test because POSTGRES_TEST_DSN is not set")

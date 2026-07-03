@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"veloxmesh/internal/controlstate/postgres"
 	"veloxmesh/internal/controlstate/sqlite"
+	"veloxmesh/internal/testenv"
 )
 
 type fakeTarget struct {
@@ -73,6 +74,7 @@ func TestMigrationStopsWithReport(t *testing.T) {
 }
 
 func TestMigrationToLivePostgres(t *testing.T) {
+	testenv.Load()
 	postgresDSN := os.Getenv("POSTGRES_TEST_DSN")
 	if postgresDSN == "" {
 		t.Skip("Skipping live postgres migration test because POSTGRES_TEST_DSN is not set")
@@ -105,6 +107,7 @@ func TestMigrationToLivePostgres(t *testing.T) {
 }
 
 func TestMigrationLivePostgresStopsWithReport(t *testing.T) {
+	testenv.Load()
 	postgresDSN := os.Getenv("POSTGRES_TEST_DSN")
 	if postgresDSN == "" {
 		t.Skip("Skipping live postgres migration failure test because POSTGRES_TEST_DSN is not set")

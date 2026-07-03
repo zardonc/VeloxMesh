@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"testing"
+
+	"veloxmesh/internal/testenv"
 )
 
 func TestPGVectorDimensionValidation(t *testing.T) {
@@ -34,6 +36,7 @@ func TestPGVectorMetadataAllowlist(t *testing.T) {
 }
 
 func TestPGVectorMigrationAndSearch(t *testing.T) {
+	testenv.Load()
 	dsn := os.Getenv("POSTGRES_TEST_DSN")
 	if dsn == "" {
 		t.Skip("Skipping pgvector integration test because POSTGRES_TEST_DSN is not set")
