@@ -2,23 +2,24 @@
 
 **Created:** 2026-06-15
 **Updated:** 2026-07-03
-**Current focus:** v7.3 PostgreSQL Compatibility
+**Current focus:** v7.4 Gateway Scheduler
 
 ## Overview
 
 VeloxMesh is being built as vertical gateway slices. Phases 1-10 established the runnable Go/Chi OpenAI-compatible data plane, provider adapters, durable control state, streaming, rate limits, semantic caching, Redis/Qdrant Plan 1 infrastructure, advanced routing, and observability.
 
-The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path. Qdrant owns vector storage and replication there. Phase 13 now adds the Plan 4 PostgreSQL + pgvector extension path after Phase 12 finalized the multi-node write and recovery boundaries.
+The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path, with PostgreSQL + pgvector available as the Plan 4 extension path. v7.4 adds an optional Scheduler that scores queued work while the gateway remains the owner of intake, queue storage, execution, and fallback behavior.
 
 ## Milestones
 
-- ✅ **v7.0 Plan 1 Foundation** — Phases 7-9 (shipped 2026-06-30; archive: `.planning/milestones/v7.0-ROADMAP.md`)
-- ✅ **v7.1 Advanced Routing & Observability** — Phase 10 (shipped 2026-07-01; archive: `.planning/milestones/v7.1-ROADMAP.md`)
-- ✅ **v7.2 Multi-Node Coordination** — Phase 12 (shipped 2026-07-03; archive: `.planning/milestones/v7.2-ROADMAP.md`)
-- ◆ **v7.3 PostgreSQL Compatibility** — Phase 13 (active)
-- ○ **Future milestones** — BFF/Admin Console
-- ✅ **v5** — Phases 5-6 (shipped 2026-06-29)
-- ✅ **v4** — Phases 1-4 (shipped 2026-06-23)
+- [x] **v7.0 Plan 1 Foundation** - Phases 7-9 (shipped 2026-06-30; archive: `.planning/milestones/v7.0-ROADMAP.md`)
+- [x] **v7.1 Advanced Routing & Observability** - Phase 10 (shipped 2026-07-01; archive: `.planning/milestones/v7.1-ROADMAP.md`)
+- [x] **v7.2 Multi-Node Coordination** - Phase 12 (shipped 2026-07-03; archive: `.planning/milestones/v7.2-ROADMAP.md`)
+- [x] **v7.3 PostgreSQL Compatibility** - Phase 13 (shipped 2026-07-03)
+- [ ] **v7.4 Gateway Scheduler** - Phases 14-16 (active)
+- [x] **v5** - Phases 5-6 (shipped 2026-06-29)
+- [x] **v4** - Phases 1-4 (shipped 2026-06-23)
+- [ ] **Future milestones** - BFF/Admin Console
 
 ## Deployment Tiers
 
@@ -27,87 +28,107 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path.
 | **Plan 1**: Standalone Enhanced | App + Redis Stack + SQLite + Qdrant | P0 | Shipped in v7.0 |
 | **Plan 2**: Multi-Node | Multi App + Redis Stack + SQLite + Qdrant | P1 | Shipped in v7.2 |
 | **Plan 3**: Edge | App + SQLite + LanceDB (`-tags lancedb`, Linux/macOS only) | P3 | Future |
-| **Plan 4**: Extension | App + Redis Stack + PostgreSQL + pgvector | P3 | Active in v7.3 |
+| **Plan 4**: Extension | App + Redis Stack + PostgreSQL + pgvector | P3 | Shipped in v7.3 |
+
+## Scheduler Runtime Modes
+
+| Mode | Components | Behavior |
+| --- | --- | --- |
+| Disabled | Gateway only | FIFO score from current timestamp; no Scheduler dependency. |
+| Heuristic | Gateway + heuristic Scheduler | Structured/rule classification and configured latency tables. |
+| ONNX | Gateway + ONNX Scheduler | Versioned model artifacts, startup-time model load, prediction quality monitoring, and A/B routing. |
 
 <details>
-<summary>✅ v7.2 Multi-Node Coordination (Phase 12) — SHIPPED 2026-07-03</summary>
+<summary>v7.3 PostgreSQL Compatibility (Phase 13) - SHIPPED 2026-07-03</summary>
 
-- [x] Phase 12: Multi-Node Coordination (5/5 plans) — completed 2026-07-03
+- [x] Phase 13: PostgreSQL Compatibility (4/4 plans) - completed 2026-07-03
 
 </details>
 
 <details open>
-<summary>◆ v7.3 PostgreSQL Compatibility (Phase 13) — ACTIVE</summary>
+<summary>v7.4 Gateway Scheduler (Phases 14-16) - ACTIVE</summary>
 
-**Goal:** Add PostgreSQL-compatible Plan 4 deployment without changing the OpenAI-compatible data-plane contract.
+**Goal:** Add an optional stateless Scheduler that scores queued gateway tasks while the gateway keeps ownership of intake, queueing, execution, and fallback behavior.
 
 | Phase | Name | Requirements | Success Criteria |
 | --- | --- | --- | --- |
-| 13 | 4/4 | Complete    | 2026-07-03 |
-
-**Candidate plan slices:**
-
-- **13-01 Deployment and config**: Add PostgreSQL + pgvector deployment docs/templates, configuration examples, readiness behavior, and secret-safe operator guidance.
-- **13-02 Repository parity**: Close PostgreSQL gaps for active control-state capabilities and update capability reporting to match implementation.
-- **13-03 pgvector semantic path**: Add pgvector vector adapter behavior behind the existing storage boundary while preserving scope/privacy rules.
-- **13-04 Migration and verification**: Add SQLite to PostgreSQL migration runbook/tooling and Plan 4 smoke/integration verification.
+| 14 | Scheduler Queue Foundation | SCH-01, SCH-02, SCH-03, SCH-04, PRIO-01, PRIO-02, SCORE-01, SCORE-02, OBS-01 | Disabled/FIFO path, gRPC fallback, queue backend, heuristic scoring, priority safety, and core metrics work. |
+| 15 | Training Feedback and ONNX Path | FEED-01, ML-01, ML-02 | Training samples are captured safely and ONNX model artifacts can be trained, loaded, and served. |
+| 16 | A/B Rollout and Prediction Quality | OBS-02, ML-03 | Gateway can compare heuristic/ONNX backends and rollback through routing config. |
 
 </details>
 
-## v7.3 PostgreSQL Compatibility
+## v7.4 Gateway Scheduler
 
-**Goal:** Add PostgreSQL-compatible Plan 4 deployment without changing the OpenAI-compatible data-plane contract.
-**Requirements:** PG-01, PG-02, PG-03, CTRL-01, CTRL-02, CTRL-03, VECT-01, VECT-02, MIGR-01, MIGR-02, TEST-01
+**Goal:** Add an optional stateless Scheduler that scores queued gateway tasks without changing the OpenAI-compatible data-plane contract.
+**Requirements:** SCH-01, SCH-02, SCH-03, SCH-04, PRIO-01, PRIO-02, SCORE-01, SCORE-02, FEED-01, OBS-01, OBS-02, ML-01, ML-02, ML-03
 
-### Phases
+### Phase 14: Scheduler Queue Foundation
 
-- [x] Phase 13: PostgreSQL Compatibility (completed 2026-07-03)
-
-### Phase 13: PostgreSQL Compatibility
-
-**Goal:** Add PostgreSQL-compatible Plan 4 deployment with Redis Stack, PostgreSQL, pgvector, migration guidance, repository parity, and smoke verification. Plans 1/2 stay SQLite + Redis Stack + Qdrant by default.
-**Priority:** P3
-**Depends on:** Phase 12
-**Requirements:** PG-01, PG-02, PG-03, CTRL-01, CTRL-02, CTRL-03, VECT-01, VECT-02, MIGR-01, MIGR-02, TEST-01
-**Plans:** 4/4 plans complete
+**Goal:** Build the cold-start Scheduler path: optional service integration, queue backend, fallback behavior, heuristic scoring, priority safety, and core observability.
+**Priority:** P2
+**Depends on:** Phase 13
+**Requirements:** SCH-01, SCH-02, SCH-03, SCH-04, PRIO-01, PRIO-02, SCORE-01, SCORE-02, OBS-01
 
 Success criteria:
 
-1. Operators can start a local Plan 4 stack with Redis Stack, PostgreSQL, and pgvector using documented configuration without source-controlled secrets.
-2. PostgreSQL control-state repositories support the active gateway capabilities required for provider CRUD, API keys, routing, usage settlement, semantic cache metadata, and fallback logging.
-3. pgvector is available behind the existing vector adapter boundary for Plan 4 semantic-cache search while preserving tenant/API-key scoping and prompt privacy.
-4. Supported SQLite control-state data can be migrated or replayed into PostgreSQL through a repeatable runbook or command.
-5. Smoke verification proves OpenAI-compatible chat traffic works against the PostgreSQL-compatible Plan 4 deployment.
+1. Gateway starts and forwards normally when Scheduler is disabled, unavailable, timing out, or breaker-open.
+2. `scheduler.v1` gRPC scoring is wired with 15ms timeout, no inline retry, and FIFO fallback.
+3. Redis ZSET queue operations and in-memory single-node fallback share one `QueueBackend` boundary.
+4. Heuristic Scheduler returns static virtual deadline scores with configured task classification, latency estimates, priority multipliers, and uncertainty penalty.
+5. Priority is resolved only from trusted structured inputs, max-priority/quota policy is enforced, and core scheduler/queue metrics are exposed.
 
-Key deliverables:
+Candidate plan slices:
 
-- PostgreSQL + pgvector deployment docs/templates and secret-safe configuration examples.
-- Startup readiness and failure behavior for required Plan 4 dependencies.
-- PostgreSQL capability profile updates that match implemented repository behavior.
-- pgvector vector adapter or equivalent Plan 4 semantic-cache path behind `storage.VectorAdapter`.
-- SQLite to PostgreSQL migration runbook/tooling for supported control-state records.
-- Focused integration/smoke checks gated by externally supplied PostgreSQL test DSNs.
+- **14-01 Proto, config, and client fallback**: define `scheduler.v1`, add disabled-by-default config, gRPC client, timeout, and breaker-safe fallback.
+- **14-02 Queue backend**: implement Redis ZSET queue operations, in-memory heap fallback, and queue depth behavior.
+- **14-03 Heuristic Scheduler**: implement structured/rule classification, score calculator, gRPC service, health, and metrics.
+- **14-04 Priority and observability**: implement trusted priority resolution, quota downgrade audit, logs, and Prometheus metrics.
 
-Plans:
-**Wave 1**
+### Phase 15: Training Feedback and ONNX Path
 
-- [x] 13-01-PLAN.md - Deployment, configuration, readiness, and operator runbook.
+**Goal:** Record safe training data and establish the versioned ONNX model path without making ML required for cold start.
+**Priority:** P2
+**Depends on:** Phase 14
+**Requirements:** FEED-01, ML-01, ML-02
 
-**Wave 2** *(blocked on Wave 1 completion)*
+Success criteria:
 
-- [x] 13-02-PLAN.md - PostgreSQL repository parity and capability reporting.
+1. Gateway writes enqueue feature snapshots and completion labels without raw prompts, authorization headers, API keys, or provider secrets.
+2. Training sample storage records scheduler type, scheduler version, prediction values, actual duration, output tokens, and completion timestamps.
+3. Offline tooling can export completed samples, train/evaluate a P70 predictor, validate ONNX parity, and publish a versioned artifact directory.
+4. ONNX Scheduler loads model artifacts once at startup and serves predicted latency, confidence, and scheduler version through the same scoring interface.
 
-**Wave 3** *(blocked on Wave 2 completion)*
+Candidate plan slices:
 
-- [x] 13-03-PLAN.md - pgvector semantic-cache/vector adapter path.
+- **15-01 Training sample schema and collector**: add safe sample storage, completion updates, and retention-friendly indexes.
+- **15-02 Export and training scripts**: add sample export, feature schema, P70 model training, ONNX export, and parity check.
+- **15-03 ONNX Scheduler**: add startup model load, prediction response metadata, and failure fallback to conservative scoring.
 
-**Wave 4** *(blocked on Wave 3 completion)*
+### Phase 16: A/B Rollout and Prediction Quality
 
-- [x] 13-04-PLAN.md - SQLite-to-PostgreSQL migration and Plan 4 smoke verification.
+**Goal:** Let operators compare heuristic and ONNX scoring safely, then rollback or keep the model path based on observed prediction quality.
+**Priority:** P2
+**Depends on:** Phase 15
+**Requirements:** OBS-02, ML-03
+
+Success criteria:
+
+1. Gateway can route scheduler calls to heuristic and ONNX backends by configuration.
+2. Operators can compare wait time, call latency, scheduler errors, prediction MAPE, and task-type quality by scheduler version.
+3. ONNX rollout can be disabled or rolled back to heuristic/FIFO without changing the data-plane API.
+4. Documentation explains the cold-start, heuristic, ONNX, A/B, and rollback paths.
+
+Candidate plan slices:
+
+- **16-01 Scheduler routing**: add single, weighted, or primary-fallback backend selection.
+- **16-02 Prediction quality metrics**: compute MAPE by task type, scheduler type, and scheduler version.
+- **16-03 Rollout docs and verification**: document deployment, A/B observation, rollback, and smoke checks.
 
 ## Future Milestones
 
-- **Phase 11: BFF Layer & Admin Console** — JWT authentication, role-based access control, session management, and Admin Console foundation. Depends on Phase 7.
+- **Phase 11: BFF Layer & Admin Console** - JWT authentication, role-based access control, session management, and Admin Console foundation. Depends on Phase 7.
+- **Scheduler enhancements** - optional Qdrant semantic-neighbor features, anomaly detection, and SLA waiting-time promotion after the core Scheduler path is stable.
 
 ## Gateway Runtime Modes
 
@@ -120,11 +141,11 @@ VeloxMesh supports progressive deployment tiers:
 
 ## Notes
 
-- Phase 12 intentionally skips BFF/Admin Console UI; any topology display belongs after Phase 11 exists.
-- Phase 13 is active because Phase 12 has defined and verified the multi-node write and recovery boundaries.
-- All storage access goes through adapter interfaces; switching backends requires adapter implementation swaps.
-- Redis is hot coordination and transport, not relational source of truth.
+- Scheduler is optional and disabled by default.
+- Gateway remains the source of truth for queue ownership, task state, execution, and fallback behavior.
+- Scheduler must not receive raw prompts, provider secrets, API keys, or authorization headers.
+- Static virtual deadline scoring is preferred over dynamic score updates to avoid Redis write amplification.
 - Source code committed to git must not contain hardcoded configuration. Configuration must come from local environment variables, configuration files, or the database.
 
 ---
-*Roadmap refreshed: 2026-07-03 after starting v7.3 PostgreSQL Compatibility*
+*Roadmap refreshed: 2026-07-03 after starting v7.4 Gateway Scheduler*

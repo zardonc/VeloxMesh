@@ -12,9 +12,20 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.3 PostgreSQL Compatibility** has been shipped. PostgreSQL control-state compatibility, pgvector semantic cache support, SQLite-to-PostgreSQL migration, and real-provider Plan 4 smoke verification are live as an opt-in deployment path.
+**v7.3 PostgreSQL Compatibility** has been shipped. PostgreSQL control-state compatibility, pgvector semantic cache support, SQLite-to-PostgreSQL migration, and real-provider Plan 4 smoke verification are live as an opt-in deployment path. The next milestone adds an optional task Scheduler without changing the OpenAI-compatible data-plane contract.
 
-## Current Milestone: v7.3 PostgreSQL Compatibility
+## Current Milestone: v7.4 Gateway Scheduler
+
+**Goal:** Add an optional stateless Scheduler that scores queued gateway tasks while the gateway keeps ownership of intake, queueing, execution, and fallback behavior.
+
+**Target features:**
+- Optional gRPC Scheduler service with `BatchScoreTasks`, health, metrics, and FIFO fallback when disabled or unhealthy.
+- Redis ZSET queue backend with single-node in-memory fallback and circuit-breaker protected scheduler calls.
+- Priority resolver, quota enforcement, static virtual deadline scoring, and cold-start heuristic scoring.
+- Training-sample feedback loop, scheduler observability, and ONNX/LightGBM model path for later A/B comparison.
+
+<details>
+<summary>Archived Milestone: v7.3 PostgreSQL Compatibility</summary>
 
 **Goal:** Add the PostgreSQL-compatible deployment path for Plan 4 without changing the OpenAI-compatible data-plane contract.
 
@@ -23,6 +34,8 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - PostgreSQL control-state compatibility parity for active gateway capabilities.
 - pgvector-backed semantic cache/vector adapter path for Plan 4.
 - SQLite to PostgreSQL migration and smoke verification.
+
+</details>
 
 <details>
 <summary>Archived Milestone: v7.2 Multi-Node Coordination</summary>
@@ -73,7 +86,12 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ### Active
 
-None.
+- [ ] SCH-01: Gateway can run with Scheduler disabled and fall back to FIFO queue scoring without startup failure.
+- [ ] SCH-02: Gateway can call a stateless Scheduler over gRPC with a 15ms timeout and circuit-breaker fallback.
+- [ ] PRIO-01: Gateway resolves priority only from trusted structured inputs and never from prompt text.
+- [ ] SCORE-01: Scheduler can compute static virtual deadline scores from predicted latency, priority multiplier, and uncertainty.
+- [ ] FEED-01: Gateway can record scheduler training samples without storing raw prompts or provider secrets.
+- [ ] ML-01: Operators can introduce ONNX/LightGBM scheduler models through versioned artifacts and A/B routing.
 
 ### Deferred to Future Milestones
 
@@ -87,6 +105,7 @@ None.
 ## Context
 
 - Source architecture: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\gateway-architecture.md`.
+- Scheduler implementation reference: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\Gateway-Scheduler-Implementation.md`.
 - Operational resource lookup: test-environment components are configured in `.env`, including the test environment address; provider credentials and model resources for real-provider UAT are configured in `.env.local`. Prefer non-Gemini provider resources for routine real-provider checks because Gemini entries may carry usage-limit notes and should be reserved for Gemini-specific scenarios.
 - The original gateway design is Go-first. TypeScript/Node gateway plans were superseded.
 - Current code includes Phase 1 through Phase 9: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission direction, and Redis VSS fallback for Qdrant degradation. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL remains a later adapter extension; LanceDB is retained only for edge builds.
@@ -99,6 +118,9 @@ None.
 - **Provider isolation**: Provider-specific request/response details stay behind adapter packages.
 - **Latency**: Optional systems such as semantic cache, storage, and admin features should not pollute the base forwarding path.
 - **Security**: Do not log API keys, authorization headers, raw prompts, or sensitive provider payloads.
+- **Scheduler optionality**: Scheduler must be disabled by default and must degrade to FIFO without breaking gateway startup or request forwarding.
+- **Scheduler latency**: Scheduler gRPC calls have a 15ms budget; failures, timeouts, or open breakers must fall back rather than retry inline.
+- **Priority safety**: Priority may come only from trusted config, headers, or structured fields; prompt text must never influence priority.
 - **Current config**: Static env/config is acceptable until provider CRUD and durable config are intentionally added.
 - **Temporary transitional measures**: When a solution is explicitly introduced as a temporary transitional measure during a development phase, its goal is only to meet the current phase's requirements. Do not spend excessive time optimizing, refining, or designing it for long-term maintainability unless it is expected to remain in use in future phases.
 
@@ -124,6 +146,9 @@ None.
 | Phase 13 follows Phase 12 | PostgreSQL/pgvector can now use the finalized multi-node write and recovery boundaries | ✓ Good |
 | Plan 4 uses PostgreSQL + pgvector as an extension path | SQLite + Qdrant remain the default Plans 1/2 path; PostgreSQL compatibility is for enterprise deployments that need concurrent writes and relational/vector joins | ✓ Good |
 | Full LimitRule unification is deferred | Phase 9 shipped the minimal API-key/upstream-account direction; broader scope unification belongs in a future hardening phase | Deferred |
+| Scheduler is a stateless scoring oracle | Gateway keeps queue ownership, task storage, execution, and fallback behavior; Scheduler only returns scores and prediction metadata | Active |
+| Static virtual deadline is the scheduler score | One Redis score write avoids dynamic ZSET re-ranking and gives aging through enqueue time | Active |
+| Cold start uses heuristic scoring before ONNX | Rules can ship with no training data; model prediction is introduced only after samples and validation exist | Active |
 
 ## Evolution
 
@@ -134,4 +159,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-03 after completing v7.3 PostgreSQL Compatibility*
+*Last updated: 2026-07-03 after starting v7.4 Gateway Scheduler*

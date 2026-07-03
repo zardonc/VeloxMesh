@@ -1,5 +1,27 @@
 # Milestones
 
+## v7.3 PostgreSQL Compatibility (Shipped: 2026-07-03)
+
+**Delivered:** Added the PostgreSQL-compatible Plan 4 deployment path without changing the OpenAI-compatible data-plane contract.
+
+**Phases completed:** 13 (4 plans total)
+
+**Key accomplishments:**
+
+- Added PostgreSQL + pgvector deployment documentation, templates, and readiness behavior.
+- Closed PostgreSQL control-state compatibility gaps for active gateway capabilities.
+- Added pgvector semantic-cache/vector adapter behavior behind the storage boundary.
+- Added SQLite-to-PostgreSQL migration guidance/tooling and Plan 4 smoke verification.
+
+**Known deferred work:**
+
+- BFF/Admin Console UI remains Phase 11 scope.
+- Full `LimitRule` unification across all scopes remains deferred.
+
+**What's next:** Define and plan v7.4 Gateway Scheduler.
+
+---
+
 ## v7.2 Multi-Node Coordination (Shipped: 2026-07-03)
 
 **Phases completed:** 1 phases, 5 plans, 0 tasks
