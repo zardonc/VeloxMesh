@@ -51,7 +51,16 @@ func newVectorAdapter(ctx context.Context, cfg *config.Config, logger *slog.Logg
 	case "qdrant":
 		return newQdrantVectorAdapter(ctx, cfg, logger)
 	case "pgvector":
-		logger.Warn("pgvector vector adapter pending; vector capabilities degraded")
+		adapter, err := storage.NewPGVectorAdapter(ctx, cfg.ControlStateDSN, storage.PGVectorOptions{
+			Dimension:          cfg.SemanticCacheVectorDimension,
+			HNSWM:              cfg.PGVectorHNSWM,
+			HNSWEFConstruction: cfg.PGVectorHNSWEFConstruction,
+			SearchEF:           cfg.PGVectorSearchEF,
+		})
+		if err == nil {
+			return adapter
+		}
+		logger.Warn("failed to initialize pgvector; vector capabilities degraded", "error", err)
 		return storage.NewDegradedVectorAdapter()
 	default:
 		return storage.NewNoopVectorAdapter()

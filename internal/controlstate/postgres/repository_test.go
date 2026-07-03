@@ -2,11 +2,32 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
 	"time"
 	"veloxmesh/internal/controlstate"
 )
+
+func TestPostgresRepositoryAccessorsNonNil(t *testing.T) {
+	repo := &Repository{}
+	if repo.LimitRules() == nil {
+		t.Fatalf("LimitRules returned nil")
+	}
+	if repo.SessionBlacklist() == nil {
+		t.Fatalf("SessionBlacklist returned nil")
+	}
+	if repo.SemanticRules() == nil {
+		t.Fatalf("SemanticRules returned nil")
+	}
+}
+
+func TestPostgresSemanticRulesUnsupported(t *testing.T) {
+	_, err := (&Repository{}).SemanticRules().GetGlobalDefaults(context.Background())
+	if !errors.Is(err, ErrUnsupportedRepository) {
+		t.Fatalf("expected unsupported repository error, got %v", err)
+	}
+}
 
 func TestPostgresRepositoryIntegration(t *testing.T) {
 	dsn := os.Getenv("POSTGRES_TEST_DSN")
@@ -301,4 +322,114 @@ func TestPostgresSemanticCache(t *testing.T) {
 	if len(candidates) != 0 {
 		t.Errorf("Expected 0 candidates after disable, got %d", len(candidates))
 	}
+}
+
+func TestPostgresLimitRules(t *testing.T) {
+	repo := openMigratedPostgres(t)
+	ctx := context.Background()
+	limitRepo := repo.LimitRules()
+
+	rule := &controlstate.LimitRule{
+		ID:        "pg-rule-1",
+		Scope:     controlstate.ScopeAPIKey,
+		TargetID:  "pg-key-1",
+		Dimension: controlstate.DimensionRPM,
+		Window:    controlstate.Window1M,
+		Limit:     100,
+		Enabled:   true,
+	}
+	if err := limitRepo.Save(ctx, rule); err != nil {
+		t.Fatalf("save limit rule: %v", err)
+	}
+
+	rules, err := limitRepo.ListByTarget(ctx, controlstate.ScopeAPIKey, "pg-key-1")
+	if err != nil {
+		t.Fatalf("list limit rules: %v", err)
+	}
+	if len(rules) != 1 || rules[0].ID != "pg-rule-1" || rules[0].Limit != 100 {
+		t.Fatalf("unexpected limit rules: %+v", rules)
+	}
+
+	badRule := *rule
+	badRule.ID = "pg-rule-bad"
+	badRule.Dimension = controlstate.DimensionProviderBalance
+	if err := limitRepo.Save(ctx, &badRule); err == nil {
+		t.Fatalf("expected unsupported dimension error")
+	}
+
+	if err := limitRepo.Delete(ctx, "pg-rule-1"); err != nil {
+		t.Fatalf("delete limit rule: %v", err)
+	}
+	rules, err = limitRepo.ListByTarget(ctx, controlstate.ScopeAPIKey, "pg-key-1")
+	if err != nil {
+		t.Fatalf("list after delete: %v", err)
+	}
+	if len(rules) != 0 {
+		t.Fatalf("expected no rules after delete, got %d", len(rules))
+	}
+}
+
+func TestPostgresSessionBlacklist(t *testing.T) {
+	repo := openMigratedPostgres(t)
+	ctx := context.Background()
+	blacklist := repo.SessionBlacklist()
+
+	blocked, err := blacklist.IsBlacklisted(ctx, "pg-session-1")
+	if err != nil {
+		t.Fatalf("initial blacklist check: %v", err)
+	}
+	if blocked {
+		t.Fatalf("expected session to start unblocked")
+	}
+
+	err = blacklist.Blacklist(ctx, &controlstate.SessionBlacklistRecord{
+		SessionHash: "pg-session-1",
+		Reason:      "logout",
+		ExpiresAt:   time.Now().Add(time.Hour).UTC(),
+	})
+	if err != nil {
+		t.Fatalf("blacklist active session: %v", err)
+	}
+	blocked, err = blacklist.IsBlacklisted(ctx, "pg-session-1")
+	if err != nil || !blocked {
+		t.Fatalf("expected active blacklist, blocked=%v err=%v", blocked, err)
+	}
+
+	err = blacklist.Blacklist(ctx, &controlstate.SessionBlacklistRecord{
+		SessionHash: "pg-session-expired",
+		Reason:      "logout",
+		ExpiresAt:   time.Now().Add(-time.Hour).UTC(),
+	})
+	if err != nil {
+		t.Fatalf("blacklist expired session: %v", err)
+	}
+	blocked, err = blacklist.IsBlacklisted(ctx, "pg-session-expired")
+	if err != nil || blocked {
+		t.Fatalf("expected expired session unblocked, blocked=%v err=%v", blocked, err)
+	}
+	purged, err := blacklist.PurgeExpired(ctx)
+	if err != nil {
+		t.Fatalf("purge expired: %v", err)
+	}
+	if purged < 1 {
+		t.Fatalf("expected at least one purged row, got %d", purged)
+	}
+}
+
+func openMigratedPostgres(t *testing.T) *Repository {
+	t.Helper()
+	dsn := os.Getenv("POSTGRES_TEST_DSN")
+	if dsn == "" {
+		t.Skip("Skipping postgres integration test because POSTGRES_TEST_DSN is not set")
+	}
+	ctx := context.Background()
+	repo, err := Open(ctx, dsn)
+	if err != nil {
+		t.Fatalf("open postgres: %v", err)
+	}
+	t.Cleanup(func() { _ = repo.Close() })
+	if err := repo.Migrate(ctx); err != nil {
+		t.Fatalf("migrate postgres: %v", err)
+	}
+	return repo
 }

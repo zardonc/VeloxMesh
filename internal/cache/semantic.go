@@ -3,7 +3,9 @@ package cache
 import (
 	"context"
 	"encoding/binary"
+	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"veloxmesh/internal/controlstate"
@@ -54,18 +56,15 @@ func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, 
 
 	// 2. If vector adapter is configured, use it for search
 	if s.vector != nil {
-		results, err := s.vector.Search(ctx, "semantic_cache", inputVector, s.config.MaxCandidates)
+		results, err := s.vector.Search(ctx, vectorCollection(scope, model), inputVector, s.config.MaxCandidates)
 		if err != nil {
 			// Log error (in a real app via observability/logger), degrade gracefully to miss
 			return nil, nil
 		}
-		// In a real implementation, we would parse results and match them up with SQLite or return directly.
-		// Since LanceDB is disabled on CGO=0, this will just return the error above.
-		if len(results) == 0 {
-			return nil, nil
+		entry, err := s.lookupVectorResult(ctx, scope, model, results)
+		if err != nil || entry != nil {
+			return entry, err
 		}
-		// For now, if somehow it returned results, we map it back (stub)
-		return nil, nil 
 	}
 
 	// 3. Fallback to SQLite (original behavior)
@@ -141,18 +140,50 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 		if usageID != nil {
 			meta["usage_id"] = *usageID
 		}
-		
-		err := s.vector.Insert(ctx, "semantic_cache", [][]float32{vector}, []map[string]interface{}{meta})
+
+		if err := s.repo.Store(ctx, entry); err != nil {
+			return err
+		}
+		err := s.vector.Insert(ctx, vectorCollection(scope, model), [][]float32{vector}, []map[string]interface{}{meta})
 		if err != nil {
 			// Log error but do not fail the store operation if degraded
-			return nil 
+			return nil
 		}
-		// In a real implementation we might also store in SQLite, or just return.
-		// Since LanceDB is disabled on CGO=0, this will just return the error above.
 		return nil
 	}
 
 	return s.repo.Store(ctx, entry)
+}
+
+func (s *SemanticCacheService) lookupVectorResult(ctx context.Context, scope, model string, results []map[string]interface{}) (*controlstate.SemanticCacheEntry, error) {
+	candidates, err := s.repo.ListCandidates(ctx, scope, model)
+	if err != nil {
+		return nil, err
+	}
+	byID := make(map[string]*controlstate.SemanticCacheEntry, len(candidates))
+	for _, candidate := range candidates {
+		byID[candidate.ID] = candidate
+	}
+	for _, result := range results {
+		score, hasScore := result["score"].(float64)
+		if hasScore && float32(score) < s.config.Threshold {
+			continue
+		}
+		id, _ := result["id"].(string)
+		if entry := byID[id]; entry != nil {
+			_ = s.repo.RecordHit(ctx, entry.ID)
+			return entry, nil
+		}
+	}
+	return nil, nil
+}
+
+func vectorCollection(scope, model string) string {
+	return fmt.Sprintf("semantic_cache:%s:%s", safeCollectionPart(scope), safeCollectionPart(model))
+}
+
+func safeCollectionPart(value string) string {
+	return strings.NewReplacer(":", "_", "\n", "_", "\r", "_").Replace(value)
 }
 
 func cosineSimilarity(a, b []float32) float32 {
