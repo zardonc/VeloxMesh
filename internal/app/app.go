@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 	"veloxmesh/internal/admission"
-	"veloxmesh/internal/cache"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/controlstate/postgres"
@@ -26,7 +25,6 @@ import (
 	"veloxmesh/internal/providers/anthropic"
 	"veloxmesh/internal/providers/gemini"
 	"veloxmesh/internal/providers/openai"
-	"veloxmesh/internal/storage"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -183,60 +181,7 @@ func New() (*App, error) {
 		admissionCtrl = admission.NewPassThroughController()
 	}
 
-	var semanticCache *cache.SemanticCacheService
-	if cfg.SemanticCacheEnabled && repo != nil && cfg.SemanticCacheProvider != "" {
-		if snapshot := m.Snapshot(); snapshot != nil && snapshot.Registry != nil {
-			adapter, err := snapshot.Registry.Get(cfg.SemanticCacheProvider)
-			if err == nil {
-				if embedAdapter, ok := adapter.(providers.EmbedAdapter); ok {
-					var vectorAdapter storage.VectorAdapter
-					if cfg.SemanticCacheVectorStore == "lancedb" {
-						lancedbAdapter, err := storage.NewLanceDBVectorAdapter("data/lancedb")
-						if err != nil {
-							logger.Warn("failed to initialize LanceDB (Plan 3 Edge only); vector capabilities degraded", "error", err)
-							vectorAdapter = storage.NewDegradedVectorAdapter()
-						} else {
-							vectorAdapter = lancedbAdapter
-						}
-					} else if cfg.SemanticCacheVectorStore == "qdrant" {
-						qdrantAdapter, err := storage.NewQdrantVectorAdapter(cfg.QdrantAddr, cfg.QdrantAPIKey)
-						if err != nil {
-							logger.Warn("failed to initialize Qdrant; evaluating fallback", "error", err)
-							if cfg.RedisEnabled {
-								redisVSSAdapter, fallbackErr := storage.NewRedisVSSVectorAdapter(context.Background(), cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB, cfg.RedisNamespace)
-								if fallbackErr != nil {
-									logger.Warn("failed to initialize Redis VSS fallback; vector capabilities degraded", "error", fallbackErr)
-									vectorAdapter = storage.NewDegradedVectorAdapter()
-								} else {
-									logger.Info("activated Redis VSS fallback for vector store")
-									vectorAdapter = redisVSSAdapter
-								}
-							} else {
-								vectorAdapter = storage.NewDegradedVectorAdapter()
-							}
-						} else {
-							vectorAdapter = qdrantAdapter
-						}
-					} else {
-						vectorAdapter = storage.NewNoopVectorAdapter()
-					}
-
-					semanticCache = cache.NewSemanticCacheService(cache.SemanticCacheConfig{
-						Enabled:       true,
-						Threshold:     0.9,
-						MaxCandidates: 10,
-						TTL:           24 * time.Hour,
-					}, repo.SemanticCache(), vectorAdapter, embedAdapter)
-				} else {
-					logger.Warn("semantic cache provider is not an embed adapter", "provider", cfg.SemanticCacheProvider)
-				}
-			} else {
-				logger.Warn("semantic cache provider not found", "provider", cfg.SemanticCacheProvider)
-			}
-		} else {
-			logger.Warn("cannot initialize semantic cache: provider registry not ready")
-		}
-	}
+	semanticCache := newSemanticCacheService(context.Background(), cfg, logger, m, repo)
 
 	var lagReporter handlers.LagReporter
 	var consumer *replication.Consumer

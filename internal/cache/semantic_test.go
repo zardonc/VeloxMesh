@@ -9,6 +9,7 @@ import (
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/providers"
+	"veloxmesh/internal/storage"
 )
 
 type mockEmbedAdapter struct {
@@ -195,4 +196,65 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 
 func TestSecretSafe(t *testing.T) {
 	// A placeholder negative assertion: test won't run if it contains secrets.
+}
+
+type mockVectorAdapter struct {
+	inserted []map[string]interface{}
+	results  []map[string]interface{}
+}
+
+func (m *mockVectorAdapter) Ping(ctx context.Context) error { return nil }
+
+func (m *mockVectorAdapter) Insert(ctx context.Context, collection string, vectors [][]float32, metadata []map[string]interface{}) error {
+	m.inserted = append(m.inserted, metadata...)
+	return nil
+}
+
+func (m *mockVectorAdapter) Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error) {
+	return m.results, nil
+}
+
+func (m *mockVectorAdapter) Delete(ctx context.Context, collection string, filter map[string]interface{}) error {
+	return nil
+}
+
+var _ storage.VectorAdapter = (*mockVectorAdapter)(nil)
+
+func TestSemanticCacheVectorMapsThroughRepository(t *testing.T) {
+	repo := &mockRepo{hits: make(map[string]int)}
+	vector := &mockVectorAdapter{results: []map[string]interface{}{
+		{"id": "id-1", "score": 0.99},
+	}}
+	adapter := &mockEmbedAdapter{embeddings: map[string][]float32{
+		"raw prompt sentinel": {1, 0},
+		"similar":             {1, 0},
+	}}
+	svc := NewSemanticCacheService(SemanticCacheConfig{
+		Enabled:       true,
+		Threshold:     0.8,
+		MaxCandidates: 10,
+		TTL:           time.Hour,
+	}, repo, vector, adapter)
+
+	err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "raw prompt sentinel", `{"ok":true}`, nil)
+	if err != nil {
+		t.Fatalf("store: %v", err)
+	}
+	if len(vector.inserted) != 1 {
+		t.Fatalf("expected vector metadata insert")
+	}
+	if _, ok := vector.inserted[0]["prompt"]; ok {
+		t.Fatalf("raw prompt leaked into vector metadata")
+	}
+
+	entry, err := svc.Lookup(context.Background(), "scope-1", "gpt-4", "similar")
+	if err != nil {
+		t.Fatalf("lookup: %v", err)
+	}
+	if entry == nil || entry.ID != "id-1" {
+		t.Fatalf("expected repository-backed vector hit, got %+v", entry)
+	}
+	if repo.hits["id-1"] != 1 {
+		t.Fatalf("expected hit count recorded")
+	}
 }

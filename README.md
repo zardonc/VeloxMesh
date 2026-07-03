@@ -106,6 +106,15 @@ OPENAI_PRIMARY_API_KEY=your-provider-key
 
 For local development, the default gateway address is `:8080`.
 
+For the PostgreSQL/pgvector deployment option, use the dedicated example instead:
+
+```bash
+cp .env.postgres.example .env
+docker compose -f docker-compose.postgres.yml up -d
+```
+
+Replace all placeholder passwords, DSNs, encryption keys, and provider keys before running the gateway.
+
 ### 3. Run the Gateway
 
 ```bash
@@ -171,6 +180,34 @@ Common settings:
 | `QDRANT_ADDR` | Qdrant server address for vector features |
 
 Keep secrets in environment variables or local secret stores. Do not commit real provider keys.
+
+PostgreSQL settings live in `.env.postgres.example` so the default example stays focused on the SQLite-first local path.
+
+### PostgreSQL Migration And Smoke
+
+Plan 4 migration uses external DSNs only:
+
+```bash
+go run ./cmd/controlstate-migrate \
+  -sqlite "${SQLITE_DSN}" \
+  -postgres "${POSTGRES_DSN}"
+```
+
+The migrator upserts supported control-state tables and stops on the first failed table or record. Its report lists completed tables, failed table, record key, root error, and repair guidance. It does not auto-rollback completed tables and does not skip failed records; fix the reported source record or target constraint, then rerun the same command.
+
+Supported migration scope: provider configs, encrypted provider secrets, routing config, API keys, provider model rates, usage records, semantic cache records/metadata, fallback log state, limit rules, and session blacklist.
+
+Run the gated Plan 4 smoke with operator-supplied values:
+
+```bash
+POSTGRES_TEST_DSN="${POSTGRES_DSN}" \
+PLAN4_CONTROL_STATE_ENCRYPTION_KEY="${CONTROL_STATE_ENCRYPTION_KEY}" \
+PLAN4_PROVIDER_API_KEY="${PROVIDER_API_KEY}" \
+PLAN4_DEV_API_KEY="${DEV_API_KEY}" \
+go test -timeout 60s ./tests/integration -run TestPlan4PostgresSmoke -count=1
+```
+
+Or use `scripts/smoke/plan4-postgres.sh`.
 
 ## Testing
 

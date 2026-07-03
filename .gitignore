@@ -16,6 +16,7 @@ bin/
 *.exe
 veloxmesh
 .gocache/
+.cache/
 
 # Environment variables
 .env

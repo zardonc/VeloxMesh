@@ -20,24 +20,36 @@ func Open(ctx context.Context, dsn string) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, err
+	}
 	return &Repository{pool: pool}, nil
 }
 
 func (r *Repository) SemanticRules() controlstate.SemanticRuleStore {
-	return nil // TODO: implement for postgres if needed
+	return &semanticRuleRepo{pool: r.pool}
 }
 
 func (r *Repository) LimitRules() controlstate.LimitRuleRepository {
-	return nil // Deferred for Postgres
+	return &limitRuleRepo{pool: r.pool}
 }
 
 func (r *Repository) SessionBlacklist() controlstate.SessionBlacklistRepository {
-	return nil // Deferred for Postgres
+	return &sessionBlacklistRepo{pool: r.pool}
 }
 
 func (r *Repository) Close() error {
 	r.pool.Close()
 	return nil
+}
+
+func (r *Repository) Ping(ctx context.Context) error {
+	return r.pool.Ping(ctx)
+}
+
+func (r *Repository) Migrate(ctx context.Context) error {
+	return NewMigrator(r.pool).Migrate(ctx)
 }
 
 func (r *Repository) BeginTx(ctx context.Context) (controlstate.Transaction, error) {

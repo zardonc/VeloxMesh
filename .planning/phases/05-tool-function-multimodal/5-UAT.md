@@ -1,3 +1,10 @@
+---
+status: complete
+phase: 05-tool-function-multimodal
+updated: 2026-07-03T14:13:05.9391091-07:00
+audit_note: Legacy UAT format normalized after confirming the recorded Anthropic RoleTool gap is closed in current code.
+---
+
 # Phase 5 UAT Report: Tool Calling & Multimodal Capabilities
 
 ## 1. Test Overview
@@ -42,8 +49,11 @@ Since no actual Claude credentials were provided for live testing, a direct code
 - **[CRITICAL ISSUE FOUND] Tool Result Input**: Anthropic expects tool results to be returned as `{"type": "tool_result", "tool_use_id": "..."}` under the `user` role. **VeloxMesh's `adapter.go` does not map `llm.RoleTool` at all**, meaning if a user attempts to submit a completed Tool Result back to Claude, the request will drop the content or fail. 
 
 ## 3. Outstanding Issues
-1. **Claude Tool Result Mapping**: `adapter.go` must be updated to handle `llm.RoleTool` and format it as an Anthropic `tool_result` content block. Currently, the gateway is incapable of completing multi-turn Tool Calling loops for Claude.
+None.
+
+Resolved during later implementation:
+
+1. **Claude Tool Result Mapping**: Current `internal/providers/anthropic/adapter.go` handles `llm.RoleTool` and formats it as an Anthropic `tool_result` content block via `anthropic.NewToolResultBlock(subMsg.ToolCallID, subMsg.Content, false)`. Related packages pass `go test -timeout 60s ./internal/providers/anthropic ./internal/http/handlers ./internal/routing ./tests/integration`.
 
 ## 4. Next Steps
-- Address the `RoleTool` mapping gap in `internal/providers/anthropic/adapter.go`.
-- Continue to Phase 6 if bug fixes are to be deferred.
+- No Phase 05 UAT action remains. Phase 05 is part of shipped v5; this file was stale because it used the legacy UAT format without machine-readable frontmatter.

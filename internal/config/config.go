@@ -3,10 +3,8 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -97,11 +95,16 @@ type Config struct {
 	RedisDegradeToLocal bool   `json:"redis_degrade_to_local"`
 
 	// Phase 4 Semantic Cache Fields
-	SemanticCacheEnabled      bool   `json:"semantic_cache_enabled"`
-	SemanticCacheProvider     string `json:"semantic_cache_provider"`
-	SemanticCacheVectorStore  string `json:"semantic_cache_vector_store"`
-	QdrantAddr                string `json:"qdrant_addr"`
-	QdrantAPIKey              string `json:"qdrant_api_key"`
+	SemanticCacheEnabled         bool   `json:"semantic_cache_enabled"`
+	SemanticCacheProvider        string `json:"semantic_cache_provider"`
+	SemanticCacheVectorStore     string `json:"semantic_cache_vector_store"`
+	SemanticCacheVectorDimension int    `json:"semantic_cache_vector_dimension"`
+	PGVectorIndexType            string `json:"pgvector_index_type"`
+	PGVectorHNSWM                int    `json:"pgvector_hnsw_m"`
+	PGVectorHNSWEFConstruction   int    `json:"pgvector_hnsw_ef_construction"`
+	PGVectorSearchEF             int    `json:"pgvector_search_ef"`
+	QdrantAddr                   string `json:"qdrant_addr"`
+	QdrantAPIKey                 string `json:"qdrant_api_key"`
 
 	// Phase 8 Semantic Pipeline
 	SemanticPipelineConfigFile string `json:"semantic_pipeline_config_file"`
@@ -135,11 +138,16 @@ func LoadConfig() (*Config, error) {
 		RedisAuthCacheTTL:   getEnv("REDIS_AUTH_CACHE_TTL", "5m"),
 		RedisDegradeToLocal: getEnv("REDIS_DEGRADE_TO_LOCAL", "true") == "true",
 
-		SemanticCacheEnabled:     getEnv("SEMANTIC_CACHE_ENABLED", "false") == "true",
-		SemanticCacheProvider:    getEnv("SEMANTIC_CACHE_PROVIDER", ""),
-		SemanticCacheVectorStore: getEnv("SEMANTIC_CACHE_VECTOR_STORE", ""),
-		QdrantAddr:               getEnv("QDRANT_ADDR", ""),
-		QdrantAPIKey:             getEnv("QDRANT_API_KEY", ""),
+		SemanticCacheEnabled:         getEnv("SEMANTIC_CACHE_ENABLED", "false") == "true",
+		SemanticCacheProvider:        getEnv("SEMANTIC_CACHE_PROVIDER", ""),
+		SemanticCacheVectorStore:     getEnv("SEMANTIC_CACHE_VECTOR_STORE", ""),
+		SemanticCacheVectorDimension: getEnvInt("SEMANTIC_CACHE_VECTOR_DIMENSION", defaultSemanticCacheVectorDimension),
+		PGVectorIndexType:            getEnv("PGVECTOR_INDEX_TYPE", defaultPGVectorIndexType),
+		PGVectorHNSWM:                getEnvInt("PGVECTOR_HNSW_M", defaultPGVectorHNSWM),
+		PGVectorHNSWEFConstruction:   getEnvInt("PGVECTOR_HNSW_EF_CONSTRUCTION", defaultPGVectorHNSWEFConstruction),
+		PGVectorSearchEF:             getEnvInt("PGVECTOR_SEARCH_EF", defaultPGVectorSearchEF),
+		QdrantAddr:                   getEnv("QDRANT_ADDR", ""),
+		QdrantAPIKey:                 getEnv("QDRANT_API_KEY", ""),
 
 		SemanticPipelineConfigFile: getEnv("SEMANTIC_PIPELINE_CONFIG_FILE", ""),
 	}
@@ -154,12 +162,12 @@ func LoadConfig() (*Config, error) {
 		var fileCfg struct {
 			MultiNodeEnabled *bool             `json:"multi_node_enabled"`
 			NodeID           string            `json:"node_id"`
-			RoutingStrategy string            `json:"routing_strategy"`
-			DefaultProvider string            `json:"default_provider"`
-			FallbackEnabled *bool             `json:"fallback_enabled"`
-			MaxAttempts     *int              `json:"max_attempts"`
-			HealthCheck     HealthCheckConfig `json:"health_check"`
-			Providers       []ProviderConfig  `json:"providers"`
+			RoutingStrategy  string            `json:"routing_strategy"`
+			DefaultProvider  string            `json:"default_provider"`
+			FallbackEnabled  *bool             `json:"fallback_enabled"`
+			MaxAttempts      *int              `json:"max_attempts"`
+			HealthCheck      HealthCheckConfig `json:"health_check"`
+			Providers        []ProviderConfig  `json:"providers"`
 
 			ControlStateBackend          string `json:"control_state_backend"`
 			ControlStateDSN              string `json:"control_state_dsn"`
@@ -178,11 +186,16 @@ func LoadConfig() (*Config, error) {
 			RedisAuthCacheTTL   string `json:"redis_auth_cache_ttl"`
 			RedisDegradeToLocal *bool  `json:"redis_degrade_to_local"`
 
-			SemanticCacheEnabled      *bool  `json:"semantic_cache_enabled"`
-			SemanticCacheProvider     string `json:"semantic_cache_provider"`
-			SemanticCacheVectorStore  string `json:"semantic_cache_vector_store"`
-			QdrantAddr                string `json:"qdrant_addr"`
-			QdrantAPIKey              string `json:"qdrant_api_key"`
+			SemanticCacheEnabled         *bool  `json:"semantic_cache_enabled"`
+			SemanticCacheProvider        string `json:"semantic_cache_provider"`
+			SemanticCacheVectorStore     string `json:"semantic_cache_vector_store"`
+			SemanticCacheVectorDimension *int   `json:"semantic_cache_vector_dimension"`
+			PGVectorIndexType            string `json:"pgvector_index_type"`
+			PGVectorHNSWM                *int   `json:"pgvector_hnsw_m"`
+			PGVectorHNSWEFConstruction   *int   `json:"pgvector_hnsw_ef_construction"`
+			PGVectorSearchEF             *int   `json:"pgvector_search_ef"`
+			QdrantAddr                   string `json:"qdrant_addr"`
+			QdrantAPIKey                 string `json:"qdrant_api_key"`
 
 			SemanticPipelineConfigFile string `json:"semantic_pipeline_config_file"`
 		}
@@ -270,6 +283,21 @@ func LoadConfig() (*Config, error) {
 		}
 		if fileCfg.SemanticCacheVectorStore != "" {
 			cfg.SemanticCacheVectorStore = fileCfg.SemanticCacheVectorStore
+		}
+		if fileCfg.SemanticCacheVectorDimension != nil {
+			cfg.SemanticCacheVectorDimension = *fileCfg.SemanticCacheVectorDimension
+		}
+		if fileCfg.PGVectorIndexType != "" {
+			cfg.PGVectorIndexType = fileCfg.PGVectorIndexType
+		}
+		if fileCfg.PGVectorHNSWM != nil {
+			cfg.PGVectorHNSWM = *fileCfg.PGVectorHNSWM
+		}
+		if fileCfg.PGVectorHNSWEFConstruction != nil {
+			cfg.PGVectorHNSWEFConstruction = *fileCfg.PGVectorHNSWEFConstruction
+		}
+		if fileCfg.PGVectorSearchEF != nil {
+			cfg.PGVectorSearchEF = *fileCfg.PGVectorSearchEF
 		}
 		if fileCfg.QdrantAddr != "" {
 			cfg.QdrantAddr = fileCfg.QdrantAddr
@@ -363,9 +391,31 @@ func applyDefaults(cfg *Config) {
 			cfg.MaxAttempts = 1
 		}
 	}
+
+	applySemanticDefaults(cfg)
+}
+
+func applySemanticDefaults(cfg *Config) {
+	if cfg.SemanticCacheVectorDimension == 0 {
+		cfg.SemanticCacheVectorDimension = defaultSemanticCacheVectorDimension
+	}
+	if cfg.PGVectorIndexType == "" {
+		cfg.PGVectorIndexType = defaultPGVectorIndexType
+	}
+	if cfg.PGVectorHNSWM == 0 {
+		cfg.PGVectorHNSWM = defaultPGVectorHNSWM
+	}
+	if cfg.PGVectorHNSWEFConstruction == 0 {
+		cfg.PGVectorHNSWEFConstruction = defaultPGVectorHNSWEFConstruction
+	}
+	if cfg.PGVectorSearchEF == 0 {
+		cfg.PGVectorSearchEF = defaultPGVectorSearchEF
+	}
 }
 
 func (c *Config) Validate() error {
+	applySemanticDefaults(c)
+
 	if c.RoutingStrategy != "round-robin" && c.RoutingStrategy != "least-latency" {
 		return fmt.Errorf("invalid routing strategy")
 	}
@@ -383,6 +433,9 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("sqlite control state backend requires a DSN (e.g. file:veloxmesh.db?cache=shared). This is the default Plan 1 deployment")
 		}
 	}
+	if c.ControlStateBackend == "postgres" && c.ControlStateDSN == "" {
+		return fmt.Errorf("postgres control state backend requires a DSN")
+	}
 	if c.ControlStateBackend == "sqlite" || c.ControlStateBackend == "postgres" {
 		if c.ControlStateEncryptionKey != "" && len(c.ControlStateEncryptionKey) != 32 {
 			return fmt.Errorf("control state encryption key must be exactly 32 bytes (required when durable backend is used)")
@@ -399,10 +452,8 @@ func (c *Config) Validate() error {
 	seen := make(map[string]bool)
 	defaultFound := false
 
-	if c.SemanticCacheEnabled && c.SemanticCacheVectorStore == "qdrant" {
-		if c.QdrantAddr == "" {
-			return fmt.Errorf("qdrant_addr is required when semantic_cache_vector_store is qdrant")
-		}
+	if err := validateSemanticCacheConfig(c); err != nil {
+		return err
 	}
 
 	for i := range c.Providers {
@@ -438,142 +489,4 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
-}
-
-func validateProvider(p *ProviderConfig) error {
-	if p.ID == "" {
-		return fmt.Errorf("empty provider id")
-	}
-	if p.Type != "openai-compatible" && p.Type != "anthropic" && p.Type != "gemini" {
-		return fmt.Errorf("unsupported provider type for %s", p.ID)
-	}
-	if err := validateProviderBaseURL(p.ID, p.BaseURL); err != nil {
-		return err
-	}
-	if err := validateProviderModels(p); err != nil {
-		return err
-	}
-	if p.Timeout != "" {
-		if err := validateDurationField(p.Timeout, fmt.Sprintf("provider %s timeout", p.ID)); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func validateProviderBaseURL(id, baseURL string) error {
-	if baseURL == "" {
-		return fmt.Errorf("missing base URL for %s", id)
-	}
-	u, err := url.ParseRequestURI(baseURL)
-	if err != nil {
-		return fmt.Errorf("invalid base URL for %s", id)
-	}
-	if u.Scheme != "http" && u.Scheme != "https" {
-		return fmt.Errorf("base URL must use http or https for %s", id)
-	}
-	if u.Host == "" {
-		return fmt.Errorf("base URL host cannot be empty for %s", id)
-	}
-	return nil
-}
-
-func validateProviderModels(p *ProviderConfig) error {
-	if len(p.Models) == 0 {
-		return fmt.Errorf("missing models for %s", p.ID)
-	}
-	if p.DefaultModel != "" {
-		found := false
-		for _, m := range p.Models {
-			if m == p.DefaultModel {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return fmt.Errorf("default model %q not found in models for %s", p.DefaultModel, p.ID)
-		}
-	}
-	return nil
-}
-
-func validateFallback(c *Config) error {
-	if c.MaxAttempts < 1 {
-		return fmt.Errorf("fallback max_attempts must be >= 1")
-	}
-	if !c.FallbackEnabled && c.MaxAttempts > 1 {
-		return fmt.Errorf("explicit multi-attempt fallback setting when fallback is disabled")
-	}
-	if c.FallbackEnabled && c.MaxAttempts > len(c.Providers) {
-		return fmt.Errorf("fallback max_attempts greater than configured provider count")
-	}
-	return nil
-}
-
-func validateHealthCheckConfig(hc *HealthCheckConfig) error {
-	if err := validateDurationField(hc.Interval, "health_check.interval"); err != nil {
-		return err
-	}
-	if err := validateDurationField(hc.Timeout, "health_check.timeout"); err != nil {
-		return err
-	}
-	if err := validateDurationField(hc.InitialDelay, "health_check.initial_delay"); err != nil {
-		return err
-	}
-	if err := validateDurationField(hc.StaleAfter, "health_check.stale_after"); err != nil {
-		return err
-	}
-	if hc.FailureThreshold < 1 {
-		return fmt.Errorf("health_check.failure_threshold must be >= 1")
-	}
-	if hc.SuccessThreshold < 1 {
-		return fmt.Errorf("health_check.success_threshold must be >= 1")
-	}
-	if hc.MaxConcurrency < 1 {
-		return fmt.Errorf("health_check.max_concurrency must be >= 1")
-	}
-	return nil
-}
-
-func validateProviderHealthCheck(p *ProviderConfig) error {
-	if p.HealthCheck.Interval != "" {
-		if err := validateDurationField(p.HealthCheck.Interval, fmt.Sprintf("provider %s health_check.interval", p.ID)); err != nil {
-			return err
-		}
-	}
-	if p.HealthCheck.Timeout != "" {
-		if err := validateDurationField(p.HealthCheck.Timeout, fmt.Sprintf("provider %s health_check.timeout", p.ID)); err != nil {
-			return err
-		}
-	}
-	if p.HealthCheck.InitialDelay != "" {
-		if err := validateDurationField(p.HealthCheck.InitialDelay, fmt.Sprintf("provider %s health_check.initial_delay", p.ID)); err != nil {
-			return err
-		}
-	}
-	if p.HealthCheck.FailureThreshold != 0 && p.HealthCheck.FailureThreshold < 1 {
-		return fmt.Errorf("provider %s health_check.failure_threshold must be >= 1", p.ID)
-	}
-	if p.HealthCheck.SuccessThreshold != 0 && p.HealthCheck.SuccessThreshold < 1 {
-		return fmt.Errorf("provider %s health_check.success_threshold must be >= 1", p.ID)
-	}
-	return nil
-}
-
-func validateDurationField(d, name string) error {
-	dur, err := time.ParseDuration(d)
-	if err != nil {
-		return fmt.Errorf("invalid duration for %s", name)
-	}
-	if dur < 0 {
-		return fmt.Errorf("duration for %s cannot be negative", name)
-	}
-	return nil
-}
-
-func getEnv(key, fallback string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-	return fallback
 }

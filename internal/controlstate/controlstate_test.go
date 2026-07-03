@@ -12,8 +12,8 @@ func TestPostgreSQLCapabilityProfile(t *testing.T) {
 	if !caps.DurableConfig || !caps.DistributedControlState {
 		t.Errorf("PostgreSQL should support durable and distributed control state")
 	}
-	if caps.SemanticCache || caps.RateLimits || caps.CostGovernance {
-		t.Errorf("PostgreSQL should not support semantic cache, rate limits, or cost governance in phase 3")
+	if !caps.SemanticCache || !caps.RateLimits || !caps.CostGovernance {
+		t.Errorf("PostgreSQL should report verified semantic cache, rate limit, and cost governance support")
 	}
 }
 

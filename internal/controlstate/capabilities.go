@@ -16,9 +16,9 @@ func PostgreSQLCapabilityProfile() CapabilityProfile {
 		DistributedControlState: true,
 		LocalOnly:               false,
 		RedisHotState:           false, // Redis capabilities are separate
-		SemanticCache:           false,
-		RateLimits:              false,
-		CostGovernance:          false,
+		SemanticCache:           true,
+		RateLimits:              true,
+		CostGovernance:          true,
 	}
 }
 
