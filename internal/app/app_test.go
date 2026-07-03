@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"veloxmesh/internal/controlstate"
@@ -109,5 +110,25 @@ func TestApp_ReloadProviders(t *testing.T) {
 	models := a.RuntimeProviderManager.GetAvailableModels()
 	if len(models) != 1 || models[0] != "gpt-4" {
 		t.Errorf("expected gpt-4 model, got %v", models)
+	}
+}
+
+func TestApp_PostgresControlStateFailsClosed(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+	t.Setenv("CONTROL_STATE_BACKEND", "postgres")
+	t.Setenv("CONTROL_STATE_DSN", "postgres://user:pass@127.0.0.1:1/db?sslmode=disable&connect_timeout=1")
+	t.Setenv("CONTROL_STATE_ENCRYPTION_KEY", "12345678901234567890123456789012")
+
+	_, err := New()
+	if err == nil {
+		t.Fatalf("expected postgres startup failure")
+	}
+	if !strings.Contains(err.Error(), "failed to open repository") {
+		t.Fatalf("expected repository open failure, got %v", err)
 	}
 }

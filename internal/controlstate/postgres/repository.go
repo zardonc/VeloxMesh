@@ -20,6 +20,10 @@ func Open(ctx context.Context, dsn string) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, err
+	}
 	return &Repository{pool: pool}, nil
 }
 
@@ -38,6 +42,10 @@ func (r *Repository) SessionBlacklist() controlstate.SessionBlacklistRepository 
 func (r *Repository) Close() error {
 	r.pool.Close()
 	return nil
+}
+
+func (r *Repository) Ping(ctx context.Context) error {
+	return r.pool.Ping(ctx)
 }
 
 func (r *Repository) BeginTx(ctx context.Context) (controlstate.Transaction, error) {

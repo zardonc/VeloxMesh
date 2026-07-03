@@ -106,6 +106,15 @@ OPENAI_PRIMARY_API_KEY=your-provider-key
 
 For local development, the default gateway address is `:8080`.
 
+For the PostgreSQL/pgvector deployment option, use the dedicated example instead:
+
+```bash
+cp .env.postgres.example .env
+docker compose -f docker-compose.postgres.yml up -d
+```
+
+Replace all placeholder passwords, DSNs, encryption keys, and provider keys before running the gateway.
+
 ### 3. Run the Gateway
 
 ```bash
@@ -171,6 +180,8 @@ Common settings:
 | `QDRANT_ADDR` | Qdrant server address for vector features |
 
 Keep secrets in environment variables or local secret stores. Do not commit real provider keys.
+
+PostgreSQL settings live in `.env.postgres.example` so the default example stays focused on the SQLite-first local path.
 
 ## Testing
 

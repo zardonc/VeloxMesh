@@ -1,0 +1,158 @@
+package config
+
+import (
+	"fmt"
+	"net/url"
+	"time"
+)
+
+func validateProvider(p *ProviderConfig) error {
+	if p.ID == "" {
+		return fmt.Errorf("empty provider id")
+	}
+	if p.Type != "openai-compatible" && p.Type != "anthropic" && p.Type != "gemini" {
+		return fmt.Errorf("unsupported provider type for %s", p.ID)
+	}
+	if err := validateProviderBaseURL(p.ID, p.BaseURL); err != nil {
+		return err
+	}
+	if err := validateProviderModels(p); err != nil {
+		return err
+	}
+	if p.Timeout != "" {
+		if err := validateDurationField(p.Timeout, fmt.Sprintf("provider %s timeout", p.ID)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateProviderBaseURL(id, baseURL string) error {
+	if baseURL == "" {
+		return fmt.Errorf("missing base URL for %s", id)
+	}
+	u, err := url.ParseRequestURI(baseURL)
+	if err != nil {
+		return fmt.Errorf("invalid base URL for %s", id)
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("base URL must use http or https for %s", id)
+	}
+	if u.Host == "" {
+		return fmt.Errorf("base URL host cannot be empty for %s", id)
+	}
+	return nil
+}
+
+func validateProviderModels(p *ProviderConfig) error {
+	if len(p.Models) == 0 {
+		return fmt.Errorf("missing models for %s", p.ID)
+	}
+	if p.DefaultModel == "" {
+		return nil
+	}
+	for _, m := range p.Models {
+		if m == p.DefaultModel {
+			return nil
+		}
+	}
+	return fmt.Errorf("default model %q not found in models for %s", p.DefaultModel, p.ID)
+}
+
+func validateFallback(c *Config) error {
+	if c.MaxAttempts < 1 {
+		return fmt.Errorf("fallback max_attempts must be >= 1")
+	}
+	if !c.FallbackEnabled && c.MaxAttempts > 1 {
+		return fmt.Errorf("explicit multi-attempt fallback setting when fallback is disabled")
+	}
+	if c.FallbackEnabled && c.MaxAttempts > len(c.Providers) {
+		return fmt.Errorf("fallback max_attempts greater than configured provider count")
+	}
+	return nil
+}
+
+func validateSemanticCacheConfig(c *Config) error {
+	if c.SemanticCacheVectorDimension <= 0 {
+		return fmt.Errorf("semantic_cache_vector_dimension must be >= 1")
+	}
+	if c.PGVectorHNSWM <= 0 || c.PGVectorHNSWEFConstruction <= 0 || c.PGVectorSearchEF <= 0 {
+		return fmt.Errorf("pgvector numeric settings must be >= 1")
+	}
+	if c.PGVectorIndexType != "hnsw" && c.PGVectorIndexType != "ivfflat" {
+		return fmt.Errorf("pgvector_index_type must be 'hnsw' or 'ivfflat'")
+	}
+	if !c.SemanticCacheEnabled {
+		return nil
+	}
+	switch c.SemanticCacheVectorStore {
+	case "", "lancedb", "qdrant", "pgvector":
+	default:
+		return fmt.Errorf("unsupported semantic_cache_vector_store: %s", c.SemanticCacheVectorStore)
+	}
+	if c.SemanticCacheVectorStore == "qdrant" && c.QdrantAddr == "" {
+		return fmt.Errorf("qdrant_addr is required when semantic_cache_vector_store is qdrant")
+	}
+	return nil
+}
+
+func validateHealthCheckConfig(hc *HealthCheckConfig) error {
+	if err := validateDurationField(hc.Interval, "health_check.interval"); err != nil {
+		return err
+	}
+	if err := validateDurationField(hc.Timeout, "health_check.timeout"); err != nil {
+		return err
+	}
+	if err := validateDurationField(hc.InitialDelay, "health_check.initial_delay"); err != nil {
+		return err
+	}
+	if err := validateDurationField(hc.StaleAfter, "health_check.stale_after"); err != nil {
+		return err
+	}
+	if hc.FailureThreshold < 1 {
+		return fmt.Errorf("health_check.failure_threshold must be >= 1")
+	}
+	if hc.SuccessThreshold < 1 {
+		return fmt.Errorf("health_check.success_threshold must be >= 1")
+	}
+	if hc.MaxConcurrency < 1 {
+		return fmt.Errorf("health_check.max_concurrency must be >= 1")
+	}
+	return nil
+}
+
+func validateProviderHealthCheck(p *ProviderConfig) error {
+	if p.HealthCheck.Interval != "" {
+		if err := validateDurationField(p.HealthCheck.Interval, fmt.Sprintf("provider %s health_check.interval", p.ID)); err != nil {
+			return err
+		}
+	}
+	if p.HealthCheck.Timeout != "" {
+		if err := validateDurationField(p.HealthCheck.Timeout, fmt.Sprintf("provider %s health_check.timeout", p.ID)); err != nil {
+			return err
+		}
+	}
+	if p.HealthCheck.InitialDelay != "" {
+		if err := validateDurationField(p.HealthCheck.InitialDelay, fmt.Sprintf("provider %s health_check.initial_delay", p.ID)); err != nil {
+			return err
+		}
+	}
+	if p.HealthCheck.FailureThreshold != 0 && p.HealthCheck.FailureThreshold < 1 {
+		return fmt.Errorf("provider %s health_check.failure_threshold must be >= 1", p.ID)
+	}
+	if p.HealthCheck.SuccessThreshold != 0 && p.HealthCheck.SuccessThreshold < 1 {
+		return fmt.Errorf("provider %s health_check.success_threshold must be >= 1", p.ID)
+	}
+	return nil
+}
+
+func validateDurationField(d, name string) error {
+	dur, err := time.ParseDuration(d)
+	if err != nil {
+		return fmt.Errorf("invalid duration for %s", name)
+	}
+	if dur < 0 {
+		return fmt.Errorf("duration for %s cannot be negative", name)
+	}
+	return nil
+}

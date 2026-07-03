@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"strings"
 	"testing"
 )
@@ -8,7 +9,7 @@ import (
 func TestConfigFallbackDefaults(t *testing.T) {
 	c1 := &Config{
 		ControlStateBackend: "disabled",
-		Providers: []ProviderConfig{{ID: "p1"}},
+		Providers:           []ProviderConfig{{ID: "p1"}},
 	}
 	c1.FallbackEnabled = len(c1.Providers) > 1
 	if c1.FallbackEnabled {
@@ -17,7 +18,7 @@ func TestConfigFallbackDefaults(t *testing.T) {
 
 	c2 := &Config{
 		ControlStateBackend: "disabled",
-		Providers: []ProviderConfig{{ID: "p1"}, {ID: "p2"}},
+		Providers:           []ProviderConfig{{ID: "p1"}, {ID: "p2"}},
 	}
 	c2.FallbackEnabled = len(c2.Providers) > 1
 	if !c2.FallbackEnabled {
@@ -28,9 +29,9 @@ func TestConfigFallbackDefaults(t *testing.T) {
 func TestConfigValidationSuccess(t *testing.T) {
 	c := &Config{
 		ControlStateBackend: "disabled",
-		RoutingStrategy: "round-robin",
-		FallbackEnabled: true,
-		MaxAttempts:     2,
+		RoutingStrategy:     "round-robin",
+		FallbackEnabled:     true,
+		MaxAttempts:         2,
 		HealthCheck: HealthCheckConfig{
 			Interval:         "30s",
 			Timeout:          "2s",
@@ -198,9 +199,9 @@ func TestConfigValidationFailures(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
 				ControlStateBackend: "disabled",
-				RoutingStrategy: "round-robin",
-				FallbackEnabled: true,
-				MaxAttempts:     2,
+				RoutingStrategy:     "round-robin",
+				FallbackEnabled:     true,
+				MaxAttempts:         2,
 				HealthCheck: HealthCheckConfig{
 					Interval:         "30s",
 					Timeout:          "2s",
@@ -244,7 +245,7 @@ func TestSecretSafety(t *testing.T) {
 
 	c := &Config{
 		ControlStateBackend: "disabled",
-		RoutingStrategy: "round-robin",
+		RoutingStrategy:     "round-robin",
 		HealthCheck: HealthCheckConfig{
 			Interval:         "30s",
 			Timeout:          "2s",
@@ -381,5 +382,111 @@ func TestRedisConfigEnv(t *testing.T) {
 	}
 	if cfg.RedisDegradeToLocal {
 		t.Errorf("expected degrade to local to be false")
+	}
+}
+
+func TestPlan4PostgresConfigDefaults(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+	t.Setenv("CONTROL_STATE_BACKEND", "postgres")
+	t.Setenv("CONTROL_STATE_DSN", "postgres://user:pass@localhost:5432/db?sslmode=disable")
+	t.Setenv("CONTROL_STATE_ENCRYPTION_KEY", "12345678901234567890123456789012")
+	t.Setenv("SEMANTIC_CACHE_ENABLED", "true")
+	t.Setenv("SEMANTIC_CACHE_VECTOR_STORE", "pgvector")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.SemanticCacheVectorDimension != 1536 {
+		t.Errorf("expected vector dimension 1536, got %d", cfg.SemanticCacheVectorDimension)
+	}
+	if cfg.PGVectorIndexType != "hnsw" {
+		t.Errorf("expected pgvector index hnsw, got %s", cfg.PGVectorIndexType)
+	}
+}
+
+func TestPlan4PostgresConfigValidationFailures(t *testing.T) {
+	tests := []struct {
+		name        string
+		modify      func(*Config)
+		expectedErr string
+	}{
+		{
+			name: "postgres dsn required",
+			modify: func(c *Config) {
+				c.ControlStateBackend = "postgres"
+				c.ControlStateDSN = ""
+				c.ControlStateEncryptionKey = "12345678901234567890123456789012"
+			},
+			expectedErr: "postgres control state backend requires a DSN",
+		},
+		{
+			name: "unsupported vector store",
+			modify: func(c *Config) {
+				c.SemanticCacheEnabled = true
+				c.SemanticCacheVectorStore = "unsupported"
+			},
+			expectedErr: "unsupported semantic_cache_vector_store",
+		},
+		{
+			name: "invalid vector dimension",
+			modify: func(c *Config) {
+				c.SemanticCacheVectorDimension = -1
+			},
+			expectedErr: "semantic_cache_vector_dimension must be >= 1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := validPlan4TestConfig()
+			tt.modify(c)
+			err := c.Validate()
+			if err == nil {
+				t.Fatalf("expected error containing %q, got nil", tt.expectedErr)
+			}
+			if !strings.Contains(err.Error(), tt.expectedErr) {
+				t.Errorf("expected error containing %q, got %q", tt.expectedErr, err.Error())
+			}
+		})
+	}
+}
+
+func TestEnvExamplePlan4SecretSafety(t *testing.T) {
+	data, err := os.ReadFile("../../.env.example")
+	if err != nil {
+		t.Fatalf("read .env.example: %v", err)
+	}
+	content := string(data)
+	for _, forbidden := range []string{"dev_postgres_secret", "dev_redis_secret", "vx_qdrant_secret", "sk-"} {
+		if strings.Contains(content, forbidden) {
+			t.Fatalf(".env.example contains forbidden secret marker %q", forbidden)
+		}
+	}
+}
+
+func validPlan4TestConfig() *Config {
+	return &Config{
+		ControlStateBackend: "disabled",
+		RoutingStrategy:     "round-robin",
+		MaxAttempts:         1,
+		HealthCheck: HealthCheckConfig{
+			Interval:         "30s",
+			Timeout:          "2s",
+			InitialDelay:     "0s",
+			FailureThreshold: 3,
+			SuccessThreshold: 1,
+			StaleAfter:       "0s",
+			MaxConcurrency:   4,
+		},
+		Providers: []ProviderConfig{{
+			ID:      "p1",
+			Type:    "openai-compatible",
+			BaseURL: "https://api.openai.com/v1",
+			Models:  []string{"m1"},
+		}},
 	}
 }

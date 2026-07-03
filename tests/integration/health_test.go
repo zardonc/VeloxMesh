@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -219,7 +220,7 @@ func TestTopologyEndpoint(t *testing.T) {
 	defer leader.Stop(context.Background())
 
 	lagReporter := &fakeLagReporter{elapsed: 1 * time.Second, pending: 0}
-	
+
 	handler := handlers.Topology(leader, lagReporter)
 
 	req := httptest.NewRequest(http.MethodGet, "/admin/v1/topology", nil)
@@ -254,14 +255,14 @@ func TestReadyzLagThreshold(t *testing.T) {
 
 	// Follower is lagged
 	lagReporter := &fakeLagReporter{elapsed: 10 * time.Second, pending: 0}
-	
+
 	// mock svc for Readyz
 	cfg := &config.Config{}
-	
+
 	healthStore := health.NewInMemoryStore()
 	rpm := controlstate.NewRuntimeProviderManager(cfg, nil, healthStore)
 	svc := gateway.NewService(rpm, nil, healthStore, false, 0, nil, nil, nil, rpm, nil)
-	
+
 	handler := handlers.Readyz(cfg, svc, follower, lagReporter)
 
 	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
@@ -284,5 +285,24 @@ func TestReadyzLagThreshold(t *testing.T) {
 	}
 	if _, ok := resp["role"]; ok {
 		t.Errorf("expected topology to not leak in readyz, found role")
+	}
+}
+
+func TestReadyzDoesNotLeakPlan4Topology(t *testing.T) {
+	cfg := &config.Config{RoutingStrategy: "round-robin"}
+	healthStore := health.NewInMemoryStore()
+	rpm := controlstate.NewRuntimeProviderManager(cfg, nil, healthStore)
+	svc := gateway.NewService(rpm, nil, healthStore, false, 0, nil, nil, nil, rpm, nil)
+	handler := handlers.Readyz(cfg, svc, coordination.NewNoopCoordinator(), nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	body := strings.ToLower(rec.Body.String())
+	for _, forbidden := range []string{"postgres", "pgvector", "primary", "replica", "leader", "follower", "node", "topology"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("readyz leaked %q in %s", forbidden, body)
+		}
 	}
 }
