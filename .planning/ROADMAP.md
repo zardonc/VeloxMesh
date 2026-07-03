@@ -89,10 +89,20 @@ Key deliverables:
 - Focused integration/smoke checks gated by externally supplied PostgreSQL test DSNs.
 
 Plans:
+**Wave 1**
 
 - [ ] 13-01-PLAN.md - Deployment, configuration, readiness, and operator runbook.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 13-02-PLAN.md - PostgreSQL repository parity and capability reporting.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 13-03-PLAN.md - pgvector semantic-cache/vector adapter path.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 13-04-PLAN.md - SQLite-to-PostgreSQL migration and Plan 4 smoke verification.
 
 ## Future Milestones
@@ -102,6 +112,7 @@ Plans:
 ## Gateway Runtime Modes
 
 VeloxMesh supports progressive deployment tiers:
+
 - **Plan 1 (Standalone Enhanced)**: SQLite + Redis Stack + Qdrant.
 - **Plan 2 (Multi-Node)**: Multi App + Redis Stack + SQLite + Qdrant.
 - **Plan 3 (Edge)**: SQLite + LanceDB behind `-tags lancedb`, Linux/macOS only.
