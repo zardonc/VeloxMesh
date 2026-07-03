@@ -5,10 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"veloxmesh/internal/controlstate/postgres"
 	"veloxmesh/internal/controlstate/sqlite"
 )
 
@@ -67,6 +72,99 @@ func TestMigrationStopsWithReport(t *testing.T) {
 	}
 }
 
+func TestMigrationToLivePostgres(t *testing.T) {
+	postgresDSN := os.Getenv("POSTGRES_TEST_DSN")
+	if postgresDSN == "" {
+		t.Skip("Skipping live postgres migration test because POSTGRES_TEST_DSN is not set")
+	}
+	postgresDSN = isolatedMigrationPostgresDSN(t, postgresDSN, "migration_live_success_test")
+	sqliteDSN := filepath.Join(t.TempDir(), "source.db")
+	source := migratedSQLiteFile(t, sqliteDSN)
+	insertFixture(t, source)
+	source.Close()
+
+	target, err := postgres.Open(context.Background(), postgresDSN)
+	if err != nil {
+		t.Fatalf("open postgres: %v", err)
+	}
+	if err := target.Migrate(context.Background()); err != nil {
+		t.Fatalf("migrate postgres: %v", err)
+	}
+	target.Close()
+
+	report, err := Migrate(context.Background(), Options{
+		SQLiteDSN:   sqliteDSN,
+		PostgresDSN: postgresDSN,
+	})
+	if err != nil {
+		t.Fatalf("live postgres migration: %v report=%+v", err, report)
+	}
+	if !contains(report.CompletedTables, "session_blacklist") {
+		t.Fatalf("expected all migration tables completed, got %+v", report.CompletedTables)
+	}
+}
+
+func TestMigrationLivePostgresStopsWithReport(t *testing.T) {
+	postgresDSN := os.Getenv("POSTGRES_TEST_DSN")
+	if postgresDSN == "" {
+		t.Skip("Skipping live postgres migration failure test because POSTGRES_TEST_DSN is not set")
+	}
+	postgresDSN = isolatedMigrationPostgresDSN(t, postgresDSN, "migration_live_failure_test")
+	sqliteDSN := filepath.Join(t.TempDir(), "bad-source.db")
+	source := migratedSQLiteFile(t, sqliteDSN)
+	insertFixture(t, source)
+	insertBadProviderSecret(t, source)
+	source.Close()
+	prepareLivePostgresTarget(t, postgresDSN)
+
+	report, err := Migrate(context.Background(), Options{
+		SQLiteDSN:   sqliteDSN,
+		PostgresDSN: postgresDSN,
+	})
+	if err == nil {
+		t.Fatalf("expected live postgres migration failure")
+	}
+	if report.FailedTable != "provider_secrets" || report.FailedRecord != "provider_id=missing-provider" {
+		t.Fatalf("unexpected live failure report: %+v", report)
+	}
+	if strings.Contains(report.RootError, "secret-value") {
+		t.Fatalf("report leaked secret material")
+	}
+}
+
+func prepareLivePostgresTarget(t *testing.T, postgresDSN string) {
+	t.Helper()
+	target, err := postgres.Open(context.Background(), postgresDSN)
+	if err != nil {
+		t.Fatalf("open postgres: %v", err)
+	}
+	defer target.Close()
+	if err := target.Migrate(context.Background()); err != nil {
+		t.Fatalf("migrate postgres: %v", err)
+	}
+}
+
+func isolatedMigrationPostgresDSN(t *testing.T, dsn, schema string) string {
+	t.Helper()
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		t.Fatalf("open postgres for schema setup: %v", err)
+	}
+	defer pool.Close()
+	if _, err := pool.Exec(ctx, "CREATE SCHEMA IF NOT EXISTS "+quotePostgresIdent(schema)); err != nil {
+		t.Fatalf("create postgres test schema: %v", err)
+	}
+	parsed, err := url.Parse(dsn)
+	if err != nil {
+		t.Fatalf("parse postgres dsn: %v", err)
+	}
+	query := parsed.Query()
+	query.Set("search_path", schema+",public")
+	parsed.RawQuery = query.Encode()
+	return parsed.String()
+}
+
 func migratedSQLite(t *testing.T) *sql.DB {
 	t.Helper()
 	db, err := sql.Open("sqlite", ":memory:")
@@ -75,6 +173,18 @@ func migratedSQLite(t *testing.T) *sql.DB {
 	}
 	if err := sqlite.NewMigrator(db).Migrate(context.Background()); err != nil {
 		t.Fatalf("migrate sqlite: %v", err)
+	}
+	return db
+}
+
+func migratedSQLiteFile(t *testing.T, dsn string) *sql.DB {
+	t.Helper()
+	db, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sqlite.NewMigrator(db).Migrate(context.Background()); err != nil {
+		t.Fatalf("migrate sqlite file: %v", err)
 	}
 	return db
 }
@@ -96,12 +206,27 @@ func insertFixture(t *testing.T, db *sql.DB) {
 	}
 }
 
+func insertBadProviderSecret(t *testing.T, db *sql.DB) {
+	t.Helper()
+	_, err := db.Exec(`
+		INSERT INTO provider_secrets (provider_id, ciphertext, nonce, key_id)
+		VALUES ('missing-provider', x'0909', x'0808', 'bad-key');
+	`)
+	if err != nil {
+		t.Fatalf("insert bad provider secret: %v", err)
+	}
+}
+
 func tableName(query string) string {
 	fields := strings.Fields(query)
 	if len(fields) >= 3 {
-		return fields[2]
+		return strings.Trim(fields[2], `"`)
 	}
 	return ""
+}
+
+func quotePostgresIdent(value string) string {
+	return `"` + strings.ReplaceAll(value, `"`, `""`) + `"`
 }
 
 func toKey(args ...interface{}) string {

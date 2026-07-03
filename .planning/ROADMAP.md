@@ -43,7 +43,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path.
 
 | Phase | Name | Requirements | Success Criteria |
 | --- | --- | --- | --- |
-| 13 | PostgreSQL Compatibility | PG-01, PG-02, PG-03, CTRL-01, CTRL-02, CTRL-03, VECT-01, VECT-02, MIGR-01, MIGR-02, TEST-01 | Operators can deploy Redis Stack + PostgreSQL + pgvector, migrate supported SQLite state, and serve chat traffic through the gateway using PostgreSQL-compatible storage paths. |
+| 13 | 4/4 | Complete    | 2026-07-03 |
 
 **Candidate plan slices:**
 
@@ -61,7 +61,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path.
 
 ### Phases
 
-- [ ] Phase 13: PostgreSQL Compatibility
+- [x] Phase 13: PostgreSQL Compatibility (completed 2026-07-03)
 
 ### Phase 13: PostgreSQL Compatibility
 
@@ -69,7 +69,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path.
 **Priority:** P3
 **Depends on:** Phase 12
 **Requirements:** PG-01, PG-02, PG-03, CTRL-01, CTRL-02, CTRL-03, VECT-01, VECT-02, MIGR-01, MIGR-02, TEST-01
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Success criteria:
 
@@ -91,19 +91,19 @@ Key deliverables:
 Plans:
 **Wave 1**
 
-- [ ] 13-01-PLAN.md - Deployment, configuration, readiness, and operator runbook.
+- [x] 13-01-PLAN.md - Deployment, configuration, readiness, and operator runbook.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 13-02-PLAN.md - PostgreSQL repository parity and capability reporting.
+- [x] 13-02-PLAN.md - PostgreSQL repository parity and capability reporting.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 13-03-PLAN.md - pgvector semantic-cache/vector adapter path.
+- [x] 13-03-PLAN.md - pgvector semantic-cache/vector adapter path.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 13-04-PLAN.md - SQLite-to-PostgreSQL migration and Plan 4 smoke verification.
+- [x] 13-04-PLAN.md - SQLite-to-PostgreSQL migration and Plan 4 smoke verification.
 
 ## Future Milestones
 

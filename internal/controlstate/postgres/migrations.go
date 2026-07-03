@@ -29,6 +29,7 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 	versionedFiles := []versionedMigration{
 		{version: 3, file: "migrations/postgres/0003_limits_sessions.sql"},
 		{version: 4, file: "migrations/postgres/0004_pgvector_semantic_cache.sql"},
+		{version: 5, file: "migrations/postgres/0005_semantic_rules.sql"},
 	}
 
 	tx, err := m.pool.Begin(ctx)
@@ -38,7 +39,7 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 	defer tx.Rollback(ctx)
 
 	var exists bool
-	err = tx.QueryRow(ctx, "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'schema_migrations')").Scan(&exists)
+	err = tx.QueryRow(ctx, "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = 'schema_migrations')").Scan(&exists)
 	if err != nil {
 		return err
 	}

@@ -90,10 +90,15 @@ func (p *PGVectorAdapter) Search(ctx context.Context, collection string, query [
 	if limit < 1 {
 		limit = 1
 	}
-	if p.searchEF > 0 {
-		_, _ = p.pool.Exec(ctx, fmt.Sprintf("SET hnsw.ef_search = %d", p.searchEF))
+	conn, err := p.pool.Acquire(ctx)
+	if err != nil {
+		return nil, err
 	}
-	rows, err := p.pool.Query(ctx, `
+	defer conn.Release()
+	if p.searchEF > 0 {
+		_, _ = conn.Exec(ctx, fmt.Sprintf("SET hnsw.ef_search = %d", p.searchEF))
+	}
+	rows, err := conn.Query(ctx, `
 		SELECT metadata, 1 - (embedding <=> $1::vector) AS score
 		FROM semantic_cache_vectors
 		WHERE collection = $2
@@ -138,7 +143,7 @@ func (p *PGVectorAdapter) ensureSchema(ctx context.Context, opts PGVectorOptions
 		CREATE TABLE IF NOT EXISTS semantic_cache_vectors (
 			id TEXT PRIMARY KEY,
 			collection TEXT NOT NULL,
-			embedding vector NOT NULL,
+			embedding vector(%d) NOT NULL,
 			metadata JSONB NOT NULL DEFAULT '{}',
 			updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 		);
@@ -146,7 +151,7 @@ func (p *PGVectorAdapter) ensureSchema(ctx context.Context, opts PGVectorOptions
 			ON semantic_cache_vectors (collection);
 		CREATE INDEX IF NOT EXISTS idx_semantic_cache_vectors_embedding_hnsw
 			ON semantic_cache_vectors USING hnsw (embedding vector_cosine_ops)
-			WITH (m = %d, ef_construction = %d);`, m, ef))
+			WITH (m = %d, ef_construction = %d);`, opts.Dimension, m, ef))
 	return err
 }
 

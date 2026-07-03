@@ -12,7 +12,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.2 Multi-Node Coordination** has been shipped. Redis-backed node coordination, SQLite WAL replication, leader election, and resilient E2E recovery mechanisms are live.
+**v7.3 PostgreSQL Compatibility** has been shipped. PostgreSQL control-state compatibility, pgvector semantic cache support, SQLite-to-PostgreSQL migration, and real-provider Plan 4 smoke verification are live as an opt-in deployment path.
 
 ## Current Milestone: v7.3 PostgreSQL Compatibility
 
@@ -68,11 +68,12 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - ✓ Phase 8: Semantic Pipeline — v7.0
 - ✓ Phase 9: Redis Stack + Qdrant Fallback Integration — v7.0
 - ✓ Phase 10: Advanced Routing & Observability — v7.1
+- ✓ Phase 13: PostgreSQL Compatibility — v7.3
 
 
 ### Active
 
-- [ ] Phase 13: PostgreSQL Compatibility — v7.3
+None.
 
 ### Deferred to Future Milestones
 
@@ -86,6 +87,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 ## Context
 
 - Source architecture: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\gateway-architecture.md`.
+- Operational resource lookup: test-environment components are configured in `.env`, including the test environment address; provider credentials and model resources for real-provider UAT are configured in `.env.local`. Prefer non-Gemini provider resources for routine real-provider checks because Gemini entries may carry usage-limit notes and should be reserved for Gemini-specific scenarios.
 - The original gateway design is Go-first. TypeScript/Node gateway plans were superseded.
 - Current code includes Phase 1 through Phase 9: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission direction, and Redis VSS fallback for Qdrant degradation. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL remains a later adapter extension; LanceDB is retained only for edge builds.
 - Downstream clients should continue to see OpenAI-compatible responses.
@@ -119,8 +121,8 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Redis is hot state, not source of truth | SQLite remains authoritative for user/account/security/billing state while Redis accelerates cache, rate, config, and aggregation paths | ✓ Good |
 | Redis VSS is fallback-only | Qdrant remains primary; Redis VSS activates only for degraded Qdrant paths | ✓ Good |
 | Phase 12 skips BFF/Admin Console work | Multi-node runtime coordination can ship before Phase 11; topology UI stays deferred | Active |
-| Phase 13 follows Phase 12 | PostgreSQL/pgvector can now use the finalized multi-node write and recovery boundaries | Active |
-| Plan 4 uses PostgreSQL + pgvector as an extension path | SQLite + Qdrant remain the default Plans 1/2 path; PostgreSQL compatibility is for enterprise deployments that need concurrent writes and relational/vector joins | Pending |
+| Phase 13 follows Phase 12 | PostgreSQL/pgvector can now use the finalized multi-node write and recovery boundaries | ✓ Good |
+| Plan 4 uses PostgreSQL + pgvector as an extension path | SQLite + Qdrant remain the default Plans 1/2 path; PostgreSQL compatibility is for enterprise deployments that need concurrent writes and relational/vector joins | ✓ Good |
 | Full LimitRule unification is deferred | Phase 9 shipped the minimal API-key/upstream-account direction; broader scope unification belongs in a future hardening phase | Deferred |
 
 ## Evolution
@@ -132,4 +134,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-03 after starting v7.3 PostgreSQL Compatibility*
+*Last updated: 2026-07-03 after completing v7.3 PostgreSQL Compatibility*

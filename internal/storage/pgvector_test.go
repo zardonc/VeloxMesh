@@ -40,7 +40,7 @@ func TestPGVectorMigrationAndSearch(t *testing.T) {
 	}
 	ctx := context.Background()
 	adapter, err := NewPGVectorAdapter(ctx, dsn, PGVectorOptions{
-		Dimension:          2,
+		Dimension:          1536,
 		HNSWM:              16,
 		HNSWEFConstruction: 64,
 		SearchEF:           40,
@@ -50,7 +50,8 @@ func TestPGVectorMigrationAndSearch(t *testing.T) {
 	}
 
 	const prompt = "raw prompt sentinel"
-	err = adapter.Insert(ctx, "semantic_cache:scope-a:gpt-4", [][]float32{{1, 0}}, []map[string]interface{}{{
+	vector := pgVectorTestEmbedding(1536)
+	err = adapter.Insert(ctx, "semantic_cache:scope-a:gpt-4", [][]float32{vector}, []map[string]interface{}{{
 		"id":     "pgv-1",
 		"scope":  "scope-a",
 		"model":  "gpt-4",
@@ -59,7 +60,7 @@ func TestPGVectorMigrationAndSearch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("insert pgvector: %v", err)
 	}
-	results, err := adapter.Search(ctx, "semantic_cache:scope-a:gpt-4", []float32{1, 0}, 1)
+	results, err := adapter.Search(ctx, "semantic_cache:scope-a:gpt-4", vector, 1)
 	if err != nil {
 		t.Fatalf("search pgvector: %v", err)
 	}
@@ -69,4 +70,10 @@ func TestPGVectorMigrationAndSearch(t *testing.T) {
 	if _, ok := results[0]["prompt"]; ok {
 		t.Fatalf("raw prompt leaked into search metadata")
 	}
+}
+
+func pgVectorTestEmbedding(dimension int) []float32 {
+	vector := make([]float32, dimension)
+	vector[0] = 1
+	return vector
 }

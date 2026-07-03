@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS limit_rules (
     scope TEXT NOT NULL,
     target_id TEXT NOT NULL,
     dimension TEXT NOT NULL,
-    window TEXT NOT NULL,
+    "window" TEXT NOT NULL,
     limit_val BIGINT NOT NULL,
     enabled BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,

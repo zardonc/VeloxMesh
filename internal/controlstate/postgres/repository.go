@@ -28,7 +28,7 @@ func Open(ctx context.Context, dsn string) (*Repository, error) {
 }
 
 func (r *Repository) SemanticRules() controlstate.SemanticRuleStore {
-	return unsupportedSemanticRules{}
+	return &semanticRuleRepo{pool: r.pool}
 }
 
 func (r *Repository) LimitRules() controlstate.LimitRuleRepository {

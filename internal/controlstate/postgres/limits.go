@@ -15,7 +15,7 @@ type limitRuleRepo struct {
 
 func (r *limitRuleRepo) ListByTarget(ctx context.Context, scope controlstate.LimitRuleScope, targetID string) ([]*controlstate.LimitRule, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, scope, target_id, dimension, window, limit_val, enabled, created_at, updated_at
+		SELECT id, scope, target_id, dimension, "window", limit_val, enabled, created_at, updated_at
 		FROM limit_rules
 		WHERE scope = $1 AND target_id = $2`, string(scope), targetID)
 	if err != nil {
@@ -51,13 +51,13 @@ func (r *limitRuleRepo) Save(ctx context.Context, rule *controlstate.LimitRule) 
 	}
 	rule.UpdatedAt = now
 	_, err := r.pool.Exec(ctx, `
-		INSERT INTO limit_rules (id, scope, target_id, dimension, window, limit_val, enabled, created_at, updated_at)
+		INSERT INTO limit_rules (id, scope, target_id, dimension, "window", limit_val, enabled, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		ON CONFLICT(id) DO UPDATE SET
 			scope=excluded.scope,
 			target_id=excluded.target_id,
 			dimension=excluded.dimension,
-			window=excluded.window,
+			"window"=excluded."window",
 			limit_val=excluded.limit_val,
 			enabled=excluded.enabled,
 			updated_at=excluded.updated_at`,

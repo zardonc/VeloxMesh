@@ -7,26 +7,26 @@
 
 ### PostgreSQL Deployment
 
-- [ ] **PG-01**: Operators can run Plan 4 with Redis Stack, PostgreSQL, and pgvector using documented local deployment steps.
-- [ ] **PG-02**: Operators can enable PostgreSQL through configuration without hardcoded DSNs, passwords, or source-controlled secrets.
-- [ ] **PG-03**: Gateway startup clearly reports PostgreSQL readiness and fails closed when required Plan 4 dependencies are unavailable.
+- [x] **PG-01**: Operators can run Plan 4 with Redis Stack, PostgreSQL, and pgvector using documented local deployment steps.
+- [x] **PG-02**: Operators can enable PostgreSQL through configuration without hardcoded DSNs, passwords, or source-controlled secrets.
+- [x] **PG-03**: Gateway startup clearly reports PostgreSQL readiness and fails closed when required Plan 4 dependencies are unavailable.
 
 ### Control State Compatibility
 
-- [ ] **CTRL-01**: PostgreSQL control-state repositories support the active gateway capabilities used by routing, provider CRUD, API keys, usage settlement, semantic cache, and fallback logging.
-- [ ] **CTRL-02**: PostgreSQL capability reporting matches the features actually implemented for Plan 4.
-- [ ] **CTRL-03**: PostgreSQL behavior is covered by focused integration tests that can run with an externally supplied test DSN.
+- [x] **CTRL-01**: PostgreSQL control-state repositories support the active gateway capabilities used by routing, provider CRUD, API keys, usage settlement, semantic cache, and fallback logging.
+- [x] **CTRL-02**: PostgreSQL capability reporting matches the features actually implemented for Plan 4.
+- [x] **CTRL-03**: PostgreSQL behavior is covered by focused integration tests that can run with an externally supplied test DSN.
 
 ### pgvector Semantic Path
 
-- [ ] **VECT-01**: Plan 4 can store and search semantic-cache embeddings through pgvector behind the existing vector adapter boundary.
-- [ ] **VECT-02**: pgvector search preserves tenant/API-key scoping and never stores raw prompts or provider secrets.
+- [x] **VECT-01**: Plan 4 can store and search semantic-cache embeddings through pgvector behind the existing vector adapter boundary.
+- [x] **VECT-02**: pgvector search preserves tenant/API-key scoping and never stores raw prompts or provider secrets.
 
 ### Migration and Verification
 
-- [ ] **MIGR-01**: Operators can migrate supported SQLite control-state data into PostgreSQL with a repeatable command or documented runbook.
-- [ ] **MIGR-02**: Migration preserves provider configs, encrypted provider secrets, routing config, API keys, rates, usage records, semantic cache metadata, and fallback log state.
-- [ ] **TEST-01**: Phase 13 verification proves the gateway can serve OpenAI-compatible chat traffic against the PostgreSQL-compatible Plan 4 deployment.
+- [x] **MIGR-01**: Operators can migrate supported SQLite control-state data into PostgreSQL with a repeatable command or documented runbook.
+- [x] **MIGR-02**: Migration preserves provider configs, encrypted provider secrets, routing config, API keys, rates, usage records, semantic cache metadata, and fallback log state.
+- [x] **TEST-01**: Phase 13 verification proves the gateway can serve OpenAI-compatible chat traffic against the PostgreSQL-compatible Plan 4 deployment.
 
 ## Future Requirements
 
@@ -51,17 +51,17 @@
 
 | Requirement | Phase | Status |
 | --- | --- | --- |
-| PG-01 | Phase 13 | Pending |
-| PG-02 | Phase 13 | Pending |
-| PG-03 | Phase 13 | Pending |
-| CTRL-01 | Phase 13 | Pending |
-| CTRL-02 | Phase 13 | Pending |
-| CTRL-03 | Phase 13 | Pending |
-| VECT-01 | Phase 13 | Pending |
-| VECT-02 | Phase 13 | Pending |
-| MIGR-01 | Phase 13 | Pending |
-| MIGR-02 | Phase 13 | Pending |
-| TEST-01 | Phase 13 | Pending |
+| PG-01 | Phase 13 | Complete |
+| PG-02 | Phase 13 | Complete |
+| PG-03 | Phase 13 | Complete |
+| CTRL-01 | Phase 13 | Complete |
+| CTRL-02 | Phase 13 | Complete |
+| CTRL-03 | Phase 13 | Complete |
+| VECT-01 | Phase 13 | Complete |
+| VECT-02 | Phase 13 | Complete |
+| MIGR-01 | Phase 13 | Complete |
+| MIGR-02 | Phase 13 | Complete |
+| TEST-01 | Phase 13 | Complete |
 
 **Coverage:**
 

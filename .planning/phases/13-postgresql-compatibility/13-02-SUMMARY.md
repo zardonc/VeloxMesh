@@ -10,7 +10,7 @@ requires:
 provides:
   - PostgreSQL LimitRuleRepository parity
   - PostgreSQL SessionBlacklistRepository parity
-  - Explicit unsupported SemanticRules repository path
+  - PostgreSQL SemanticRules repository parity
   - Truthful PostgreSQL capability profile for implemented control-state paths
 
 key-files:
@@ -19,6 +19,7 @@ key-files:
     - internal/controlstate/postgres/session_blacklist.go
     - internal/controlstate/postgres/semantic_rules.go
     - internal/controlstate/migrations/postgres/0003_limits_sessions.sql
+    - internal/controlstate/migrations/postgres/0005_semantic_rules.sql
   modified:
     - internal/controlstate/postgres/repository.go
     - internal/controlstate/postgres/migrations.go
@@ -37,8 +38,9 @@ completed: 2026-07-03
 - Replaced nil PostgreSQL repository accessors for limit rules, session blacklist, and semantic rules.
 - Added PostgreSQL-backed limit-rule save/list/delete behavior matching the active SQLite control-state semantics.
 - Added PostgreSQL-backed session blacklist check/insert/purge behavior for replication and shared repository callers.
-- Added an explicit unsupported SemanticRules implementation so remaining unsupported behavior fails closed instead of pretending to succeed.
+- Added PostgreSQL-backed semantic rule global default and per-user config persistence matching the active SQLite control-state semantics.
 - Added migration `0003_limits_sessions.sql` and wired it into the PostgreSQL migrator.
+- Added migration `0005_semantic_rules.sql` and wired it into the PostgreSQL migrator.
 - Updated PostgreSQL capability reporting after repository tests covered semantic cache, rate limits, and cost governance support.
 
 ## Task Commits
@@ -57,6 +59,6 @@ PostgreSQL integration tests remain gated by `POSTGRES_TEST_DSN`. Deployment and
 ## Deviations from Plan
 
 - Docker/deployment verification is not treated as an application-side blocker per user direction. The application provides configuration and graceful failure behavior; the user owns environment deployment.
-- SemanticRules remains intentionally unsupported for PostgreSQL in this plan and returns a named unsupported error.
+- Earlier UAT found the unsupported SemanticRules path was too narrow for PostgreSQL parity; it now has a real PostgreSQL implementation and live integration coverage.
 
 ## Self-Check: PASSED

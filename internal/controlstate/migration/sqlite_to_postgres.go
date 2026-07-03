@@ -132,17 +132,29 @@ func upsertSQL(plan tablePlan) string {
 		}
 		placeholders[i] = placeholder
 		if !contains(plan.conflict, column) {
-			updates = append(updates, column+"=excluded."+column)
+			updates = append(updates, quoteIdent(column)+"=excluded."+quoteIdent(column))
 		}
 	}
 	return fmt.Sprintf(
 		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(%s) DO UPDATE SET %s",
-		plan.name,
-		strings.Join(plan.columns, ", "),
+		quoteIdent(plan.name),
+		quoteIdents(plan.columns),
 		strings.Join(placeholders, ", "),
-		strings.Join(plan.conflict, ", "),
+		quoteIdents(plan.conflict),
 		strings.Join(updates, ", "),
 	)
+}
+
+func quoteIdents(values []string) string {
+	quoted := make([]string, len(values))
+	for i, value := range values {
+		quoted[i] = quoteIdent(value)
+	}
+	return strings.Join(quoted, ", ")
+}
+
+func quoteIdent(value string) string {
+	return `"` + strings.ReplaceAll(value, `"`, `""`) + `"`
 }
 
 func recordKey(plan tablePlan, values map[string]interface{}) string {
