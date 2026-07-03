@@ -18,6 +18,7 @@ Phase 12 delivers Plan 2 multi-node runtime coordination for VeloxMesh: Redis-ba
 - **D-02:** When no leader is writable during failover, ordinary client write attempts return a generic `503` with retry guidance.
 - **D-03:** Follower nodes may serve reads, but any stale/lag/topology detail is internal/admin-only. Ordinary user responses must not reveal follower status.
 - **D-04:** Leader election uses the roadmap default: Redis `SET NX`, 10 second TTL, and 3 second heartbeat. Do not add a Phase 12 TTL/heartbeat configuration matrix.
+- **D-16:** Deployment/LB guidance should route normal mutative admin writes (`POST`, `PUT`, `PATCH`, `DELETE` under `/admin/v1/*`) to the currently writable node discovered through admin/internal topology, with bounded topology refresh-and-retry on generic `503`. This is an operational optimization only; backend write fencing remains authoritative, and ordinary users must never receive leader/follower/topology details.
 
 ### Replication and Recovery
 - **D-05:** All `controlstate` repository writes enter the Redis Stream replication path. The planner should avoid hand-picking only "important" repositories.
@@ -89,6 +90,7 @@ Phase 12 delivers Plan 2 multi-node runtime coordination for VeloxMesh: Redis-ba
 
 - Multi-node tests should be practical and high-value, not exhaustive: cover main path plus likely abnormal cases.
 - Ordinary users must not learn whether they hit a leader, follower, replica, failover window, or lagging node.
+- Normal admin writes should not be sprayed across all nodes by the LB; use admin/internal topology to select the writable node, then retry once or with bounded jitter after stale-route `503`.
 
 </specifics>
 

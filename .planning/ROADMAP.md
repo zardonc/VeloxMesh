@@ -43,7 +43,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path.
 **Priority:** P1
 **Depends on:** Phase 9
 **Requirements:** COORD-01, COORD-02, COORD-03, REPL-01, REPL-02, REPL-03, FENCE-01, FENCE-02, RECOV-01, RECOV-02, HLTH-01, TEST-01
-**Plans:** 4 plans
+**Plans:** 5 plans
 
 Success criteria:
 1. Operators can start multiple gateway nodes and inspect each node's identity, role, leader identity, and WAL lag.
@@ -67,6 +67,7 @@ Plans:
 - [ ] 12-02-PLAN.md - SQLite write fencing and relational stream producer.
 - [ ] 12-03-PLAN.md - Replica stream consumer, recovery worker, readiness, and internal topology.
 - [ ] 12-04-PLAN.md - In-process multi-node harness and required abnormal scenario coverage.
+- [ ] 12-05-PLAN.md - Leader-aware LB/admin write routing guidance and stale-route retry tests.
 
 ## Future Milestones
 
