@@ -14,13 +14,15 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 **v7.2 Multi-Node Coordination** has been shipped. Redis-backed node coordination, SQLite WAL replication, leader election, and resilient E2E recovery mechanisms are live.
 
-## Current Milestone: Planning Next Milestone
+## Current Milestone: v7.3 PostgreSQL Compatibility
 
-**Goal:** Determine whether to proceed with the BFF Layer/Admin Console (Phase 11) or PostgreSQL Extension (Phase 13).
+**Goal:** Add the PostgreSQL-compatible deployment path for Plan 4 without changing the OpenAI-compatible data-plane contract.
 
-## Next Milestone Goals
-
-Phase 13 PostgreSQL Extension remains deferred until Phase 12 proves the multi-node coordination boundary.
+**Target features:**
+- Phase 13 PostgreSQL deployment documentation and runtime configuration.
+- PostgreSQL control-state compatibility parity for active gateway capabilities.
+- pgvector-backed semantic cache/vector adapter path for Plan 4.
+- SQLite to PostgreSQL migration and smoke verification.
 
 <details>
 <summary>Archived Milestone: v7.2 Multi-Node Coordination</summary>
@@ -70,13 +72,12 @@ Phase 13 PostgreSQL Extension remains deferred until Phase 12 proves the multi-n
 
 ### Active
 
-- ✓ Phase 12: Multi-Node Coordination — v7.2
+- [ ] Phase 13: PostgreSQL Compatibility — v7.3
 
 ### Deferred to Future Milestones
 
 - BFF Layer & Admin Console (Phase 11)
-- PostgreSQL Extension (Phase 13)
-- Full `LimitRule` unification across all scopes
+- Full `LimitRule` unification across all scopes outside the PostgreSQL-compatible Plan 4 path
 
 ### Long-Term / Architectural Goals
 
@@ -118,7 +119,8 @@ Phase 13 PostgreSQL Extension remains deferred until Phase 12 proves the multi-n
 | Redis is hot state, not source of truth | SQLite remains authoritative for user/account/security/billing state while Redis accelerates cache, rate, config, and aggregation paths | ✓ Good |
 | Redis VSS is fallback-only | Qdrant remains primary; Redis VSS activates only for degraded Qdrant paths | ✓ Good |
 | Phase 12 skips BFF/Admin Console work | Multi-node runtime coordination can ship before Phase 11; topology UI stays deferred | Active |
-| Phase 13 waits for Phase 12 | PostgreSQL/pgvector should follow the finalized multi-node write and recovery boundaries | Deferred |
+| Phase 13 follows Phase 12 | PostgreSQL/pgvector can now use the finalized multi-node write and recovery boundaries | Active |
+| Plan 4 uses PostgreSQL + pgvector as an extension path | SQLite + Qdrant remain the default Plans 1/2 path; PostgreSQL compatibility is for enterprise deployments that need concurrent writes and relational/vector joins | Pending |
 | Full LimitRule unification is deferred | Phase 9 shipped the minimal API-key/upstream-account direction; broader scope unification belongs in a future hardening phase | Deferred |
 
 ## Evolution
@@ -130,4 +132,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-03 after completing v7.2 Multi-Node Coordination*
+*Last updated: 2026-07-03 after starting v7.3 PostgreSQL Compatibility*
