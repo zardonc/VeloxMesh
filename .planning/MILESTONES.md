@@ -1,5 +1,15 @@
 # Milestones
 
+## v7.2 Multi-Node Coordination (Shipped: 2026-07-03)
+
+**Phases completed:** 1 phases, 5 plans, 0 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
 ## v7.1 Advanced Routing & Observability (Shipped: 2026-07-01)
 
 **Delivered:** Completed the Composite Score Router and production-grade OpenTelemetry/Prometheus observability for routing decisions.

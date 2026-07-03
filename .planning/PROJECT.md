@@ -12,9 +12,18 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.1 Advanced Routing & Observability** has been shipped. The Composite Score Router and OpenTelemetry/Prometheus integrations are live.
+**v7.2 Multi-Node Coordination** has been shipped. Redis-backed node coordination, SQLite WAL replication, leader election, and resilient E2E recovery mechanisms are live.
 
-## Current Milestone: v7.2 Multi-Node Coordination
+## Current Milestone: Planning Next Milestone
+
+**Goal:** Determine whether to proceed with the BFF Layer/Admin Console (Phase 11) or PostgreSQL Extension (Phase 13).
+
+## Next Milestone Goals
+
+Phase 13 PostgreSQL Extension remains deferred until Phase 12 proves the multi-node coordination boundary.
+
+<details>
+<summary>Archived Milestone: v7.2 Multi-Node Coordination</summary>
 
 **Goal:** Enable Plan 2 multi-node deployment for the gateway without changing the OpenAI-compatible data-plane contract.
 
@@ -23,9 +32,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - SQLite relational WAL replication with write fencing.
 - Cluster health, recovery, graceful shutdown, and chaos verification.
 
-## Next Milestone Goals
-
-Phase 13 PostgreSQL Extension remains deferred until Phase 12 proves the multi-node coordination boundary.
+</details>
 
 <details>
 <summary>Archived Milestone: v7.1 Advanced Routing & Observability</summary>
@@ -63,7 +70,7 @@ Phase 13 PostgreSQL Extension remains deferred until Phase 12 proves the multi-n
 
 ### Active
 
-- [ ] Phase 12: Multi-Node Coordination — v7.2
+- ✓ Phase 12: Multi-Node Coordination — v7.2
 
 ### Deferred to Future Milestones
 
@@ -123,4 +130,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-02 after starting v7.2 Multi-Node Coordination*
+*Last updated: 2026-07-03 after completing v7.2 Multi-Node Coordination*
