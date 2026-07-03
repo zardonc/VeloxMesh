@@ -1,5 +1,44 @@
 # Milestones
 
+## v7.2 Multi-Node Coordination (Shipped: 2026-07-03)
+
+**Phases completed:** 1 phases, 5 plans, 0 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
+## v7.1 Advanced Routing & Observability (Shipped: 2026-07-01)
+
+**Delivered:** Completed the Composite Score Router and production-grade OpenTelemetry/Prometheus observability for routing decisions.
+
+**Phases completed:** 10 (5 plans total)
+
+**Key accomplishments:**
+
+- Added composite routing across latency, pending requests, error rates, cost, and health signals.
+- Added z-score normalization for routing signals.
+- Added OpenTelemetry traces for TTFT, TPOT, end-to-end latency, and cache-hit behavior.
+- Added Prometheus histogram metrics for routing and request timing.
+
+**Known deferred work:**
+
+- Phase 11: BFF Layer & Admin Console.
+- Phase 12: Multi-Node Coordination.
+- Phase 13: PostgreSQL Extension.
+- Full `LimitRule` unification across future scopes.
+
+**Archived:**
+
+- `.planning/milestones/v7.1-ROADMAP.md`
+- `.planning/milestones/v7.1-REQUIREMENTS.md`
+
+**What's next:** Define the next milestone around Phase 12 multi-node coordination.
+
+---
+
 ## v7.0 Plan 1 Foundation (Shipped: 2026-06-30)
 
 **Delivered:** Completed the Plan 1 architecture foundation: SQLite durable state, Redis Stack hot state, Qdrant vector path, semantic pipeline, and Redis VSS fallback.

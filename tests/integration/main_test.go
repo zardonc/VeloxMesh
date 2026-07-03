@@ -14,6 +14,7 @@ func TestMain(m *testing.M) {
 	os.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
 	os.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
 	os.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+	os.Setenv("DEV_API_KEY", "test-dev-key")
 
 	os.Exit(m.Run())
 }

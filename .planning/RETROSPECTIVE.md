@@ -4,8 +4,38 @@
 
 | Milestone | Shipped | Phases |
 |-----------|---------|--------|
+| v7.2      | 2026-07-03 | 1      |
+| v7.1      | 2026-07-01 | 1      |
 | v7.0      | 2026-06-30 | 3      |
 | v4        | 2026-06-23 | 4      |
+
+---
+
+## Milestone: v7.2 — Multi-Node Coordination
+
+**Shipped:** 2026-07-03
+**Phases:** 1 | **Plans:** 5
+
+### What Was Built
+- Redis coordination adapter for leadership election and streaming.
+- SQLite WAL replication producer and consumer via Redis stream.
+- Leader-only write fencing for relational routes.
+- Recovery worker for sync replay on follower nodes.
+- Resilient multi-node cluster topology and health API.
+
+### What Worked
+- Reusing the Redis test harness allowed full coverage of multi-node leader loss, follower failover, and write fencing without needing a separate cluster setup.
+- Enforcing write boundaries at the middleware layer via `RequireWritable` effectively shielded the underlying adapter logic.
+
+### What Was Inefficient
+- N/A.
+
+### Patterns Established
+- Multi-node topology strictly isolates the vector paths (Qdrant native replication) from the relational paths (SQLite over Redis).
+
+### Key Lessons
+- Explicit interface separation between coordination primitives (Redis) and persistence logic makes cluster failover predictable.
+- Local E2E testing of concurrency issues is very reliable when using isolated Redis instances across multiple gateway instances.
 
 ---
 

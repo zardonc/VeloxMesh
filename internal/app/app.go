@@ -12,7 +12,9 @@ import (
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/controlstate/postgres"
+	"veloxmesh/internal/controlstate/replication"
 	"veloxmesh/internal/controlstate/sqlite"
+	"veloxmesh/internal/coordination"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/hotstate"
@@ -25,6 +27,8 @@ import (
 	"veloxmesh/internal/providers/gemini"
 	"veloxmesh/internal/providers/openai"
 	"veloxmesh/internal/storage"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type App struct {
@@ -33,7 +37,32 @@ type App struct {
 	Router                 http.Handler
 	RuntimeProviderManager *controlstate.RuntimeProviderManager
 	HotState               hotstate.Client
+	Coordinator            coordination.Coordinator
 	ShutdownTracing        func(context.Context) error
+}
+
+const (
+	controlRedisDialTimeout     = 100 * time.Millisecond
+	controlRedisReadTimeout     = 1500 * time.Millisecond
+	controlRedisWriteTimeout    = 500 * time.Millisecond
+	controlRedisMaxRetries      = 1
+	controlRedisMinRetryBackoff = 50 * time.Millisecond
+	controlRedisMaxRetryBackoff = 100 * time.Millisecond
+)
+
+func newControlRedisClient(cfg *config.Config) *redis.Client {
+	return redis.NewClient(&redis.Options{
+		Addr:                  cfg.RedisAddr,
+		Password:              cfg.RedisPassword,
+		DB:                    cfg.RedisDB,
+		DialTimeout:           controlRedisDialTimeout,
+		ReadTimeout:           controlRedisReadTimeout,
+		WriteTimeout:          controlRedisWriteTimeout,
+		MaxRetries:            controlRedisMaxRetries,
+		MinRetryBackoff:       controlRedisMinRetryBackoff,
+		MaxRetryBackoff:       controlRedisMaxRetryBackoff,
+		ContextTimeoutEnabled: true,
+	})
 }
 
 func (a *App) HealthStore() health.Store {
@@ -78,6 +107,14 @@ func New() (*App, error) {
 		healthStore = health.NewRedisStore(hotStateClient, cfg.RedisHealthTTL)
 	} else {
 		healthStore = health.NewInMemoryStore()
+	}
+
+	var coord coordination.Coordinator
+	if cfg.MultiNodeEnabled && cfg.RedisEnabled {
+		rdb := newControlRedisClient(cfg)
+		coord = coordination.NewRedisCoordinator(rdb, cfg.RedisNamespace, cfg.NodeID)
+	} else {
+		coord = coordination.NewNoopCoordinator()
 	}
 
 	m := controlstate.NewRuntimeProviderManager(cfg, logger, healthStore)
@@ -183,7 +220,7 @@ func New() (*App, error) {
 					} else {
 						vectorAdapter = storage.NewNoopVectorAdapter()
 					}
-					
+
 					semanticCache = cache.NewSemanticCacheService(cache.SemanticCacheConfig{
 						Enabled:       true,
 						Threshold:     0.9,
@@ -201,6 +238,25 @@ func New() (*App, error) {
 		}
 	}
 
+	var lagReporter handlers.LagReporter
+	var consumer *replication.Consumer
+	if cfg.MultiNodeEnabled && cfg.RedisEnabled && repo != nil {
+		rdb := newControlRedisClient(cfg)
+
+		producer := replication.NewRedisStreamProducer(rdb, replication.ControlStreamName)
+		wrappedRepo := replication.NewRepository(repo, coord, producer)
+
+		groupName := "gateway-group-" + cfg.NodeID
+		consumer = replication.NewConsumer(rdb, replication.ControlStreamName, groupName, cfg.NodeID, repo, repo.FallbackLog())
+		consumer.Start(ctx)
+		lagReporter = consumer
+
+		worker := replication.NewRecoveryWorker(repo.FallbackLog(), consumer, producer)
+		worker.Start(ctx)
+
+		repo = wrappedRepo
+	}
+
 	var adminProvHandler *handlers.AdminProvidersHandler
 	var adminCombosHandler *handlers.AdminCombosHandler
 	var adminSemanticRulesHandler *handlers.AdminSemanticRulesHandler
@@ -210,14 +266,14 @@ func New() (*App, error) {
 
 		adminComboSvc := controlstate.NewAdminComboService(repo, m, cipher, hotStateClient)
 		adminCombosHandler = handlers.NewAdminCombosHandler(adminComboSvc)
-		
+
 		adminSemanticRulesSvc := controlstate.NewAdminSemanticRulesService(repo, hotStateClient)
 		adminSemanticRulesHandler = handlers.NewAdminSemanticRulesHandler(adminSemanticRulesSvc)
 	}
 
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
 
-	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, hotStateClient, repo)
+	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, hotStateClient, repo, coord, lagReporter)
 
 	application := &App{
 		Config:                 cfg,
@@ -225,6 +281,7 @@ func New() (*App, error) {
 		Router:                 r,
 		RuntimeProviderManager: m,
 		HotState:               hotStateClient,
+		Coordinator:            coord,
 		ShutdownTracing:        shutdownTracing,
 	}
 
@@ -234,6 +291,25 @@ func New() (*App, error) {
 		}
 		if err := application.StartConfigChangeSubscriber(ctx, repo, cipher); err != nil {
 			return nil, fmt.Errorf("failed to start config subscriber: %w", err)
+		}
+
+		if consumer != nil {
+			consumer.OnApplied = func(evt replication.ChangeEvent) {
+				switch evt.Repository {
+				case "providers", "providers_secrets", "combos", "routing":
+					if err := application.ReloadProviders(context.Background(), repo, cipher); err != nil {
+						application.Logger.Error("failed to reload providers after replication", "error", err)
+					}
+				case "semantic_rules":
+					if err := application.ReloadSemanticRules(context.Background(), repo); err != nil {
+						application.Logger.Error("failed to reload semantic rules after replication", "error", err)
+					}
+				case "api_keys":
+					if err := application.HotState.Delete(context.Background(), hotstate.NamespacedKey(application.Config.RedisNamespace, "auth", evt.TargetID)); err != nil {
+						application.Logger.Error("failed to invalidate api key cache", "error", err)
+					}
+				}
+			}
 		}
 	}
 
@@ -350,7 +426,7 @@ func (a *App) StartConfigChangeSubscriber(ctx context.Context, repo controlstate
 					return
 				}
 				a.Logger.Info("received config change notification", "type", msg.Type, "target_id", msg.TargetID, "action", msg.Action, "revision", msg.Revision)
-				
+
 				switch msg.Type {
 				case hotstate.EventProvider, hotstate.EventCombo, hotstate.EventRouting:
 					if err := a.ReloadProviders(ctx, repo, cipher); err != nil {
@@ -410,6 +486,8 @@ func (a *App) Run(ctx context.Context) error {
 	a.Logger.Info("starting gateway", "addr", a.Config.GatewayDataAddr)
 
 	a.RuntimeProviderManager.Start(ctx)
+	a.Coordinator.Start(ctx)
+	defer a.Coordinator.Stop(context.Background())
 
 	errChan := make(chan error, 1)
 	go func() {

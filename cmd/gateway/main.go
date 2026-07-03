@@ -20,6 +20,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to initialize application: %v", err)
 	}
+
+	application.Coordinator.Start(ctx)
+	defer application.Coordinator.Stop(context.Background())
+
 	if err := application.Run(ctx); err != nil {
 		log.Fatalf("failed to start application: %v", err)
 	}

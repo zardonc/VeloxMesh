@@ -87,6 +87,16 @@ func (m *memoryRateRepo) Delete(ctx context.Context, providerID, model string) e
 	return nil
 }
 
+func newMemoryRepository() *memoryRepository {
+	return &memoryRepository{
+		provRepo:  &memoryProviderRepo{records: []*controlstate.ProviderRecord{}},
+		rateRepo:  &memoryRateRepo{rates: make(map[string]*controlstate.ProviderModelRate)},
+		idemRepo:  &dummyIdemRepo{},
+		auditRepo: &dummyAuditRepo{},
+		usageRepo: &memoryUsageRepo{},
+	}
+}
+
 func (m *memoryRepository) Providers() controlstate.ProviderRepository      { return m.provRepo }
 func (m *memoryRepository) Rates() controlstate.RateRepository              { return m.rateRepo }
 func (m *memoryRepository) Usage() controlstate.UsageRepository             { return m.usageRepo }
@@ -242,6 +252,7 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	}
 	repo := &memoryRepository{
 		provRepo:  provRepo,
+		rateRepo:  &memoryRateRepo{rates: make(map[string]*controlstate.ProviderModelRate)},
 		auditRepo: &dummyAuditRepo{},
 		idemRepo:  &dummyIdemRepo{},
 		usageRepo: &memoryUsageRepo{},
@@ -250,7 +261,7 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil, pipeline.DefaultRegistry(), nil, nil)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, nil, nil, repo)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, nil, nil, repo, nil, nil)
 
 	// 1. Initial reload with empty repo
 	err = a.ReloadProviders(context.Background(), repo, cipher)

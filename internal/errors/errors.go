@@ -36,6 +36,7 @@ var (
 	ErrMissingProviderSecret      = NewGatewayError("missing_provider_secret", "missing provider secret", 500)
 	ErrMissingProviderModelConfig = NewGatewayError("missing_provider_model_config", "missing provider model config", 400)
 	ErrProviderActivationFailed   = NewGatewayError("provider_activation_failed", "provider activation failed", 500)
+	ErrServiceNotWritable         = NewGatewayError("service_unavailable", "service temporarily unavailable for writes", 503)
 )
 
 // Shared Provider Error Categories

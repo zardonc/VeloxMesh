@@ -84,7 +84,15 @@ func Auth(cfg *config.Config, cache hotstate.Client, repo controlstate.Repositor
 
 			allowed := false
 
-			if repo != nil && repo.APIKeys() != nil {
+			if cfg.DevAPIKey != "" && token == cfg.DevAPIKey {
+				allowed = true
+				identity = &AuthIdentity{
+					ID:            "dev-key",
+					Role:          "admin",
+					CreditBalance: 999999, // Dev key has unlimited credits conceptually
+					Enabled:       true,
+				}
+			} else if repo != nil && repo.APIKeys() != nil {
 				if keyRecord, err := repo.APIKeys().GetByHash(r.Context(), tokenHash); err == nil && keyRecord != nil {
 					if keyRecord.Enabled {
 						allowed = true
@@ -94,17 +102,6 @@ func Auth(cfg *config.Config, cache hotstate.Client, repo controlstate.Repositor
 							CreditBalance: keyRecord.CreditBalance,
 							Enabled:       keyRecord.Enabled,
 						}
-					}
-				}
-			} else {
-				// Disabled mode / dev fallback
-				if token == cfg.DevAPIKey {
-					allowed = true
-					identity = &AuthIdentity{
-						ID:            "dev-key",
-						Role:          "admin",
-						CreditBalance: 999999, // Dev key has unlimited credits conceptually
-						Enabled:       true,
 					}
 				}
 			}

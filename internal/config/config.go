@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type ProviderAuthConfig struct {
@@ -62,6 +64,9 @@ type Config struct {
 	LogLevel           string
 	DevAPIKey          string
 
+	MultiNodeEnabled bool   `json:"multi_node_enabled"`
+	NodeID           string `json:"node_id"`
+
 	RoutingStrategy string // e.g. "round-robin", "least-latency"
 	DefaultProvider string
 
@@ -109,6 +114,8 @@ func LoadConfig() (*Config, error) {
 		GatewayMetricsAddr: getEnv("GATEWAY_METRICS_ADDR", ""),
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		DevAPIKey:          getEnv("DEV_API_KEY", ""),
+		MultiNodeEnabled:   getEnv("MULTI_NODE_ENABLED", "false") == "true",
+		NodeID:             getEnv("NODE_ID", ""),
 		RoutingStrategy:    getEnv("ROUTING_STRATEGY", "least-latency"),
 
 		ControlStateBackend:          getEnv("CONTROL_STATE_BACKEND", "disabled"),
@@ -145,6 +152,8 @@ func LoadConfig() (*Config, error) {
 		}
 
 		var fileCfg struct {
+			MultiNodeEnabled *bool             `json:"multi_node_enabled"`
+			NodeID           string            `json:"node_id"`
 			RoutingStrategy string            `json:"routing_strategy"`
 			DefaultProvider string            `json:"default_provider"`
 			FallbackEnabled *bool             `json:"fallback_enabled"`
@@ -188,6 +197,13 @@ func LoadConfig() (*Config, error) {
 		}
 		if fileCfg.MaxAttempts != nil {
 			cfg.MaxAttempts = *fileCfg.MaxAttempts
+		}
+
+		if fileCfg.MultiNodeEnabled != nil {
+			cfg.MultiNodeEnabled = *fileCfg.MultiNodeEnabled
+		}
+		if fileCfg.NodeID != "" {
+			cfg.NodeID = fileCfg.NodeID
 		}
 
 		if fileCfg.RoutingStrategy != "" {
@@ -306,6 +322,10 @@ func LoadConfig() (*Config, error) {
 }
 
 func applyDefaults(cfg *Config) {
+	if cfg.MultiNodeEnabled && cfg.NodeID == "" {
+		cfg.NodeID = uuid.NewString()
+	}
+
 	if cfg.HealthCheck.Enabled == nil {
 		enabled := len(cfg.Providers) > 1
 		cfg.HealthCheck.Enabled = &enabled

@@ -93,7 +93,7 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 
 	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc, pipeline.DefaultRegistry(), nil, nil)
 
-	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil)
+	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil, nil, nil)
 
 	reqBody, _ := json.Marshal(llm.ChatCompletionRequest{
 		Model:    "emb",
