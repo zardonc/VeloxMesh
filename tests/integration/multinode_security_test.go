@@ -6,8 +6,22 @@ import (
 	"net/http"
 	"strings"
 	"testing"
-
 )
+
+var forbiddenTerms = []string{
+	"leader", "follower", "primary", "replica",
+	"node_id", "leader_id", "wal_lag", "writable",
+	"degraded_reason", "failover", "topology",
+}
+
+func assertNoForbiddenTerms(t *testing.T, body string) {
+	lowerBody := strings.ToLower(body)
+	for _, term := range forbiddenTerms {
+		if strings.Contains(lowerBody, term) {
+			t.Errorf("found forbidden term %q in body: %s", term, body)
+		}
+	}
+}
 
 func TestMultiNodeSecurity(t *testing.T) {
 	harness := NewMultiNodeHarness(t, 3)
@@ -19,21 +33,6 @@ func TestMultiNodeSecurity(t *testing.T) {
 	}
 	follower := harness.GetFollowers()[0]
 
-	forbiddenTerms := []string{
-		"leader", "follower", "primary", "replica",
-		"node_id", "leader_id", "wal_lag", "writable",
-		"degraded_reason", "failover", "topology",
-	}
-
-	assertNoForbiddenTerms := func(body string) {
-		lowerBody := strings.ToLower(body)
-		for _, term := range forbiddenTerms {
-			if strings.Contains(lowerBody, term) {
-				t.Errorf("found forbidden term %q in body: %s", term, body)
-			}
-		}
-	}
-
 	// 1. Check ordinary /healthz on follower
 	resp, err := http.Get(follower.Server.URL + "/healthz")
 	if err != nil {
@@ -41,7 +40,7 @@ func TestMultiNodeSecurity(t *testing.T) {
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
-	assertNoForbiddenTerms(string(body))
+	assertNoForbiddenTerms(t, string(body))
 
 	// 2. Check ordinary /readyz on follower (which should fail due to lag if we set it up, but let's check successful first)
 	respR, err := http.Get(follower.Server.URL + "/readyz")
@@ -50,7 +49,7 @@ func TestMultiNodeSecurity(t *testing.T) {
 	}
 	defer respR.Body.Close()
 	bodyR, _ := io.ReadAll(respR.Body)
-	assertNoForbiddenTerms(string(bodyR))
+	assertNoForbiddenTerms(t, string(bodyR))
 	
 	// Wait, readyz fails immediately because lag > threshold if no events are replicated? No, initially lag is 0.
 	
@@ -67,7 +66,7 @@ func TestMultiNodeSecurity(t *testing.T) {
 	}
 	defer respErr.Body.Close()
 	bodyErr, _ := io.ReadAll(respErr.Body)
-	assertNoForbiddenTerms(string(bodyErr))
+	assertNoForbiddenTerms(t, string(bodyErr))
 	
 	// 4. Verify admin topology endpoint DOES return these terms for an authenticated admin
 	reqAdmin, _ := http.NewRequest(http.MethodGet, leader.Server.URL+"/admin/v1/topology", nil)
