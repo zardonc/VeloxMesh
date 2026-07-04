@@ -71,7 +71,7 @@ func (a *App) HealthStore() health.Store {
 	return a.RuntimeProviderManager.HealthStore()
 }
 
-func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotstate.Client, logger *slog.Logger) (*scheduler.SynchronousRunner, string) {
+func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotstate.Client, logger *slog.Logger, recorder *scheduler.TrainingRecorder) (*scheduler.SynchronousRunner, string) {
 	queue, backend := newSchedulerQueue(ctx, cfg, logger)
 	scorer, err := scheduler.NewScorer(ctx, cfg.Scheduler)
 	if err != nil {
@@ -96,7 +96,9 @@ func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotsta
 		Backend: backend,
 	}
 	executor := &scheduler.Executor{Queue: queue, Registry: registry, Metrics: observability.DefaultMetrics}
-	return scheduler.NewSynchronousRunner(intake, executor, registry), backend
+	runner := scheduler.NewSynchronousRunner(intake, executor, registry)
+	runner.Recorder = recorder
+	return runner, backend
 }
 
 func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Logger) (scheduler.QueueBackend, string) {
@@ -268,7 +270,11 @@ func New() (*App, error) {
 	if cfg.Scheduler.FeedbackEnabled && repo == nil {
 		logger.Warn("scheduler feedback disabled; durable control state is unavailable")
 	}
-	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger)
+	var trainingRecorder *scheduler.TrainingRecorder
+	if schedulerFeedbackOn {
+		trainingRecorder = &scheduler.TrainingRecorder{Repo: repo.SchedulerTrainingSamples()}
+	}
+	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger, trainingRecorder)
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
 	gatewaySvc.SetSchedulerRunner(schedulerRunner)
 

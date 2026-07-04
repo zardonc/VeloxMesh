@@ -40,6 +40,7 @@ type SynchronousRunner struct {
 	Intake   *TaskIntake
 	Executor *Executor
 	Registry *ResultRegistry
+	Recorder *TrainingRecorder
 }
 
 func NewSynchronousRunner(intake *TaskIntake, executor *Executor, registry *ResultRegistry) *SynchronousRunner {
@@ -62,6 +63,7 @@ func (r *SynchronousRunner) RunChat(ctx context.Context, req *llm.LLMRequest, ex
 		return nil, err
 	}
 	if result.Error != nil {
+		r.recordTrainingSample(ctx, task, start, nil, TrainingOutcomeFailure)
 		return nil, result.Error
 	}
 	resp, _ := result.Response.(*llm.LLMResponse)
@@ -69,6 +71,7 @@ func (r *SynchronousRunner) RunChat(ctx context.Context, req *llm.LLMRequest, ex
 		resp.QueueWaitMs = time.Since(start).Milliseconds()
 	}
 	r.recordWait(task, start)
+	r.recordTrainingSample(ctx, task, start, resp, TrainingOutcomeSuccess)
 	return resp, nil
 }
 
@@ -93,6 +96,7 @@ func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, 
 		return nil, nil, err
 	}
 	if result.Error != nil {
+		r.recordTrainingSample(ctx, task, start, nil, TrainingOutcomeFailure)
 		return nil, nil, result.Error
 	}
 	stream, _ := result.Response.(StreamResult)
@@ -103,6 +107,7 @@ func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, 
 		stream.Response.QueueWaitMs = time.Since(start).Milliseconds()
 	}
 	r.recordWait(task, start)
+	r.recordTrainingSample(ctx, task, start, stream.Response, TrainingOutcomeSuccess)
 	return stream.Events, stream.Response, nil
 }
 
@@ -138,4 +143,27 @@ func (r *SynchronousRunner) recordWait(task Task, start time.Time) {
 	if r.Intake.Metrics != nil {
 		r.Intake.Metrics.RecordTaskWait(string(task.Feature.Priority), float64(time.Since(start).Milliseconds()))
 	}
+}
+
+func (r *SynchronousRunner) recordTrainingSample(ctx context.Context, task Task, start time.Time, resp *llm.LLMResponse, outcome string) {
+	if r.Recorder == nil {
+		return
+	}
+	err := r.Recorder.Record(ctx, task, trainingLabels(start, resp, outcome))
+	if err != nil && r.Intake.Metrics != nil {
+		r.Intake.Metrics.IncSchedulerError("feedback")
+	}
+}
+
+func trainingLabels(start time.Time, resp *llm.LLMResponse, outcome string) TrainingLabels {
+	labels := TrainingLabels{ActualLatencyMs: time.Since(start).Milliseconds(), Outcome: outcome, CompletedAt: time.Now().UTC()}
+	if resp == nil {
+		return labels
+	}
+	labels.ProviderClass = resp.Provider
+	if resp.Usage != nil {
+		labels.InputTokens = int64(resp.Usage.PromptTokens)
+		labels.OutputTokens = int64(resp.Usage.CompletionTokens)
+	}
+	return labels
 }

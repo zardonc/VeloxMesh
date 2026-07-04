@@ -51,7 +51,14 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 	if guard.Err != nil {
 		return Task{}, guard.Err
 	}
-	task := Task{ID: req.RequestID, Feature: feature, Score: score.Score, EnqueueTime: now, State: TaskStateQueued}
+	task := Task{
+		ID:          req.RequestID,
+		Feature:     feature,
+		Score:       score.Score,
+		EnqueueTime: now,
+		State:       TaskStateQueued,
+		Metadata:    map[string]string{schedulerVersionMetadata: score.SchedulerVersion},
+	}
 	i.Registry.Register(task.ID)
 	i.Registry.RegisterHandler(task.ID, handler)
 	if err := i.Queue.Push(ctx, QueueItem{TaskID: task.ID, Score: task.Score}); err != nil {
