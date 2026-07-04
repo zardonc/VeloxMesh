@@ -21,7 +21,7 @@
 
 ### Feedback and Observability
 
-- [ ] **FEED-01**: Gateway records enqueue feature snapshots and completion labels for scheduler training without storing raw prompts, authorization headers, API keys, or provider secrets.
+- [x] **FEED-01**: Gateway records enqueue feature snapshots and completion labels for scheduler training without storing raw prompts, authorization headers, API keys, or provider secrets.
 - [x] **OBS-01**: Gateway and Scheduler expose logs and metrics for queue depth, scheduler call latency, scheduler errors, breaker state, priority downgrades, scoring duration, and classification source.
 - [ ] **OBS-02**: Operators can compare prediction quality by scheduler type, version, and task type during heuristic versus ONNX rollout.
 
@@ -63,7 +63,7 @@
 | SCORE-01 | Phase 14 | Complete |
 | SCORE-02 | Phase 14 | Complete |
 | OBS-01 | Phase 14 | Complete |
-| FEED-01 | Phase 15 | Pending |
+| FEED-01 | Phase 15 | Complete |
 | ML-01 | Phase 15 | Pending |
 | ML-02 | Phase 15 | Pending |
 | OBS-02 | Phase 16 | Pending |
