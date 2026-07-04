@@ -433,6 +433,9 @@ func TestSchedulerConfigDefaults(t *testing.T) {
 	if cfg.Scheduler.FeedbackEnabled {
 		t.Fatalf("expected scheduler feedback disabled by default")
 	}
+	if cfg.Scheduler.ONNXRolloutPercent != 0 {
+		t.Fatalf("expected default ONNX rollout 0, got %d", cfg.Scheduler.ONNXRolloutPercent)
+	}
 }
 
 func TestSchedulerFeedbackConfigIsIndependent(t *testing.T) {
@@ -549,6 +552,28 @@ func TestSchedulerConfigValidation(t *testing.T) {
 			},
 			expectedErr: "scheduler.mode must be",
 		},
+		{
+			name: "negative onnx rollout",
+			modify: func(c *Config) {
+				c.Scheduler.ONNXRolloutPercent = -1
+			},
+			expectedErr: "scheduler.onnx_rollout_percent",
+		},
+		{
+			name: "onnx rollout over 100",
+			modify: func(c *Config) {
+				c.Scheduler.ONNXRolloutPercent = 101
+			},
+			expectedErr: "scheduler.onnx_rollout_percent",
+		},
+		{
+			name: "onnx rollout requires endpoint",
+			modify: func(c *Config) {
+				c.Scheduler.ONNXRolloutPercent = 1
+				c.Scheduler.ONNXEndpoint = ""
+			},
+			expectedErr: "scheduler.onnx_endpoint",
+		},
 	}
 
 	for _, tt := range tests {
@@ -567,6 +592,27 @@ func TestSchedulerConfigValidation(t *testing.T) {
 				t.Fatalf("expected error containing %q, got %v", tt.expectedErr, err)
 			}
 		})
+	}
+}
+
+func TestSchedulerRolloutConfigEnv(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+	t.Setenv("SCHEDULER_ENDPOINT", "legacy:50051")
+	t.Setenv("SCHEDULER_ONNX_ENDPOINT", "onnx:50051")
+	t.Setenv("SCHEDULER_ONNX_ROLLOUT_PERCENT", "100")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Scheduler.HeuristicEndpoint != "legacy:50051" {
+		t.Fatalf("expected legacy endpoint alias, got %q", cfg.Scheduler.HeuristicEndpoint)
+	}
+	if cfg.Scheduler.ONNXEndpoint != "onnx:50051" || cfg.Scheduler.ONNXRolloutPercent != 100 {
+		t.Fatalf("unexpected ONNX rollout config: %#v", cfg.Scheduler)
 	}
 }
 

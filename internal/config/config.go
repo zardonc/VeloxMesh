@@ -116,6 +116,9 @@ type Config struct {
 type SchedulerConfig struct {
 	Enabled                  bool    `json:"enabled"`
 	Endpoint                 string  `json:"endpoint"`
+	HeuristicEndpoint        string  `json:"heuristic_endpoint"`
+	ONNXEndpoint             string  `json:"onnx_endpoint"`
+	ONNXRolloutPercent       int     `json:"onnx_rollout_percent"`
 	Timeout                  string  `json:"timeout"`
 	Strict                   bool    `json:"strict"`
 	BreakerFailureThreshold  int     `json:"breaker_failure_threshold"`
@@ -178,6 +181,9 @@ func LoadConfig() (*Config, error) {
 		Scheduler: SchedulerConfig{
 			Enabled:                  getEnv("SCHEDULER_ENABLED", "false") == "true",
 			Endpoint:                 getEnv("SCHEDULER_ENDPOINT", ""),
+			HeuristicEndpoint:        getEnv("SCHEDULER_HEURISTIC_ENDPOINT", ""),
+			ONNXEndpoint:             getEnv("SCHEDULER_ONNX_ENDPOINT", ""),
+			ONNXRolloutPercent:       getEnvInt("SCHEDULER_ONNX_ROLLOUT_PERCENT", 0),
 			Timeout:                  getEnv("SCHEDULER_TIMEOUT", "15ms"),
 			Strict:                   getEnv("SCHEDULER_STRICT", "false") == "true",
 			BreakerFailureThreshold:  getEnvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 3),
@@ -469,6 +475,15 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
 	if src.Endpoint != "" {
 		dst.Endpoint = src.Endpoint
 	}
+	if src.HeuristicEndpoint != "" {
+		dst.HeuristicEndpoint = src.HeuristicEndpoint
+	}
+	if src.ONNXEndpoint != "" {
+		dst.ONNXEndpoint = src.ONNXEndpoint
+	}
+	if src.ONNXRolloutPercent != 0 {
+		dst.ONNXRolloutPercent = src.ONNXRolloutPercent
+	}
 	if src.Timeout != "" {
 		dst.Timeout = src.Timeout
 	}
@@ -523,6 +538,12 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
 }
 
 func applySchedulerDefaults(s *SchedulerConfig) {
+	if s.HeuristicEndpoint == "" {
+		s.HeuristicEndpoint = s.Endpoint
+	}
+	if s.Endpoint == "" {
+		s.Endpoint = s.HeuristicEndpoint
+	}
 	if s.Timeout == "" {
 		s.Timeout = "15ms"
 	}

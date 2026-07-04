@@ -109,6 +109,12 @@ func validateSchedulerConfig(s SchedulerConfig) error {
 	if s.BreakerFailureThreshold < 1 {
 		return fmt.Errorf("scheduler.breaker_failure_threshold must be >= 1")
 	}
+	if s.ONNXRolloutPercent < 0 || s.ONNXRolloutPercent > 100 {
+		return fmt.Errorf("scheduler.onnx_rollout_percent must be between 0 and 100")
+	}
+	if s.ONNXRolloutPercent > 0 && s.ONNXEndpoint == "" {
+		return fmt.Errorf("scheduler.onnx_endpoint is required when scheduler.onnx_rollout_percent is greater than 0")
+	}
 	if s.QueueSoftLimit < 0 || s.QueueHardLimit < 0 {
 		return fmt.Errorf("scheduler queue limits must be >= 0")
 	}
