@@ -41,6 +41,7 @@ type SynchronousRunner struct {
 	Executor *Executor
 	Registry *ResultRegistry
 	Recorder *TrainingRecorder
+	Quality  *PredictionQualityRecorder
 }
 
 func NewSynchronousRunner(intake *TaskIntake, executor *Executor, registry *ResultRegistry) *SynchronousRunner {
@@ -63,7 +64,7 @@ func (r *SynchronousRunner) RunChat(ctx context.Context, req *llm.LLMRequest, ex
 		return nil, err
 	}
 	if result.Error != nil {
-		r.recordTrainingSample(ctx, task, start, nil, TrainingOutcomeFailure)
+		r.recordCompletionEvidence(ctx, task, start, nil, TrainingOutcomeFailure)
 		return nil, result.Error
 	}
 	resp, _ := result.Response.(*llm.LLMResponse)
@@ -71,7 +72,7 @@ func (r *SynchronousRunner) RunChat(ctx context.Context, req *llm.LLMRequest, ex
 		resp.QueueWaitMs = time.Since(start).Milliseconds()
 	}
 	r.recordWait(task, start)
-	r.recordTrainingSample(ctx, task, start, resp, TrainingOutcomeSuccess)
+	r.recordCompletionEvidence(ctx, task, start, resp, TrainingOutcomeSuccess)
 	return resp, nil
 }
 
@@ -96,7 +97,7 @@ func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, 
 		return nil, nil, err
 	}
 	if result.Error != nil {
-		r.recordTrainingSample(ctx, task, start, nil, TrainingOutcomeFailure)
+		r.recordCompletionEvidence(ctx, task, start, nil, TrainingOutcomeFailure)
 		return nil, nil, result.Error
 	}
 	stream, _ := result.Response.(StreamResult)
@@ -107,7 +108,7 @@ func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, 
 		stream.Response.QueueWaitMs = time.Since(start).Milliseconds()
 	}
 	r.recordWait(task, start)
-	r.recordTrainingSample(ctx, task, start, stream.Response, TrainingOutcomeSuccess)
+	r.recordCompletionEvidence(ctx, task, start, stream.Response, TrainingOutcomeSuccess)
 	return stream.Events, stream.Response, nil
 }
 
@@ -145,14 +146,26 @@ func (r *SynchronousRunner) recordWait(task Task, start time.Time) {
 	}
 }
 
-func (r *SynchronousRunner) recordTrainingSample(ctx context.Context, task Task, start time.Time, resp *llm.LLMResponse, outcome string) {
-	if r.Recorder == nil {
+func (r *SynchronousRunner) recordCompletionEvidence(ctx context.Context, task Task, start time.Time, resp *llm.LLMResponse, outcome string) {
+	labels := trainingLabels(start, resp, outcome)
+	sampleID := r.recordTrainingSample(ctx, task, labels)
+	if r.Quality == nil {
 		return
 	}
-	err := r.Recorder.Record(ctx, task, trainingLabels(start, resp, outcome))
+	if err := r.Quality.Record(ctx, task, labels, sampleID); err != nil && r.Intake.Metrics != nil {
+		r.Intake.Metrics.IncSchedulerError("feedback")
+	}
+}
+
+func (r *SynchronousRunner) recordTrainingSample(ctx context.Context, task Task, labels TrainingLabels) string {
+	if r.Recorder == nil {
+		return ""
+	}
+	sampleID, err := r.Recorder.Record(ctx, task, labels)
 	if err != nil && r.Intake.Metrics != nil {
 		r.Intake.Metrics.IncSchedulerError("feedback")
 	}
+	return sampleID
 }
 
 func trainingLabels(start time.Time, resp *llm.LLMResponse, outcome string) TrainingLabels {

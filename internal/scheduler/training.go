@@ -28,12 +28,12 @@ type TrainingRecorder struct {
 	Repo controlstate.SchedulerTrainingSampleRepository
 }
 
-func (r *TrainingRecorder) Record(ctx context.Context, task Task, labels TrainingLabels) error {
+func (r *TrainingRecorder) Record(ctx context.Context, task Task, labels TrainingLabels) (string, error) {
 	if r == nil || r.Repo == nil {
-		return nil
+		return "", nil
 	}
 	sample := schedulerTrainingSample(task, labels)
-	return r.Repo.Insert(ctx, sample)
+	return sample.ID, r.Repo.Insert(ctx, sample)
 }
 
 func schedulerTrainingSample(task Task, labels TrainingLabels) *controlstate.SchedulerTrainingSample {

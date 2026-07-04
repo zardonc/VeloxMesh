@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"veloxmesh/internal/http/middleware"
@@ -23,6 +24,13 @@ type TaskIntake struct {
 }
 
 var ErrTaskIntakeNotConfigured = errors.New("task intake not configured")
+
+const (
+	schedulerTypeMetadata         = "scheduler_type"
+	schedulerPredictedLatencyMeta = "predicted_latency_ms"
+	schedulerConfidenceMetadata   = "scheduler_confidence"
+	schedulerCallLatencyMetadata  = "scheduler_call_latency_ms"
+)
 
 func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler TaskHandler) (Task, error) {
 	if i.Queue == nil || i.Registry == nil || i.Scorer == nil || i.Priority == nil {
@@ -46,7 +54,8 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 		scores, _ = FIFOScorer{Reason: "missing_score"}.Score(ctx, []TaskFeature{feature})
 	}
 	score := scores[0]
-	i.recordSchedulerResult(score.FallbackReason, time.Since(scoreStart), score.FallbackReason)
+	scoreLatency := time.Since(scoreStart)
+	i.recordSchedulerResult(score.FallbackReason, scoreLatency, score.FallbackReason)
 	guard := i.Guard.Check(ctx, i.Queue, priority.Resolved)
 	if guard.Err != nil {
 		return Task{}, guard.Err
@@ -57,7 +66,7 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 		Score:       score.Score,
 		EnqueueTime: now,
 		State:       TaskStateQueued,
-		Metadata:    map[string]string{schedulerVersionMetadata: score.SchedulerVersion},
+		Metadata:    scoreMetadata(score, scoreLatency),
 	}
 	i.Registry.Register(task.ID)
 	i.Registry.RegisterHandler(task.ID, handler)
@@ -74,6 +83,16 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 		}
 	}
 	return task, nil
+}
+
+func scoreMetadata(score ScoreResult, latency time.Duration) map[string]string {
+	return map[string]string{
+		schedulerVersionMetadata:      score.SchedulerVersion,
+		schedulerTypeMetadata:         string(score.SchedulerType),
+		schedulerPredictedLatencyMeta: strconv.FormatInt(score.PredictedLatencyMs, 10),
+		schedulerConfidenceMetadata:   strconv.FormatFloat(score.Confidence, 'f', -1, 64),
+		schedulerCallLatencyMetadata:  strconv.FormatInt(latency.Milliseconds(), 10),
+	}
 }
 
 func (i *TaskIntake) recordSchedulerResult(reason string, latency time.Duration, source string) {

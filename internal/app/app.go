@@ -71,7 +71,7 @@ func (a *App) HealthStore() health.Store {
 	return a.RuntimeProviderManager.HealthStore()
 }
 
-func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotstate.Client, logger *slog.Logger, recorder *scheduler.TrainingRecorder) (*scheduler.SynchronousRunner, string) {
+func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotstate.Client, logger *slog.Logger, recorder *scheduler.TrainingRecorder, quality *scheduler.PredictionQualityRecorder) (*scheduler.SynchronousRunner, string) {
 	queue, backend := newSchedulerQueue(ctx, cfg, logger)
 	scorer, err := scheduler.NewScorer(ctx, cfg.Scheduler)
 	if err != nil {
@@ -98,6 +98,7 @@ func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotsta
 	executor := &scheduler.Executor{Queue: queue, Registry: registry, Metrics: observability.DefaultMetrics}
 	runner := scheduler.NewSynchronousRunner(intake, executor, registry)
 	runner.Recorder = recorder
+	runner.Quality = quality
 	return runner, backend
 }
 
@@ -274,7 +275,11 @@ func New() (*App, error) {
 	if schedulerFeedbackOn {
 		trainingRecorder = &scheduler.TrainingRecorder{Repo: repo.SchedulerTrainingSamples()}
 	}
-	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger, trainingRecorder)
+	var qualityRecorder *scheduler.PredictionQualityRecorder
+	if repo != nil {
+		qualityRecorder = &scheduler.PredictionQualityRecorder{Repo: repo.SchedulerQualityRollups(), Metrics: observability.DefaultMetrics}
+	}
+	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger, trainingRecorder, qualityRecorder)
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
 	gatewaySvc.SetSchedulerRunner(schedulerRunner)
 
