@@ -246,3 +246,23 @@ type SchedulerTrainingSample struct {
 	CompletedAt              time.Time `json:"completed_at"`
 	CreatedAt                time.Time `json:"created_at"`
 }
+
+type SchedulerQualityRollup struct {
+	BucketStart               time.Time `json:"bucket_start"`
+	BucketEnd                 time.Time `json:"bucket_end"`
+	SchedulerType             string    `json:"scheduler_type"`
+	SchedulerVersion          string    `json:"scheduler_version"`
+	TaskType                  string    `json:"task_type"`
+	ModelClass                string    `json:"model_class"`
+	SampleCount               int64     `json:"sample_count"`
+	MAPESum                   float64   `json:"mape_sum"`
+	MAPEAvg                   float64   `json:"mape_avg"`
+	WaitMSSum                 float64   `json:"wait_ms_sum"`
+	WaitMSAvg                 float64   `json:"wait_ms_avg"`
+	SchedulerCallLatencyMSSum float64   `json:"scheduler_call_latency_ms_sum"`
+	SchedulerCallLatencyMSAvg float64   `json:"scheduler_call_latency_ms_avg"`
+	ErrorCount                int64     `json:"error_count"`
+	ConfidenceSum             float64   `json:"confidence_sum"`
+	ConfidenceAvg             float64   `json:"confidence_avg"`
+	SafeSampleIDs             []string  `json:"safe_sample_ids"`
+}

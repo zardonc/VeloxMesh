@@ -43,6 +43,10 @@ func (r *Repository) SchedulerTrainingSamples() controlstate.SchedulerTrainingSa
 	return &schedulerTrainingSampleRepo{pool: r.pool}
 }
 
+func (r *Repository) SchedulerQualityRollups() controlstate.SchedulerQualityRollupRepository {
+	return &schedulerQualityRollupRepo{pool: r.pool}
+}
+
 func (r *Repository) Close() error {
 	r.pool.Close()
 	return nil

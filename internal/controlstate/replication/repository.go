@@ -111,6 +111,10 @@ func (r *replicatedRepository) SchedulerTrainingSamples() controlstate.Scheduler
 	return r.underlying.SchedulerTrainingSamples()
 }
 
+func (r *replicatedRepository) SchedulerQualityRollups() controlstate.SchedulerQualityRollupRepository {
+	return r.underlying.SchedulerQualityRollups()
+}
+
 func (r *replicatedRepository) BeginTx(ctx context.Context) (controlstate.Transaction, error) {
 	if !r.coord.IsWritable() {
 		return nil, ErrWriteNotWritable

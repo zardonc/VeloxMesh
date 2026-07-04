@@ -193,6 +193,10 @@ func (r *Repository) SchedulerTrainingSamples() controlstate.SchedulerTrainingSa
 	return &schedulerTrainingSampleRepo{db: r.db}
 }
 
+func (r *Repository) SchedulerQualityRollups() controlstate.SchedulerQualityRollupRepository {
+	return &schedulerQualityRollupRepo{db: r.db}
+}
+
 // -- providerRepo --
 
 type providerRepo struct {

@@ -21,7 +21,7 @@ func NewMigrator(db *sql.DB) controlstate.Migrator {
 func (m *Migrator) Migrate(ctx context.Context) error {
 	fs := controlstate.GetSQLiteMigrations()
 
-	files := []string{"migrations/sqlite/0001_control_state.sql", "migrations/sqlite/0002_combos.sql", "migrations/sqlite/0003_semantic_rules.sql", "migrations/sqlite/0004_limit_rules.sql", "migrations/sqlite/0005_session_blacklist.sql", "migrations/sqlite/0006_routing_composite.sql", "migrations/sqlite/0007_scheduler_training_samples.sql"}
+	files := []string{"migrations/sqlite/0001_control_state.sql", "migrations/sqlite/0002_combos.sql", "migrations/sqlite/0003_semantic_rules.sql", "migrations/sqlite/0004_limit_rules.sql", "migrations/sqlite/0005_session_blacklist.sql", "migrations/sqlite/0006_routing_composite.sql", "migrations/sqlite/0007_scheduler_training_samples.sql", "migrations/sqlite/0008_scheduler_quality_rollups.sql"}
 
 	// A real migrator would use a library like goose, but for this milestone we
 	// can do a simple split or just execute the whole file. Wait, we should only
@@ -76,6 +76,9 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 	if err := ensureSQLiteSchedulerTrainingSamples(ctx, tx, fs); err != nil {
 		return err
 	}
+	if err := ensureSQLiteSchedulerQualityRollups(ctx, tx, fs); err != nil {
+		return err
+	}
 
 	return tx.Commit()
 }
@@ -87,6 +90,15 @@ func ensureSQLiteSchedulerTrainingSamples(ctx context.Context, tx *sql.Tx, fs em
 		return err
 	}
 	return executeSQLiteMigration(ctx, tx, fs, "migrations/sqlite/0007_scheduler_training_samples.sql")
+}
+
+func ensureSQLiteSchedulerQualityRollups(ctx context.Context, tx *sql.Tx, fs embed.FS) error {
+	var exists bool
+	err := tx.QueryRowContext(ctx, "SELECT count(*) > 0 FROM sqlite_master WHERE type='table' AND name='scheduler_quality_rollups'").Scan(&exists)
+	if err != nil || exists {
+		return err
+	}
+	return executeSQLiteMigration(ctx, tx, fs, "migrations/sqlite/0008_scheduler_quality_rollups.sql")
 }
 
 func executeSQLiteMigration(ctx context.Context, tx *sql.Tx, fs embed.FS, file string) error {

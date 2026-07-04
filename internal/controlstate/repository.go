@@ -23,6 +23,7 @@ type Repository interface {
 	LimitRules() LimitRuleRepository
 	SessionBlacklist() SessionBlacklistRepository
 	SchedulerTrainingSamples() SchedulerTrainingSampleRepository
+	SchedulerQualityRollups() SchedulerQualityRollupRepository
 	BeginTx(ctx context.Context) (Transaction, error)
 	Settle(ctx context.Context, usage *UsageRecord) error
 	Close() error
@@ -105,4 +106,9 @@ type FallbackLogRepository interface {
 type SchedulerTrainingSampleRepository interface {
 	Insert(ctx context.Context, sample *SchedulerTrainingSample) error
 	ListByWindow(ctx context.Context, start, end time.Time, limit int) ([]*SchedulerTrainingSample, error)
+}
+
+type SchedulerQualityRollupRepository interface {
+	Upsert(ctx context.Context, rollup *SchedulerQualityRollup) error
+	ListByWindow(ctx context.Context, start, end time.Time, schedulerType, schedulerVersion, taskType string, limit int) ([]*SchedulerQualityRollup, error)
 }
