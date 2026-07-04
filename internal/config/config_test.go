@@ -427,6 +427,44 @@ func TestSchedulerConfigDefaults(t *testing.T) {
 	if cfg.Scheduler.DefaultPriority != "normal" || cfg.Scheduler.MaxPriority != "high" {
 		t.Fatalf("unexpected scheduler priorities: %#v", cfg.Scheduler)
 	}
+	if cfg.Scheduler.FeedbackEnabled {
+		t.Fatalf("expected scheduler feedback disabled by default")
+	}
+}
+
+func TestSchedulerFeedbackConfigIsIndependent(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+	t.Setenv("SCHEDULER_ENABLED", "true")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.Scheduler.Enabled {
+		t.Fatalf("expected scheduler enabled")
+	}
+	if cfg.Scheduler.FeedbackEnabled {
+		t.Fatalf("expected feedback to remain disabled")
+	}
+}
+
+func TestSchedulerFeedbackConfigEnv(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+	t.Setenv("SCHEDULER_FEEDBACK_ENABLED", "true")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.Scheduler.FeedbackEnabled {
+		t.Fatalf("expected feedback enabled")
+	}
 }
 
 func TestSchedulerConfigJSONOverride(t *testing.T) {
@@ -439,7 +477,8 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 			"timeout": "12ms",
 			"default_priority": "low",
 			"max_priority": "normal",
-			"queue_backend": "memory"
+			"queue_backend": "memory",
+			"feedback_enabled": true
 		}
 	}`)
 	t.Setenv("CONFIG_FILE", configPath)
@@ -453,6 +492,9 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 	}
 	if cfg.Scheduler.Timeout != "12ms" || cfg.Scheduler.DefaultPriority != "low" || cfg.Scheduler.MaxPriority != "normal" {
 		t.Fatalf("scheduler override not applied: %#v", cfg.Scheduler)
+	}
+	if !cfg.Scheduler.FeedbackEnabled {
+		t.Fatalf("scheduler feedback override not applied")
 	}
 }
 

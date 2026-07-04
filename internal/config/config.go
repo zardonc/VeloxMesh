@@ -130,6 +130,7 @@ type SchedulerConfig struct {
 	HighQuotaPerMinute       int     `json:"high_quota_per_minute"`
 	ScoreUncertaintyPenaltyK float64 `json:"score_uncertainty_penalty_k"`
 	HeuristicConfigFile      string  `json:"heuristic_config_file"`
+	FeedbackEnabled          bool    `json:"feedback_enabled"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -189,6 +190,7 @@ func LoadConfig() (*Config, error) {
 			HighQuotaPerMinute:       getEnvInt("SCHEDULER_HIGH_QUOTA_PER_MINUTE", 0),
 			ScoreUncertaintyPenaltyK: getEnvFloat("SCHEDULER_SCORE_UNCERTAINTY_PENALTY_K", 0.2),
 			HeuristicConfigFile:      getEnv("SCHEDULER_HEURISTIC_CONFIG_FILE", ""),
+			FeedbackEnabled:          getEnv("SCHEDULER_FEEDBACK_ENABLED", "false") == "true",
 		},
 	}
 
@@ -504,6 +506,9 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
 	}
 	if src.HeuristicConfigFile != "" {
 		dst.HeuristicConfigFile = src.HeuristicConfigFile
+	}
+	if src.FeedbackEnabled {
+		dst.FeedbackEnabled = true
 	}
 }
 

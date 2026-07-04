@@ -145,6 +145,27 @@ func TestApp_SchedulerRedisQueueFailureUsesMemory(t *testing.T) {
 	}
 }
 
+func TestApp_SchedulerFeedbackRequiresDurableControlState(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+	t.Setenv("SCHEDULER_FEEDBACK_ENABLED", "true")
+
+	application, err := New()
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	if !application.Config.Scheduler.FeedbackEnabled {
+		t.Fatalf("expected config to preserve feedback opt-in")
+	}
+	if application.SchedulerFeedbackOn {
+		t.Fatalf("expected feedback recording disabled without durable control state")
+	}
+}
+
 func TestApp_PostgresControlStateFailsClosed(t *testing.T) {
 	t.Setenv("CONFIG_FILE", "")
 	t.Setenv("DEFAULT_PROVIDER", "openai-primary")

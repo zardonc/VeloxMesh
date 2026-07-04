@@ -40,6 +40,7 @@ type App struct {
 	ShutdownTracing        func(context.Context) error
 	SchedulerRunner        *scheduler.SynchronousRunner
 	SchedulerQueueBackend  string
+	SchedulerFeedbackOn    bool
 }
 
 const (
@@ -263,6 +264,10 @@ func New() (*App, error) {
 		adminSemanticRulesHandler = handlers.NewAdminSemanticRulesHandler(adminSemanticRulesSvc)
 	}
 
+	schedulerFeedbackOn := cfg.Scheduler.FeedbackEnabled && repo != nil
+	if cfg.Scheduler.FeedbackEnabled && repo == nil {
+		logger.Warn("scheduler feedback disabled; durable control state is unavailable")
+	}
 	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger)
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
 	gatewaySvc.SetSchedulerRunner(schedulerRunner)
@@ -279,6 +284,7 @@ func New() (*App, error) {
 		ShutdownTracing:        shutdownTracing,
 		SchedulerRunner:        schedulerRunner,
 		SchedulerQueueBackend:  schedulerBackend,
+		SchedulerFeedbackOn:    schedulerFeedbackOn,
 	}
 
 	if cfg.ControlStateBackend != "disabled" {
