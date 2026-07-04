@@ -5,7 +5,7 @@ verified_at: 2026-07-04
 requirements: [OBS-02, ML-03]
 plans_verified: [16-01, 16-02, 16-03]
 automated_checks:
-  passed: 7
+  passed: 8
   failed: 0
 human_verification: []
 gaps: []
@@ -46,12 +46,14 @@ Code review found and fixed one issue before verification:
 - `node .codex/gsd-core/bin/gsd-tools.cjs query verify.schema-drift 16`
 - `node .codex/gsd-core/bin/gsd-tools.cjs verify codebase-drift`
 - Required forbidden-field and kill-switch greps returned no matches.
+- Strict real-component recheck: `admin_scheduler_test.go` now exercises the rollout handler through a real SQLite control-state repository plus real admin middleware; `go test -count=1 -json ...` completed with `NO_SKIPS`.
 
 ## Gate Notes
 
 - Schema drift: passed, no drift detected.
 - Codebase drift: non-blocking skip, reason `no-structure-md`.
 - Code review: passed with no open findings; one warning was fixed before verification.
+- Real-component constraint: passed. Phase 16 admin rollout verification no longer depends on mock repositories, and the rerun treated any skipped Go test as a failure.
 - Human verification: none required for Phase 16; behavior is covered by automated tests and artifact inspection.
 - Build note: the first sandboxed `go build ./...` attempt failed on Go build-cache access under `AppData\\Local\\go-build`; rerunning with approved cache access passed.
 
