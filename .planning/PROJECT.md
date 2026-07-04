@@ -12,7 +12,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.4 Phase 15 Training Feedback and ONNX Path** has been completed. The gateway can now record opt-in safe scheduler training samples, publish versioned ONNX scheduler artifacts through offline tooling, and run an ONNX scheduler mode that loads artifacts once at startup while keeping heuristic scoring as the default.
+**v7.4 Gateway Scheduler** has been completed through Phase 16. The gateway now owns optional scheduler-backed queueing, safe training feedback, ONNX runtime scoring, heuristic/ONNX A/B rollout, prediction-quality evidence, and authenticated runtime rollback controls while preserving FIFO fallback and the OpenAI-compatible data-plane API.
 
 ## Current Milestone: v7.4 Gateway Scheduler
 
@@ -22,7 +22,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Optional gRPC Scheduler service with `BatchScoreTasks`, health, metrics, and FIFO fallback when disabled or unhealthy.
 - Redis ZSET queue backend with single-node in-memory fallback and circuit-breaker protected scheduler calls.
 - Priority resolver, quota enforcement, static virtual deadline scoring, and cold-start heuristic scoring.
-- Training-sample feedback loop, scheduler observability, and ONNX/LightGBM model path for later A/B comparison.
+- Training-sample feedback loop, scheduler observability, ONNX runtime scoring, and runtime heuristic/ONNX rollout controls for A/B comparison and rollback.
 
 <details>
 <summary>Archived Milestone: v7.2 Multi-Node Coordination</summary>
@@ -71,12 +71,12 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - ✓ Phase 13: PostgreSQL Compatibility — v7.3
 - Phase 14: Scheduler Queue Foundation - SCH-01, SCH-02, SCH-03, SCH-04, PRIO-01, PRIO-02, SCORE-01, SCORE-02, and OBS-01.
 - Phase 15: Training Feedback and ONNX Path - FEED-01, ML-01, and ML-02.
+- Phase 16: A/B Rollout and Prediction Quality - OBS-02 and ML-03.
 
 
 ### Active
 
-- [ ] OBS-02: Operators can compare prediction quality by scheduler type, version, and task type during heuristic versus ONNX rollout.
-- [ ] ML-03: Gateway can route traffic between heuristic and ONNX Scheduler backends for A/B comparison and rollback.
+No active v7.4 requirements remain.
 
 ### Deferred to Future Milestones
 
@@ -136,6 +136,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Cold start uses heuristic scoring before ONNX | Rules can ship with no training data; model prediction is introduced only after samples and validation exist | Active |
 | Gateway-owned queue foundation is complete | Phase 14 validated task-id-only Redis queueing, memory fallback, synchronous waiting, priority safety, and sanitized metrics | Good |
 | Training feedback and ONNX runtime path are complete | Phase 15 validated safe opt-in sample recording, uv-based offline artifact tooling, and startup-loaded ONNX scheduler mode | Good |
+| Scheduler A/B rollout and prediction quality are complete | Phase 16 validated weighted heuristic/ONNX routing, quality rollups, runtime rollback controls, and no automatic rollout changes on alert | Good |
 
 ## Evolution
 
@@ -146,4 +147,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-04 after completing Phase 15 Training Feedback and ONNX Path*
+*Last updated: 2026-07-04 after completing Phase 16 A/B Rollout and Prediction Quality*
