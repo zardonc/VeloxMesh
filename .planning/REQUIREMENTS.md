@@ -14,15 +14,15 @@
 
 ### Priority and Scoring
 
-- [ ] **PRIO-01**: Gateway resolves task priority only from trusted configuration, service headers, or structured request fields.
-- [ ] **PRIO-02**: Gateway enforces tenant max-priority limits and high-priority quotas, silently downgrading claims that exceed policy.
+- [x] **PRIO-01**: Gateway resolves task priority only from trusted configuration, service headers, or structured request fields.
+- [x] **PRIO-02**: Gateway enforces tenant max-priority limits and high-priority quotas, silently downgrading claims that exceed policy.
 - [x] **SCORE-01**: Scheduler computes static virtual deadline scores from enqueue time, predicted latency, priority multiplier, and uncertainty penalty.
 - [x] **SCORE-02**: Cold-start Scheduler classifies structured/rule task types and estimates latency from configured heuristic tables.
 
 ### Feedback and Observability
 
 - [ ] **FEED-01**: Gateway records enqueue feature snapshots and completion labels for scheduler training without storing raw prompts, authorization headers, API keys, or provider secrets.
-- [ ] **OBS-01**: Gateway and Scheduler expose logs and metrics for queue depth, scheduler call latency, scheduler errors, breaker state, priority downgrades, scoring duration, and classification source.
+- [x] **OBS-01**: Gateway and Scheduler expose logs and metrics for queue depth, scheduler call latency, scheduler errors, breaker state, priority downgrades, scoring duration, and classification source.
 - [ ] **OBS-02**: Operators can compare prediction quality by scheduler type, version, and task type during heuristic versus ONNX rollout.
 
 ### Model Path
@@ -58,11 +58,11 @@
 | SCH-02 | Phase 14 | Complete |
 | SCH-03 | Phase 14 | Complete |
 | SCH-04 | Phase 14 | Complete |
-| PRIO-01 | Phase 14 | Pending |
-| PRIO-02 | Phase 14 | Pending |
+| PRIO-01 | Phase 14 | Complete |
+| PRIO-02 | Phase 14 | Complete |
 | SCORE-01 | Phase 14 | Complete |
 | SCORE-02 | Phase 14 | Complete |
-| OBS-01 | Phase 14 | Pending |
+| OBS-01 | Phase 14 | Complete |
 | FEED-01 | Phase 15 | Pending |
 | ML-01 | Phase 15 | Pending |
 | ML-02 | Phase 15 | Pending |
