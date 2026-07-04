@@ -40,7 +40,6 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 	scoreStart := time.Now()
 	scores, err := i.Scorer.Score(ctx, []TaskFeature{feature})
 	if err != nil {
-		i.recordSchedulerResult("error", time.Since(scoreStart), "error")
 		scores, _ = FIFOScorer{Reason: "scheduler_error"}.Score(ctx, []TaskFeature{feature})
 	}
 	if len(scores) == 0 {

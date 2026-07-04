@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"veloxmesh/internal/llm"
+	"veloxmesh/internal/observability"
 )
 
 func TestTaskIntakeDisabledSchedulerEnqueuesFIFO(t *testing.T) {
@@ -84,6 +85,28 @@ func TestTaskIntakeEmptySchedulerResultFallsBackToFIFO(t *testing.T) {
 	}
 }
 
+func TestTaskIntakeScorerErrorRecordsOneSchedulerCall(t *testing.T) {
+	registry := NewResultRegistry()
+	queue := NewMemoryQueue()
+	metrics := &schedulerMetricsSpy{StubMetrics: observability.NewStubMetrics()}
+	intake := &TaskIntake{
+		Queue: queue, Scorer: errorScorer{}, Registry: registry, Metrics: metrics,
+		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh}, Backend: "memory",
+	}
+	_, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "t1"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
+	if metrics.schedulerCalls != 1 || metrics.schedulerCallResult != "error" {
+		t.Fatalf("scheduler calls = %d/%q, want 1/error", metrics.schedulerCalls, metrics.schedulerCallResult)
+	}
+	if metrics.schedulerErrors != 1 || metrics.schedulerErrorReason != "error" {
+		t.Fatalf("scheduler errors = %d/%q, want 1/error", metrics.schedulerErrors, metrics.schedulerErrorReason)
+	}
+}
+
 func TestSynchronousRunnerCancelRemovesQueuedTask(t *testing.T) {
 	registry := NewResultRegistry()
 	queue := &recordingQueue{QueueBackend: NewMemoryQueue()}
@@ -113,6 +136,30 @@ type emptyScorer struct{}
 
 func (emptyScorer) Score(context.Context, []TaskFeature) ([]ScoreResult, error) {
 	return nil, nil
+}
+
+type errorScorer struct{}
+
+func (errorScorer) Score(context.Context, []TaskFeature) ([]ScoreResult, error) {
+	return nil, errors.New("scheduler unavailable")
+}
+
+type schedulerMetricsSpy struct {
+	*observability.StubMetrics
+	schedulerCalls       int
+	schedulerCallResult  string
+	schedulerErrors      int
+	schedulerErrorReason string
+}
+
+func (m *schedulerMetricsSpy) RecordSchedulerCall(result string, _ float64) {
+	m.schedulerCalls++
+	m.schedulerCallResult = result
+}
+
+func (m *schedulerMetricsSpy) IncSchedulerError(reason string) {
+	m.schedulerErrors++
+	m.schedulerErrorReason = reason
 }
 
 type recordingQueue struct {
