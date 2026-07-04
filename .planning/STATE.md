@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Gateway Scheduler
-status: verifying
-last_updated: "2026-07-04T19:09:29.607Z"
-last_activity: 2026-07-04 -- Phase 15 execution started
+status: planning
+last_updated: "2026-07-04T19:22:29.749Z"
+last_activity: 2026-07-04
 progress:
   total_phases: 3
   completed_phases: 2
@@ -15,18 +15,19 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-07-03)
+See: `.planning/PROJECT.md` (updated 2026-07-04)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 15 — training-feedback-and-onnx-path
+**Current focus:** Phase 16 — a/b-rollout-and-prediction-quality
 
 ## Current Implementation State
 
 - Phase 1-10 (v7.0, v7.1) are implemented and verified.
 - Phase 12 multi-node coordination (v7.2) is fully implemented, verified, and shipped.
 - Phase 13 PostgreSQL Compatibility (v7.3) is fully implemented, verified, and shipped.
-- Phase 14-16 define the v7.4 Gateway Scheduler milestone.
+- Phase 15 Training Feedback and ONNX Path is implemented and verified.
+- Phase 16 A/B Rollout and Prediction Quality remains to complete v7.4.
 
 ## Completed
 
@@ -34,28 +35,29 @@ See: `.planning/PROJECT.md` (updated 2026-07-03)
 - Phase 12: Multi-Node Coordination
 - Phase 13: PostgreSQL Compatibility
 - Phase 14: Scheduler Queue Foundation
+- Phase 15: Training Feedback and ONNX Path
 
 ## Planned Next
 
-1. Discuss Phase 15 Training Feedback and ONNX Path.
+1. Discuss Phase 16 A/B Rollout and Prediction Quality.
 
 ## Useful Commands
 
-- `$gsd-discuss-phase 15` - gather Phase 15 Training Feedback and ONNX Path context.
-- `$gsd-plan-phase 15` - plan Phase 15 after context is gathered.
-- `$gsd-execute-phase 15` - execute Phase 15 after planning.
+- `$gsd-discuss-phase 16` - gather Phase 16 A/B Rollout and Prediction Quality context.
+- `$gsd-plan-phase 16` - plan Phase 16 after context is gathered.
+- `$gsd-execute-phase 16` - execute Phase 16 after planning.
 - `go test ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 15 (training-feedback-and-onnx-path) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-07-04 -- Phase 15 execution started
+Phase: 16
+Plan: Not started
+Status: Ready for discussion
+Last activity: 2026-07-04
 
 ## Operator Next Steps
 
-- Start `$gsd-discuss-phase 15` for Training Feedback and ONNX Path.
+- Start `$gsd-discuss-phase 16` for A/B Rollout and Prediction Quality.
 
 ## Deferred Items
 

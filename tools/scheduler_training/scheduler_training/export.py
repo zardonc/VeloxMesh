@@ -50,10 +50,14 @@ SAFE_FIELDS = [
 
 
 def sanitize_row(row: dict) -> dict:
-    forbidden = FORBIDDEN_FIELDS.intersection(row)
+    forbidden = forbidden_fields(row)
     if forbidden:
         raise ValueError(f"forbidden scheduler export fields: {', '.join(sorted(forbidden))}")
     return {field: row.get(field) for field in SAFE_FIELDS}
+
+
+def forbidden_fields(row: dict) -> set[str]:
+    return {field for field in row if any(token in field.lower() for token in FORBIDDEN_FIELDS)}
 
 
 def read_jsonl(path: Path) -> list[dict]:

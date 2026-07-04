@@ -61,6 +61,21 @@ func TestSchedulerTrainingSampleSchemaExcludesForbiddenFields(t *testing.T) {
 	}
 }
 
+func TestSchedulerTrainingSampleWithCreatedAtDoesNotMutateInput(t *testing.T) {
+	sample := testSchedulerTrainingSample()
+	sample.CreatedAt = time.Time{}
+	fallback := time.Date(2026, 7, 4, 12, 1, 0, 0, time.UTC)
+
+	got := schedulerTrainingSampleWithCreatedAt(sample, fallback)
+
+	if !sample.CreatedAt.IsZero() {
+		t.Fatalf("input sample was mutated: %#v", sample)
+	}
+	if got == sample || !got.CreatedAt.Equal(fallback) {
+		t.Fatalf("unexpected prepared sample: got=%#v input=%#v", got, sample)
+	}
+}
+
 func assertSafeTrainingColumn(t *testing.T, name string) {
 	t.Helper()
 	for _, forbidden := range []string{"prompt", "message", "authorization", "api_key", "secret", "payload", "hash"} {

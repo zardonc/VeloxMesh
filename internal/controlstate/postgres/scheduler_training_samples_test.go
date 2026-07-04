@@ -28,6 +28,21 @@ func TestPostgresSchedulerTrainingSamplesInsertAndListByWindow(t *testing.T) {
 	}
 }
 
+func TestSchedulerTrainingSampleWithCreatedAtDoesNotMutateInput(t *testing.T) {
+	sample := testSchedulerTrainingSample(uniquePostgresID(t, "scheduler-sample"))
+	sample.CreatedAt = time.Time{}
+	fallback := time.Date(2026, 7, 4, 12, 1, 0, 0, time.UTC)
+
+	got := schedulerTrainingSampleWithCreatedAt(sample, fallback)
+
+	if !sample.CreatedAt.IsZero() {
+		t.Fatalf("input sample was mutated: %#v", sample)
+	}
+	if got == sample || !got.CreatedAt.Equal(fallback) {
+		t.Fatalf("unexpected prepared sample: got=%#v input=%#v", got, sample)
+	}
+}
+
 func testSchedulerTrainingSample(id string) *controlstate.SchedulerTrainingSample {
 	completed := time.Now().UTC().Truncate(time.Microsecond)
 	return &controlstate.SchedulerTrainingSample{

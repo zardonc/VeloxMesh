@@ -1,7 +1,7 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Updated:** 2026-07-03
+**Updated:** 2026-07-04
 **Current focus:** v7.4 Gateway Scheduler
 
 ## Overview
@@ -106,4 +106,4 @@ Success criteria:
 - Source code committed to git must not contain hardcoded configuration.
 
 ---
-*Roadmap refreshed: 2026-07-03 after starting v7.4 Gateway Scheduler*
+*Roadmap refreshed: 2026-07-04 after completing Phase 15 Training Feedback and ONNX Path*

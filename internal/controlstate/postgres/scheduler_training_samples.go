@@ -16,10 +16,8 @@ type schedulerTrainingSampleRepo struct {
 }
 
 func (r *schedulerTrainingSampleRepo) Insert(ctx context.Context, sample *controlstate.SchedulerTrainingSample) error {
-	if sample.CreatedAt.IsZero() {
-		sample.CreatedAt = time.Now().UTC()
-	}
-	_, err := r.pool.Exec(ctx, insertSchedulerTrainingSampleSQL, sampleValues(sample)...)
+	prepared := schedulerTrainingSampleWithCreatedAt(sample, time.Now().UTC())
+	_, err := r.pool.Exec(ctx, insertSchedulerTrainingSampleSQL, sampleValues(prepared)...)
 	return err
 }
 
@@ -69,6 +67,14 @@ func sampleValues(s *controlstate.SchedulerTrainingSample) []any {
 		s.UncertaintyHint, s.ActualLatencyMs, s.InputTokens, s.OutputTokens,
 		s.Outcome, s.ProviderClass, s.SchedulerVersion, s.CompletedAt, s.CreatedAt,
 	}
+}
+
+func schedulerTrainingSampleWithCreatedAt(s *controlstate.SchedulerTrainingSample, fallback time.Time) *controlstate.SchedulerTrainingSample {
+	clone := *s
+	if clone.CreatedAt.IsZero() {
+		clone.CreatedAt = fallback
+	}
+	return &clone
 }
 
 const schedulerTrainingSampleColumns = `

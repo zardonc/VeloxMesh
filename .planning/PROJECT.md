@@ -12,7 +12,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.4 Phase 14 Scheduler Queue Foundation** has been completed. The gateway now has an optional Scheduler contract, Redis/memory queue backend, heuristic scoring service, trusted priority resolver, and sanitized scheduler observability without changing the OpenAI-compatible data-plane contract.
+**v7.4 Phase 15 Training Feedback and ONNX Path** has been completed. The gateway can now record opt-in safe scheduler training samples, publish versioned ONNX scheduler artifacts through offline tooling, and run an ONNX scheduler mode that loads artifacts once at startup while keeping heuristic scoring as the default.
 
 ## Current Milestone: v7.4 Gateway Scheduler
 
@@ -70,13 +70,11 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - ✓ Phase 10: Advanced Routing & Observability — v7.1
 - ✓ Phase 13: PostgreSQL Compatibility — v7.3
 - Phase 14: Scheduler Queue Foundation - SCH-01, SCH-02, SCH-03, SCH-04, PRIO-01, PRIO-02, SCORE-01, SCORE-02, and OBS-01.
+- Phase 15: Training Feedback and ONNX Path - FEED-01, ML-01, and ML-02.
 
 
 ### Active
 
-- [ ] FEED-01: Gateway can record scheduler training samples without storing raw prompts or provider secrets.
-- [ ] ML-01: Operators can introduce ONNX/LightGBM scheduler models through versioned artifacts and A/B routing.
-- [ ] ML-02: ONNX Scheduler can load model artifacts once at startup and return predicted latency, confidence, and scheduler version without per-request model reload.
 - [ ] OBS-02: Operators can compare prediction quality by scheduler type, version, and task type during heuristic versus ONNX rollout.
 - [ ] ML-03: Gateway can route traffic between heuristic and ONNX Scheduler backends for A/B comparison and rollback.
 
@@ -137,6 +135,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Static virtual deadline is the scheduler score | One Redis score write avoids dynamic ZSET re-ranking and gives aging through enqueue time | Active |
 | Cold start uses heuristic scoring before ONNX | Rules can ship with no training data; model prediction is introduced only after samples and validation exist | Active |
 | Gateway-owned queue foundation is complete | Phase 14 validated task-id-only Redis queueing, memory fallback, synchronous waiting, priority safety, and sanitized metrics | Good |
+| Training feedback and ONNX runtime path are complete | Phase 15 validated safe opt-in sample recording, uv-based offline artifact tooling, and startup-loaded ONNX scheduler mode | Good |
 
 ## Evolution
 
@@ -147,4 +146,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-04 after completing Phase 14 Scheduler Queue Foundation*
+*Last updated: 2026-07-04 after completing Phase 15 Training Feedback and ONNX Path*

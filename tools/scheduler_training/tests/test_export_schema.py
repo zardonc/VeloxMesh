@@ -25,3 +25,9 @@ def test_export_rejects_forbidden_field():
     row = safe_row() | {"pro" + "mpt": "do not store"}
     with pytest.raises(ValueError):
         sanitize_row(row)
+
+
+def test_export_rejects_forbidden_field_variants():
+    row = safe_row() | {"raw_" + "pay" + "load": "do not store"}
+    with pytest.raises(ValueError):
+        sanitize_row(row)
