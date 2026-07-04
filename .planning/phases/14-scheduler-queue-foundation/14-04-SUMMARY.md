@@ -39,6 +39,8 @@ key-files:
     - internal/observability/metrics.go
     - internal/observability/prometheus.go
     - internal/observability/prometheus_test.go
+    - internal/scheduler/queue_fallback.go
+    - internal/scheduler/queue_fallback_test.go
     - internal/scheduler/result_registry.go
 key-decisions:
   - "Priority is resolved at one trusted seam and remains limited to high, normal, or low."
@@ -78,6 +80,7 @@ completed: 2026-07-04
 1. **Task 1: Implement trusted priority resolver and downgrade policy** - `e2bbe4df`
 2. **Task 2: Wire internal queue/executor through Gateway sync and stream paths** - `e2bbe4df`
 3. **Task 3: Add sanitized queue, scheduler, and priority observability** - `e2bbe4df`
+4. **Code review fix: Harden fallback queue and scheduler metrics** - `84a3abe`
 
 **Plan metadata:** pending in docs commit
 
@@ -100,6 +103,8 @@ completed: 2026-07-04
 - `internal/observability/metrics.go` - Scheduler and queue metric methods.
 - `internal/observability/prometheus.go` - Low-cardinality Prometheus metric implementations.
 - `internal/observability/prometheus_test.go` - Metric gather and label allowlist tests.
+- `internal/scheduler/queue_fallback.go` - Thread-safe Redis-to-memory fallback state.
+- `internal/scheduler/queue_fallback_test.go` - Concurrent primary-failure fallback regression test.
 
 ## Decisions Made
 
@@ -128,10 +133,18 @@ completed: 2026-07-04
 - **Verification:** Scheduler and gateway tests passed, including cancellation cleanup.
 - **Committed in:** `e2bbe4df`
 
+**3. Code review fixed fallback queue and metric accounting**
+- **Found during:** Code review gate
+- **Issue:** `FallbackQueue.primaryAvailable` was mutated without synchronization under concurrent Gateway requests, and scorer errors produced duplicate scheduler call metrics.
+- **Fix:** Added a `sync.Mutex` around fallback state transitions and removed the duplicate scheduler call record on scorer error.
+- **Files modified:** `internal/scheduler/queue_fallback.go`, `internal/scheduler/queue_fallback_test.go`, `internal/scheduler/intake.go`, `internal/scheduler/intake_test.go`
+- **Verification:** Targeted tests, full Phase 14 package tests, and safety greps passed.
+- **Committed in:** `84a3abe`
+
 ---
 
-**Total deviations:** 2 auto-fixed integration gaps.
-**Impact on plan:** Both changes were required to preserve the planned synchronous facade without storing raw request payloads in the queue.
+**Total deviations:** 3 auto-fixed integration/review gaps.
+**Impact on plan:** Changes were required to preserve the planned synchronous facade, avoid duplicate observability signals, and keep fallback queue state safe under concurrent Gateway traffic.
 
 ## Issues Encountered
 
@@ -141,6 +154,7 @@ completed: 2026-07-04
 
 - `cmd.exe /c "set GOCACHE=%TEMP%\\codex-go-build-veloxmesh&& go test -count=1 -timeout 60s ./internal/app"` - passed after PostgreSQL was restored.
 - `cmd.exe /c "set GOCACHE=%TEMP%\\codex-go-build-veloxmesh&& go test -count=1 -timeout 60s ./internal/scheduler ./internal/admission ./internal/gateway ./internal/http/handlers ./internal/app ./internal/observability"` - passed after PostgreSQL was restored.
+- `cmd.exe /c "set GOCACHE=%TEMP%\\codex-go-build-veloxmesh&& go test -count=1 -timeout 60s ./internal/scheduler -run \"TestTaskIntakeScorerErrorRecordsOneSchedulerCall|TestFallbackQueueConcurrentPrimaryFailure\""` - passed.
 - `rg "urgent" internal/scheduler internal/admission` - no matches.
 - `rg "queue_depth|scheduler_id|scheduler_type|scheduler_version" internal/http/handlers internal/gateway` - no matches.
 - `rg "request_id|task_id|tenant_id|prompt|message|provider_secret|api_key|authorization" internal/observability/prometheus.go` - no matches.
