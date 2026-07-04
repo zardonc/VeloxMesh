@@ -68,6 +68,10 @@
 | ML-02 | Phase 15 | Pending |
 | OBS-02 | Phase 16 | Pending |
 | ML-03 | Phase 16 | Pending |
+| QDR-01 | Future | Future |
+| ANOM-01 | Future | Future |
+| SLA-01 | Future | Future |
+| ADMIN-02 | Future | Future |
 
 **Coverage:**
 

@@ -12,7 +12,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.3 PostgreSQL Compatibility** has been shipped. PostgreSQL control-state compatibility, pgvector semantic cache support, SQLite-to-PostgreSQL migration, and real-provider Plan 4 smoke verification are live as an opt-in deployment path. The current milestone adds an optional task Scheduler without changing the OpenAI-compatible data-plane contract.
+**v7.4 Phase 14 Scheduler Queue Foundation** has been completed. The gateway now has an optional Scheduler contract, Redis/memory queue backend, heuristic scoring service, trusted priority resolver, and sanitized scheduler observability without changing the OpenAI-compatible data-plane contract.
 
 ## Current Milestone: v7.4 Gateway Scheduler
 
@@ -69,16 +69,16 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - ✓ Phase 9: Redis Stack + Qdrant Fallback Integration — v7.0
 - ✓ Phase 10: Advanced Routing & Observability — v7.1
 - ✓ Phase 13: PostgreSQL Compatibility — v7.3
+- Phase 14: Scheduler Queue Foundation - SCH-01, SCH-02, SCH-03, SCH-04, PRIO-01, PRIO-02, SCORE-01, SCORE-02, and OBS-01.
 
 
 ### Active
 
-- [ ] SCH-01: Gateway can run with Scheduler disabled and fall back to FIFO queue scoring without startup failure.
-- [ ] SCH-02: Gateway can call a stateless Scheduler over gRPC with a 15ms timeout and circuit-breaker fallback.
-- [ ] PRIO-01: Gateway resolves priority only from trusted structured inputs and never from prompt text.
-- [ ] SCORE-01: Scheduler can compute static virtual deadline scores from predicted latency, priority multiplier, and uncertainty.
 - [ ] FEED-01: Gateway can record scheduler training samples without storing raw prompts or provider secrets.
 - [ ] ML-01: Operators can introduce ONNX/LightGBM scheduler models through versioned artifacts and A/B routing.
+- [ ] ML-02: ONNX Scheduler can load model artifacts once at startup and return predicted latency, confidence, and scheduler version without per-request model reload.
+- [ ] OBS-02: Operators can compare prediction quality by scheduler type, version, and task type during heuristic versus ONNX rollout.
+- [ ] ML-03: Gateway can route traffic between heuristic and ONNX Scheduler backends for A/B comparison and rollback.
 
 ### Deferred to Future Milestones
 
@@ -136,6 +136,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Scheduler is a stateless scoring oracle | Gateway keeps queue ownership, task storage, execution, and fallback behavior; Scheduler only returns scores and prediction metadata | Active |
 | Static virtual deadline is the scheduler score | One Redis score write avoids dynamic ZSET re-ranking and gives aging through enqueue time | Active |
 | Cold start uses heuristic scoring before ONNX | Rules can ship with no training data; model prediction is introduced only after samples and validation exist | Active |
+| Gateway-owned queue foundation is complete | Phase 14 validated task-id-only Redis queueing, memory fallback, synchronous waiting, priority safety, and sanitized metrics | Good |
 
 ## Evolution
 
@@ -146,4 +147,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-03 after starting v7.4 Gateway Scheduler*
+*Last updated: 2026-07-04 after completing Phase 14 Scheduler Queue Foundation*
