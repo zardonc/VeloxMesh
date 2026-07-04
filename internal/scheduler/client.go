@@ -3,6 +3,8 @@ package scheduler
 import (
 	"context"
 	"errors"
+	"hash/fnv"
+	"strconv"
 	"time"
 
 	"google.golang.org/grpc"
@@ -27,21 +29,43 @@ func (s FIFOScorer) Score(_ context.Context, tasks []TaskFeature) ([]ScoreResult
 }
 
 type GRPCScorer struct {
-	enabled bool
-	timeout time.Duration
-	client  schedulerv1.TaskSchedulerClient
-	conn    *grpc.ClientConn
-	breaker *breaker
+	enabled       bool
+	timeout       time.Duration
+	client        schedulerv1.TaskSchedulerClient
+	conn          *grpc.ClientConn
+	breaker       *breaker
+	schedulerType SchedulerType
 }
 
 func NewScorer(ctx context.Context, cfg config.SchedulerConfig) (Scorer, error) {
-	if !cfg.Enabled || cfg.Endpoint == "" {
+	heuristicEndpoint := cfg.HeuristicEndpoint
+	if heuristicEndpoint == "" {
+		heuristicEndpoint = cfg.Endpoint
+	}
+	if !cfg.Enabled || heuristicEndpoint == "" {
 		return FIFOScorer{Reason: "disabled"}, nil
 	}
-	return NewGRPCScorer(ctx, cfg)
+	heuristicCfg := cfg
+	heuristicCfg.Endpoint = heuristicEndpoint
+	heuristic, err := NewGRPCScorer(ctx, heuristicCfg)
+	if err != nil || cfg.ONNXRolloutPercent <= 0 || cfg.ONNXEndpoint == "" {
+		return heuristic, err
+	}
+	onnxCfg := cfg
+	onnxCfg.Endpoint = cfg.ONNXEndpoint
+	onnx, err := newGRPCScorer(ctx, onnxCfg, SchedulerTypeONNX)
+	if err != nil {
+		_ = heuristic.Close()
+		return nil, err
+	}
+	return WeightedScorer{Heuristic: heuristic, ONNX: onnx, ONNXRolloutPercent: cfg.ONNXRolloutPercent}, nil
 }
 
 func NewGRPCScorer(ctx context.Context, cfg config.SchedulerConfig) (*GRPCScorer, error) {
+	return newGRPCScorer(ctx, cfg, SchedulerTypeHeuristic)
+}
+
+func newGRPCScorer(ctx context.Context, cfg config.SchedulerConfig, schedulerType SchedulerType) (*GRPCScorer, error) {
 	timeout, err := time.ParseDuration(cfg.Timeout)
 	if err != nil {
 		return nil, err
@@ -64,11 +88,12 @@ func NewGRPCScorer(ctx context.Context, cfg config.SchedulerConfig) (*GRPCScorer
 	}
 
 	return &GRPCScorer{
-		enabled: cfg.Enabled,
-		timeout: timeout,
-		client:  schedulerv1.NewTaskSchedulerClient(conn),
-		conn:    conn,
-		breaker: &breaker{threshold: threshold, recovery: recovery},
+		enabled:       cfg.Enabled,
+		timeout:       timeout,
+		client:        schedulerv1.NewTaskSchedulerClient(conn),
+		conn:          conn,
+		breaker:       &breaker{threshold: threshold, recovery: recovery},
+		schedulerType: schedulerType,
 	}, nil
 }
 
@@ -106,14 +131,75 @@ func (s *GRPCScorer) Score(ctx context.Context, tasks []TaskFeature) ([]ScoreRes
 
 	results := mergeResults(tasks, resp)
 	success := true
-	for _, result := range results {
+	for i, result := range results {
+		results[i].SchedulerType = s.schedulerType
 		if result.FallbackReason != "" {
 			success = false
-			break
 		}
 	}
 	s.breaker.Record(success)
 	return results, nil
+}
+
+type WeightedScorer struct {
+	Heuristic          Scorer
+	ONNX               Scorer
+	ONNXRolloutPercent int
+}
+
+func (s WeightedScorer) Score(ctx context.Context, tasks []TaskFeature) ([]ScoreResult, error) {
+	results := make([]ScoreResult, len(tasks))
+	heuristicTasks, onnxTasks := splitByRollout(tasks, s.ONNXRolloutPercent)
+
+	scoreIndexed(ctx, s.Heuristic, heuristicTasks, SchedulerTypeHeuristic, results, "heuristic_failed")
+	scoreIndexed(ctx, s.ONNX, onnxTasks, SchedulerTypeONNX, results, "onnx_failed")
+
+	for _, item := range onnxTasks {
+		if !unusableScore(results[item.Index]) {
+			continue
+		}
+		scoreIndexed(ctx, s.Heuristic, []indexedTask{item}, SchedulerTypeHeuristic, results, "onnx_then_heuristic_failed")
+		if unusableScore(results[item.Index]) {
+			results[item.Index] = fifoScore(item.Task, "onnx_then_heuristic_failed")
+		}
+	}
+	return results, nil
+}
+
+type indexedTask struct {
+	Index int
+	Task  TaskFeature
+}
+
+func splitByRollout(tasks []TaskFeature, percent int) ([]indexedTask, []indexedTask) {
+	heuristicTasks, onnxTasks := make([]indexedTask, 0, len(tasks)), make([]indexedTask, 0, len(tasks))
+	for i, task := range tasks {
+		item := indexedTask{Index: i, Task: task}
+		if assignedToONNX(task, i, percent) {
+			onnxTasks = append(onnxTasks, item)
+			continue
+		}
+		heuristicTasks = append(heuristicTasks, item)
+	}
+	return heuristicTasks, onnxTasks
+}
+
+func scoreIndexed(ctx context.Context, scorer Scorer, items []indexedTask, schedulerType SchedulerType, dst []ScoreResult, fallbackReason string) {
+	if len(items) == 0 {
+		return
+	}
+	tasks := make([]TaskFeature, len(items))
+	for i, item := range items {
+		tasks[i] = item.Task
+	}
+	results, err := scorer.Score(ctx, tasks)
+	if err != nil || len(results) != len(items) {
+		results = fallback(tasks, fallbackReason)
+	}
+	for i, result := range results {
+		result.SchedulerType = schedulerType
+		dst[items[i].Index] = result
+	}
 }
 
 func mergeResults(tasks []TaskFeature, resp *schedulerv1.BatchScoreResponse) []ScoreResult {
@@ -148,7 +234,37 @@ func fifoScore(task TaskFeature, reason string) ScoreResult {
 		Score:          float64(task.EnqueueTimeMs),
 		Priority:       task.Priority,
 		Confidence:     1,
+		SchedulerType:  SchedulerTypeFIFO,
 		FallbackReason: reason,
+	}
+}
+
+func assignedToONNX(task TaskFeature, index, percent int) bool {
+	if percent <= 0 {
+		return false
+	}
+	if percent >= 100 {
+		return true
+	}
+	return rolloutBucket(task, index) < uint32(percent*100)
+}
+
+func rolloutBucket(task TaskFeature, index int) uint32 {
+	key := task.TaskID
+	if key == "" {
+		key = strconv.Itoa(index) + ":" + strconv.FormatInt(task.EnqueueTimeMs, 10)
+	}
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(key))
+	return h.Sum32() % 10000
+}
+
+func unusableScore(result ScoreResult) bool {
+	switch result.FallbackReason {
+	case "breaker_open", "disabled", "heuristic_failed", "missing_score", "onnx_failed", "scheduler_error", "timeout":
+		return true
+	default:
+		return result.SchedulerVersion == "" && result.SchedulerType != SchedulerTypeFIFO
 	}
 }
 

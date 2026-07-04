@@ -134,6 +134,89 @@ func TestGRPCScorerMissingTaskIDsFallBackPerTask(t *testing.T) {
 	}
 }
 
+func TestWeightedScorerRolloutZeroNeverCallsONNX(t *testing.T) {
+	heuristic := &recordingScorer{result: ScoreResult{SchedulerVersion: "heuristic-v1"}}
+	onnx := &recordingScorer{result: ScoreResult{SchedulerVersion: "onnx-v1"}}
+	scorer := WeightedScorer{Heuristic: heuristic, ONNX: onnx, ONNXRolloutPercent: 0}
+
+	results, err := scorer.Score(context.Background(), []TaskFeature{{TaskID: "t1", Priority: PriorityNormal}})
+	if err != nil {
+		t.Fatalf("Score: %v", err)
+	}
+	if onnx.calls != 0 || heuristic.calls != 1 {
+		t.Fatalf("unexpected calls: heuristic=%d onnx=%d", heuristic.calls, onnx.calls)
+	}
+	if results[0].SchedulerType != SchedulerTypeHeuristic {
+		t.Fatalf("expected heuristic score, got %#v", results[0])
+	}
+}
+
+func TestWeightedScorerRolloutHundredCallsONNXForAllTasks(t *testing.T) {
+	heuristic := &recordingScorer{result: ScoreResult{SchedulerVersion: "heuristic-v1"}}
+	onnx := &recordingScorer{result: ScoreResult{SchedulerVersion: "onnx-v1"}}
+	scorer := WeightedScorer{Heuristic: heuristic, ONNX: onnx, ONNXRolloutPercent: 100}
+
+	results, err := scorer.Score(context.Background(), []TaskFeature{{TaskID: "t1"}, {TaskID: "t2"}})
+	if err != nil {
+		t.Fatalf("Score: %v", err)
+	}
+	if onnx.calls != 1 || heuristic.calls != 0 {
+		t.Fatalf("unexpected calls: heuristic=%d onnx=%d", heuristic.calls, onnx.calls)
+	}
+	if results[0].SchedulerType != SchedulerTypeONNX || results[1].SchedulerType != SchedulerTypeONNX {
+		t.Fatalf("expected ONNX scores, got %#v", results)
+	}
+}
+
+func TestWeightedScorerONNXFailureFallsBackToHeuristicThenFIFO(t *testing.T) {
+	heuristic := &recordingScorer{result: ScoreResult{SchedulerVersion: "heuristic-v1"}}
+	onnx := &recordingScorer{result: ScoreResult{FallbackReason: "scheduler_error"}}
+	scorer := WeightedScorer{Heuristic: heuristic, ONNX: onnx, ONNXRolloutPercent: 100}
+
+	results, err := scorer.Score(context.Background(), []TaskFeature{{TaskID: "t1", EnqueueTimeMs: 42}})
+	if err != nil {
+		t.Fatalf("Score: %v", err)
+	}
+	if heuristic.calls != 1 || results[0].SchedulerType != SchedulerTypeHeuristic {
+		t.Fatalf("expected heuristic fallback, calls=%d result=%#v", heuristic.calls, results[0])
+	}
+
+	heuristic.result = ScoreResult{FallbackReason: "scheduler_error"}
+	results, err = scorer.Score(context.Background(), []TaskFeature{{TaskID: "t1", EnqueueTimeMs: 42}})
+	if err != nil {
+		t.Fatalf("Score: %v", err)
+	}
+	if results[0].SchedulerType != SchedulerTypeFIFO || results[0].FallbackReason != "onnx_then_heuristic_failed" {
+		t.Fatalf("expected FIFO fallback, got %#v", results[0])
+	}
+}
+
+func TestRolloutAssignmentUsesTaskID(t *testing.T) {
+	task := TaskFeature{TaskID: "stable", EnqueueTimeMs: 1}
+	if rolloutBucket(task, 0) != rolloutBucket(TaskFeature{TaskID: "stable", EnqueueTimeMs: 999}, 7) {
+		t.Fatalf("expected task ID to determine rollout bucket")
+	}
+	if rolloutBucket(TaskFeature{EnqueueTimeMs: 1}, 0) == rolloutBucket(TaskFeature{EnqueueTimeMs: 1}, 1) {
+		t.Fatalf("expected empty task IDs to use index and enqueue time fallback")
+	}
+}
+
+type recordingScorer struct {
+	calls  int
+	result ScoreResult
+}
+
+func (s *recordingScorer) Score(_ context.Context, tasks []TaskFeature) ([]ScoreResult, error) {
+	s.calls++
+	results := make([]ScoreResult, len(tasks))
+	for i, task := range tasks {
+		result := s.result
+		result.TaskID = task.TaskID
+		results[i] = result
+	}
+	return results, nil
+}
+
 type schedulerServer struct {
 	schedulerv1.UnimplementedTaskSchedulerServer
 	score func(context.Context, *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error)

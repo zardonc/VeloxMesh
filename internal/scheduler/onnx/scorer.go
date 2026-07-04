@@ -43,6 +43,7 @@ func (s *Scorer) scoreTask(task scheduler.TaskFeature) scheduler.ScoreResult {
 	score := s.calculator.Score(task).Result
 	score.Confidence = s.confidence(task)
 	score.SchedulerVersion = s.artifact.Manifest.SchedulerVersion
+	score.SchedulerType = scheduler.SchedulerTypeONNX
 	score.FallbackReason = "onnx"
 	return score
 }

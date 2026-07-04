@@ -29,6 +29,14 @@ const (
 	RequestKindCreative         RequestKind = "creative"
 )
 
+type SchedulerType string
+
+const (
+	SchedulerTypeFIFO      SchedulerType = "fifo"
+	SchedulerTypeHeuristic SchedulerType = "heuristic"
+	SchedulerTypeONNX      SchedulerType = "onnx"
+)
+
 type TaskFeature struct {
 	TaskID                   string
 	ModelClass               string
@@ -61,6 +69,7 @@ type ScoreResult struct {
 	PredictedLatencyMs int64
 	Confidence         float64
 	SchedulerVersion   string
+	SchedulerType      SchedulerType
 	FallbackReason     string
 }
 
