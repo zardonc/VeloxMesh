@@ -52,7 +52,7 @@ func NewScorerWithController(ctx context.Context, cfg config.SchedulerConfig, co
 	heuristicCfg := cfg
 	heuristicCfg.Endpoint = heuristicEndpoint
 	heuristic, err := NewGRPCScorer(ctx, heuristicCfg)
-	if err != nil || cfg.ONNXRolloutPercent <= 0 || cfg.ONNXEndpoint == "" {
+	if err != nil || cfg.ONNXEndpoint == "" {
 		return heuristic, err
 	}
 	onnxCfg := cfg

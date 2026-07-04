@@ -151,6 +151,40 @@ func TestWeightedScorerRolloutZeroNeverCallsONNX(t *testing.T) {
 	}
 }
 
+func TestNewScorerWithControllerKeepsONNXAvailableAtZeroRollout(t *testing.T) {
+	heuristicEndpoint, stopHeuristic := startSchedulerServer(t, schedulerServer{
+		score: func(_ context.Context, req *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
+			return schedulerResponse(req, "heuristic-v1"), nil
+		},
+	})
+	defer stopHeuristic()
+	onnxEndpoint, stopONNX := startSchedulerServer(t, schedulerServer{
+		score: func(_ context.Context, req *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
+			return schedulerResponse(req, "onnx-v1"), nil
+		},
+	})
+	defer stopONNX()
+
+	cfg := config.SchedulerConfig{Enabled: true, HeuristicEndpoint: heuristicEndpoint, ONNXEndpoint: onnxEndpoint, ONNXRolloutPercent: 0, Timeout: "15ms", BreakerFailureThreshold: 3, BreakerRecoveryTimeout: "1m"}
+	controller := NewSchedulerRolloutController(cfg)
+	scorer, err := NewScorerWithController(context.Background(), cfg, controller)
+	if err != nil {
+		t.Fatalf("NewScorerWithController: %v", err)
+	}
+	defer closeWeightedScorer(t, scorer)
+
+	if _, err := controller.SetONNXRolloutPercent(100); err != nil {
+		t.Fatalf("set rollout percent: %v", err)
+	}
+	results, err := scorer.Score(context.Background(), []TaskFeature{{TaskID: "t1", Priority: PriorityNormal}})
+	if err != nil {
+		t.Fatalf("Score: %v", err)
+	}
+	if results[0].SchedulerType != SchedulerTypeONNX || results[0].SchedulerVersion != "onnx-v1" {
+		t.Fatalf("expected runtime rollout to use ONNX, got %#v", results[0])
+	}
+}
+
 func TestWeightedScorerRolloutHundredCallsONNXForAllTasks(t *testing.T) {
 	heuristic := &recordingScorer{result: ScoreResult{SchedulerVersion: "heuristic-v1"}}
 	onnx := &recordingScorer{result: ScoreResult{SchedulerVersion: "onnx-v1"}}
@@ -224,6 +258,28 @@ type schedulerServer struct {
 
 func (s schedulerServer) BatchScoreTasks(ctx context.Context, req *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
 	return s.score(ctx, req)
+}
+
+func schedulerResponse(req *schedulerv1.BatchScoreRequest, version string) *schedulerv1.BatchScoreResponse {
+	results := make([]*schedulerv1.ScoreResult, 0, len(req.GetTasks()))
+	for _, task := range req.GetTasks() {
+		results = append(results, &schedulerv1.ScoreResult{TaskId: task.GetTaskId(), Score: 12.5, Priority: task.GetPriority(), Confidence: 0.9, SchedulerVersion: version})
+	}
+	return &schedulerv1.BatchScoreResponse{Results: results}
+}
+
+func closeWeightedScorer(t *testing.T, scorer Scorer) {
+	t.Helper()
+	weighted, ok := scorer.(WeightedScorer)
+	if !ok {
+		return
+	}
+	for _, candidate := range []Scorer{weighted.Heuristic, weighted.ONNX} {
+		grpcScorer, ok := candidate.(*GRPCScorer)
+		if ok {
+			_ = grpcScorer.Close()
+		}
+	}
 }
 
 func startSchedulerServer(t *testing.T, srv schedulerServer) (string, func()) {
