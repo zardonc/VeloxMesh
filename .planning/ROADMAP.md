@@ -84,7 +84,7 @@ Success criteria:
 **Priority:** P2
 **Depends on:** Phase 15
 **Requirements:** OBS-02, ML-03
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Success criteria:
 
