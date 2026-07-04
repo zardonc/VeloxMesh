@@ -129,6 +129,14 @@ func validateSchedulerConfig(s SchedulerConfig) error {
 	default:
 		return fmt.Errorf("scheduler.queue_backend must be 'auto', 'redis', or 'memory'")
 	}
+	switch s.Mode {
+	case "heuristic", "onnx":
+	default:
+		return fmt.Errorf("scheduler.mode must be 'heuristic' or 'onnx'")
+	}
+	if s.Mode == "onnx" && s.ONNXArtifactDir == "" {
+		return fmt.Errorf("scheduler.onnx_artifact_dir is required when scheduler.mode is onnx")
+	}
 	return nil
 }
 

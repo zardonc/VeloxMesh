@@ -131,6 +131,8 @@ type SchedulerConfig struct {
 	ScoreUncertaintyPenaltyK float64 `json:"score_uncertainty_penalty_k"`
 	HeuristicConfigFile      string  `json:"heuristic_config_file"`
 	FeedbackEnabled          bool    `json:"feedback_enabled"`
+	Mode                     string  `json:"mode"`
+	ONNXArtifactDir          string  `json:"onnx_artifact_dir"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -191,6 +193,8 @@ func LoadConfig() (*Config, error) {
 			ScoreUncertaintyPenaltyK: getEnvFloat("SCHEDULER_SCORE_UNCERTAINTY_PENALTY_K", 0.2),
 			HeuristicConfigFile:      getEnv("SCHEDULER_HEURISTIC_CONFIG_FILE", ""),
 			FeedbackEnabled:          getEnv("SCHEDULER_FEEDBACK_ENABLED", "false") == "true",
+			Mode:                     getEnv("SCHEDULER_MODE", "heuristic"),
+			ONNXArtifactDir:          getEnv("SCHEDULER_ONNX_ARTIFACT_DIR", ""),
 		},
 	}
 
@@ -510,6 +514,12 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
 	if src.FeedbackEnabled {
 		dst.FeedbackEnabled = true
 	}
+	if src.Mode != "" {
+		dst.Mode = src.Mode
+	}
+	if src.ONNXArtifactDir != "" {
+		dst.ONNXArtifactDir = src.ONNXArtifactDir
+	}
 }
 
 func applySchedulerDefaults(s *SchedulerConfig) {
@@ -539,6 +549,9 @@ func applySchedulerDefaults(s *SchedulerConfig) {
 	}
 	if s.ScoreUncertaintyPenaltyK == 0 {
 		s.ScoreUncertaintyPenaltyK = 0.2
+	}
+	if s.Mode == "" {
+		s.Mode = "heuristic"
 	}
 }
 

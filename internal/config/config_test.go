@@ -427,6 +427,9 @@ func TestSchedulerConfigDefaults(t *testing.T) {
 	if cfg.Scheduler.DefaultPriority != "normal" || cfg.Scheduler.MaxPriority != "high" {
 		t.Fatalf("unexpected scheduler priorities: %#v", cfg.Scheduler)
 	}
+	if cfg.Scheduler.Mode != "heuristic" {
+		t.Fatalf("expected heuristic scheduler mode, got %s", cfg.Scheduler.Mode)
+	}
 	if cfg.Scheduler.FeedbackEnabled {
 		t.Fatalf("expected scheduler feedback disabled by default")
 	}
@@ -478,7 +481,9 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 			"default_priority": "low",
 			"max_priority": "normal",
 			"queue_backend": "memory",
-			"feedback_enabled": true
+			"feedback_enabled": true,
+			"mode": "onnx",
+			"onnx_artifact_dir": "artifacts/scheduler-p70-v1"
 		}
 	}`)
 	t.Setenv("CONFIG_FILE", configPath)
@@ -495,6 +500,9 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 	}
 	if !cfg.Scheduler.FeedbackEnabled {
 		t.Fatalf("scheduler feedback override not applied")
+	}
+	if cfg.Scheduler.Mode != "onnx" || cfg.Scheduler.ONNXArtifactDir == "" {
+		t.Fatalf("scheduler ONNX override not applied: %#v", cfg.Scheduler)
 	}
 }
 
@@ -525,6 +533,21 @@ func TestSchedulerConfigValidation(t *testing.T) {
 				c.Scheduler.Endpoint = ""
 			},
 			expectedErr: "",
+		},
+		{
+			name: "onnx mode requires artifact dir",
+			modify: func(c *Config) {
+				c.Scheduler.Mode = "onnx"
+				c.Scheduler.ONNXArtifactDir = ""
+			},
+			expectedErr: "scheduler.onnx_artifact_dir is required",
+		},
+		{
+			name: "invalid mode",
+			modify: func(c *Config) {
+				c.Scheduler.Mode = "hybrid"
+			},
+			expectedErr: "scheduler.mode must be",
 		},
 	}
 
