@@ -3,78 +3,72 @@
 **Defined:** 2026-07-03
 **Core Value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-## v7.4 Requirements
+## v7.3 Requirements
 
-### Scheduler Foundation
+### PostgreSQL Deployment
 
-- [ ] **SCH-01**: Operators can leave Scheduler disabled and the gateway uses FIFO queue scoring without startup failure.
-- [ ] **SCH-02**: Gateway can call Scheduler `BatchScoreTasks` over gRPC with a 15ms timeout and FIFO fallback on failure or timeout.
-- [ ] **SCH-03**: Gateway can queue scheduled tasks through a `QueueBackend` with Redis ZSET as the primary backend and an in-memory min-heap as single-node fallback.
-- [ ] **SCH-04**: Operators can run a separate heuristic Scheduler service with gRPC scoring plus HTTP `/health` and `/metrics` endpoints.
+- [x] **PG-01**: Operators can run Plan 4 with Redis Stack, PostgreSQL, and pgvector using documented local deployment steps.
+- [x] **PG-02**: Operators can enable PostgreSQL through configuration without hardcoded DSNs, passwords, or source-controlled secrets.
+- [x] **PG-03**: Gateway startup clearly reports PostgreSQL readiness and fails closed when required Plan 4 dependencies are unavailable.
 
-### Priority and Scoring
+### Control State Compatibility
 
-- [ ] **PRIO-01**: Gateway resolves task priority only from trusted configuration, service headers, or structured request fields.
-- [ ] **PRIO-02**: Gateway enforces tenant max-priority limits and high/urgent quotas, silently downgrading claims that exceed policy.
-- [ ] **SCORE-01**: Scheduler computes static virtual deadline scores from enqueue time, predicted latency, priority multiplier, and uncertainty penalty.
-- [ ] **SCORE-02**: Cold-start Scheduler classifies structured/rule task types and estimates latency from configured heuristic tables.
+- [x] **CTRL-01**: PostgreSQL control-state repositories support the active gateway capabilities used by routing, provider CRUD, API keys, usage settlement, semantic cache, and fallback logging.
+- [x] **CTRL-02**: PostgreSQL capability reporting matches the features actually implemented for Plan 4.
+- [x] **CTRL-03**: PostgreSQL behavior is covered by focused integration tests that can run with an externally supplied test DSN.
 
-### Feedback and Observability
+### pgvector Semantic Path
 
-- [ ] **FEED-01**: Gateway records enqueue feature snapshots and completion labels for scheduler training without storing raw prompts, authorization headers, API keys, or provider secrets.
-- [ ] **OBS-01**: Gateway and Scheduler expose logs and metrics for queue depth, scheduler call latency, scheduler errors, breaker state, priority downgrades, scoring duration, and classification source.
-- [ ] **OBS-02**: Operators can compare prediction quality by scheduler type, version, and task type during heuristic versus ONNX rollout.
+- [x] **VECT-01**: Plan 4 can store and search semantic-cache embeddings through pgvector behind the existing vector adapter boundary.
+- [x] **VECT-02**: pgvector search preserves tenant/API-key scoping and never stores raw prompts or provider secrets.
 
-### Model Path
+### Migration and Verification
 
-- [ ] **ML-01**: Offline tooling can export completed training samples, train and evaluate a P70 output-token predictor, and publish versioned model artifacts.
-- [ ] **ML-02**: ONNX Scheduler can load model artifacts once at startup and return predicted latency, confidence, and scheduler version without per-request model reload.
-- [ ] **ML-03**: Gateway can route traffic between heuristic and ONNX Scheduler backends for A/B comparison and rollback.
+- [x] **MIGR-01**: Operators can migrate supported SQLite control-state data into PostgreSQL with a repeatable command or documented runbook.
+- [x] **MIGR-02**: Migration preserves provider configs, encrypted provider secrets, routing config, API keys, rates, usage records, semantic cache metadata, and fallback log state.
+- [x] **TEST-01**: Phase 13 verification proves the gateway can serve OpenAI-compatible chat traffic against the PostgreSQL-compatible Plan 4 deployment.
 
 ## Future Requirements
 
-### Scheduler Enhancements
+### Admin Console
 
-- **QDR-01**: ONNX Scheduler can optionally add Qdrant semantic-neighbor features when an instance is configured.
-- **ANOM-01**: ONNX Scheduler can optionally use anomaly detection to make out-of-distribution tasks more conservative.
-- **SLA-01**: Gateway can promote tasks that exceed tenant-specific SLA waiting thresholds.
-- **ADMIN-02**: BFF/Admin Console can display queue and scheduler health after Phase 11 exists.
+- **ADMIN-01**: BFF/Admin Console can expose PostgreSQL deployment health after Phase 11 exists.
+
+### Limit Rule Expansion
+
+- **LIMIT-01**: Full `LimitRule` unification across all scopes can be completed after the Plan 4 compatibility path is stable.
 
 ## Out of Scope
 
 | Feature | Reason |
 | --- | --- |
-| Prompt-derived priority | Prompt text is untrusted and must not affect scheduling priority. |
-| Scheduler-owned queueing or execution | Gateway remains responsible for intake, queue storage, task execution, and result persistence. |
-| Dynamic Redis score re-ranking | Static virtual deadlines avoid Redis write amplification and preserve simple aging behavior. |
-| Mandatory ONNX model at cold start | Heuristic scoring must work before enough training data exists. |
-| BFF/Admin Console UI | This milestone is backend scheduling infrastructure; UI stays deferred. |
+| BFF/Admin Console UI | Phase 13 prioritizes the backend deployment path; UI remains Phase 11 scope. |
+| Replacing SQLite as the default deployment | Plans 1/2 stay SQLite + Redis Stack + Qdrant; PostgreSQL is an extension path. |
+| Replacing Qdrant for Plans 1/2 | pgvector is only required for Plan 4 compatibility. |
+| Raw prompt storage | Existing semantic-cache privacy constraints remain in force. |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 | --- | --- | --- |
-| SCH-01 | Phase 14 | Pending |
-| SCH-02 | Phase 14 | Pending |
-| SCH-03 | Phase 14 | Pending |
-| SCH-04 | Phase 14 | Pending |
-| PRIO-01 | Phase 14 | Pending |
-| PRIO-02 | Phase 14 | Pending |
-| SCORE-01 | Phase 14 | Pending |
-| SCORE-02 | Phase 14 | Pending |
-| OBS-01 | Phase 14 | Pending |
-| FEED-01 | Phase 15 | Pending |
-| ML-01 | Phase 15 | Pending |
-| ML-02 | Phase 15 | Pending |
-| OBS-02 | Phase 16 | Pending |
-| ML-03 | Phase 16 | Pending |
+| PG-01 | Phase 13 | Complete |
+| PG-02 | Phase 13 | Complete |
+| PG-03 | Phase 13 | Complete |
+| CTRL-01 | Phase 13 | Complete |
+| CTRL-02 | Phase 13 | Complete |
+| CTRL-03 | Phase 13 | Complete |
+| VECT-01 | Phase 13 | Complete |
+| VECT-02 | Phase 13 | Complete |
+| MIGR-01 | Phase 13 | Complete |
+| MIGR-02 | Phase 13 | Complete |
+| TEST-01 | Phase 13 | Complete |
 
 **Coverage:**
 
-- v7.4 requirements: 14 total
-- Mapped to phases: 14
+- v7.3 requirements: 11 total
+- Mapped to phases: 11
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-03*
-*Last updated: 2026-07-03 after starting v7.4 Gateway Scheduler*
+*Last updated: 2026-07-03 after starting v7.3 PostgreSQL Compatibility*
