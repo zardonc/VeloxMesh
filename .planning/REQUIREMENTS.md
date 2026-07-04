@@ -23,13 +23,13 @@
 
 - [x] **FEED-01**: Gateway records enqueue feature snapshots and completion labels for scheduler training without storing raw prompts, authorization headers, API keys, or provider secrets.
 - [x] **OBS-01**: Gateway and Scheduler expose logs and metrics for queue depth, scheduler call latency, scheduler errors, breaker state, priority downgrades, scoring duration, and classification source.
-- [ ] **OBS-02**: Operators can compare prediction quality by scheduler type, version, and task type during heuristic versus ONNX rollout.
+- [x] **OBS-02**: Operators can compare prediction quality by scheduler type, version, and task type during heuristic versus ONNX rollout.
 
 ### Model Path
 
 - [x] **ML-01**: Offline tooling can export completed training samples, train and evaluate a P70 output-token predictor, and publish versioned model artifacts.
 - [x] **ML-02**: ONNX Scheduler can load model artifacts once at startup and return predicted latency, confidence, and scheduler version without per-request model reload.
-- [ ] **ML-03**: Gateway can route traffic between heuristic and ONNX Scheduler backends for A/B comparison and rollback.
+- [x] **ML-03**: Gateway can route traffic between heuristic and ONNX Scheduler backends for A/B comparison and rollback.
 
 ## Future Requirements
 
@@ -66,8 +66,8 @@
 | FEED-01 | Phase 15 | Complete |
 | ML-01 | Phase 15 | Complete |
 | ML-02 | Phase 15 | Complete |
-| OBS-02 | Phase 16 | Pending |
-| ML-03 | Phase 16 | Pending |
+| OBS-02 | Phase 16 | Complete |
+| ML-03 | Phase 16 | Complete |
 | QDR-01 | Future | Future |
 | ANOM-01 | Future | Future |
 | SLA-01 | Future | Future |

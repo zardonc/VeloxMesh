@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Gateway Scheduler
-status: verifying
-last_updated: "2026-07-04T21:34:08.568Z"
-last_activity: 2026-07-04 -- Phase 16 execution started
+status: complete
+last_updated: "2026-07-04T21:40:52.901Z"
+last_activity: 2026-07-04
 progress:
   total_phases: 3
   completed_phases: 3
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-04)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 16 — A/B Rollout and Prediction Quality
+**Current focus:** v7.4 Gateway Scheduler complete
 
 ## Current Implementation State
 
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-04)
 - Phase 12 multi-node coordination (v7.2) is fully implemented, verified, and shipped.
 - Phase 13 PostgreSQL Compatibility (v7.3) is fully implemented, verified, and shipped.
 - Phase 15 Training Feedback and ONNX Path is implemented and verified.
-- Phase 16 A/B Rollout and Prediction Quality remains to complete v7.4.
+- Phase 16 A/B Rollout and Prediction Quality is implemented and verified.
 
 ## Completed
 
@@ -36,27 +36,28 @@ See: `.planning/PROJECT.md` (updated 2026-07-04)
 - Phase 13: PostgreSQL Compatibility
 - Phase 14: Scheduler Queue Foundation
 - Phase 15: Training Feedback and ONNX Path
+- Phase 16: A/B Rollout and Prediction Quality
 
 ## Planned Next
 
-1. Execute Phase 16 A/B Rollout and Prediction Quality.
+1. Prepare v7.4 for shipping or start the next milestone.
 
 ## Useful Commands
 
-- `$gsd-plan-phase 16` - re-plan Phase 16 if the plan needs revision.
-- `$gsd-execute-phase 16` - execute Phase 16 after planning.
+- `$gsd-progress` - review completed milestone status.
+- `$gsd-ship` - prepare the completed work for review and merge.
 - `go test ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 16 (A/B Rollout and Prediction Quality) — EXECUTING
+Phase: 16
 Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-07-04 -- Phase 16 execution started
+Status: Phase complete and verified
+Last activity: 2026-07-04
 
 ## Operator Next Steps
 
-- Start `$gsd-execute-phase 16` for A/B Rollout and Prediction Quality.
+- Review `$gsd-progress` or run `$gsd-ship` when ready to prepare this milestone for merge.
 
 ## Deferred Items
 
