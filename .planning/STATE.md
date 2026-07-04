@@ -9,8 +9,8 @@ progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
-  percent: 25
+  completed_plans: 2
+  percent: 50
 ---
 
 ## Project Reference
@@ -48,13 +48,13 @@ See: `.planning/PROJECT.md` (updated 2026-07-03)
 ## Current Position
 
 Phase: 14
-Plan: 1/4 complete
-Status: Phase 14 executing; 14-01 complete, ready for 14-02 Queue backend
-Last activity: 2026-07-04 - Completed 14-01 Scheduler proto, config, and gRPC fallback client
+Plan: 2/4 complete
+Status: Phase 14 executing; 14-02 complete, ready for 14-03 Heuristic Scheduler
+Last activity: 2026-07-04 - Completed 14-02 Scheduler queue backend
 
 ## Operator Next Steps
 
-- Continue `$gsd-execute-phase 14` with 14-02 Queue backend.
+- Continue `$gsd-execute-phase 14` with 14-03 Heuristic Scheduler.
 
 ## Deferred Items
 
