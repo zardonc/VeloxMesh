@@ -65,6 +65,7 @@ completed: 2026-07-04
 1. **Task 1: Add runtime rollout controller and alert thresholds** - `38e8be19` (feat)
 2. **Task 2: Expose authenticated admin rollout status and update endpoints** - `fa040fa2` (feat)
 3. **Task 3: Surface rollback alerts without automatic rollout changes** - `8d2c83d8` (feat)
+4. **Code review fix: Keep ONNX scorer available at zero rollout** - `585eed1` (fix)
 
 ## Files Created/Modified
 
@@ -92,6 +93,7 @@ completed: 2026-07-04
 ## Issues Encountered
 
 - Initial service placement created `scheduler -> controlstate -> scheduler`; moving the service to `internal/scheduler` resolved the cycle.
+- Inline code review found that startup `ONNXRolloutPercent=0` built a heuristic-only scorer, preventing later runtime rollout increases from using ONNX without restart. Fixed by constructing the weighted scorer whenever an ONNX endpoint is configured.
 
 ## User Setup Required
 
