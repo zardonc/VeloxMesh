@@ -49,7 +49,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-03)
 Phase: 14
 Plan: Not started
 Status: Ready to discuss or plan
-Last activity: 2026-07-03 - Milestone v7.4 Gateway Scheduler roadmap created
+Last activity: 2026-07-03 - Milestone v7.4 Gateway Scheduler roadmap restored
 
 ## Operator Next Steps
 

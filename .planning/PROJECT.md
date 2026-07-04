@@ -12,7 +12,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.3 PostgreSQL Compatibility** has been shipped. PostgreSQL control-state compatibility, pgvector semantic cache support, SQLite-to-PostgreSQL migration, and real-provider Plan 4 smoke verification are live as an opt-in deployment path. The next milestone adds an optional task Scheduler without changing the OpenAI-compatible data-plane contract.
+**v7.3 PostgreSQL Compatibility** has been shipped. PostgreSQL control-state compatibility, pgvector semantic cache support, SQLite-to-PostgreSQL migration, and real-provider Plan 4 smoke verification are live as an opt-in deployment path. The current milestone adds an optional task Scheduler without changing the OpenAI-compatible data-plane contract.
 
 ## Current Milestone: v7.4 Gateway Scheduler
 
@@ -23,19 +23,6 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Redis ZSET queue backend with single-node in-memory fallback and circuit-breaker protected scheduler calls.
 - Priority resolver, quota enforcement, static virtual deadline scoring, and cold-start heuristic scoring.
 - Training-sample feedback loop, scheduler observability, and ONNX/LightGBM model path for later A/B comparison.
-
-<details>
-<summary>Archived Milestone: v7.3 PostgreSQL Compatibility</summary>
-
-**Goal:** Add the PostgreSQL-compatible deployment path for Plan 4 without changing the OpenAI-compatible data-plane contract.
-
-**Target features:**
-- Phase 13 PostgreSQL deployment documentation and runtime configuration.
-- PostgreSQL control-state compatibility parity for active gateway capabilities.
-- pgvector-backed semantic cache/vector adapter path for Plan 4.
-- SQLite to PostgreSQL migration and smoke verification.
-
-</details>
 
 <details>
 <summary>Archived Milestone: v7.2 Multi-Node Coordination</summary>
