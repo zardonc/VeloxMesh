@@ -7,8 +7,8 @@
 
 ### Scheduler Foundation
 
-- [ ] **SCH-01**: Operators can leave Scheduler disabled and the gateway uses FIFO queue scoring without startup failure.
-- [ ] **SCH-02**: Gateway can call Scheduler `BatchScoreTasks` over gRPC with a 15ms timeout and FIFO fallback on failure or timeout.
+- [x] **SCH-01**: Operators can leave Scheduler disabled and the gateway uses FIFO queue scoring without startup failure.
+- [x] **SCH-02**: Gateway can call Scheduler `BatchScoreTasks` over gRPC with a 15ms timeout and FIFO fallback on failure or timeout.
 - [ ] **SCH-03**: Gateway can queue scheduled tasks through a `QueueBackend` with Redis ZSET as the primary backend and an in-memory min-heap as single-node fallback.
 - [ ] **SCH-04**: Operators can run a separate heuristic Scheduler service with gRPC scoring plus HTTP `/health` and `/metrics` endpoints.
 
@@ -54,8 +54,8 @@
 
 | Requirement | Phase | Status |
 | --- | --- | --- |
-| SCH-01 | Phase 14 | Pending |
-| SCH-02 | Phase 14 | Pending |
+| SCH-01 | Phase 14 | Complete |
+| SCH-02 | Phase 14 | Complete |
 | SCH-03 | Phase 14 | Pending |
 | SCH-04 | Phase 14 | Pending |
 | PRIO-01 | Phase 14 | Pending |
