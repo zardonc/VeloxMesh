@@ -10,14 +10,14 @@
 - [x] **SCH-01**: Operators can leave Scheduler disabled and the gateway uses FIFO queue scoring without startup failure.
 - [x] **SCH-02**: Gateway can call Scheduler `BatchScoreTasks` over gRPC with a 15ms timeout and FIFO fallback on failure or timeout.
 - [x] **SCH-03**: Gateway can queue scheduled tasks through a `QueueBackend` with Redis ZSET as the primary backend and an in-memory min-heap as single-node fallback.
-- [ ] **SCH-04**: Operators can run a separate heuristic Scheduler service with gRPC scoring plus HTTP `/health` and `/metrics` endpoints.
+- [x] **SCH-04**: Operators can run a separate heuristic Scheduler service with gRPC scoring plus HTTP `/health` and `/metrics` endpoints.
 
 ### Priority and Scoring
 
 - [ ] **PRIO-01**: Gateway resolves task priority only from trusted configuration, service headers, or structured request fields.
 - [ ] **PRIO-02**: Gateway enforces tenant max-priority limits and high-priority quotas, silently downgrading claims that exceed policy.
-- [ ] **SCORE-01**: Scheduler computes static virtual deadline scores from enqueue time, predicted latency, priority multiplier, and uncertainty penalty.
-- [ ] **SCORE-02**: Cold-start Scheduler classifies structured/rule task types and estimates latency from configured heuristic tables.
+- [x] **SCORE-01**: Scheduler computes static virtual deadline scores from enqueue time, predicted latency, priority multiplier, and uncertainty penalty.
+- [x] **SCORE-02**: Cold-start Scheduler classifies structured/rule task types and estimates latency from configured heuristic tables.
 
 ### Feedback and Observability
 
@@ -57,11 +57,11 @@
 | SCH-01 | Phase 14 | Complete |
 | SCH-02 | Phase 14 | Complete |
 | SCH-03 | Phase 14 | Complete |
-| SCH-04 | Phase 14 | Pending |
+| SCH-04 | Phase 14 | Complete |
 | PRIO-01 | Phase 14 | Pending |
 | PRIO-02 | Phase 14 | Pending |
-| SCORE-01 | Phase 14 | Pending |
-| SCORE-02 | Phase 14 | Pending |
+| SCORE-01 | Phase 14 | Complete |
+| SCORE-02 | Phase 14 | Complete |
 | OBS-01 | Phase 14 | Pending |
 | FEED-01 | Phase 15 | Pending |
 | ML-01 | Phase 15 | Pending |
