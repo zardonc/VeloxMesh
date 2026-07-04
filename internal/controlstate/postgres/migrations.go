@@ -30,6 +30,7 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 		{version: 3, file: "migrations/postgres/0003_limits_sessions.sql"},
 		{version: 4, file: "migrations/postgres/0004_pgvector_semantic_cache.sql"},
 		{version: 5, file: "migrations/postgres/0005_semantic_rules.sql"},
+		{version: 6, file: "migrations/postgres/0006_scheduler_training_samples.sql"},
 	}
 
 	tx, err := m.pool.Begin(ctx)

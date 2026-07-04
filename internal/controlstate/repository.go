@@ -3,6 +3,7 @@ package controlstate
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 var ErrRoutingConfigNotFound = errors.New("routing config not found")
@@ -21,6 +22,7 @@ type Repository interface {
 	FallbackLog() FallbackLogRepository
 	LimitRules() LimitRuleRepository
 	SessionBlacklist() SessionBlacklistRepository
+	SchedulerTrainingSamples() SchedulerTrainingSampleRepository
 	BeginTx(ctx context.Context) (Transaction, error)
 	Settle(ctx context.Context, usage *UsageRecord) error
 	Close() error
@@ -98,4 +100,9 @@ type FallbackLogRepository interface {
 	Insert(ctx context.Context, record *FallbackLogRecord) error
 	ListPending(ctx context.Context, limit int) ([]*FallbackLogRecord, error)
 	UpdateStatus(ctx context.Context, id, status string) error
+}
+
+type SchedulerTrainingSampleRepository interface {
+	Insert(ctx context.Context, sample *SchedulerTrainingSample) error
+	ListByWindow(ctx context.Context, start, end time.Time, limit int) ([]*SchedulerTrainingSample, error)
 }

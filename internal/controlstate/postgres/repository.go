@@ -39,6 +39,10 @@ func (r *Repository) SessionBlacklist() controlstate.SessionBlacklistRepository 
 	return &sessionBlacklistRepo{pool: r.pool}
 }
 
+func (r *Repository) SchedulerTrainingSamples() controlstate.SchedulerTrainingSampleRepository {
+	return &schedulerTrainingSampleRepo{pool: r.pool}
+}
+
 func (r *Repository) Close() error {
 	r.pool.Close()
 	return nil

@@ -189,6 +189,10 @@ func (r *Repository) SessionBlacklist() controlstate.SessionBlacklistRepository 
 	return &sqliteSessionBlacklistRepo{db: r.db}
 }
 
+func (r *Repository) SchedulerTrainingSamples() controlstate.SchedulerTrainingSampleRepository {
+	return &schedulerTrainingSampleRepo{db: r.db}
+}
+
 // -- providerRepo --
 
 type providerRepo struct {
