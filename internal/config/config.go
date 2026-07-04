@@ -119,6 +119,8 @@ type SchedulerConfig struct {
 	HeuristicEndpoint        string  `json:"heuristic_endpoint"`
 	ONNXEndpoint             string  `json:"onnx_endpoint"`
 	ONNXRolloutPercent       int     `json:"onnx_rollout_percent"`
+	QualityMAPEAlertPercent  float64 `json:"quality_mape_alert_percent"`
+	ErrorSpikeAlertRate      float64 `json:"error_spike_alert_rate"`
 	Timeout                  string  `json:"timeout"`
 	Strict                   bool    `json:"strict"`
 	BreakerFailureThreshold  int     `json:"breaker_failure_threshold"`
@@ -184,6 +186,8 @@ func LoadConfig() (*Config, error) {
 			HeuristicEndpoint:        getEnv("SCHEDULER_HEURISTIC_ENDPOINT", ""),
 			ONNXEndpoint:             getEnv("SCHEDULER_ONNX_ENDPOINT", ""),
 			ONNXRolloutPercent:       getEnvInt("SCHEDULER_ONNX_ROLLOUT_PERCENT", 0),
+			QualityMAPEAlertPercent:  getEnvFloat("SCHEDULER_QUALITY_MAPE_ALERT_PERCENT", 25),
+			ErrorSpikeAlertRate:      getEnvFloat("SCHEDULER_ERROR_SPIKE_ALERT_RATE", 0.05),
 			Timeout:                  getEnv("SCHEDULER_TIMEOUT", "15ms"),
 			Strict:                   getEnv("SCHEDULER_STRICT", "false") == "true",
 			BreakerFailureThreshold:  getEnvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 3),
@@ -484,6 +488,12 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
 	if src.ONNXRolloutPercent != 0 {
 		dst.ONNXRolloutPercent = src.ONNXRolloutPercent
 	}
+	if src.QualityMAPEAlertPercent != 0 {
+		dst.QualityMAPEAlertPercent = src.QualityMAPEAlertPercent
+	}
+	if src.ErrorSpikeAlertRate != 0 {
+		dst.ErrorSpikeAlertRate = src.ErrorSpikeAlertRate
+	}
 	if src.Timeout != "" {
 		dst.Timeout = src.Timeout
 	}
@@ -543,6 +553,12 @@ func applySchedulerDefaults(s *SchedulerConfig) {
 	}
 	if s.Endpoint == "" {
 		s.Endpoint = s.HeuristicEndpoint
+	}
+	if s.QualityMAPEAlertPercent == 0 {
+		s.QualityMAPEAlertPercent = 25
+	}
+	if s.ErrorSpikeAlertRate == 0 {
+		s.ErrorSpikeAlertRate = 0.05
 	}
 	if s.Timeout == "" {
 		s.Timeout = "15ms"

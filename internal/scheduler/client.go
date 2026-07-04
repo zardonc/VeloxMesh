@@ -38,6 +38,10 @@ type GRPCScorer struct {
 }
 
 func NewScorer(ctx context.Context, cfg config.SchedulerConfig) (Scorer, error) {
+	return NewScorerWithController(ctx, cfg, NewSchedulerRolloutController(cfg))
+}
+
+func NewScorerWithController(ctx context.Context, cfg config.SchedulerConfig, controller *SchedulerRolloutController) (Scorer, error) {
 	heuristicEndpoint := cfg.HeuristicEndpoint
 	if heuristicEndpoint == "" {
 		heuristicEndpoint = cfg.Endpoint
@@ -58,7 +62,7 @@ func NewScorer(ctx context.Context, cfg config.SchedulerConfig) (Scorer, error) 
 		_ = heuristic.Close()
 		return nil, err
 	}
-	return WeightedScorer{Heuristic: heuristic, ONNX: onnx, ONNXRolloutPercent: cfg.ONNXRolloutPercent}, nil
+	return WeightedScorer{Heuristic: heuristic, ONNX: onnx, Controller: controller}, nil
 }
 
 func NewGRPCScorer(ctx context.Context, cfg config.SchedulerConfig) (*GRPCScorer, error) {
@@ -145,11 +149,12 @@ type WeightedScorer struct {
 	Heuristic          Scorer
 	ONNX               Scorer
 	ONNXRolloutPercent int
+	Controller         *SchedulerRolloutController
 }
 
 func (s WeightedScorer) Score(ctx context.Context, tasks []TaskFeature) ([]ScoreResult, error) {
 	results := make([]ScoreResult, len(tasks))
-	heuristicTasks, onnxTasks := splitByRollout(tasks, s.ONNXRolloutPercent)
+	heuristicTasks, onnxTasks := splitByRollout(tasks, s.rolloutPercent())
 
 	scoreIndexed(ctx, s.Heuristic, heuristicTasks, SchedulerTypeHeuristic, results, "heuristic_failed")
 	scoreIndexed(ctx, s.ONNX, onnxTasks, SchedulerTypeONNX, results, "onnx_failed")
@@ -164,6 +169,13 @@ func (s WeightedScorer) Score(ctx context.Context, tasks []TaskFeature) ([]Score
 		}
 	}
 	return results, nil
+}
+
+func (s WeightedScorer) rolloutPercent() int {
+	if s.Controller != nil {
+		return s.Controller.RolloutPercent()
+	}
+	return s.ONNXRolloutPercent
 }
 
 type indexedTask struct {

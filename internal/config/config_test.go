@@ -436,6 +436,9 @@ func TestSchedulerConfigDefaults(t *testing.T) {
 	if cfg.Scheduler.ONNXRolloutPercent != 0 {
 		t.Fatalf("expected default ONNX rollout 0, got %d", cfg.Scheduler.ONNXRolloutPercent)
 	}
+	if cfg.Scheduler.QualityMAPEAlertPercent != 25 || cfg.Scheduler.ErrorSpikeAlertRate != 0.05 {
+		t.Fatalf("unexpected scheduler alert defaults: %#v", cfg.Scheduler)
+	}
 }
 
 func TestSchedulerFeedbackConfigIsIndependent(t *testing.T) {
@@ -573,6 +576,20 @@ func TestSchedulerConfigValidation(t *testing.T) {
 				c.Scheduler.ONNXEndpoint = ""
 			},
 			expectedErr: "scheduler.onnx_endpoint",
+		},
+		{
+			name: "negative mape alert threshold",
+			modify: func(c *Config) {
+				c.Scheduler.QualityMAPEAlertPercent = -1
+			},
+			expectedErr: "scheduler.quality_mape_alert_percent",
+		},
+		{
+			name: "negative error spike threshold",
+			modify: func(c *Config) {
+				c.Scheduler.ErrorSpikeAlertRate = -1
+			},
+			expectedErr: "scheduler.error_spike_alert_rate",
 		},
 	}
 

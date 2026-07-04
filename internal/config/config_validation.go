@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"math"
 	"net/url"
 	"time"
 )
@@ -114,6 +115,12 @@ func validateSchedulerConfig(s SchedulerConfig) error {
 	}
 	if s.ONNXRolloutPercent > 0 && s.ONNXEndpoint == "" {
 		return fmt.Errorf("scheduler.onnx_endpoint is required when scheduler.onnx_rollout_percent is greater than 0")
+	}
+	if math.IsNaN(s.QualityMAPEAlertPercent) || math.IsInf(s.QualityMAPEAlertPercent, 0) || s.QualityMAPEAlertPercent < 0 {
+		return fmt.Errorf("scheduler.quality_mape_alert_percent must be a non-negative finite value")
+	}
+	if math.IsNaN(s.ErrorSpikeAlertRate) || math.IsInf(s.ErrorSpikeAlertRate, 0) || s.ErrorSpikeAlertRate < 0 {
+		return fmt.Errorf("scheduler.error_spike_alert_rate must be a non-negative finite value")
 	}
 	if s.QueueSoftLimit < 0 || s.QueueHardLimit < 0 {
 		return fmt.Errorf("scheduler queue limits must be >= 0")
