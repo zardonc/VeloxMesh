@@ -1,0 +1,16 @@
+[project]
+name = "scheduler-training"
+version = "0.1.0"
+description = "Offline scheduler training tooling for VeloxMesh"
+requires-python = ">=3.11"
+dependencies = ["onnx>=1.16"]
+
+[project.scripts]
+scheduler-training = "scheduler_training.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
