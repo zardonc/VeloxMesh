@@ -226,6 +226,10 @@ make vet
 
 Some integration tests require local services such as Redis Stack or Qdrant. Set the related environment variables before running those tests.
 
+## Scheduler Training
+
+Offline scheduler model tooling lives under `tools/scheduler_training` and is run with `uv`. It exports safe completed samples, trains/evaluates the P70 output-token predictor, and publishes versioned runtime artifacts containing only `model.onnx` and `manifest.json`.
+
 ## Technology Snapshot
 
 VeloxMesh is primarily built with:
