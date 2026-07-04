@@ -27,7 +27,7 @@
 
 ### Model Path
 
-- [ ] **ML-01**: Offline tooling can export completed training samples, train and evaluate a P70 output-token predictor, and publish versioned model artifacts.
+- [x] **ML-01**: Offline tooling can export completed training samples, train and evaluate a P70 output-token predictor, and publish versioned model artifacts.
 - [ ] **ML-02**: ONNX Scheduler can load model artifacts once at startup and return predicted latency, confidence, and scheduler version without per-request model reload.
 - [ ] **ML-03**: Gateway can route traffic between heuristic and ONNX Scheduler backends for A/B comparison and rollback.
 
@@ -64,7 +64,7 @@
 | SCORE-02 | Phase 14 | Complete |
 | OBS-01 | Phase 14 | Complete |
 | FEED-01 | Phase 15 | Complete |
-| ML-01 | Phase 15 | Pending |
+| ML-01 | Phase 15 | Complete |
 | ML-02 | Phase 15 | Pending |
 | OBS-02 | Phase 16 | Pending |
 | ML-03 | Phase 16 | Pending |

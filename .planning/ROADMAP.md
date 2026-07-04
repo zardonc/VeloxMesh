@@ -70,7 +70,7 @@ Candidate plan slices:
 **Priority:** P2
 **Depends on:** Phase 14
 **Requirements:** FEED-01, ML-01, ML-02
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Success criteria:
 
