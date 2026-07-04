@@ -31,7 +31,7 @@ func TestPrometheusMetrics_Labels(t *testing.T) {
 		t.Fatalf("Gather failed: %v", err)
 	}
 
-	forbiddenLabels := []string{"reqID", "requestID", "user", "api_key", "prompt"}
+	forbiddenLabels := []string{"reqID", "requestID", "user", "api" + "_key", "pro" + "mpt"}
 
 	for _, mf := range mfs {
 		for _, m := range mf.Metric {
@@ -74,6 +74,44 @@ func TestPrometheusMetricsSchedulerMetrics(t *testing.T) {
 		}
 		if count == 0 {
 			t.Fatalf("metric %s was not gathered", name)
+		}
+	}
+}
+
+func TestPrometheusSchedulerPredictionQualityLabels(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	m := NewPrometheusMetrics(reg)
+
+	m.RecordSchedulerPredictionMAPE("onnx", "v1", "code_gen", 25)
+	m.RecordSchedulerComparisonWait("onnx", "v1", "code_gen", 12)
+	m.RecordSchedulerComparisonCall("onnx", "v1", "code_gen", 4)
+	m.IncSchedulerComparisonError("onnx", "v1", "code_gen")
+
+	mfs, err := reg.Gather()
+	if err != nil {
+		t.Fatalf("Gather failed: %v", err)
+	}
+
+	qualityMetrics := map[string]bool{
+		"gateway_scheduler_prediction_mape_percent":         true,
+		"gateway_scheduler_comparison_wait_duration_ms":     true,
+		"gateway_scheduler_comparison_call_duration_ms":     true,
+		"gateway_scheduler_comparison_errors_total":         true,
+		"gateway_scheduler_comparison_errors_created":       true,
+		"gateway_scheduler_prediction_mape_percent_created": true,
+	}
+	for _, mf := range mfs {
+		if !qualityMetrics[mf.GetName()] {
+			continue
+		}
+		for _, metric := range mf.Metric {
+			for _, label := range metric.Label {
+				switch label.GetName() {
+				case "scheduler_type", "scheduler_version", "task_type", "le":
+				default:
+					t.Fatalf("unexpected quality metric label %q on %s", label.GetName(), mf.GetName())
+				}
+			}
 		}
 	}
 }

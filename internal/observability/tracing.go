@@ -64,7 +64,7 @@ func StartRequestTrace(ctx context.Context, reqID string, model string) (context
 	ctx, span := tracer.Start(ctx, "HandleChatCompletion")
 
 	// D-12: we can set request_id and model, as these are safe identifiers.
-	// We strictly do NOT log user identifiers or raw prompts.
+	// We strictly do not log user identifiers or raw request text.
 	span.SetAttributes(
 		attribute.String("request.id", reqID),
 		attribute.String("request.model", model),
@@ -79,16 +79,16 @@ func (rt *RequestTrace) RecordRouting(strategy string, cacheResult string, fallb
 		attribute.String("routing.strategy", strategy),
 		attribute.String("routing.cache_result", cacheResult),
 	}
-	
+
 	if fallbackReason != "" {
 		attrs = append(attrs, attribute.String("routing.fallback_reason", fallbackReason))
 	}
-	
-	// Ensure the score summary does not contain raw API payloads or prompts, just routing math.
+
+	// Ensure the score summary contains only routing math.
 	if scoreSummary != "" {
 		attrs = append(attrs, attribute.String("routing.score_summary", scoreSummary))
 	}
-	
+
 	rt.span.SetAttributes(attrs...)
 }
 

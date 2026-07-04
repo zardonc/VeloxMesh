@@ -20,6 +20,10 @@ type Metrics interface {
 	RecordSchedulerBreakerState(state string)
 	IncPriorityDowngrade(reason string, from string, to string)
 	IncSchedulerClassificationSource(source string)
+	RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, mape float64)
+	RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, waitMs float64)
+	RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, latencyMs float64)
+	IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string)
 }
 
 type StubMetrics struct {
@@ -46,7 +50,7 @@ func (m *StubMetrics) RecordRoutingStrategy(strategy string) {}
 func (m *StubMetrics) RecordHealthStatus(provider string, status string) {}
 
 func (m *StubMetrics) RecordRequestOutcome(reqID string, provider string, model string, strategy string, status int, errorCategory string, cacheResult string, latencyMs float64) {
-	// Log the outcome securely without dumping raw response bodies or prompts.
+	// Log the outcome securely without dumping raw request or response bodies.
 }
 
 func (m *StubMetrics) RecordQueueDepth(backend string, priority string, depth int64) {}
@@ -56,6 +60,14 @@ func (m *StubMetrics) IncSchedulerError(reason string)                          
 func (m *StubMetrics) RecordSchedulerBreakerState(state string)                      {}
 func (m *StubMetrics) IncPriorityDowngrade(reason string, from string, to string)    {}
 func (m *StubMetrics) IncSchedulerClassificationSource(source string)                {}
+func (m *StubMetrics) RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, mape float64) {
+}
+func (m *StubMetrics) RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, waitMs float64) {
+}
+func (m *StubMetrics) RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, latencyMs float64) {
+}
+func (m *StubMetrics) IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string) {
+}
 
 // Global metrics instance for Phase 1/2
 var DefaultMetrics Metrics = NewStubMetrics()

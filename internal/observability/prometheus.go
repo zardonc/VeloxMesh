@@ -21,6 +21,10 @@ type PrometheusMetrics struct {
 	breakerState      *prometheus.GaugeVec
 	priorityDowngrade *prometheus.CounterVec
 	classificationSrc *prometheus.CounterVec
+	predictionMAPE    *prometheus.HistogramVec
+	comparisonWait    *prometheus.HistogramVec
+	comparisonCall    *prometheus.HistogramVec
+	comparisonErrors  *prometheus.CounterVec
 }
 
 func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
@@ -107,6 +111,25 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			Name: "gateway_scheduler_classification_source_total",
 			Help: "Gateway scheduler classification source count.",
 		}, []string{"source"}),
+		predictionMAPE: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Name:    "gateway_scheduler_prediction_mape_percent",
+			Help:    "Gateway scheduler prediction MAPE by backend.",
+			Buckets: prometheus.DefBuckets,
+		}, []string{"scheduler_type", "scheduler_version", "task_type"}),
+		comparisonWait: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Name:    "gateway_scheduler_comparison_wait_duration_ms",
+			Help:    "Gateway scheduler rollout task wait duration by backend.",
+			Buckets: prometheus.DefBuckets,
+		}, []string{"scheduler_type", "scheduler_version", "task_type"}),
+		comparisonCall: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Name:    "gateway_scheduler_comparison_call_duration_ms",
+			Help:    "Gateway scheduler rollout call duration by backend.",
+			Buckets: prometheus.DefBuckets,
+		}, []string{"scheduler_type", "scheduler_version", "task_type"}),
+		comparisonErrors: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "gateway_scheduler_comparison_errors_total",
+			Help: "Gateway scheduler rollout errors by backend.",
+		}, []string{"scheduler_type", "scheduler_version", "task_type"}),
 	}
 
 	if reg != nil {
@@ -125,6 +148,10 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			m.breakerState,
 			m.priorityDowngrade,
 			m.classificationSrc,
+			m.predictionMAPE,
+			m.comparisonWait,
+			m.comparisonCall,
+			m.comparisonErrors,
 		} {
 			if err := reg.Register(collector); err != nil {
 				if are, ok := err.(prometheus.AlreadyRegisteredError); ok {
@@ -143,6 +170,8 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 							m.priorityDowngrade = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.classificationSrc {
 							m.classificationSrc = are.ExistingCollector.(*prometheus.CounterVec)
+						} else if c == m.comparisonErrors {
+							m.comparisonErrors = are.ExistingCollector.(*prometheus.CounterVec)
 						}
 					case *prometheus.HistogramVec:
 						if c == m.requestLatency {
@@ -155,6 +184,12 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 							m.taskWait = are.ExistingCollector.(*prometheus.HistogramVec)
 						} else if c == m.schedulerCall {
 							m.schedulerCall = are.ExistingCollector.(*prometheus.HistogramVec)
+						} else if c == m.predictionMAPE {
+							m.predictionMAPE = are.ExistingCollector.(*prometheus.HistogramVec)
+						} else if c == m.comparisonWait {
+							m.comparisonWait = are.ExistingCollector.(*prometheus.HistogramVec)
+						} else if c == m.comparisonCall {
+							m.comparisonCall = are.ExistingCollector.(*prometheus.HistogramVec)
 						}
 					case *prometheus.GaugeVec:
 						if c == m.healthStatus {
@@ -236,6 +271,37 @@ func (m *PrometheusMetrics) IncPriorityDowngrade(reason string, from string, to 
 
 func (m *PrometheusMetrics) IncSchedulerClassificationSource(source string) {
 	m.classificationSrc.WithLabelValues(allowedLabel(source, "fallback", "structured", "rule")).Inc()
+}
+
+func (m *PrometheusMetrics) RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, mape float64) {
+	m.predictionMAPE.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType)).Observe(mape)
+}
+
+func (m *PrometheusMetrics) RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, waitMs float64) {
+	m.comparisonWait.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType)).Observe(waitMs)
+}
+
+func (m *PrometheusMetrics) RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, latencyMs float64) {
+	m.comparisonCall.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType)).Observe(latencyMs)
+}
+
+func (m *PrometheusMetrics) IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string) {
+	m.comparisonErrors.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType)).Inc()
+}
+
+func safeSchedulerType(value string) string {
+	return allowedLabel(value, "unknown", "fifo", "heuristic", "onnx")
+}
+
+func safeSchedulerVersion(value string) string {
+	if value == "" {
+		return "unknown"
+	}
+	return value
+}
+
+func safeTaskType(value string) string {
+	return allowedLabel(value, "simple_qa", "simple_qa", "code_gen", "code_review", "summarization", "translation", "structured_output", "multi_step", "tool_call", "rag", "creative")
 }
 
 func allowedLabel(value string, fallback string, allowed ...string) string {
