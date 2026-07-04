@@ -38,7 +38,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 ### Phases
 
 - [x] Phase 14: Scheduler Queue Foundation (completed 2026-07-04)
-- [ ] Phase 15: Training Feedback and ONNX Path
+- [x] Phase 15: Training Feedback and ONNX Path (completed 2026-07-04)
 - [ ] Phase 16: A/B Rollout and Prediction Quality
 
 ### Phase 14: Scheduler Queue Foundation
@@ -70,7 +70,7 @@ Candidate plan slices:
 **Priority:** P2
 **Depends on:** Phase 14
 **Requirements:** FEED-01, ML-01, ML-02
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Success criteria:
 
