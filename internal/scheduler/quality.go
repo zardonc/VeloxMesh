@@ -13,8 +13,9 @@ import (
 const qualityBucketDuration = 5 * time.Minute
 
 type PredictionQualityRecorder struct {
-	Repo    controlstate.SchedulerQualityRollupRepository
-	Metrics observability.Metrics
+	Repo       controlstate.SchedulerQualityRollupRepository
+	Metrics    observability.Metrics
+	Controller *SchedulerRolloutController
 }
 
 func CalculateMAPE(predictedMs, actualMs int64) (float64, bool) {
@@ -32,9 +33,11 @@ func (r *PredictionQualityRecorder) Record(ctx context.Context, task Task, label
 	mape, ok := CalculateMAPE(score.PredictedLatencyMs, labels.ActualLatencyMs)
 	if !ok {
 		r.incError(score)
+		r.recordErrorSpikeAlert(score)
 		return nil
 	}
 	r.recordMetrics(task, score, labels, mape)
+	r.recordMAPEAlert(score, mape)
 	if r.Repo == nil {
 		return nil
 	}
@@ -85,6 +88,35 @@ func (r *PredictionQualityRecorder) recordMetrics(task Task, score qualityScoreE
 func (r *PredictionQualityRecorder) incError(score qualityScoreEvidence) {
 	if r.Metrics != nil {
 		r.Metrics.IncSchedulerComparisonError(score.SchedulerType, score.SchedulerVersion, score.TaskType)
+	}
+}
+
+func (r *PredictionQualityRecorder) recordMAPEAlert(score qualityScoreEvidence, mape float64) {
+	status := SchedulerRolloutStatus{}
+	if r.Controller != nil {
+		status = r.Controller.Snapshot()
+	}
+	if score.SchedulerType == string(SchedulerTypeONNX) && status.QualityMAPEAlertPercent > 0 && mape > status.QualityMAPEAlertPercent {
+		r.recordAlert(RolloutAlertMAPEDegradation, "ONNX scheduler MAPE exceeded configured threshold")
+	}
+}
+
+func (r *PredictionQualityRecorder) recordErrorSpikeAlert(score qualityScoreEvidence) {
+	status := SchedulerRolloutStatus{}
+	if r.Controller != nil {
+		status = r.Controller.Snapshot()
+	}
+	if score.SchedulerType == string(SchedulerTypeONNX) && status.ErrorSpikeAlertRate > 0 && 1 > status.ErrorSpikeAlertRate {
+		r.recordAlert(RolloutAlertSchedulerErrorSpike, "ONNX scheduler error rate exceeded configured threshold")
+	}
+}
+
+func (r *PredictionQualityRecorder) recordAlert(reason string, message string) {
+	if r.Controller != nil {
+		r.Controller.RecordAlert(reason, message)
+	}
+	if r.Metrics != nil {
+		r.Metrics.IncSchedulerRolloutAlert(reason)
 	}
 }
 

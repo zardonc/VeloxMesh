@@ -230,6 +230,10 @@ Some integration tests require local services such as Redis Stack or Qdrant. Set
 
 Offline scheduler model tooling lives under `tools/scheduler_training` and is run with `uv`. It exports safe completed samples, trains/evaluates the P70 output-token predictor, and publishes versioned runtime artifacts containing only `model.onnx` and `manifest.json`.
 
+## Scheduler Rollout
+
+Set `SCHEDULER_ONNX_ROLLOUT_PERCENT=0` to keep ONNX traffic off at startup. During runtime, authenticated admins can set `onnx_rollout_percent` to `0` with `PATCH /admin/scheduler/rollout` to roll ONNX traffic back to heuristic while leaving scheduler services running for diagnostics. The emergency FIFO bypass remains the existing `SCHEDULER_ENABLED=false` configuration.
+
 ## Technology Snapshot
 
 VeloxMesh is primarily built with:

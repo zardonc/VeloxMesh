@@ -25,6 +25,7 @@ type PrometheusMetrics struct {
 	comparisonWait    *prometheus.HistogramVec
 	comparisonCall    *prometheus.HistogramVec
 	comparisonErrors  *prometheus.CounterVec
+	rolloutAlerts     *prometheus.CounterVec
 }
 
 func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
@@ -130,6 +131,10 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			Name: "gateway_scheduler_comparison_errors_total",
 			Help: "Gateway scheduler rollout errors by backend.",
 		}, []string{"scheduler_type", "scheduler_version", "task_type"}),
+		rolloutAlerts: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "gateway_scheduler_rollout_alerts_total",
+			Help: "Gateway scheduler rollout alert count.",
+		}, []string{"reason"}),
 	}
 
 	if reg != nil {
@@ -152,6 +157,7 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			m.comparisonWait,
 			m.comparisonCall,
 			m.comparisonErrors,
+			m.rolloutAlerts,
 		} {
 			if err := reg.Register(collector); err != nil {
 				if are, ok := err.(prometheus.AlreadyRegisteredError); ok {
@@ -172,6 +178,8 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 							m.classificationSrc = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.comparisonErrors {
 							m.comparisonErrors = are.ExistingCollector.(*prometheus.CounterVec)
+						} else if c == m.rolloutAlerts {
+							m.rolloutAlerts = are.ExistingCollector.(*prometheus.CounterVec)
 						}
 					case *prometheus.HistogramVec:
 						if c == m.requestLatency {
@@ -287,6 +295,10 @@ func (m *PrometheusMetrics) RecordSchedulerComparisonCall(schedulerType string, 
 
 func (m *PrometheusMetrics) IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string) {
 	m.comparisonErrors.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType)).Inc()
+}
+
+func (m *PrometheusMetrics) IncSchedulerRolloutAlert(reason string) {
+	m.rolloutAlerts.WithLabelValues(allowedLabel(reason, "mape_degradation", "mape_degradation", "scheduler_error_spike")).Inc()
 }
 
 func safeSchedulerType(value string) string {

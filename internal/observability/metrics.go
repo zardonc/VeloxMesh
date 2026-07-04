@@ -24,6 +24,7 @@ type Metrics interface {
 	RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, waitMs float64)
 	RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, latencyMs float64)
 	IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string)
+	IncSchedulerRolloutAlert(reason string)
 }
 
 type StubMetrics struct {
@@ -68,6 +69,7 @@ func (m *StubMetrics) RecordSchedulerComparisonCall(schedulerType string, schedu
 }
 func (m *StubMetrics) IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string) {
 }
+func (m *StubMetrics) IncSchedulerRolloutAlert(reason string) {}
 
 // Global metrics instance for Phase 1/2
 var DefaultMetrics Metrics = NewStubMetrics()
