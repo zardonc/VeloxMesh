@@ -144,6 +144,7 @@ type LLMResponse struct {
 	Usage        *Usage
 	CacheHit     bool
 	CacheLevel   string
+	QueueWaitMs  int64
 }
 
 type Usage struct {

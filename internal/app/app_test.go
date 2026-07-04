@@ -120,6 +120,31 @@ func TestApp_ReloadProviders(t *testing.T) {
 	}
 }
 
+func TestApp_SchedulerRedisQueueFailureUsesMemory(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+	t.Setenv("REDIS_ENABLED", "true")
+	t.Setenv("REDIS_ADDR", "127.0.0.1:1")
+	t.Setenv("REDIS_NAMESPACE", "scheduler-test")
+	t.Setenv("REDIS_DEGRADE_TO_LOCAL", "true")
+	t.Setenv("SCHEDULER_QUEUE_BACKEND", "redis")
+
+	application, err := New()
+	if err != nil {
+		t.Fatalf("expected memory queue fallback, got %v", err)
+	}
+	if application.SchedulerRunner == nil {
+		t.Fatalf("expected scheduler runner")
+	}
+	if application.SchedulerQueueBackend != "memory" {
+		t.Fatalf("expected memory scheduler queue, got %s", application.SchedulerQueueBackend)
+	}
+}
+
 func TestApp_PostgresControlStateFailsClosed(t *testing.T) {
 	t.Setenv("CONFIG_FILE", "")
 	t.Setenv("DEFAULT_PROVIDER", "openai-primary")

@@ -113,7 +113,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cache-Hit", "false")
 		w.Header().Set("X-Cache-Level", "none")
 		w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
-		w.Header().Set("X-Queue-Wait-Ms", "0")
+		w.Header().Set("X-Queue-Wait-Ms", fmt.Sprintf("%d", respMeta.QueueWaitMs))
 		if respMeta.Strategy != "" {
 			w.Header().Set("X-Routing-Strategy", respMeta.Strategy)
 		}
@@ -213,7 +213,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cache-Level", "none")
 	}
 	w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
-	w.Header().Set("X-Queue-Wait-Ms", "0")
+	w.Header().Set("X-Queue-Wait-Ms", fmt.Sprintf("%d", resp.QueueWaitMs))
 	if resp.Strategy != "" {
 		w.Header().Set("X-Routing-Strategy", resp.Strategy)
 	}

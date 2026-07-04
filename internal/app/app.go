@@ -25,6 +25,7 @@ import (
 	"veloxmesh/internal/providers/anthropic"
 	"veloxmesh/internal/providers/gemini"
 	"veloxmesh/internal/providers/openai"
+	"veloxmesh/internal/scheduler"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -37,6 +38,8 @@ type App struct {
 	HotState               hotstate.Client
 	Coordinator            coordination.Coordinator
 	ShutdownTracing        func(context.Context) error
+	SchedulerRunner        *scheduler.SynchronousRunner
+	SchedulerQueueBackend  string
 }
 
 const (
@@ -65,6 +68,50 @@ func newControlRedisClient(cfg *config.Config) *redis.Client {
 
 func (a *App) HealthStore() health.Store {
 	return a.RuntimeProviderManager.HealthStore()
+}
+
+func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotstate.Client, logger *slog.Logger) (*scheduler.SynchronousRunner, string) {
+	queue, backend := newSchedulerQueue(ctx, cfg, logger)
+	scorer, err := scheduler.NewScorer(ctx, cfg.Scheduler)
+	if err != nil {
+		logger.Warn("scheduler scorer unavailable; using FIFO fallback", "error", err)
+		scorer = scheduler.FIFOScorer{Reason: "disabled"}
+	}
+	observability.DefaultMetrics.RecordSchedulerBreakerState("closed")
+	registry := scheduler.NewResultRegistry()
+	intake := &scheduler.TaskIntake{
+		Queue:    queue,
+		Guard:    scheduler.QueueGuard{SoftLimit: int64(cfg.Scheduler.QueueSoftLimit), HardLimit: int64(cfg.Scheduler.QueueHardLimit)},
+		Scorer:   scorer,
+		Registry: registry,
+		Priority: scheduler.NewPriorityResolver(hotState),
+		Policy: scheduler.PriorityPolicy{
+			Default:            scheduler.NormalizePriority(cfg.Scheduler.DefaultPriority),
+			Max:                scheduler.NormalizePriority(cfg.Scheduler.MaxPriority),
+			HighQuotaPerMinute: int64(cfg.Scheduler.HighQuotaPerMinute),
+			Strict:             cfg.Scheduler.Strict,
+		},
+		Metrics: observability.DefaultMetrics,
+		Backend: backend,
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry, Metrics: observability.DefaultMetrics}
+	return scheduler.NewSynchronousRunner(intake, executor, registry), backend
+}
+
+func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Logger) (scheduler.QueueBackend, string) {
+	memoryQueue := scheduler.NewMemoryQueue()
+	backend := strings.ToLower(cfg.Scheduler.QueueBackend)
+	if backend == "memory" || !cfg.RedisEnabled {
+		return memoryQueue, "memory"
+	}
+	redisClient := newControlRedisClient(cfg)
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		logger.Warn("scheduler redis queue unavailable; using memory queue", "error", err)
+		_ = redisClient.Close()
+		return memoryQueue, "memory"
+	}
+	redisQueue := scheduler.NewRedisQueue(redisClient, cfg.RedisNamespace, "gateway")
+	return scheduler.NewFallbackQueue(redisQueue, memoryQueue), "redis"
 }
 
 func New() (*App, error) {
@@ -216,7 +263,9 @@ func New() (*App, error) {
 		adminSemanticRulesHandler = handlers.NewAdminSemanticRulesHandler(adminSemanticRulesSvc)
 	}
 
+	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger)
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
+	gatewaySvc.SetSchedulerRunner(schedulerRunner)
 
 	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, hotStateClient, repo, coord, lagReporter)
 
@@ -228,6 +277,8 @@ func New() (*App, error) {
 		HotState:               hotStateClient,
 		Coordinator:            coord,
 		ShutdownTracing:        shutdownTracing,
+		SchedulerRunner:        schedulerRunner,
+		SchedulerQueueBackend:  schedulerBackend,
 	}
 
 	if cfg.ControlStateBackend != "disabled" {

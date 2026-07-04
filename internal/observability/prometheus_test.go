@@ -32,7 +32,7 @@ func TestPrometheusMetrics_Labels(t *testing.T) {
 	}
 
 	forbiddenLabels := []string{"reqID", "requestID", "user", "api_key", "prompt"}
-	
+
 	for _, mf := range mfs {
 		for _, m := range mf.Metric {
 			for _, lp := range m.Label {
@@ -43,6 +43,37 @@ func TestPrometheusMetrics_Labels(t *testing.T) {
 					}
 				}
 			}
+		}
+	}
+}
+
+func TestPrometheusMetricsSchedulerMetrics(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	m := NewPrometheusMetrics(reg)
+
+	m.RecordQueueDepth("redis", "normal", 3)
+	m.RecordTaskWait("normal", 12)
+	m.RecordSchedulerCall("ok", 4)
+	m.IncSchedulerError("timeout")
+	m.RecordSchedulerBreakerState("closed")
+	m.IncPriorityDowngrade("quota", "high", "normal")
+	m.IncSchedulerClassificationSource("structured")
+
+	for _, name := range []string{
+		"gateway_queue_depth",
+		"gateway_task_wait_duration_ms",
+		"gateway_scheduler_call_duration_ms",
+		"gateway_scheduler_errors_total",
+		"gateway_circuit_breaker_state",
+		"gateway_priority_downgrade_total",
+		"gateway_scheduler_classification_source_total",
+	} {
+		count, err := testutil.GatherAndCount(reg, name)
+		if err != nil {
+			t.Fatalf("gather %s: %v", name, err)
+		}
+		if count == 0 {
+			t.Fatalf("metric %s was not gathered", name)
 		}
 	}
 }

@@ -17,12 +17,14 @@ import (
 	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
+	"veloxmesh/internal/scheduler"
 )
 
 type mockAdapter struct {
 	id        string
 	err       error
 	lastModel string
+	resp      *llm.LLMResponse
 }
 
 func (m *mockAdapter) ID() string {
@@ -41,6 +43,9 @@ func (m *mockAdapter) Capabilities() providers.CapabilitySet {
 }
 func (m *mockAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	m.lastModel = req.Model
+	if m.resp != nil {
+		return m.resp, m.err
+	}
 	return &llm.LLMResponse{}, m.err
 }
 func (m *mockAdapter) HealthCheck(ctx context.Context) providers.HealthStatus {
@@ -289,7 +294,7 @@ type mockAdapterWithUsage struct {
 	id string
 }
 
-func (m *mockAdapterWithUsage) ID() string { return m.id }
+func (m *mockAdapterWithUsage) ID() string       { return m.id }
 func (m *mockAdapterWithUsage) Models() []string { return []string{"gpt-4o"} }
 func (m *mockAdapterWithUsage) Capabilities() providers.CapabilitySet {
 	return providers.CapabilitySet{
@@ -302,7 +307,9 @@ func (m *mockAdapterWithUsage) Capabilities() providers.CapabilitySet {
 func (m *mockAdapterWithUsage) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	return &llm.LLMResponse{Usage: &llm.Usage{TotalTokens: 10}}, nil
 }
-func (m *mockAdapterWithUsage) HealthCheck(ctx context.Context) providers.HealthStatus { return providers.HealthStatus{} }
+func (m *mockAdapterWithUsage) HealthCheck(ctx context.Context) providers.HealthStatus {
+	return providers.HealthStatus{}
+}
 
 func TestService_CostAggregation(t *testing.T) {
 	ctx := context.Background()
@@ -335,4 +342,82 @@ func TestService_CostAggregation(t *testing.T) {
 	if !agg.Called {
 		t.Errorf("expected AggregateCost to be called")
 	}
+}
+
+func TestService_HandleChatCompletion_WithSchedulerRunner(t *testing.T) {
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+
+	p1 := &mockAdapter{
+		id: "p1",
+		resp: &llm.LLMResponse{Choices: []llm.Choice{{
+			Index:   0,
+			Message: llm.Message{Role: llm.RoleAssistant, Content: "ok"},
+		}}},
+	}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), nil, nil)
+	svc.SetSchedulerRunner(newTestSchedulerRunner())
+
+	resp, err := svc.HandleChatCompletion(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1"})
+	if err != nil {
+		t.Fatalf("HandleChatCompletion: %v", err)
+	}
+	if resp.Provider != "p1" || resp.Model != "gpt-4o" || len(resp.Choices) != 1 {
+		t.Fatalf("unexpected response: %#v", resp)
+	}
+}
+
+func TestService_HandleChatCompletionStream_WithSchedulerRunner(t *testing.T) {
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+
+	p1 := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), nil, nil)
+	svc.SetSchedulerRunner(newTestSchedulerRunner())
+
+	ch, meta, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1", Stream: true})
+	if err != nil {
+		t.Fatalf("HandleChatCompletionStream: %v", err)
+	}
+	if meta.Provider != "p1" || meta.Model != "gpt-4o" {
+		t.Fatalf("unexpected metadata: %#v", meta)
+	}
+	seenDone := false
+	for event := range ch {
+		if event.Done {
+			seenDone = true
+		}
+	}
+	if !seenDone {
+		t.Fatalf("expected stream done event")
+	}
+}
+
+type mockStreamAdapter struct {
+	mockAdapter
+}
+
+func (m *mockStreamAdapter) Stream(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, error) {
+	ch := make(chan llm.StreamEvent, 2)
+	ch <- llm.StreamEvent{DeltaContent: "ok"}
+	ch <- llm.StreamEvent{Done: true}
+	close(ch)
+	return ch, nil
+}
+
+func newTestSchedulerRunner() *scheduler.SynchronousRunner {
+	registry := scheduler.NewResultRegistry()
+	queue := scheduler.NewMemoryQueue()
+	intake := &scheduler.TaskIntake{
+		Queue: queue, Scorer: scheduler.FIFOScorer{Reason: "disabled"}, Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{Default: scheduler.PriorityNormal, Max: scheduler.PriorityHigh},
+		Backend:  "memory",
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+	return scheduler.NewSynchronousRunner(intake, executor, registry)
 }

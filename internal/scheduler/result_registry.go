@@ -8,16 +8,35 @@ import (
 type ResultRegistry struct {
 	mu       sync.RWMutex
 	channels map[string]chan TaskResult
+	handlers map[string]TaskHandler
 }
 
 func NewResultRegistry() *ResultRegistry {
-	return &ResultRegistry{channels: map[string]chan TaskResult{}}
+	return &ResultRegistry{
+		channels: map[string]chan TaskResult{},
+		handlers: map[string]TaskHandler{},
+	}
 }
 
 func (r *ResultRegistry) Register(taskID string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.channels[taskID] = make(chan TaskResult, 1)
+}
+
+type TaskHandler func(context.Context) TaskResult
+
+func (r *ResultRegistry) RegisterHandler(taskID string, handler TaskHandler) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.handlers[taskID] = handler
+}
+
+func (r *ResultRegistry) Handler(taskID string) (TaskHandler, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	handler, ok := r.handlers[taskID]
+	return handler, ok
 }
 
 func (r *ResultRegistry) Deliver(taskID string, result TaskResult) bool {
@@ -54,4 +73,5 @@ func (r *ResultRegistry) Unregister(taskID string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	delete(r.channels, taskID)
+	delete(r.handlers, taskID)
 }

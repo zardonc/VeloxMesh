@@ -17,6 +17,7 @@ import (
 	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
+	"veloxmesh/internal/scheduler"
 )
 
 type SemanticRuleResolver interface {
@@ -36,6 +37,7 @@ type Service struct {
 	registry        *pipeline.Registry
 	ruleResolver    SemanticRuleResolver
 	costAggregator  hotstate.CostAggregator
+	schedulerRunner *scheduler.SynchronousRunner
 }
 
 func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int, repo controlstate.Repository, semanticCache *cache.SemanticCacheService, registry *pipeline.Registry, ruleResolver SemanticRuleResolver, costAggregator hotstate.CostAggregator) *Service {
@@ -57,6 +59,10 @@ func NewService(r routing.Router, a admission.Controller, hs health.Store, fallb
 		ruleResolver:    ruleResolver,
 		costAggregator:  costAggregator,
 	}
+}
+
+func (s *Service) SetSchedulerRunner(runner *scheduler.SynchronousRunner) {
+	s.schedulerRunner = runner
 }
 
 func (s *Service) settle(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, usage *llm.Usage, latency time.Duration) {
@@ -182,7 +188,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			// Cache hit
 			rt.RecordRouting("semantic_cache", "hit", "", "")
 			rt.RecordOutcome("cache", 200, "", 0, 0, 0)
-			
+
 			observability.DefaultMetrics.RecordRequestOutcome(
 				req.RequestID,
 				"cache",
@@ -291,7 +297,9 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		if decision.UpstreamModel != "" {
 			upstreamReq.Model = decision.UpstreamModel
 		}
-		resp, err := adapter.Complete(ctx, &upstreamReq)
+		resp, err := s.runScheduledChat(ctx, &upstreamReq, func(runCtx context.Context, scheduledReq *llm.LLMRequest) (*llm.LLMResponse, error) {
+			return adapter.Complete(runCtx, scheduledReq)
+		})
 		latency := time.Since(start)
 
 		healthErr := err
@@ -330,7 +338,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			summaryBytes, _ := json.Marshal(decision.CompositeScoreSummary)
 			scoreSummary = string(summaryBytes)
 		}
-		
+
 		var fallbackReason string
 		if attempts > 1 {
 			fallbackReason = "provider_failure_or_rejected"
@@ -369,7 +377,6 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			}
 			return nil, err
 		}
-
 
 		// Record success
 		observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, 200)
@@ -509,7 +516,10 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		if decision.UpstreamModel != "" {
 			upstreamReq.Model = decision.UpstreamModel
 		}
-		ch, err := streamAdapter.Stream(ctx, &upstreamReq)
+		ch, queuedMeta, err := s.runScheduledStream(ctx, &upstreamReq, func(runCtx context.Context, scheduledReq *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+			events, err := streamAdapter.Stream(runCtx, scheduledReq)
+			return events, nil, err
+		})
 
 		if err != nil {
 			latency := time.Since(start)
@@ -576,6 +586,9 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 			Strategy:     decision.Strategy,
 			AttemptCount: attempts,
 			FallbackUsed: attempts > 1,
+		}
+		if queuedMeta != nil {
+			respMeta.QueueWaitMs = queuedMeta.QueueWaitMs
 		}
 
 		if err := p.ProcessResponse(ctx, scope, state, respMeta); err != nil {
@@ -656,7 +669,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 				tokens = finalUsage.CompletionTokens
 			}
 			if tokens > 0 {
-				tpot = float64(latency - ttft) / float64(tokens) / float64(time.Millisecond)
+				tpot = float64(latency-ttft) / float64(tokens) / float64(time.Millisecond)
 			}
 
 			rt.RecordOutcome(decision.ProviderID, status, errCategory, float64(ttft.Milliseconds()), tpot, float64(latency.Milliseconds()))
@@ -674,4 +687,18 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 
 	rt.EndWithError(lastErr)
 	return nil, nil, lastErr
+}
+
+func (s *Service) runScheduledChat(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error)) (*llm.LLMResponse, error) {
+	if s.schedulerRunner == nil {
+		return execute(ctx, req)
+	}
+	return s.schedulerRunner.RunChat(ctx, req, execute)
+}
+
+func (s *Service) runScheduledStream(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error)) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+	if s.schedulerRunner == nil {
+		return execute(ctx, req)
+	}
+	return s.schedulerRunner.RunStream(ctx, req, execute)
 }
