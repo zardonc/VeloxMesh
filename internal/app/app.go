@@ -71,9 +71,9 @@ func (a *App) HealthStore() health.Store {
 	return a.RuntimeProviderManager.HealthStore()
 }
 
-func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotstate.Client, logger *slog.Logger, recorder *scheduler.TrainingRecorder, quality *scheduler.PredictionQualityRecorder) (*scheduler.SynchronousRunner, string) {
+func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotstate.Client, logger *slog.Logger, recorder *scheduler.TrainingRecorder, quality *scheduler.PredictionQualityRecorder, rollout *scheduler.SchedulerRolloutController) (*scheduler.SynchronousRunner, string) {
 	queue, backend := newSchedulerQueue(ctx, cfg, logger)
-	scorer, err := scheduler.NewScorer(ctx, cfg.Scheduler)
+	scorer, err := scheduler.NewScorerWithController(ctx, cfg.Scheduler, rollout)
 	if err != nil {
 		logger.Warn("scheduler scorer unavailable; using FIFO fallback", "error", err)
 		scorer = scheduler.FIFOScorer{Reason: "disabled"}
@@ -256,6 +256,8 @@ func New() (*App, error) {
 	var adminProvHandler *handlers.AdminProvidersHandler
 	var adminCombosHandler *handlers.AdminCombosHandler
 	var adminSemanticRulesHandler *handlers.AdminSemanticRulesHandler
+	var adminSchedulerHandler *handlers.AdminSchedulerHandler
+	rolloutController := scheduler.NewSchedulerRolloutController(cfg.Scheduler)
 	if repo != nil {
 		adminSvc := controlstate.NewAdminProviderService(repo, cipher, m, hotStateClient)
 		adminProvHandler = handlers.NewAdminProvidersHandler(adminSvc)
@@ -265,6 +267,9 @@ func New() (*App, error) {
 
 		adminSemanticRulesSvc := controlstate.NewAdminSemanticRulesService(repo, hotStateClient)
 		adminSemanticRulesHandler = handlers.NewAdminSemanticRulesHandler(adminSemanticRulesSvc)
+
+		adminSchedulerSvc := scheduler.NewAdminSchedulerService(repo, rolloutController)
+		adminSchedulerHandler = handlers.NewAdminSchedulerHandler(adminSchedulerSvc)
 	}
 
 	schedulerFeedbackOn := cfg.Scheduler.FeedbackEnabled && repo != nil
@@ -277,13 +282,13 @@ func New() (*App, error) {
 	}
 	var qualityRecorder *scheduler.PredictionQualityRecorder
 	if repo != nil {
-		qualityRecorder = &scheduler.PredictionQualityRecorder{Repo: repo.SchedulerQualityRollups(), Metrics: observability.DefaultMetrics}
+		qualityRecorder = &scheduler.PredictionQualityRecorder{Repo: repo.SchedulerQualityRollups(), Metrics: observability.DefaultMetrics, Controller: rolloutController}
 	}
-	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger, trainingRecorder, qualityRecorder)
+	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger, trainingRecorder, qualityRecorder, rolloutController)
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
 	gatewaySvc.SetSchedulerRunner(schedulerRunner)
 
-	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, hotStateClient, repo, coord, lagReporter)
+	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, adminSchedulerHandler, hotStateClient, repo, coord, lagReporter)
 
 	application := &App{
 		Config:                 cfg,

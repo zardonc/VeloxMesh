@@ -5,14 +5,14 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/coordination"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/hotstate"
 	"veloxmesh/internal/http/handlers"
 	"veloxmesh/internal/http/middleware"
-	"veloxmesh/internal/coordination"
 )
 
-func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handlers.AdminProvidersHandler, adminCombosHandler *handlers.AdminCombosHandler, adminSemanticRulesHandler *handlers.AdminSemanticRulesHandler, hotStateClient hotstate.Client, repo controlstate.Repository, coord coordination.Coordinator, lagReporter handlers.LagReporter) *chi.Mux {
+func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handlers.AdminProvidersHandler, adminCombosHandler *handlers.AdminCombosHandler, adminSemanticRulesHandler *handlers.AdminSemanticRulesHandler, adminSchedulerHandler *handlers.AdminSchedulerHandler, hotStateClient hotstate.Client, repo controlstate.Repository, coord coordination.Coordinator, lagReporter handlers.LagReporter) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -66,6 +66,17 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 			r.Put("/admin/v1/semantic-rules", adminSemanticRulesHandler.SaveGlobalDefaults)
 			r.Get("/admin/v1/semantic-rules/users/{userId}", adminSemanticRulesHandler.GetUserConfig)
 			r.Put("/admin/v1/semantic-rules/users/{userId}", adminSemanticRulesHandler.SaveUserConfig)
+		})
+	}
+
+	if adminSchedulerHandler != nil {
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AdminAuth(cfg))
+			r.Use(middleware.RequireWritable(coord))
+			r.Get("/admin/scheduler/rollout", adminSchedulerHandler.GetRollout)
+			r.Patch("/admin/scheduler/rollout", adminSchedulerHandler.PatchRollout)
+			r.Get("/admin/v1/scheduler/rollout", adminSchedulerHandler.GetRollout)
+			r.Patch("/admin/v1/scheduler/rollout", adminSchedulerHandler.PatchRollout)
 		})
 	}
 

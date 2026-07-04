@@ -83,7 +83,7 @@ func semanticRulesTestRouter(t *testing.T, dsn string) (*sqlite.Repository, http
 	hot := hotstate.NewLocalHotState()
 	svc := controlstate.NewAdminSemanticRulesService(repo, hot)
 	handler := handlers.NewAdminSemanticRulesHandler(svc)
-	router := NewRouter(&config.Config{AdminAPIKey: "admin"}, nil, nil, nil, handler, hot, repo, coordination.NewNoopCoordinator(), nil)
+	router := NewRouter(&config.Config{AdminAPIKey: "admin"}, nil, nil, nil, handler, nil, hot, repo, coordination.NewNoopCoordinator(), nil)
 	return repo, router
 }
 
