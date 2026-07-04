@@ -58,6 +58,7 @@ Code review found and fixed three issues before verification:
 - Schema drift: passed, no drift detected.
 - Codebase drift: non-blocking skip, reason `no-structure-md`.
 - Human verification: none required for Phase 15; all acceptance criteria are covered by automated tests and artifact inspection.
+- Real-component UAT addendum: reran Phase 15 checks with Go test cache disabled where relevant (`-count=1`), verified the PostgreSQL scheduler training sample test with `-v`, and did not accept mock-based or skipped tests as evidence. See `15-UAT.md`.
 
 ## Conclusion
 
