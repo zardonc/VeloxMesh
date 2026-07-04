@@ -55,6 +55,11 @@ Build the cold-start Scheduler queue foundation for the gateway: optional schedu
 
 Planner may choose the smallest internal task/result bridge that satisfies the synchronous facade. Buffered per-task channels are acceptable, but planner should keep cancellation, timeout cleanup, and goroutine leak prevention explicit. Avoid building a broad status manager unless a plan slice needs it for the queue foundation.
 
+### Tooling and Verification Constraints
+
+- **D-27:** Use the local protoc binary at `C:\Soft\1A-Coding\protoc-35.1-win64\bin\protoc.exe` for Scheduler protobuf generation. Go generator plugins (`protoc-gen-go`, `protoc-gen-go-grpc`) must be installed on `PATH` before generated files are updated.
+- **D-28:** Any Phase 14 development that enables services or validates component calls must use real components and real network calls. Mock clients, mock data, and skipped necessary tests are not acceptable for service integration verification.
+
 </decisions>
 
 <canonical_refs>

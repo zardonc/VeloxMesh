@@ -96,6 +96,46 @@ func validateSemanticCacheConfig(c *Config) error {
 	return nil
 }
 
+func validateSchedulerConfig(s SchedulerConfig) error {
+	if err := validateDurationField(s.Timeout, "scheduler.timeout"); err != nil {
+		return err
+	}
+	if err := validateDurationField(s.BreakerRecoveryTimeout, "scheduler.breaker_recovery_timeout"); err != nil {
+		return err
+	}
+	if err := validateDurationField(s.QueuePopTimeout, "scheduler.queue_pop_timeout"); err != nil {
+		return err
+	}
+	if s.BreakerFailureThreshold < 1 {
+		return fmt.Errorf("scheduler.breaker_failure_threshold must be >= 1")
+	}
+	if s.QueueSoftLimit < 0 || s.QueueHardLimit < 0 {
+		return fmt.Errorf("scheduler queue limits must be >= 0")
+	}
+	if s.QueueHardLimit > 0 && s.QueueSoftLimit > s.QueueHardLimit {
+		return fmt.Errorf("scheduler.queue_soft_limit cannot exceed scheduler.queue_hard_limit")
+	}
+	if s.ExecutorConcurrency < 1 {
+		return fmt.Errorf("scheduler.executor_concurrency must be >= 1")
+	}
+	if !isSchedulerPriority(s.DefaultPriority) {
+		return fmt.Errorf("invalid scheduler.default_priority")
+	}
+	if !isSchedulerPriority(s.MaxPriority) {
+		return fmt.Errorf("invalid scheduler.max_priority")
+	}
+	switch s.QueueBackend {
+	case "auto", "redis", "memory":
+	default:
+		return fmt.Errorf("scheduler.queue_backend must be 'auto', 'redis', or 'memory'")
+	}
+	return nil
+}
+
+func isSchedulerPriority(value string) bool {
+	return value == "high" || value == "normal" || value == "low"
+}
+
 func validateHealthCheckConfig(hc *HealthCheckConfig) error {
 	if err := validateDurationField(hc.Interval, "health_check.interval"); err != nil {
 		return err

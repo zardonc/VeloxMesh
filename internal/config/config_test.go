@@ -408,6 +408,103 @@ func TestPlan4PostgresConfigDefaults(t *testing.T) {
 	}
 }
 
+func TestSchedulerConfigDefaults(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Scheduler.Enabled {
+		t.Fatalf("expected Scheduler disabled by default")
+	}
+	if cfg.Scheduler.Timeout != "15ms" {
+		t.Fatalf("expected 15ms scheduler timeout, got %s", cfg.Scheduler.Timeout)
+	}
+	if cfg.Scheduler.DefaultPriority != "normal" || cfg.Scheduler.MaxPriority != "high" {
+		t.Fatalf("unexpected scheduler priorities: %#v", cfg.Scheduler)
+	}
+}
+
+func TestSchedulerConfigJSONOverride(t *testing.T) {
+	configPath := writeTempConfig(t, `{
+		"default_provider": "p1",
+		"providers": [{"id":"p1","type":"openai-compatible","base_url":"http://test","models":["m1"]}],
+		"scheduler": {
+			"enabled": true,
+			"endpoint": "127.0.0.1:50051",
+			"timeout": "12ms",
+			"default_priority": "low",
+			"max_priority": "normal",
+			"queue_backend": "memory"
+		}
+	}`)
+	t.Setenv("CONFIG_FILE", configPath)
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.Scheduler.Enabled || cfg.Scheduler.Endpoint != "127.0.0.1:50051" {
+		t.Fatalf("scheduler override not loaded: %#v", cfg.Scheduler)
+	}
+	if cfg.Scheduler.Timeout != "12ms" || cfg.Scheduler.DefaultPriority != "low" || cfg.Scheduler.MaxPriority != "normal" {
+		t.Fatalf("scheduler override not applied: %#v", cfg.Scheduler)
+	}
+}
+
+func TestSchedulerConfigValidation(t *testing.T) {
+	tests := []struct {
+		name        string
+		modify      func(*Config)
+		expectedErr string
+	}{
+		{
+			name: "invalid timeout",
+			modify: func(c *Config) {
+				c.Scheduler.Timeout = "nope"
+			},
+			expectedErr: "invalid duration for scheduler.timeout",
+		},
+		{
+			name: "invalid priority",
+			modify: func(c *Config) {
+				c.Scheduler.DefaultPriority = "urgent"
+			},
+			expectedErr: "invalid scheduler.default_priority",
+		},
+		{
+			name: "enabled without endpoint stays valid",
+			modify: func(c *Config) {
+				c.Scheduler.Enabled = true
+				c.Scheduler.Endpoint = ""
+			},
+			expectedErr: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := validPlan4TestConfig()
+			applyDefaults(c)
+			tt.modify(c)
+			err := c.Validate()
+			if tt.expectedErr == "" {
+				if err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), tt.expectedErr) {
+				t.Fatalf("expected error containing %q, got %v", tt.expectedErr, err)
+			}
+		})
+	}
+}
+
 func TestPlan4PostgresConfigValidationFailures(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -466,6 +563,33 @@ func TestEnvExamplePlan4SecretSafety(t *testing.T) {
 			t.Fatalf(".env.example contains forbidden secret marker %q", forbidden)
 		}
 	}
+}
+
+func TestEnvExampleSchedulerDisabledAndSecretSafe(t *testing.T) {
+	data, err := os.ReadFile("../../.env.example")
+	if err != nil {
+		t.Fatalf("read .env.example: %v", err)
+	}
+	content := string(data)
+	for _, required := range []string{"# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high"} {
+		if !strings.Contains(content, required) {
+			t.Fatalf(".env.example missing %q", required)
+		}
+	}
+	for _, forbidden := range []string{"SCHEDULER_API_KEY", "SCHEDULER_TOKEN", "sk-"} {
+		if strings.Contains(content, forbidden) {
+			t.Fatalf(".env.example contains forbidden scheduler secret marker %q", forbidden)
+		}
+	}
+}
+
+func writeTempConfig(t *testing.T, content string) string {
+	t.Helper()
+	path := t.TempDir() + "/config.json"
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("write temp config: %v", err)
+	}
+	return path
 }
 
 func validPlan4TestConfig() *Config {

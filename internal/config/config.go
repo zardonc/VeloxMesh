@@ -108,6 +108,28 @@ type Config struct {
 
 	// Phase 8 Semantic Pipeline
 	SemanticPipelineConfigFile string `json:"semantic_pipeline_config_file"`
+
+	// Phase 14 Scheduler
+	Scheduler SchedulerConfig `json:"scheduler"`
+}
+
+type SchedulerConfig struct {
+	Enabled                  bool    `json:"enabled"`
+	Endpoint                 string  `json:"endpoint"`
+	Timeout                  string  `json:"timeout"`
+	Strict                   bool    `json:"strict"`
+	BreakerFailureThreshold  int     `json:"breaker_failure_threshold"`
+	BreakerRecoveryTimeout   string  `json:"breaker_recovery_timeout"`
+	QueueBackend             string  `json:"queue_backend"`
+	QueueSoftLimit           int     `json:"queue_soft_limit"`
+	QueueHardLimit           int     `json:"queue_hard_limit"`
+	QueuePopTimeout          string  `json:"queue_pop_timeout"`
+	ExecutorConcurrency      int     `json:"executor_concurrency"`
+	DefaultPriority          string  `json:"default_priority"`
+	MaxPriority              string  `json:"max_priority"`
+	HighQuotaPerMinute       int     `json:"high_quota_per_minute"`
+	ScoreUncertaintyPenaltyK float64 `json:"score_uncertainty_penalty_k"`
+	HeuristicConfigFile      string  `json:"heuristic_config_file"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -150,6 +172,24 @@ func LoadConfig() (*Config, error) {
 		QdrantAPIKey:                 getEnv("QDRANT_API_KEY", ""),
 
 		SemanticPipelineConfigFile: getEnv("SEMANTIC_PIPELINE_CONFIG_FILE", ""),
+		Scheduler: SchedulerConfig{
+			Enabled:                  getEnv("SCHEDULER_ENABLED", "false") == "true",
+			Endpoint:                 getEnv("SCHEDULER_ENDPOINT", ""),
+			Timeout:                  getEnv("SCHEDULER_TIMEOUT", "15ms"),
+			Strict:                   getEnv("SCHEDULER_STRICT", "false") == "true",
+			BreakerFailureThreshold:  getEnvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 3),
+			BreakerRecoveryTimeout:   getEnv("SCHEDULER_BREAKER_RECOVERY_TIMEOUT", "1m"),
+			QueueBackend:             getEnv("SCHEDULER_QUEUE_BACKEND", "auto"),
+			QueueSoftLimit:           getEnvInt("SCHEDULER_QUEUE_SOFT_LIMIT", 0),
+			QueueHardLimit:           getEnvInt("SCHEDULER_QUEUE_HARD_LIMIT", 0),
+			QueuePopTimeout:          getEnv("SCHEDULER_QUEUE_POP_TIMEOUT", "100ms"),
+			ExecutorConcurrency:      getEnvInt("SCHEDULER_EXECUTOR_CONCURRENCY", 1),
+			DefaultPriority:          getEnv("SCHEDULER_DEFAULT_PRIORITY", "normal"),
+			MaxPriority:              getEnv("SCHEDULER_MAX_PRIORITY", "high"),
+			HighQuotaPerMinute:       getEnvInt("SCHEDULER_HIGH_QUOTA_PER_MINUTE", 0),
+			ScoreUncertaintyPenaltyK: getEnvFloat("SCHEDULER_SCORE_UNCERTAINTY_PENALTY_K", 0.2),
+			HeuristicConfigFile:      getEnv("SCHEDULER_HEURISTIC_CONFIG_FILE", ""),
+		},
 	}
 
 	configFile := getEnv("CONFIG_FILE", "")
@@ -197,7 +237,8 @@ func LoadConfig() (*Config, error) {
 			QdrantAddr                   string `json:"qdrant_addr"`
 			QdrantAPIKey                 string `json:"qdrant_api_key"`
 
-			SemanticPipelineConfigFile string `json:"semantic_pipeline_config_file"`
+			SemanticPipelineConfigFile string          `json:"semantic_pipeline_config_file"`
+			Scheduler                  SchedulerConfig `json:"scheduler"`
 		}
 		if err := json.Unmarshal(data, &fileCfg); err != nil {
 			return nil, fmt.Errorf("failed to parse config file: %v", err)
@@ -309,6 +350,7 @@ func LoadConfig() (*Config, error) {
 		if fileCfg.SemanticPipelineConfigFile != "" {
 			cfg.SemanticPipelineConfigFile = fileCfg.SemanticPipelineConfigFile
 		}
+		mergeSchedulerConfig(&cfg.Scheduler, fileCfg.Scheduler)
 
 		if !fallbackEnabledSet {
 			cfg.FallbackEnabled = len(cfg.Providers) > 1
@@ -393,6 +435,7 @@ func applyDefaults(cfg *Config) {
 	}
 
 	applySemanticDefaults(cfg)
+	applySchedulerDefaults(&cfg.Scheduler)
 }
 
 func applySemanticDefaults(cfg *Config) {
@@ -413,8 +456,90 @@ func applySemanticDefaults(cfg *Config) {
 	}
 }
 
+func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
+	if src.Enabled {
+		dst.Enabled = true
+	}
+	if src.Endpoint != "" {
+		dst.Endpoint = src.Endpoint
+	}
+	if src.Timeout != "" {
+		dst.Timeout = src.Timeout
+	}
+	if src.Strict {
+		dst.Strict = true
+	}
+	if src.BreakerFailureThreshold != 0 {
+		dst.BreakerFailureThreshold = src.BreakerFailureThreshold
+	}
+	if src.BreakerRecoveryTimeout != "" {
+		dst.BreakerRecoveryTimeout = src.BreakerRecoveryTimeout
+	}
+	if src.QueueBackend != "" {
+		dst.QueueBackend = src.QueueBackend
+	}
+	if src.QueueSoftLimit != 0 {
+		dst.QueueSoftLimit = src.QueueSoftLimit
+	}
+	if src.QueueHardLimit != 0 {
+		dst.QueueHardLimit = src.QueueHardLimit
+	}
+	if src.QueuePopTimeout != "" {
+		dst.QueuePopTimeout = src.QueuePopTimeout
+	}
+	if src.ExecutorConcurrency != 0 {
+		dst.ExecutorConcurrency = src.ExecutorConcurrency
+	}
+	if src.DefaultPriority != "" {
+		dst.DefaultPriority = src.DefaultPriority
+	}
+	if src.MaxPriority != "" {
+		dst.MaxPriority = src.MaxPriority
+	}
+	if src.HighQuotaPerMinute != 0 {
+		dst.HighQuotaPerMinute = src.HighQuotaPerMinute
+	}
+	if src.ScoreUncertaintyPenaltyK != 0 {
+		dst.ScoreUncertaintyPenaltyK = src.ScoreUncertaintyPenaltyK
+	}
+	if src.HeuristicConfigFile != "" {
+		dst.HeuristicConfigFile = src.HeuristicConfigFile
+	}
+}
+
+func applySchedulerDefaults(s *SchedulerConfig) {
+	if s.Timeout == "" {
+		s.Timeout = "15ms"
+	}
+	if s.BreakerFailureThreshold == 0 {
+		s.BreakerFailureThreshold = 3
+	}
+	if s.BreakerRecoveryTimeout == "" {
+		s.BreakerRecoveryTimeout = "1m"
+	}
+	if s.QueueBackend == "" {
+		s.QueueBackend = "auto"
+	}
+	if s.QueuePopTimeout == "" {
+		s.QueuePopTimeout = "100ms"
+	}
+	if s.ExecutorConcurrency == 0 {
+		s.ExecutorConcurrency = 1
+	}
+	if s.DefaultPriority == "" {
+		s.DefaultPriority = "normal"
+	}
+	if s.MaxPriority == "" {
+		s.MaxPriority = "high"
+	}
+	if s.ScoreUncertaintyPenaltyK == 0 {
+		s.ScoreUncertaintyPenaltyK = 0.2
+	}
+}
+
 func (c *Config) Validate() error {
 	applySemanticDefaults(c)
+	applySchedulerDefaults(&c.Scheduler)
 
 	if c.RoutingStrategy != "round-robin" && c.RoutingStrategy != "least-latency" {
 		return fmt.Errorf("invalid routing strategy")
@@ -453,6 +578,9 @@ func (c *Config) Validate() error {
 	defaultFound := false
 
 	if err := validateSemanticCacheConfig(c); err != nil {
+		return err
+	}
+	if err := validateSchedulerConfig(c.Scheduler); err != nil {
 		return err
 	}
 

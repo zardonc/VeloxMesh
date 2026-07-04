@@ -31,3 +31,15 @@ func getEnvInt(key string, fallback int) int {
 	}
 	return parsed
 }
+
+func getEnvFloat(key string, fallback float64) float64 {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return fallback
+	}
+	parsed, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return fallback
+	}
+	return parsed
+}
