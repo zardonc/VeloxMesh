@@ -15,7 +15,7 @@
 ### Priority and Scoring
 
 - [ ] **PRIO-01**: Gateway resolves task priority only from trusted configuration, service headers, or structured request fields.
-- [ ] **PRIO-02**: Gateway enforces tenant max-priority limits and high/urgent quotas, silently downgrading claims that exceed policy.
+- [ ] **PRIO-02**: Gateway enforces tenant max-priority limits and high-priority quotas, silently downgrading claims that exceed policy.
 - [ ] **SCORE-01**: Scheduler computes static virtual deadline scores from enqueue time, predicted latency, priority multiplier, and uncertainty penalty.
 - [ ] **SCORE-02**: Cold-start Scheduler classifies structured/rule task types and estimates latency from configured heuristic tables.
 
