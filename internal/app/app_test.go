@@ -166,6 +166,46 @@ func TestApp_SchedulerFeedbackRequiresDurableControlState(t *testing.T) {
 	}
 }
 
+func TestApp_SchedulerHeuristicOnlyStartup(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+	t.Setenv("SCHEDULER_ENABLED", "true")
+	t.Setenv("SCHEDULER_ENDPOINT", "127.0.0.1:1")
+
+	application, err := New()
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	if application.SchedulerRunner == nil {
+		t.Fatalf("expected scheduler runner")
+	}
+}
+
+func TestApp_SchedulerWeightedRolloutStartup(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+	t.Setenv("SCHEDULER_ENABLED", "true")
+	t.Setenv("SCHEDULER_HEURISTIC_ENDPOINT", "127.0.0.1:1")
+	t.Setenv("SCHEDULER_ONNX_ENDPOINT", "127.0.0.1:2")
+	t.Setenv("SCHEDULER_ONNX_ROLLOUT_PERCENT", "10")
+
+	application, err := New()
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	if application.SchedulerRunner == nil {
+		t.Fatalf("expected scheduler runner")
+	}
+}
+
 func TestApp_PostgresControlStateFailsClosed(t *testing.T) {
 	t.Setenv("CONFIG_FILE", "")
 	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
