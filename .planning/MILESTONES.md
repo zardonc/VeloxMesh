@@ -1,5 +1,28 @@
 # Milestones
 
+## v7.4 Gateway Scheduler (Shipped: 2026-07-04)
+
+**Delivered:** Completed the optional Gateway Scheduler path while preserving the OpenAI-compatible data-plane contract and FIFO fallback behavior.
+
+**Phases completed:** 14-16 (10 plans total)
+
+**Key accomplishments:**
+
+- Added disabled-by-default scheduler integration with gRPC `BatchScoreTasks`, 15ms timeout, circuit-breaker protection, and FIFO fallback.
+- Added Redis ZSET queueing with task-id-only storage plus an in-memory single-node fallback.
+- Added trusted priority resolution, tenant priority/ quota downgrade behavior, static virtual deadline scoring, and heuristic scheduler service health/metrics.
+- Added safe opt-in scheduler training feedback, offline `uv` training/export/evaluate/publish tooling, and startup-loaded ONNX scheduler mode.
+- Added heuristic/ONNX weighted rollout, prediction-quality rollups, sanitized comparison metrics, alerts, and authenticated runtime rollback controls.
+
+**Known deferred work:**
+
+- BFF/Admin Console UI remains deferred.
+- Optional Qdrant semantic-neighbor features, anomaly detection, and tenant SLA waiting-time promotion remain future scheduler enhancements.
+
+**What's next:** Confirm the next milestone scope: scheduler hardening/enhancements, BFF/Admin Console, or another gateway priority.
+
+---
+
 ## v7.3 PostgreSQL Compatibility (Shipped: 2026-07-03)
 
 **Delivered:** Added the PostgreSQL-compatible Plan 4 deployment path without changing the OpenAI-compatible data-plane contract.
