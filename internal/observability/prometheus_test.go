@@ -141,3 +141,83 @@ func TestPrometheusSchedulerAnomalyStatusLabelsAreBounded(t *testing.T) {
 		}
 	}
 }
+
+func TestPrometheusSchedulerSLAPromotionOutcomes(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	m := NewPrometheusMetrics(reg)
+
+	for _, outcome := range []string{"promoted", "not_eligible", "blocked_by_priority_or_quota", "disabled", "error"} {
+		m.IncSchedulerSLAPromotion("policy-a", "gold", "large", "code_gen", "normal", outcome)
+	}
+	labels := labelsForMetric(t, reg, "gateway_scheduler_sla_promotion_total")
+	seen := map[string]bool{}
+	for _, labelSet := range labels {
+		seen[labelSet["outcome"]] = true
+		forbiddenMetricLabels(t, labelSet)
+	}
+	for _, outcome := range []string{"promoted", "not_eligible", "blocked_by_priority_or_quota", "disabled", "error"} {
+		if !seen[outcome] {
+			t.Fatalf("missing SLA promotion outcome label %q in %#v", outcome, labels)
+		}
+	}
+}
+
+func TestPrometheusSchedulerSLAPromotionLabelsAreSanitized(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	m := NewPrometheusMetrics(reg)
+
+	m.IncSchedulerSLAPromotion("policy id with spaces", "tenant-123", "model with spaces", "prompt", "urgent", "surprise")
+	labels := labelsForMetric(t, reg, "gateway_scheduler_sla_promotion_total")
+	if len(labels) != 1 {
+		t.Fatalf("expected one metric, got %#v", labels)
+	}
+	got := labels[0]
+	want := map[string]string{
+		"policy":       "unknown",
+		"tenant_class": "tenant-123",
+		"model_class":  "unknown",
+		"request_kind": "simple_qa",
+		"priority":     "normal",
+		"outcome":      "error",
+	}
+	for key, value := range want {
+		if got[key] != value {
+			t.Fatalf("label %s=%q, want %q in %#v", key, got[key], value, got)
+		}
+	}
+	forbiddenMetricLabels(t, got)
+}
+
+func labelsForMetric(t *testing.T, reg *prometheus.Registry, name string) []map[string]string {
+	t.Helper()
+	mfs, err := reg.Gather()
+	if err != nil {
+		t.Fatalf("Gather failed: %v", err)
+	}
+	var labels []map[string]string
+	for _, mf := range mfs {
+		if mf.GetName() != name {
+			continue
+		}
+		for _, metric := range mf.Metric {
+			labelSet := map[string]string{}
+			for _, label := range metric.Label {
+				labelSet[label.GetName()] = label.GetValue()
+			}
+			labels = append(labels, labelSet)
+		}
+	}
+	if len(labels) == 0 {
+		t.Fatalf("metric %s not gathered", name)
+	}
+	return labels
+}
+
+func forbiddenMetricLabels(t *testing.T, labels map[string]string) {
+	t.Helper()
+	for _, forbidden := range []string{"tenant_id", "task_id", "prompt", "message", "api_key", "authorization", "secret", "provider_payload", "embedding", "semantic_cache_payload", "raw_task_text"} {
+		if _, ok := labels[forbidden]; ok {
+			t.Fatalf("forbidden label %q found in %#v", forbidden, labels)
+		}
+	}
+}
