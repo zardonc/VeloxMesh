@@ -73,3 +73,22 @@
 ## Deferred Ideas
 
 None.
+
+---
+
+## Corrective Replanning: ONNX Runtime Boundary
+
+**Date:** 2026-07-05T10:58:02-07:00
+
+| Area | Decision | Notes |
+|------|----------|-------|
+| Predictor contract | Use quantile-aware `OutputTokenPredictor.Predict` returning `Prediction{Quantiles, ModelVersion, Signals, Err}`. | `PredictP70OutputTokens` leaks Scheduler policy into Predictor and is superseded. |
+| Signal boundary | Predictor computes model-native signals; Scheduler owns policy. | Quantile spread, OOD distance, and feature coverage are evidence, not scheduling decisions. |
+| Runtime architecture | Use a long-lived Python worker with `onnxruntime.InferenceSession`; keep default Go build free of ONNX Runtime CGO. | Matches the existing portability stance used for LanceDB isolation. |
+| Manifest gate | Add concrete `predictor-v1` manifest fields and validate feature schema before prediction. | Schema drift must fail fast before a Python tensor shape error. |
+| Lifecycle and fallback | Add startup health, timeout, breaker, restart backoff, recovery probe, and `NoopPredictor`. | Scheduler must keep serving through heuristic/noop degradation. |
+| Partial failure | Return per-task prediction errors without failing sibling tasks in the batch. | Batch-level errors are reserved for systemic/transport failures. |
+| Rollout | Put champion/challenger and shadow behavior in `PredictorRouter`. | Predictor contract remains unchanged. |
+| Acceptance | Phase 18 is accepted only when ONNX is actually callable through the Python worker and Scheduler smoke test. | The current Go constant ONNX parser is not sufficient runtime evidence. |
+
+**Notes:** User explicitly rejected a temporary Phase 18 patch. `18-CONTEXT.md` and `18-04-PLAN.md` now define the final corrective plan for ONNX invocation and Scheduler/Predictor separation.

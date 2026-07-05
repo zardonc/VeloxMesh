@@ -69,7 +69,7 @@ Candidate plan slices:
 **Priority:** P2
 **Depends on:** Phase 17
 **Requirements:** ANOM-01, ANOM-02, ANOM-03, ANOM-04
-**Plans:** 3/3 plans complete
+**Plans:** 3/4 plans executed
 
 Success criteria:
 

@@ -145,3 +145,20 @@ func TestSecretCipher(t *testing.T) {
 		t.Errorf("Expected %s, got %s", string(plaintext), string(dec))
 	}
 }
+
+func TestSecretCipherRejectsInvalidNonce(t *testing.T) {
+	key := []byte("01234567890123456789012345678901")
+	cipher, err := NewAESGCMSecretCipher(key, "v1")
+	if err != nil {
+		t.Fatalf("Failed to create cipher: %v", err)
+	}
+
+	_, err = cipher.DecryptProviderSecret(&EncryptedSecret{
+		Ciphertext: []byte("ciphertext"),
+		Nonce:      []byte("no"),
+		KeyID:      "v1",
+	})
+	if err == nil {
+		t.Fatalf("expected invalid nonce error")
+	}
+}

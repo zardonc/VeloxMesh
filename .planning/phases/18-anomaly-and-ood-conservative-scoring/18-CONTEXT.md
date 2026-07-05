@@ -1,48 +1,93 @@
 # Phase 18: Anomaly and OOD Conservative Scoring - Context
 
-**Gathered:** 2026-07-04T22:39:15-07:00
-**Status:** Ready for planning
+**Gathered:** 2026-07-05T10:58:02-07:00
+**Status:** Corrective replanning required
 
 <domain>
 ## Phase Boundary
 
-Let ONNX Scheduler recognize unfamiliar tasks and respond conservatively through confidence and uncertainty signals. This phase adds anomaly/OOD threshold metadata to versioned ONNX artifacts, validates and degrades that metadata clearly at runtime, applies conservative scoring without changing the scheduler RPC contract, and extends quality evidence for anomaly behavior.
+Phase 18 must be corrected so the scheduler uses a real model predictor without coupling Scheduler policy to ONNX implementation details.
 
-Scheduler remains a stateless scoring oracle. Gateway keeps queue ownership, execution, rollback, and FIFO fallback behavior. No raw prompts, embeddings, semantic-cache payloads, authorization headers, API keys, provider secrets, tenant/API-key identity, or original request payloads may enter scheduler artifacts, metrics, logs, or quality records.
+Gateway does not touch models. Scheduler does not touch ONNX runtime. Predictor does not make scheduling policy decisions. Predictor computes model outputs and model-native signals; Scheduler decides how to convert those outputs and signals into score, confidence, uncertainty, fallback, rollout, and quality evidence.
+
+The current Go `internal/scheduler/onnx` scorer path is not the final architecture: it parses a constant ONNX graph in Go, hard-codes P70 output tokens into the model interface, mixes OOD signal calculation with Scheduler policy, and drops semantic aggregate fields in the ONNX gRPC server mapping. Corrective implementation must replace that shape with a final predictor boundary, not a temporary patch.
 
 </domain>
 
 <decisions>
 ## Implementation Decisions
 
-### Threshold Scope And Artifact Shape
-- **D-01:** Publish anomaly/OOD thresholds by `task_type + coverage_level`, using Phase 17 semantic coverage levels such as `none`, `fallback`, and `tenant`.
-- **D-02:** Compute thresholds from successful safe scheduler samples only. Track failure and timeout outcomes separately as comparison evidence; do not mix them into the normal threshold distribution.
-- **D-03:** If a `task_type + coverage_level` sample set is too small, fall back to a `task_type` threshold. If the task-type threshold is also too sparse, mark anomaly as unavailable rather than guessing.
-- **D-04:** Store threshold metadata in nested manifest shape: `anomaly_thresholds[task_type][coverage_level]`.
-- **D-05:** Each threshold entry should include `threshold`, `sample_count`, `mean`, and `stddev`.
-- **D-06:** Offline tooling should compute both `mean + k*stddev` and percentile thresholds, then publish the more conservative runtime threshold.
+### Predictor Contract
+- **D-01:** Replace P70-specific predictor contracts with a quantile-aware predictor contract:
 
-### Artifact Validation And Degradation
-- **D-07:** Missing anomaly metadata must not make an otherwise valid ONNX artifact fail startup. ONNX continues to score, while anomaly/OOD behavior is marked unavailable or degraded.
-- **D-08:** Structurally invalid anomaly metadata disables anomaly/OOD behavior only; the main ONNX scoring path remains available.
-- **D-09:** Degraded anomaly state must be visible in metrics, logs, and admin status.
-- **D-10:** Use low-cardinality enum reasons in metrics and admin status, with detailed validation errors only in logs.
+  ```go
+  type Prediction struct {
+      Quantiles    map[int]float64
+      ModelVersion string
+      Signals      map[string]float64
+      Err          error
+  }
 
-### Conservative Scoring
-- **D-11:** OOD hits should lower confidence and raise uncertainty rather than changing the scheduler RPC contract.
-- **D-12:** Confidence reduction uses a severity-scaled clamp: larger threshold exceedance lowers confidence more, with a non-zero floor.
-- **D-13:** Map OOD severity into `TaskFeature.UncertaintyHint` and reuse the existing heuristic calculator uncertainty penalty path.
-- **D-14:** Compute OOD severity from observed distance over threshold, expressed as relative exceedance beyond the selected threshold.
+  type OutputTokenPredictor interface {
+      Predict(ctx context.Context, tasks []scheduler.TaskFeature) ([]Prediction, error)
+  }
+  ```
 
-### Quality Evidence
-- **D-15:** Compare anomaly/OOD quality by `scheduler_version + task_type + coverage_level`.
-- **D-16:** Extend durable quality rollups with `anomaly_count`, `anomaly_rate`, and `anomaly_unavailable_count`.
-- **D-17:** Live metrics may add low-cardinality `coverage_level` and `anomaly_status` labels.
-- **D-18:** Count anomaly unavailable/degraded separately from scheduler fallback rate. Metadata degradation is not a scheduler backend fallback.
+- **D-02:** `Predict` returns one `Prediction` per input task, index aligned with the request. Batch-level `error` is only for transport, worker, manifest, or systemic failures. Per-task malformed input uses `Prediction.Err` so one bad task does not fail the whole batch.
+- **D-03:** Predictor output is descriptive, not prescriptive. It may return quantiles such as P50, P70, and P90, plus signals such as `quantile_spread`, `ood_distance`, `feature_coverage`, or `schema_mismatch_distance`. It must not choose Scheduler score, fallback policy, rollout policy, or conservative thresholds.
+- **D-04:** The Scheduler scoring layer chooses which quantile to consume and how to translate spread/OOD signals into confidence, uncertainty, and virtual-deadline score. P70 is a Scheduler policy default, not a Predictor API name.
+
+### Component Boundaries And Naming
+- **D-05:** Scheduler-level components must be implementation-neutral. Use names such as `PredictiveScorer`, `MLAugmentedScorer`, `OutputTokenPredictor`, and `PredictorRouter`; do not expose `ONNXScorer` above the predictor implementation package.
+- **D-06:** ONNX-specific names may exist only in the predictor implementation and Python worker code, for example `PythonONNXPredictorClient` or worker modules under scheduler training tooling.
+- **D-07:** `NoopPredictor` is a first-class implementation for P3 SQLite-only/lightweight deployments and for degraded mode. It is not just a test double.
+
+### Signal And Policy Boundary
+- **D-08:** Model-native signal calculation belongs in Predictor because only the model artifact and training metadata know quantile spread, feature distances, and training-distribution statistics.
+- **D-09:** Policy decisions belong in Scheduler: threshold interpretation, conservative coefficient, fallback choice, breaker behavior, score inflation, confidence clamp, and rollout routing.
+- **D-10:** Missing or degraded model signals must degrade predictive scoring only. Gateway forwarding, Scheduler service startup, and heuristic scoring remain available.
+
+### Runtime ONNX Invocation
+- **D-11:** Default runtime ONNX execution uses a long-lived Python worker with `onnxruntime.InferenceSession`. Do not bind ONNX Runtime into the default Go build through CGO.
+- **D-12:** The Go Scheduler talks to the worker over a local transport. Prefer gRPC over Unix Domain Socket where supported; keep the endpoint configurable so Windows development can use a safe local transport without introducing CGO.
+- **D-13:** The Python worker starts once, loads `manifest.json`, creates one `InferenceSession`, exposes health/readiness, and serves batch predictions. It is not started per request.
+- **D-14:** Scheduler startup probes the predictor. If health or manifest validation fails, `PredictiveScorer` must use `NoopPredictor`/heuristic scoring and keep serving.
+- **D-15:** Predictor calls have a timeout, a small circuit breaker, restart with backoff after worker crash, and periodic recovery probes after the breaker opens.
+
+### Manifest Contract
+- **D-16:** Runtime artifacts must publish a concrete predictor manifest. At minimum:
+
+  ```json
+  {
+    "protocol_version": "predictor-v1",
+    "model_version": "v1.3.0",
+    "task_type": "quantile_regression",
+    "quantiles": [50, 70, 90],
+    "feature_schema": [
+      {"name": "estimated_input_tokens", "type": "float32"},
+      {"name": "latency_p50_ms", "type": "float32"},
+      {"name": "coverage_level", "type": "enum"}
+    ],
+    "training_data_hash": "...",
+    "compatible_scheduler_version": ">=0.9.0"
+  }
+  ```
+
+- **D-17:** Scheduler must validate the manifest against its `TaskFeature -> tensor` mapping before the first prediction call. Schema drift must fail fast into degraded predictive scoring, not surface later as a Python tensor shape error.
+- **D-18:** The manifest may retain Phase 18 anomaly metadata, but anomaly metadata cannot be the only contract. Quantiles, feature schema, protocol version, model version, and compatibility must be explicit.
+
+### Rollout And Routing
+- **D-19:** Canary and shadow behavior belongs in a `PredictorRouter` between `PredictiveScorer` and `OutputTokenPredictor`. The Predictor contract stays unchanged.
+- **D-20:** `PredictorRouter` may hold champion and challenger predictors, route by weight, or run shadow predictions for logging only. Scheduler policy adopts only the selected predictor output.
+
+### Corrective Acceptance
+- **D-21:** Phase 18 is not accepted until ONNX is actually callable through `onnxruntime.InferenceSession` in the Python worker and the Scheduler receives real quantile/signal predictions through the predictor client.
+- **D-22:** The current Go constant-graph parser is not sufficient acceptance evidence. It may be deleted or retained only as an offline test helper, not as the production runtime predictor.
+- **D-23:** The Scheduler service mapping must preserve every safe `TaskFeature` field already present in `proto/scheduler/v1/scheduler.proto`, including semantic aggregate fields from Phase 17.
+- **D-24:** Verification must include a smoke/integration path that starts the worker, runs a small ONNX artifact through `InferenceSession`, calls Scheduler `BatchScoreTasks`, and proves the returned score used predictor quantiles and model signals without falling back.
 
 ### Agent Discretion
-- Planner may choose exact enum names, minimum sample defaults, `k` and percentile defaults, and admin status field names as long as the decisions above hold, labels remain low-cardinality, and existing scheduler artifact, scoring, metrics, and control-state patterns are reused.
+- Planner may choose exact package names and config field names as long as the boundaries above hold, Go remains pure by default, tests prove real ONNX Runtime invocation, and existing heuristic/fallback/control-state patterns are reused.
 
 </decisions>
 
@@ -52,25 +97,32 @@ Scheduler remains a stateless scoring oracle. Gateway keeps queue ownership, exe
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Planning
-- `.planning/ROADMAP.md` - Phase 18 goal, success criteria, and candidate plan slices.
-- `.planning/REQUIREMENTS.md` - ANOM-01 through ANOM-04 and v7.5 out-of-scope rules.
-- `.planning/PROJECT.md` - Project-level scheduler optionality, safety, and stateless scoring boundaries.
-- `.planning/phases/17-semantic-neighbor-feature-aggregates/17-CONTEXT.md` - Semantic coverage fields and safe aggregate boundaries that Phase 18 builds on.
-- `.planning/phases/16-a-b-rollout-and-prediction-quality/16-CONTEXT.md` - ONNX rollout, prediction quality, MAPE, and low-cardinality evidence decisions.
-- `.planning/phases/15-training-feedback-and-onnx-path/15-CONTEXT.md` - Safe sample, offline artifact, and ONNX runtime decisions.
+- `.planning/ROADMAP.md` - Phase 18 goal and existing success criteria to revise with corrective acceptance.
+- `.planning/REQUIREMENTS.md` - ANOM-01 through ANOM-04 and out-of-scope scheduler boundaries.
+- `.planning/PROJECT.md` - Scheduler optionality, pure-Go default runtime philosophy, and gateway/scheduler boundaries.
+- `.planning/phases/18-anomaly-and-ood-conservative-scoring/18-01-PLAN.md` - Existing artifact-threshold plan that produced the current manifest shape.
+- `.planning/phases/18-anomaly-and-ood-conservative-scoring/18-02-PLAN.md` - Existing runtime plan that mixed ONNX runtime details and Scheduler policy.
+- `.planning/phases/18-anomaly-and-ood-conservative-scoring/18-03-PLAN.md` - Existing quality evidence plan to preserve after the predictor boundary changes.
+- `.planning/phases/17-semantic-neighbor-feature-aggregates/17-CONTEXT.md` - Semantic aggregate fields that must survive scheduler service mapping.
+- `.planning/phases/16-a-b-rollout-and-prediction-quality/16-CONTEXT.md` - Rollout and quality comparison baseline.
+- `.planning/phases/15-training-feedback-and-onnx-path/15-CONTEXT.md` - Original ONNX path and artifact decisions now superseded where they hard-code P70 or Go-side model execution.
 
-### Runtime Scheduler
-- `internal/scheduler/onnx/artifact.go` - Current ONNX manifest loading, semantic metadata validation, checksum, and artifact contract.
-- `internal/scheduler/onnx/scorer.go` - Current ONNX scoring, confidence calculation, semantic normalization, and heuristic calculator reuse.
-- `internal/scheduler/types.go` - `TaskFeature`, `ScoreResult`, confidence, uncertainty, semantic coverage, and scheduler type fields.
-- `internal/scheduler/heuristic/score.go` - Existing virtual-deadline scoring and uncertainty penalty path.
-- `cmd/scheduler/main.go` - Scheduler service mode wiring and ONNX startup behavior.
+### Current Source
+- `proto/scheduler/v1/scheduler.proto` - Existing Gateway -> Scheduler RPC contract and safe `TaskFeature` field list.
+- `internal/scheduler/types.go` - `TaskFeature`, `ScoreResult`, scheduler type constants, and current anomaly status fields.
+- `internal/scheduler/onnx/model.go` - Current constant ONNX graph parser; not acceptable as final runtime invocation.
+- `internal/scheduler/onnx/scorer.go` - Current mixed ONNX scorer/policy implementation to replace with `PredictiveScorer`.
+- `internal/scheduler/onnx/server.go` - Current ONNX service mapping that drops semantic aggregate fields.
+- `internal/scheduler/heuristic/score.go` - Existing virtual-deadline and uncertainty penalty path to reuse.
+- `internal/scheduler/client.go` - Gateway-side timeout, breaker, FIFO fallback, and weighted scoring patterns.
+- `cmd/scheduler/main.go` - Scheduler service mode wiring, health/status endpoints, and current ONNX startup behavior.
 
-### Evidence And Offline Tooling
-- `internal/scheduler/quality.go` - Prediction quality recorder, MAPE, rollup writes, live metric calls, and rollout alerts.
-- `internal/controlstate/types.go` - `SchedulerQualityRollup` durable evidence shape.
-- `tools/scheduler_training/scheduler_training/artifacts.py` - Python artifact manifest builder and ONNX artifact publish shape.
-- `tools/scheduler_training/scheduler_training/train.py` - Offline training feature preparation and model metadata output.
+### Offline And Worker Tooling
+- `tools/scheduler_training/pyproject.toml` - Python dependency surface; currently lacks `onnxruntime` and worker dependencies.
+- `tools/scheduler_training/scheduler_training/artifacts.py` - Current manifest builder and constant ONNX publisher.
+- `tools/scheduler_training/scheduler_training/train.py` - Current quantile/anomaly training logic.
+- `tools/scheduler_training/scheduler_training/publish.py` - Runtime artifact publication path.
+- `tools/scheduler_training/README.md` - Artifact contents and command documentation to update.
 
 </canonical_refs>
 
@@ -78,49 +130,52 @@ Scheduler remains a stateless scoring oracle. Gateway keeps queue ownership, exe
 ## Existing Code Insights
 
 ### Reusable Assets
-- `internal/scheduler/onnx.Artifact` and `Manifest` already load versioned metadata from `manifest.json`; extend this rather than adding a sidecar file.
-- `internal/scheduler/onnx.Scorer` already normalizes semantic aggregates, computes confidence, and routes ONNX output through the heuristic score calculator.
-- `internal/scheduler.TaskFeature` already has `ConfidenceHint`, `UncertaintyHint`, semantic aggregate fields, and `CoverageLevel`.
-- `internal/scheduler.ScoreResult` already carries confidence, scheduler version, scheduler type, predicted latency, and fallback reason.
-- `internal/scheduler.PredictionQualityRecorder` already writes durable rollups and low-cardinality live metrics.
-- `tools/scheduler_training` already owns offline export, train, evaluate, and publish behavior for runtime artifacts.
+- `internal/scheduler/heuristic.ScoreCalculator` already converts output-token estimates, confidence, and uncertainty into virtual-deadline scores.
+- `internal/scheduler.GRPCScorer`, breaker logic, and FIFO fallback already provide the fail-open pattern to reuse for predictor calls.
+- `proto/scheduler/v1/scheduler.proto` already contains the safe scalar and enum features needed by the predictor path.
+- `tools/scheduler_training` already owns artifact publish and manifest generation; extend it instead of adding a second artifact format.
+
+### Problems To Correct
+- `internal/scheduler/onnx/model.go` only reads constant ONNX output bytes in Go; it does not call ONNX Runtime.
+- `internal/scheduler/onnx/scorer.go` combines model execution, OOD signal calculation, Scheduler scoring policy, metrics, and ONNX-specific naming.
+- `internal/scheduler/onnx/server.go` does not map Phase 17 semantic aggregate proto fields back into `TaskFeature`.
+- `tools/scheduler_training/pyproject.toml` depends on `onnx` but not `onnxruntime`, `grpcio`, or worker runtime dependencies.
+- Existing tests prove the constant parser path, but do not prove an actual `InferenceSession` call through Scheduler.
 
 ### Established Patterns
-- Scheduler is optional and disabled by default from the gateway side.
-- ONNX artifacts are loaded at scheduler startup and validated before serving.
-- Gateway owns queueing, execution, fallback, and rollback; Scheduler only returns scores and prediction metadata.
-- Durable training and quality evidence lives in control-state storage, not Redis.
-- Observability must use sanitized, low-cardinality labels.
-- Public data-plane responses must not expose scheduler topology, artifact metadata, anomaly status, backend choice, or model internals.
+- Scheduler is optional, disabled by default from Gateway, and must fail open.
+- Gateway owns queueing, execution, fallback, and any raw prompt or vector lookup.
+- Scheduler receives only safe scalar/enum features and returns scores.
+- Observability uses sanitized, low-cardinality labels only.
+- SQLite/PostgreSQL durable parity matters for quality evidence.
 
 ### Integration Points
-- Offline tooling computes anomaly thresholds from safe exported samples and writes manifest metadata.
-- ONNX artifact loading validates anomaly metadata and records degraded state without breaking the core scoring path.
-- ONNX scoring applies anomaly severity before confidence and uncertainty feed the existing score calculation.
-- Quality rollup storage and migrations extend SQLite/PostgreSQL parity with anomaly counts and coverage-level grouping.
-- Metrics and admin scheduler status expose anomaly status using sanitized enum labels only.
+- Add predictor interfaces under Scheduler internals without changing Gateway data-plane API.
+- Add Python worker artifact loading and health under existing scheduler training/tooling ownership.
+- Update Scheduler service mode wiring so `predictive`/ML mode composes `PredictiveScorer + PredictorRouter + OutputTokenPredictor`.
+- Preserve existing quality rollup fields while sourcing anomaly status from Scheduler policy over predictor signals.
 
 </code_context>
 
 <specifics>
 ## Specific Ideas
 
-- Use `task_type + coverage_level` for both threshold lookup and quality comparison.
-- Use successful samples as the normal distribution, with failure/timeout retained as evidence rather than threshold input.
-- Use `anomaly_thresholds[task_type][coverage_level]` in `manifest.json`.
-- Prefer degraded ONNX-without-anomaly over failing startup for missing or malformed anomaly metadata.
-- Keep scheduler fallback rate semantically clean: anomaly degraded/unavailable is a separate evidence dimension.
+- Keep Python worker as the default because Go ONNX Runtime bindings require CGO and native shared libraries, the same portability class previously isolated for LanceDB.
+- A future low-latency tier may add `//go:build onnxruntime_cgo`, but that is optional and not the default path.
+- `NoopPredictor` directly matches lightweight P3 deployments where running Python is not worth the operational cost.
+- `PredictorRouter` is the right place for champion/challenger and shadow predictions; do not put rollout fields into the Predictor contract.
 
 </specifics>
 
 <deferred>
 ## Deferred Ideas
 
-None - discussion stayed within phase scope.
+- Optional Go ONNX Runtime CGO implementation behind `//go:build onnxruntime_cgo`.
+- Automated rollout decisions based on quality signals remain future `AUTO-01` work.
 
 </deferred>
 
 ---
 
 *Phase: 18-Anomaly and OOD Conservative Scoring*
-*Context gathered: 2026-07-04T22:39:15-07:00*
+*Context gathered: 2026-07-05T10:58:02-07:00*

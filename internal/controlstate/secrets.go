@@ -76,6 +76,9 @@ func (c *AESGCMSecretCipher) DecryptProviderSecret(secret *EncryptedSecret) ([]b
 	if err != nil {
 		return nil, err
 	}
+	if len(secret.Nonce) != aesgcm.NonceSize() {
+		return nil, errors.New("invalid secret nonce length")
+	}
 
 	plaintext, err := aesgcm.Open(nil, secret.Nonce, secret.Ciphertext, nil)
 	if err != nil {

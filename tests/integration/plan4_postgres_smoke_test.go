@@ -28,6 +28,7 @@ func TestPlan4PostgresSmoke(t *testing.T) {
 	if dsn == "" || key == "" || providerKey == "" || devKey == "" {
 		t.Skip("Skipping Plan 4 smoke; POSTGRES_TEST_DSN, PLAN4_CONTROL_STATE_ENCRYPTION_KEY, PLAN4_PROVIDER_API_KEY, and PLAN4_DEV_API_KEY are required")
 	}
+	dsn = isolatedPlan4PostgresDSN(t, dsn, "plan4_postgres_smoke_test")
 
 	fakeProvider := setupFakeProvider(t, "plan4-provider", 0, http.StatusOK)
 	defer fakeProvider.Close()
