@@ -56,7 +56,7 @@ func (s *Scorer) scoreTask(task scheduler.TaskFeature) scheduler.ScoreResult {
 		task.ConfidenceHint = adjustment.confidence
 		task.UncertaintyHint += math.Min(adjustment.severity, 5)
 	}
-	predictedTokens := int64(math.Round(s.artifact.Manifest.ModelParameters.P70OutputTokens))
+	predictedTokens := int64(math.Round(s.artifact.Runner.P70OutputTokens()))
 	if predictedTokens > 0 {
 		task.EstimatedOutputTokens = predictedTokens
 	}

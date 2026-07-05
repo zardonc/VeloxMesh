@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
@@ -105,7 +106,7 @@ func TestSchedulerServiceONNXValidArtifactStarts(t *testing.T) {
 func writeSchedulerMainTestArtifact(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
-	model := []byte("onnx-test-model")
+	model := schedulerMainTestONNXModel(t)
 	if err := os.WriteFile(filepath.Join(dir, "model.onnx"), model, 0o600); err != nil {
 		t.Fatalf("write model: %v", err)
 	}
@@ -129,4 +130,13 @@ func writeSchedulerMainTestArtifact(t *testing.T) string {
 		t.Fatalf("write manifest: %v", err)
 	}
 	return dir
+}
+
+func schedulerMainTestONNXModel(t *testing.T) []byte {
+	t.Helper()
+	model, err := base64.StdEncoding.DecodeString("CA0SHHZlbG94bWVzaC1zY2hlZHVsZXItdHJhaW5pbmc6fwpDEhFwNzBfb3V0cHV0X3Rva2VucyIIQ29uc3RhbnQqJAoFdmFsdWUqGAgBEAEiBAAAKEJCDGNvbnN0YW50X3A3MKABBBIXc2NoZWR1bGVyX3A3MF9wcmVkaWN0b3JiHwoRcDcwX291dHB1dF90b2tlbnMSCgoICAESBAoCCAFCAhAb")
+	if err != nil {
+		t.Fatalf("decode test ONNX model: %v", err)
+	}
+	return model
 }

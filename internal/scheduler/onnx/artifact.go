@@ -64,6 +64,7 @@ type Artifact struct {
 	Dir           string
 	ModelPath     string
 	Manifest      Manifest
+	Runner        modelRunner
 	AnomalyStatus string
 	AnomalyReason string
 	AnomalyErrors []string
@@ -78,8 +79,12 @@ func LoadArtifact(dir string) (*Artifact, error) {
 	if err := validateArtifactModel(modelPath, manifest); err != nil {
 		return nil, err
 	}
+	runner, err := loadModelRunner(modelPath)
+	if err != nil {
+		return nil, err
+	}
 	status, reason, errors := anomalyState(manifest)
-	return &Artifact{Dir: dir, ModelPath: modelPath, Manifest: manifest, AnomalyStatus: status, AnomalyReason: reason, AnomalyErrors: errors}, nil
+	return &Artifact{Dir: dir, ModelPath: modelPath, Manifest: manifest, Runner: runner, AnomalyStatus: status, AnomalyReason: reason, AnomalyErrors: errors}, nil
 }
 
 func readManifest(path string) (Manifest, error) {
