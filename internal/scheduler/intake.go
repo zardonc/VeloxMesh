@@ -66,14 +66,15 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 	}
 	task := Task{
 		ID:          req.RequestID,
+		TenantID:    identityID(ctx),
+		TenantClass: identityClass(ctx),
 		Feature:     feature,
 		Score:       score.Score,
 		EnqueueTime: now,
 		State:       TaskStateQueued,
 		Metadata:    scoreMetadata(score, scoreLatency),
 	}
-	i.Registry.Register(task.ID)
-	i.Registry.RegisterHandler(task.ID, handler)
+	i.Registry.RegisterTask(task, handler)
 	if err := i.Queue.Push(ctx, QueueItem{TaskID: task.ID, Score: task.Score}); err != nil {
 		i.Registry.Unregister(task.ID)
 		if i.Metrics != nil {
@@ -174,4 +175,12 @@ func identityID(ctx context.Context) string {
 		return "anonymous"
 	}
 	return identity.ID
+}
+
+func identityClass(ctx context.Context) string {
+	identity := middleware.GetAuthIdentity(ctx)
+	if identity == nil || identity.Role == "" {
+		return "anonymous"
+	}
+	return identity.Role
 }

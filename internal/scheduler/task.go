@@ -14,6 +14,8 @@ const (
 
 type Task struct {
 	ID          string
+	TenantID    string
+	TenantClass string
 	Feature     TaskFeature
 	Score       float64
 	EnqueueTime time.Time

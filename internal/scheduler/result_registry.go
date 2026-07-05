@@ -9,12 +9,14 @@ type ResultRegistry struct {
 	mu       sync.RWMutex
 	channels map[string]chan TaskResult
 	handlers map[string]TaskHandler
+	tasks    map[string]Task
 }
 
 func NewResultRegistry() *ResultRegistry {
 	return &ResultRegistry{
 		channels: map[string]chan TaskResult{},
 		handlers: map[string]TaskHandler{},
+		tasks:    map[string]Task{},
 	}
 }
 
@@ -26,10 +28,28 @@ func (r *ResultRegistry) Register(taskID string) {
 
 type TaskHandler func(context.Context) TaskResult
 
+func (r *ResultRegistry) RegisterTask(task Task, handler TaskHandler) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.channels[task.ID] = make(chan TaskResult, 1)
+	r.handlers[task.ID] = handler
+	r.tasks[task.ID] = cloneTask(task)
+}
+
 func (r *ResultRegistry) RegisterHandler(taskID string, handler TaskHandler) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.handlers[taskID] = handler
+}
+
+func (r *ResultRegistry) Task(taskID string) (Task, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	task, ok := r.tasks[taskID]
+	if !ok {
+		return Task{}, false
+	}
+	return cloneTask(task), true
 }
 
 func (r *ResultRegistry) Handler(taskID string) (TaskHandler, bool) {
@@ -74,4 +94,17 @@ func (r *ResultRegistry) Unregister(taskID string) {
 	defer r.mu.Unlock()
 	delete(r.channels, taskID)
 	delete(r.handlers, taskID)
+	delete(r.tasks, taskID)
+}
+
+func cloneTask(task Task) Task {
+	if task.Metadata == nil {
+		return task
+	}
+	metadata := make(map[string]string, len(task.Metadata))
+	for k, v := range task.Metadata {
+		metadata[k] = v
+	}
+	task.Metadata = metadata
+	return task
 }
