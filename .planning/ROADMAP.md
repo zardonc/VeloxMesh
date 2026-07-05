@@ -92,7 +92,7 @@ Candidate plan slices:
 **Priority:** P2
 **Depends on:** Phase 18
 **Requirements:** SLA-01, SLA-02, SLA-03, SLA-04
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Success criteria:
 
