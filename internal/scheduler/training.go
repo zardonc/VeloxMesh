@@ -11,6 +11,7 @@ import (
 const (
 	TrainingOutcomeSuccess = "success"
 	TrainingOutcomeFailure = "failure"
+	TrainingOutcomeTimeout = "timeout"
 
 	schedulerVersionMetadata = "scheduler_version"
 )

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/llm"
 )
 
 func TestCalculateMAPE(t *testing.T) {
@@ -58,7 +59,7 @@ func TestCompletionEvidenceQualityErrorDoesNotPanic(t *testing.T) {
 		Intake:  &TaskIntake{},
 		Quality: &PredictionQualityRecorder{Repo: &qualityRepo{err: errors.New("down")}},
 	}
-	runner.recordCompletionEvidence(context.Background(), qualityTask(time.Now()), time.Now(), nil, TrainingOutcomeSuccess)
+	runner.recordCompletionEvidence(context.Background(), &llm.LLMRequest{}, qualityTask(time.Now()), time.Now(), nil, TrainingOutcomeSuccess)
 }
 
 func qualityTask(now time.Time) Task {

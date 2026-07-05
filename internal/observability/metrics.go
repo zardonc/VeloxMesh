@@ -25,6 +25,11 @@ type Metrics interface {
 	RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, latencyMs float64)
 	IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string)
 	IncSchedulerRolloutAlert(reason string)
+	IncSemanticNeighborAttempt(result string)
+	IncSemanticNeighborTimeout()
+	IncSemanticNeighborError(reason string)
+	IncSemanticNeighborFallback(reason string)
+	IncSemanticNeighborCoverage(level string)
 }
 
 type StubMetrics struct {
@@ -69,7 +74,12 @@ func (m *StubMetrics) RecordSchedulerComparisonCall(schedulerType string, schedu
 }
 func (m *StubMetrics) IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string) {
 }
-func (m *StubMetrics) IncSchedulerRolloutAlert(reason string) {}
+func (m *StubMetrics) IncSchedulerRolloutAlert(reason string)    {}
+func (m *StubMetrics) IncSemanticNeighborAttempt(result string)  {}
+func (m *StubMetrics) IncSemanticNeighborTimeout()               {}
+func (m *StubMetrics) IncSemanticNeighborError(reason string)    {}
+func (m *StubMetrics) IncSemanticNeighborFallback(reason string) {}
+func (m *StubMetrics) IncSemanticNeighborCoverage(level string)  {}
 
 // Global metrics instance for Phase 1/2
 var DefaultMetrics Metrics = NewStubMetrics()

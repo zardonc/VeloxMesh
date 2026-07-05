@@ -26,6 +26,11 @@ type PrometheusMetrics struct {
 	comparisonCall    *prometheus.HistogramVec
 	comparisonErrors  *prometheus.CounterVec
 	rolloutAlerts     *prometheus.CounterVec
+	semanticAttempts  *prometheus.CounterVec
+	semanticTimeouts  prometheus.Counter
+	semanticErrors    *prometheus.CounterVec
+	semanticFallbacks *prometheus.CounterVec
+	semanticCoverage  *prometheus.CounterVec
 }
 
 func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
@@ -135,6 +140,26 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			Name: "gateway_scheduler_rollout_alerts_total",
 			Help: "Gateway scheduler rollout alert count.",
 		}, []string{"reason"}),
+		semanticAttempts: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "gateway_scheduler_semantic_neighbor_attempts_total",
+			Help: "Gateway scheduler semantic-neighbor enrichment attempts.",
+		}, []string{"result"}),
+		semanticTimeouts: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "gateway_scheduler_semantic_neighbor_timeouts_total",
+			Help: "Gateway scheduler semantic-neighbor enrichment timeouts.",
+		}),
+		semanticErrors: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "gateway_scheduler_semantic_neighbor_errors_total",
+			Help: "Gateway scheduler semantic-neighbor enrichment errors.",
+		}, []string{"reason"}),
+		semanticFallbacks: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "gateway_scheduler_semantic_neighbor_fallbacks_total",
+			Help: "Gateway scheduler semantic-neighbor fallback reasons.",
+		}, []string{"reason"}),
+		semanticCoverage: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "gateway_scheduler_semantic_neighbor_coverage_total",
+			Help: "Gateway scheduler semantic-neighbor coverage levels.",
+		}, []string{"coverage_level"}),
 	}
 
 	if reg != nil {
@@ -158,6 +183,11 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			m.comparisonCall,
 			m.comparisonErrors,
 			m.rolloutAlerts,
+			m.semanticAttempts,
+			m.semanticTimeouts,
+			m.semanticErrors,
+			m.semanticFallbacks,
+			m.semanticCoverage,
 		} {
 			if err := reg.Register(collector); err != nil {
 				if are, ok := err.(prometheus.AlreadyRegisteredError); ok {
@@ -180,6 +210,14 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 							m.comparisonErrors = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.rolloutAlerts {
 							m.rolloutAlerts = are.ExistingCollector.(*prometheus.CounterVec)
+						} else if c == m.semanticAttempts {
+							m.semanticAttempts = are.ExistingCollector.(*prometheus.CounterVec)
+						} else if c == m.semanticErrors {
+							m.semanticErrors = are.ExistingCollector.(*prometheus.CounterVec)
+						} else if c == m.semanticFallbacks {
+							m.semanticFallbacks = are.ExistingCollector.(*prometheus.CounterVec)
+						} else if c == m.semanticCoverage {
+							m.semanticCoverage = are.ExistingCollector.(*prometheus.CounterVec)
 						}
 					case *prometheus.HistogramVec:
 						if c == m.requestLatency {
@@ -206,6 +244,10 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 							m.queueDepth = are.ExistingCollector.(*prometheus.GaugeVec)
 						} else if c == m.breakerState {
 							m.breakerState = are.ExistingCollector.(*prometheus.GaugeVec)
+						}
+					case prometheus.Counter:
+						if c == m.semanticTimeouts {
+							m.semanticTimeouts = are.ExistingCollector.(prometheus.Counter)
 						}
 					}
 				} else {
@@ -299,6 +341,26 @@ func (m *PrometheusMetrics) IncSchedulerComparisonError(schedulerType string, sc
 
 func (m *PrometheusMetrics) IncSchedulerRolloutAlert(reason string) {
 	m.rolloutAlerts.WithLabelValues(allowedLabel(reason, "mape_degradation", "mape_degradation", "scheduler_error_spike")).Inc()
+}
+
+func (m *PrometheusMetrics) IncSemanticNeighborAttempt(result string) {
+	m.semanticAttempts.WithLabelValues(allowedLabel(result, "fallback", "ok", "fallback", "disabled", "timeout", "error")).Inc()
+}
+
+func (m *PrometheusMetrics) IncSemanticNeighborTimeout() {
+	m.semanticTimeouts.Inc()
+}
+
+func (m *PrometheusMetrics) IncSemanticNeighborError(reason string) {
+	m.semanticErrors.WithLabelValues(allowedLabel(reason, "error", "embedding", "vector_search", "sample_hydrate", "index")).Inc()
+}
+
+func (m *PrometheusMetrics) IncSemanticNeighborFallback(reason string) {
+	m.semanticFallbacks.WithLabelValues(allowedLabel(reason, "insufficient_samples", "disabled", "missing_dependency", "insufficient_samples", "timeout", "error")).Inc()
+}
+
+func (m *PrometheusMetrics) IncSemanticNeighborCoverage(level string) {
+	m.semanticCoverage.WithLabelValues(allowedLabel(level, "none", "none", "tenant", "fallback")).Inc()
 }
 
 func safeSchedulerType(value string) string {
