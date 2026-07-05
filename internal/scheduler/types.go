@@ -41,6 +41,14 @@ const (
 	SemanticCoverageNone     = "none"
 	SemanticCoverageTenant   = "tenant"
 	SemanticCoverageFallback = "fallback"
+	SemanticCoverageAll      = "all"
+)
+
+const (
+	AnomalyStatusNormal      = "normal"
+	AnomalyStatusOOD         = "ood"
+	AnomalyStatusUnavailable = "unavailable"
+	AnomalyStatusDegraded    = "degraded"
 )
 
 type TaskFeature struct {
@@ -86,6 +94,7 @@ type ScoreResult struct {
 	SchedulerVersion   string
 	SchedulerType      SchedulerType
 	FallbackReason     string
+	AnomalyStatus      string
 }
 
 type Scorer interface {

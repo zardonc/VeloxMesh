@@ -32,6 +32,7 @@ const (
 	schedulerPredictedLatencyMeta = "predicted_latency_ms"
 	schedulerConfidenceMetadata   = "scheduler_confidence"
 	schedulerCallLatencyMetadata  = "scheduler_call_latency_ms"
+	schedulerAnomalyStatusMeta    = "scheduler_anomaly_status"
 )
 
 func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler TaskHandler) (Task, error) {
@@ -120,13 +121,17 @@ func (i *TaskIntake) recordSemanticNeighborError(err error) {
 }
 
 func scoreMetadata(score ScoreResult, latency time.Duration) map[string]string {
-	return map[string]string{
+	metadata := map[string]string{
 		schedulerVersionMetadata:      score.SchedulerVersion,
 		schedulerTypeMetadata:         string(score.SchedulerType),
 		schedulerPredictedLatencyMeta: strconv.FormatInt(score.PredictedLatencyMs, 10),
 		schedulerConfidenceMetadata:   strconv.FormatFloat(score.Confidence, 'f', -1, 64),
 		schedulerCallLatencyMetadata:  strconv.FormatInt(latency.Milliseconds(), 10),
 	}
+	if score.AnomalyStatus != "" {
+		metadata[schedulerAnomalyStatusMeta] = score.AnomalyStatus
+	}
+	return metadata
 }
 
 func (i *TaskIntake) recordSchedulerResult(reason string, latency time.Duration, source string) {

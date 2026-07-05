@@ -11,6 +11,15 @@ import (
 
 const SupportedFeatureSchemaVersion = "scheduler-training-v1"
 
+const (
+	AnomalyStatusAvailable       = "available"
+	AnomalyStatusUnavailable     = "unavailable"
+	AnomalyStatusDegraded        = "degraded"
+	AnomalyReasonOK              = "ok"
+	AnomalyReasonMissingMetadata = "missing_metadata"
+	AnomalyReasonInvalidMetadata = "invalid_metadata"
+)
+
 type Manifest struct {
 	SchedulerVersion  string                                 `json:"scheduler_version"`
 	ModelVersion      string                                 `json:"model_version"`
@@ -52,9 +61,12 @@ type AnomalyEvidence struct {
 }
 
 type Artifact struct {
-	Dir       string
-	ModelPath string
-	Manifest  Manifest
+	Dir           string
+	ModelPath     string
+	Manifest      Manifest
+	AnomalyStatus string
+	AnomalyReason string
+	AnomalyErrors []string
 }
 
 func LoadArtifact(dir string) (*Artifact, error) {
@@ -66,7 +78,8 @@ func LoadArtifact(dir string) (*Artifact, error) {
 	if err := validateArtifactModel(modelPath, manifest); err != nil {
 		return nil, err
 	}
-	return &Artifact{Dir: dir, ModelPath: modelPath, Manifest: manifest}, nil
+	status, reason, errors := anomalyState(manifest)
+	return &Artifact{Dir: dir, ModelPath: modelPath, Manifest: manifest, AnomalyStatus: status, AnomalyReason: reason, AnomalyErrors: errors}, nil
 }
 
 func readManifest(path string) (Manifest, error) {
@@ -95,6 +108,41 @@ func readManifest(path string) (Manifest, error) {
 
 func (m Manifest) SupportsSemanticAggregates() bool {
 	return m.SemanticSupport || len(m.SemanticFeatures) > 0
+}
+
+func anomalyState(manifest Manifest) (string, string, []string) {
+	if len(manifest.AnomalyThresholds) == 0 {
+		return AnomalyStatusUnavailable, AnomalyReasonMissingMetadata, nil
+	}
+	errs := validateAnomalyThresholds(manifest.AnomalyThresholds)
+	if len(errs) > 0 {
+		return AnomalyStatusDegraded, AnomalyReasonInvalidMetadata, errs
+	}
+	return AnomalyStatusAvailable, AnomalyReasonOK, nil
+}
+
+func validateAnomalyThresholds(thresholds map[string]map[string]AnomalyThreshold) []string {
+	var errs []string
+	for taskType, byCoverage := range thresholds {
+		for coverage, threshold := range byCoverage {
+			if !supportedCoverageLevel(coverage) {
+				errs = append(errs, fmt.Sprintf("%s.%s unsupported coverage", taskType, coverage))
+			}
+			if threshold.Threshold <= 0 || threshold.SampleCount <= 0 || threshold.Mean < 0 || threshold.Stddev < 0 {
+				errs = append(errs, fmt.Sprintf("%s.%s invalid threshold", taskType, coverage))
+			}
+		}
+	}
+	return errs
+}
+
+func supportedCoverageLevel(value string) bool {
+	switch value {
+	case "none", "fallback", "tenant", "all":
+		return true
+	default:
+		return false
+	}
 }
 
 func validateSemanticFeatures(manifest Manifest) error {

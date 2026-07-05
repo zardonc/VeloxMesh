@@ -25,6 +25,7 @@ type PrometheusMetrics struct {
 	comparisonWait    *prometheus.HistogramVec
 	comparisonCall    *prometheus.HistogramVec
 	comparisonErrors  *prometheus.CounterVec
+	anomalyStatus     *prometheus.CounterVec
 	rolloutAlerts     *prometheus.CounterVec
 	semanticAttempts  *prometheus.CounterVec
 	semanticTimeouts  prometheus.Counter
@@ -136,6 +137,10 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			Name: "gateway_scheduler_comparison_errors_total",
 			Help: "Gateway scheduler rollout errors by backend.",
 		}, []string{"scheduler_type", "scheduler_version", "task_type"}),
+		anomalyStatus: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "gateway_scheduler_anomaly_status_total",
+			Help: "Gateway scheduler anomaly/OOD status counts.",
+		}, []string{"scheduler_version", "task_type", "coverage_level", "anomaly_status"}),
 		rolloutAlerts: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: "gateway_scheduler_rollout_alerts_total",
 			Help: "Gateway scheduler rollout alert count.",
@@ -182,6 +187,7 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			m.comparisonWait,
 			m.comparisonCall,
 			m.comparisonErrors,
+			m.anomalyStatus,
 			m.rolloutAlerts,
 			m.semanticAttempts,
 			m.semanticTimeouts,
@@ -208,6 +214,8 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 							m.classificationSrc = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.comparisonErrors {
 							m.comparisonErrors = are.ExistingCollector.(*prometheus.CounterVec)
+						} else if c == m.anomalyStatus {
+							m.anomalyStatus = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.rolloutAlerts {
 							m.rolloutAlerts = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.semanticAttempts {
@@ -339,6 +347,15 @@ func (m *PrometheusMetrics) IncSchedulerComparisonError(schedulerType string, sc
 	m.comparisonErrors.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType)).Inc()
 }
 
+func (m *PrometheusMetrics) IncSchedulerAnomalyStatus(schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string) {
+	m.anomalyStatus.WithLabelValues(
+		safeSchedulerVersion(schedulerVersion),
+		safeTaskType(taskType),
+		safeCoverageLevel(coverageLevel),
+		safeAnomalyStatus(anomalyStatus),
+	).Inc()
+}
+
 func (m *PrometheusMetrics) IncSchedulerRolloutAlert(reason string) {
 	m.rolloutAlerts.WithLabelValues(allowedLabel(reason, "mape_degradation", "mape_degradation", "scheduler_error_spike")).Inc()
 }
@@ -376,6 +393,14 @@ func safeSchedulerVersion(value string) string {
 
 func safeTaskType(value string) string {
 	return allowedLabel(value, "simple_qa", "simple_qa", "code_gen", "code_review", "summarization", "translation", "structured_output", "multi_step", "tool_call", "rag", "creative")
+}
+
+func safeCoverageLevel(value string) string {
+	return allowedLabel(value, "none", "none", "fallback", "tenant", "all")
+}
+
+func safeAnomalyStatus(value string) string {
+	return allowedLabel(value, "normal", "normal", "ood", "unavailable", "degraded")
 }
 
 func allowedLabel(value string, fallback string, allowed ...string) string {

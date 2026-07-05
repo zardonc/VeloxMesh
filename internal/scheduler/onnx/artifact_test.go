@@ -80,6 +80,38 @@ func TestLoadArtifactReadsAnomalyMetadata(t *testing.T) {
 	if artifact.Manifest.AnomalyEvidence["simple_qa"].Timeout != 2 {
 		t.Fatalf("unexpected anomaly evidence: %#v", artifact.Manifest.AnomalyEvidence)
 	}
+	if artifact.AnomalyStatus != AnomalyStatusAvailable || artifact.AnomalyReason != AnomalyReasonOK {
+		t.Fatalf("unexpected anomaly state: %#v", artifact)
+	}
+}
+
+func TestLoadArtifactAllowsMissingAnomalyMetadata(t *testing.T) {
+	dir := writeTestArtifact(t, "scheduler-p70-v1", 42, "scheduler-training-v1")
+	artifact, err := LoadArtifact(dir)
+	if err != nil {
+		t.Fatalf("LoadArtifact: %v", err)
+	}
+	if artifact.AnomalyStatus != AnomalyStatusUnavailable || artifact.AnomalyReason != AnomalyReasonMissingMetadata {
+		t.Fatalf("unexpected anomaly state: %#v", artifact)
+	}
+}
+
+func TestLoadArtifactDegradesInvalidAnomalyMetadata(t *testing.T) {
+	dir := writeTestArtifactManifest(t, "scheduler-p70-v1", 42, "scheduler-training-v1", func(manifest *Manifest) {
+		manifest.AnomalyThresholds = map[string]map[string]AnomalyThreshold{
+			"simple_qa": {"tenant": {Threshold: 0, SampleCount: 20, Mean: 1, Stddev: 0}},
+		}
+	})
+	artifact, err := LoadArtifact(dir)
+	if err != nil {
+		t.Fatalf("LoadArtifact: %v", err)
+	}
+	if artifact.AnomalyStatus != AnomalyStatusDegraded || artifact.AnomalyReason != AnomalyReasonInvalidMetadata {
+		t.Fatalf("unexpected anomaly state: %#v", artifact)
+	}
+	if len(artifact.AnomalyErrors) == 0 {
+		t.Fatalf("expected detailed validation errors for logs")
+	}
 }
 
 func TestLoadArtifactDefaultsWithoutSemanticAggregateSupport(t *testing.T) {

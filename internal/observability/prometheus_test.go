@@ -115,3 +115,29 @@ func TestPrometheusSchedulerPredictionQualityLabels(t *testing.T) {
 		}
 	}
 }
+
+func TestPrometheusSchedulerAnomalyStatusLabelsAreBounded(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	m := NewPrometheusMetrics(reg)
+
+	m.IncSchedulerAnomalyStatus("v1", "tenant-task-type", "tenant-123", "threshold=secret")
+
+	mfs, err := reg.Gather()
+	if err != nil {
+		t.Fatalf("Gather failed: %v", err)
+	}
+	for _, mf := range mfs {
+		if mf.GetName() != "gateway_scheduler_anomaly_status_total" {
+			continue
+		}
+		for _, metric := range mf.Metric {
+			labels := map[string]string{}
+			for _, label := range metric.Label {
+				labels[label.GetName()] = label.GetValue()
+			}
+			if labels["task_type"] != "simple_qa" || labels["coverage_level"] != "none" || labels["anomaly_status"] != "normal" {
+				t.Fatalf("unexpected sanitized labels: %#v", labels)
+			}
+		}
+	}
+}

@@ -24,6 +24,7 @@ type Metrics interface {
 	RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, waitMs float64)
 	RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, latencyMs float64)
 	IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string)
+	IncSchedulerAnomalyStatus(schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string)
 	IncSchedulerRolloutAlert(reason string)
 	IncSemanticNeighborAttempt(result string)
 	IncSemanticNeighborTimeout()
@@ -73,6 +74,8 @@ func (m *StubMetrics) RecordSchedulerComparisonWait(schedulerType string, schedu
 func (m *StubMetrics) RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, latencyMs float64) {
 }
 func (m *StubMetrics) IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string) {
+}
+func (m *StubMetrics) IncSchedulerAnomalyStatus(schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string) {
 }
 func (m *StubMetrics) IncSchedulerRolloutAlert(reason string)    {}
 func (m *StubMetrics) IncSemanticNeighborAttempt(result string)  {}
