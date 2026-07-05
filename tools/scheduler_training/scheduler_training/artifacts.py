@@ -44,6 +44,8 @@ def build_manifest(model: dict, metrics: dict, model_path: Path, version: str, w
         "onnx_parity": {"passed": True, "max_abs_error": 0.0},
         "model_sha256": sha256_file(model_path),
         "model_parameters": {"p70_output_tokens": model["p70_output_tokens"]},
+        "anomaly_thresholds": dict(model.get("anomaly_thresholds", {})),
+        "anomaly_evidence": dict(model.get("anomaly_evidence", {})),
     }
 
 

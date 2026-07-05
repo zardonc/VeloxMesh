@@ -58,6 +58,30 @@ func TestLoadArtifactReadsSemanticAggregateSupport(t *testing.T) {
 	}
 }
 
+func TestLoadArtifactReadsAnomalyMetadata(t *testing.T) {
+	dir := writeTestArtifactManifest(t, "scheduler-p70-v1", 42, "scheduler-training-v1", func(manifest *Manifest) {
+		manifest.AnomalyThresholds = map[string]map[string]AnomalyThreshold{
+			"simple_qa": {
+				"tenant": {Threshold: 1.5, SampleCount: 20, Mean: 1.1, Stddev: 0.2},
+			},
+		}
+		manifest.AnomalyEvidence = map[string]AnomalyEvidence{
+			"simple_qa": {Success: 20, Failure: 1, Timeout: 2, UnavailableThreshold: 0},
+		}
+	})
+	artifact, err := LoadArtifact(dir)
+	if err != nil {
+		t.Fatalf("LoadArtifact: %v", err)
+	}
+	threshold := artifact.Manifest.AnomalyThresholds["simple_qa"]["tenant"]
+	if threshold.Threshold != 1.5 || threshold.SampleCount != 20 || threshold.Mean != 1.1 || threshold.Stddev != 0.2 {
+		t.Fatalf("unexpected anomaly threshold: %#v", threshold)
+	}
+	if artifact.Manifest.AnomalyEvidence["simple_qa"].Timeout != 2 {
+		t.Fatalf("unexpected anomaly evidence: %#v", artifact.Manifest.AnomalyEvidence)
+	}
+}
+
 func TestLoadArtifactDefaultsWithoutSemanticAggregateSupport(t *testing.T) {
 	dir := writeTestArtifact(t, "scheduler-p70-v1", 42, "scheduler-training-v1")
 	artifact, err := LoadArtifact(dir)

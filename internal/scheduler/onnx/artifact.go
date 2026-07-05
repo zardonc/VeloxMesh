@@ -12,18 +12,20 @@ import (
 const SupportedFeatureSchemaVersion = "scheduler-training-v1"
 
 type Manifest struct {
-	SchedulerVersion string             `json:"scheduler_version"`
-	ModelVersion     string             `json:"model_version"`
-	Target           string             `json:"target"`
-	FeatureSchema    string             `json:"feature_schema_version"`
-	TrainingWindow   map[string]string  `json:"training_window"`
-	Metrics          map[string]float64 `json:"metrics"`
-	ONNXParity       Parity             `json:"onnx_parity"`
-	Features         []string           `json:"features"`
-	SemanticFeatures []string           `json:"semantic_aggregate_features"`
-	SemanticSupport  bool               `json:"semantic_aggregates_supported"`
-	ModelSHA256      string             `json:"model_sha256"`
-	ModelParameters  ModelParameters    `json:"model_parameters"`
+	SchedulerVersion  string                                 `json:"scheduler_version"`
+	ModelVersion      string                                 `json:"model_version"`
+	Target            string                                 `json:"target"`
+	FeatureSchema     string                                 `json:"feature_schema_version"`
+	TrainingWindow    map[string]string                      `json:"training_window"`
+	Metrics           map[string]float64                     `json:"metrics"`
+	ONNXParity        Parity                                 `json:"onnx_parity"`
+	Features          []string                               `json:"features"`
+	SemanticFeatures  []string                               `json:"semantic_aggregate_features"`
+	SemanticSupport   bool                                   `json:"semantic_aggregates_supported"`
+	ModelSHA256       string                                 `json:"model_sha256"`
+	ModelParameters   ModelParameters                        `json:"model_parameters"`
+	AnomalyThresholds map[string]map[string]AnomalyThreshold `json:"anomaly_thresholds"`
+	AnomalyEvidence   map[string]AnomalyEvidence             `json:"anomaly_evidence"`
 }
 
 type Parity struct {
@@ -33,6 +35,20 @@ type Parity struct {
 
 type ModelParameters struct {
 	P70OutputTokens float64 `json:"p70_output_tokens"`
+}
+
+type AnomalyThreshold struct {
+	Threshold   float64 `json:"threshold"`
+	SampleCount int     `json:"sample_count"`
+	Mean        float64 `json:"mean"`
+	Stddev      float64 `json:"stddev"`
+}
+
+type AnomalyEvidence struct {
+	Success              int `json:"success"`
+	Failure              int `json:"failure"`
+	Timeout              int `json:"timeout"`
+	UnavailableThreshold int `json:"unavailable_threshold"`
 }
 
 type Artifact struct {
