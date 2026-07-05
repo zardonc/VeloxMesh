@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v7.5
 milestone_name: Scheduler Enhancements
-status: ready
-last_updated: "2026-07-05T04:11:39.561Z"
+status: Ready to discuss
+last_updated: "2026-07-05T05:41:09.776Z"
 last_activity: 2026-07-05
 progress:
   total_phases: 3
@@ -57,7 +57,7 @@ Phase: 18
 Plan: Not started
 Status: Ready to discuss
 Last activity: 2026-07-05
-Resume file: None
+Resume file: .planning/phases/18-anomaly-and-ood-conservative-scoring/18-CONTEXT.md
 
 ## Operator Next Steps
 
