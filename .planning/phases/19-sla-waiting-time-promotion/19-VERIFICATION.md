@@ -39,6 +39,7 @@ Complete. Phase 19 adds gateway-owned SLA waiting-time promotion that is disable
 
 ## Security Checks
 
+- `.planning/phases/19-sla-waiting-time-promotion/19-SECURITY.md` records 11/11 threats closed and `threats_open: 0`.
 - Prometheus SLA promotion labels are bounded to policy, tenant class, model class, request kind, priority, and outcome.
 - Tenant ID appears only in sanitized audit/log evidence, not metric labels.
 - Prompt text, raw task text, auth headers, API keys, provider payloads, embeddings, and semantic-cache payloads are not used in promotion policy or evidence.
