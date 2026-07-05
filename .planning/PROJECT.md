@@ -12,9 +12,21 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.4 Gateway Scheduler** has been completed through Phase 16. The gateway now owns optional scheduler-backed queueing, safe training feedback, ONNX runtime scoring, heuristic/ONNX A/B rollout, prediction-quality evidence, and authenticated runtime rollback controls while preserving FIFO fallback and the OpenAI-compatible data-plane API.
+**v7.4 Gateway Scheduler** has shipped and is archived. The gateway now owns optional scheduler-backed queueing, safe training feedback, ONNX runtime scoring, heuristic/ONNX A/B rollout, prediction-quality evidence, and authenticated runtime rollback controls while preserving FIFO fallback and the OpenAI-compatible data-plane API.
 
-## Current Milestone: v7.4 Gateway Scheduler
+The project is awaiting the next milestone definition.
+
+## Next Milestone Goals
+
+**Status:** Not yet selected.
+
+Candidate directions:
+- BFF Layer & Admin Console (Phase 11).
+- Scheduler hardening and optional enhancements after the core path stabilizes.
+- Another gateway priority selected through `$gsd-new-milestone`.
+
+<details>
+<summary>Archived Milestone: v7.4 Gateway Scheduler</summary>
 
 **Goal:** Add an optional stateless Scheduler that scores queued gateway tasks while the gateway keeps ownership of intake, queueing, execution, and fallback behavior.
 
@@ -23,6 +35,8 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Redis ZSET queue backend with single-node in-memory fallback and circuit-breaker protected scheduler calls.
 - Priority resolver, quota enforcement, static virtual deadline scoring, and cold-start heuristic scoring.
 - Training-sample feedback loop, scheduler observability, ONNX runtime scoring, and runtime heuristic/ONNX rollout controls for A/B comparison and rollback.
+
+</details>
 
 <details>
 <summary>Archived Milestone: v7.2 Multi-Node Coordination</summary>
@@ -69,18 +83,19 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - ✓ Phase 9: Redis Stack + Qdrant Fallback Integration — v7.0
 - ✓ Phase 10: Advanced Routing & Observability — v7.1
 - ✓ Phase 13: PostgreSQL Compatibility — v7.3
-- Phase 14: Scheduler Queue Foundation - SCH-01, SCH-02, SCH-03, SCH-04, PRIO-01, PRIO-02, SCORE-01, SCORE-02, and OBS-01.
-- Phase 15: Training Feedback and ONNX Path - FEED-01, ML-01, and ML-02.
-- Phase 16: A/B Rollout and Prediction Quality - OBS-02 and ML-03.
+- Phase 14: Scheduler Queue Foundation - v7.4 (SCH-01, SCH-02, SCH-03, SCH-04, PRIO-01, PRIO-02, SCORE-01, SCORE-02, and OBS-01).
+- Phase 15: Training Feedback and ONNX Path - v7.4 (FEED-01, ML-01, and ML-02).
+- Phase 16: A/B Rollout and Prediction Quality - v7.4 (OBS-02 and ML-03).
 
 
 ### Active
 
-No active v7.4 requirements remain.
+No active v7.4 requirements remain. Next milestone requirements are not defined yet.
 
 ### Deferred to Future Milestones
 
 - BFF Layer & Admin Console (Phase 11)
+- Optional scheduler semantic-neighbor features, anomaly detection, and SLA waiting-time promotion
 - Full `LimitRule` unification across all scopes outside the PostgreSQL-compatible Plan 4 path
 
 ### Long-Term / Architectural Goals
@@ -93,7 +108,7 @@ No active v7.4 requirements remain.
 - Scheduler implementation reference: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\Gateway-Scheduler-Implementation.md`.
 - Operational resource lookup: test-environment components are configured in `.env`, including the test environment address; provider credentials and model resources for real-provider UAT are configured in `.env.local`. Prefer non-Gemini provider resources for routine real-provider checks because Gemini entries may carry usage-limit notes and should be reserved for Gemini-specific scenarios.
 - The original gateway design is Go-first. TypeScript/Node gateway plans were superseded.
-- Current code includes Phase 1 through Phase 9: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission direction, and Redis VSS fallback for Qdrant degradation. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL remains a later adapter extension; LanceDB is retained only for edge builds.
+- Current code includes Phase 1 through Phase 16: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission, Redis VSS fallback for Qdrant degradation, multi-node coordination, PostgreSQL/pgvector compatibility, and optional Gateway Scheduler queueing/scoring/rollout controls. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL is available as the Plan 4 extension path; LanceDB is retained only for edge builds.
 - Downstream clients should continue to see OpenAI-compatible responses.
 
 ## Constraints
@@ -131,9 +146,9 @@ No active v7.4 requirements remain.
 | Phase 13 follows Phase 12 | PostgreSQL/pgvector can now use the finalized multi-node write and recovery boundaries | ✓ Good |
 | Plan 4 uses PostgreSQL + pgvector as an extension path | SQLite + Qdrant remain the default Plans 1/2 path; PostgreSQL compatibility is for enterprise deployments that need concurrent writes and relational/vector joins | ✓ Good |
 | Full LimitRule unification is deferred | Phase 9 shipped the minimal API-key/upstream-account direction; broader scope unification belongs in a future hardening phase | Deferred |
-| Scheduler is a stateless scoring oracle | Gateway keeps queue ownership, task storage, execution, and fallback behavior; Scheduler only returns scores and prediction metadata | Active |
-| Static virtual deadline is the scheduler score | One Redis score write avoids dynamic ZSET re-ranking and gives aging through enqueue time | Active |
-| Cold start uses heuristic scoring before ONNX | Rules can ship with no training data; model prediction is introduced only after samples and validation exist | Active |
+| Scheduler is a stateless scoring oracle | Gateway keeps queue ownership, task storage, execution, and fallback behavior; Scheduler only returns scores and prediction metadata | Good |
+| Static virtual deadline is the scheduler score | One Redis score write avoids dynamic ZSET re-ranking and gives aging through enqueue time | Good |
+| Cold start uses heuristic scoring before ONNX | Rules can ship with no training data; model prediction is introduced only after samples and validation exist | Good |
 | Gateway-owned queue foundation is complete | Phase 14 validated task-id-only Redis queueing, memory fallback, synchronous waiting, priority safety, and sanitized metrics | Good |
 | Training feedback and ONNX runtime path are complete | Phase 15 validated safe opt-in sample recording, uv-based offline artifact tooling, and startup-loaded ONNX scheduler mode | Good |
 | Scheduler A/B rollout and prediction quality are complete | Phase 16 validated weighted heuristic/ONNX routing, quality rollups, runtime rollback controls, and no automatic rollout changes on alert | Good |
@@ -147,4 +162,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-04 after completing Phase 16 A/B Rollout and Prediction Quality*
+*Last updated: 2026-07-04 after archiving v7.4 Gateway Scheduler*

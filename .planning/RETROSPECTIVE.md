@@ -4,10 +4,45 @@
 
 | Milestone | Shipped | Phases |
 |-----------|---------|--------|
+| v7.4      | 2026-07-04 | 3      |
+| v7.3      | 2026-07-03 | 1      |
 | v7.2      | 2026-07-03 | 1      |
 | v7.1      | 2026-07-01 | 1      |
 | v7.0      | 2026-06-30 | 3      |
 | v4        | 2026-06-23 | 4      |
+
+---
+
+## Milestone: v7.4 - Gateway Scheduler
+
+**Shipped:** 2026-07-04
+**Phases:** 3 | **Plans:** 10
+
+### What Was Built
+- Optional scheduler gRPC path with disabled-by-default config, 15ms timeout, circuit-breaker protection, and FIFO fallback.
+- Gateway-owned Redis ZSET queueing with task-id-only storage and an in-memory single-node fallback.
+- Trusted priority resolution, static virtual deadline scoring, and standalone heuristic Scheduler service metrics.
+- Safe opt-in training feedback, offline `uv` training/export/evaluate/publish tooling, and startup-loaded ONNX scheduler mode.
+- Weighted heuristic/ONNX rollout, prediction-quality rollups, operator alerts, and authenticated runtime rollback controls.
+
+### What Worked
+- Keeping the Scheduler stateless preserved the gateway as source of truth for task ownership, execution, and fallback behavior.
+- Treating heuristic scoring as the cold-start baseline let ONNX support land without making model artifacts mandatory.
+- Retroactive validation converted the completed implementation into explicit Nyquist evidence before closeout.
+
+### What Was Inefficient
+- Some completion artifacts needed reconciliation after implementation, especially global planning docs and final validation records.
+- Phase archive automation created a duplicate milestone entry that required manual deduplication.
+
+### Patterns Established
+- Scheduler calls are optional, bounded, and fail open to FIFO.
+- Training samples must contain safe feature snapshots and completion labels only, never raw prompts or secrets.
+- Runtime rollout controls should expose rollback without automatically changing production behavior on alert.
+
+### Key Lessons
+- Archive before deletion is the right closeout shape for milestone-scoped requirements.
+- Planning docs should be collapsed immediately after milestone close so the active context stays small.
+- Model paths are easier to validate when the serving contract is identical to the heuristic path.
 
 ---
 

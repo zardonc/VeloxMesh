@@ -4,15 +4,26 @@
 
 **Delivered:** Completed the optional Gateway Scheduler path while preserving the OpenAI-compatible data-plane contract and FIFO fallback behavior.
 
-**Phases completed:** 14-16 (10 plans total)
+**Phases completed:** 14-16 (10 plans, 30 tasks)
 
 **Key accomplishments:**
 
 - Added disabled-by-default scheduler integration with gRPC `BatchScoreTasks`, 15ms timeout, circuit-breaker protection, and FIFO fallback.
-- Added Redis ZSET queueing with task-id-only storage plus an in-memory single-node fallback.
-- Added trusted priority resolution, tenant priority/ quota downgrade behavior, static virtual deadline scoring, and heuristic scheduler service health/metrics.
-- Added safe opt-in scheduler training feedback, offline `uv` training/export/evaluate/publish tooling, and startup-loaded ONNX scheduler mode.
-- Added heuristic/ONNX weighted rollout, prediction-quality rollups, sanitized comparison metrics, alerts, and authenticated runtime rollback controls.
+- Added Redis ZSET task-id-only queueing with an in-memory single-node fallback.
+- Added trusted priority resolution, tenant quota downgrade behavior, static virtual deadline scoring, and heuristic service metrics.
+- Added safe opt-in scheduler training feedback, offline `uv` tooling, checked ONNX artifacts, and startup-loaded ONNX scheduler mode.
+- Added weighted heuristic/ONNX rollout, quality rollups, operator alerts, and authenticated runtime rollback controls.
+
+**Validation:**
+
+- Phase 14, Phase 15, and Phase 16 retroactive validations passed.
+- Go scheduler/control-state/app suites passed with `-timeout 60s`; scheduler training `uv run pytest` passed.
+
+**Archived:**
+
+- `.planning/milestones/v7.4-ROADMAP.md`
+- `.planning/milestones/v7.4-REQUIREMENTS.md`
+- `.planning/milestones/v7.4-MILESTONE-AUDIT.md`
 
 **Known deferred work:**
 
