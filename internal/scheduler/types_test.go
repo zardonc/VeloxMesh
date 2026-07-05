@@ -1,6 +1,12 @@
 package scheduler
 
-import "testing"
+import (
+	"testing"
+
+	"google.golang.org/protobuf/proto"
+
+	"veloxmesh/internal/scheduler/schedulerv1"
+)
 
 func TestTaskFeatureProtoMapsSemanticAggregates(t *testing.T) {
 	feature := TaskFeature{
@@ -27,5 +33,17 @@ func TestTaskFeatureProtoMapsSemanticAggregates(t *testing.T) {
 	}
 	if got.GetCoverageLevel() != SemanticCoverageTenant || got.GetCoverageRatio() != 0.8 {
 		t.Fatalf("coverage aggregate fields not mapped: %#v", got)
+	}
+
+	data, err := proto.Marshal(got)
+	if err != nil {
+		t.Fatalf("marshal task feature: %v", err)
+	}
+	var roundTrip schedulerv1.TaskFeature
+	if err := proto.Unmarshal(data, &roundTrip); err != nil {
+		t.Fatalf("unmarshal task feature: %v", err)
+	}
+	if roundTrip.GetNeighborCount() != 23 || roundTrip.GetCoverageLevel() != SemanticCoverageTenant {
+		t.Fatalf("semantic aggregate fields missing from wire round trip: %#v", roundTrip)
 	}
 }
