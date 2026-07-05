@@ -100,7 +100,12 @@ func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotsta
 	if timeout, err := time.ParseDuration(cfg.Scheduler.SemanticNeighborsTaskTimeout); err == nil {
 		intake.SemanticNeighborTaskTimeout = timeout
 	}
-	executor := &scheduler.Executor{Queue: queue, Registry: registry, Metrics: observability.DefaultMetrics}
+	executor := &scheduler.Executor{
+		Queue:    queue,
+		Registry: registry,
+		Metrics:  observability.DefaultMetrics,
+		Promoter: newSLAPromoter(cfg.Scheduler, queue, registry),
+	}
 	runner := scheduler.NewSynchronousRunner(intake, executor, registry)
 	runner.Recorder = recorder
 	runner.Quality = quality
@@ -108,6 +113,19 @@ func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotsta
 		runner.Indexer = indexer
 	}
 	return runner, backend
+}
+
+func newSLAPromoter(cfg config.SchedulerConfig, queue scheduler.QueueBackend, registry *scheduler.ResultRegistry) *scheduler.SLAPromoter {
+	if !cfg.SLAPromotionEnabled {
+		return nil
+	}
+	return &scheduler.SLAPromoter{
+		Enabled:         true,
+		CandidateWindow: cfg.SLAPromotionCandidateWindow,
+		Rules:           cfg.SLAPromotionRules,
+		Queue:           queue,
+		Registry:        registry,
+	}
 }
 
 func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Logger) (scheduler.QueueBackend, string) {

@@ -13,9 +13,13 @@ type Executor struct {
 	Queue    QueueBackend
 	Registry *ResultRegistry
 	Metrics  observability.Metrics
+	Promoter *SLAPromoter
 }
 
 func (e *Executor) RunOne(ctx context.Context) error {
+	if e.Promoter != nil {
+		_, _ = e.Promoter.PromoteBeforePop(ctx, time.Now())
+	}
 	item, err := e.Queue.PopMin(ctx)
 	if err != nil {
 		return err
