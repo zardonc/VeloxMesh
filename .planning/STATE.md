@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v7.5
 milestone_name: Scheduler Enhancements
-status: ready
-last_updated: "2026-07-05T19:59:18.000Z"
-last_activity: 2026-07-05 -- Phase 18 production-shape ONNX verification confirmed complete
+status: executing
+last_updated: "2026-07-05T21:29:59.989Z"
+last_activity: 2026-07-05 -- Phase 19 execution started
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 10
+  completed_plans: 8
   percent: 67
 ---
 
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 19 — SLA Waiting-Time Promotion
+**Current focus:** Phase 19 — sla-waiting-time-promotion
 
 ## Current Implementation State
 
@@ -45,25 +45,25 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 ## Planned Next
 
-1. Discuss Phase 19: SLA Waiting-Time Promotion.
+1. Execute Phase 19: SLA Waiting-Time Promotion.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-discuss-phase 19` - gather context for the next phase.
+- `$gsd-execute-phase 19` - run the three Phase 19 plans.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
-Status: Ready to discuss
-Last activity: 2026-07-05 -- Phase 18 production-shape ONNX verification confirmed complete
+Phase: 19 (sla-waiting-time-promotion) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-07-05 -- Phase 19 execution started
 Resume file: None
 
 ## Operator Next Steps
 
-- Start Phase 19 with `$gsd-discuss-phase 19`
+- Execute Phase 19 with `$gsd-execute-phase 19`
 
 ## Deferred Items
 
@@ -85,3 +85,4 @@ Items acknowledged at v7.0 close:
 | Phase 17 P02 | 40 min | 3 tasks | 12 files |
 | Phase 17 P03 | 55min | 3 tasks | 22 files |
 | Phase 18 P04 | 35 min | 3 tasks | 34 files |
+| Phase 19 P01 | 19 min | 2 tasks | 4 files |

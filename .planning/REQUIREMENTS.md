@@ -21,7 +21,7 @@
 
 ### SLA Waiting-Time Promotion
 
-- [ ] **SLA-01**: Operators can configure tenant, model, and request-kind waiting thresholds with scheduler SLA promotion disabled by default.
+- [x] **SLA-01**: Operators can configure tenant, model, and request-kind waiting thresholds with scheduler SLA promotion disabled by default.
 - [ ] **SLA-02**: Gateway can promote queued tasks that exceed configured waiting thresholds by reordering Redis ZSET and in-memory queue entries.
 - [ ] **SLA-03**: Promotion respects trusted priority, tenant max-priority, and high-priority quota rules; prompt text cannot influence promotion.
 - [ ] **SLA-04**: Promotions emit sanitized audit, log, and metric records with task class, policy, and tenant identifiers only.
@@ -58,7 +58,7 @@
 | ANOM-02 | Phase 18 | Complete |
 | ANOM-03 | Phase 18 | Complete |
 | ANOM-04 | Phase 18 | Complete |
-| SLA-01 | Phase 19 | Pending |
+| SLA-01 | Phase 19 | Complete |
 | SLA-02 | Phase 19 | Pending |
 | SLA-03 | Phase 19 | Pending |
 | SLA-04 | Phase 19 | Pending |
