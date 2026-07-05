@@ -18,6 +18,7 @@ type QueueItem struct {
 
 type QueueBackend interface {
 	Push(ctx context.Context, item QueueItem) error
+	PeekMin(ctx context.Context, limit int) ([]QueueItem, error)
 	PopMin(ctx context.Context) (QueueItem, error)
 	Remove(ctx context.Context, taskID string) error
 	Len(ctx context.Context) (int64, error)

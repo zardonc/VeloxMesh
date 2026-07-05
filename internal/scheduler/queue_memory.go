@@ -34,6 +34,27 @@ func (q *MemoryQueue) Push(_ context.Context, item QueueItem) error {
 	return nil
 }
 
+func (q *MemoryQueue) PeekMin(_ context.Context, limit int) ([]QueueItem, error) {
+	if limit < 1 {
+		return []QueueItem{}, nil
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	copied := make(memoryHeap, len(q.items))
+	for i, item := range q.items {
+		cloned := *item
+		cloned.index = i
+		copied[i] = &cloned
+	}
+	heap.Init(&copied)
+	items := make([]QueueItem, 0, min(limit, copied.Len()))
+	for copied.Len() > 0 && len(items) < limit {
+		item := heap.Pop(&copied).(*memoryItem)
+		items = append(items, item.QueueItem)
+	}
+	return items, nil
+}
+
 func (q *MemoryQueue) PopMin(_ context.Context) (QueueItem, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()

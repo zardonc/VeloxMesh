@@ -37,6 +37,19 @@ func (q *FallbackQueue) Push(ctx context.Context, item QueueItem) error {
 	return q.fallback.Push(ctx, item)
 }
 
+func (q *FallbackQueue) PeekMin(ctx context.Context, limit int) ([]QueueItem, error) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if q.primaryAvailable && q.primary != nil {
+		items, err := q.primary.PeekMin(ctx, limit)
+		if err == nil {
+			return items, nil
+		}
+		q.primaryAvailable = false
+	}
+	return q.fallback.PeekMin(ctx, limit)
+}
+
 func (q *FallbackQueue) PopMin(ctx context.Context) (QueueItem, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()

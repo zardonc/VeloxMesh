@@ -24,6 +24,25 @@ func (q *RedisQueue) Push(ctx context.Context, item QueueItem) error {
 	return q.cmd.ZAdd(ctx, q.key, redis.Z{Score: item.Score, Member: item.TaskID}).Err()
 }
 
+func (q *RedisQueue) PeekMin(ctx context.Context, limit int) ([]QueueItem, error) {
+	if limit < 1 {
+		return []QueueItem{}, nil
+	}
+	values, err := q.cmd.ZRangeWithScores(ctx, q.key, 0, int64(limit-1)).Result()
+	if err != nil {
+		return nil, err
+	}
+	items := make([]QueueItem, 0, len(values))
+	for _, value := range values {
+		taskID, ok := value.Member.(string)
+		if !ok {
+			return nil, ErrTaskNotFound
+		}
+		items = append(items, QueueItem{TaskID: taskID, Score: value.Score})
+	}
+	return items, nil
+}
+
 func (q *RedisQueue) PopMin(ctx context.Context) (QueueItem, error) {
 	values, err := q.cmd.ZPopMin(ctx, q.key, 1).Result()
 	if err != nil {
