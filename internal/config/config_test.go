@@ -715,7 +715,7 @@ func TestSchedulerConfigValidation(t *testing.T) {
 			name: "enabled SLA promotion rejects invalid window",
 			modify: func(c *Config) {
 				c.Scheduler.SLAPromotionEnabled = true
-				c.Scheduler.SLAPromotionCandidateWindow = 0
+				c.Scheduler.SLAPromotionCandidateWindow = -1
 			},
 			expectedErr: "scheduler.sla_promotion_candidate_window must be >= 1",
 		},

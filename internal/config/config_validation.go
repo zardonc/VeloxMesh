@@ -98,6 +98,19 @@ func validateSemanticCacheConfig(c *Config) error {
 }
 
 func validateSchedulerConfig(s SchedulerConfig) error {
+	if err := validateSchedulerDurations(s); err != nil {
+		return err
+	}
+	if err := validateSchedulerLimits(s); err != nil {
+		return err
+	}
+	if err := validateSchedulerEnums(s); err != nil {
+		return err
+	}
+	return validateSLAPromotionConfig(s)
+}
+
+func validateSchedulerDurations(s SchedulerConfig) error {
 	if err := validateDurationField(s.Timeout, "scheduler.timeout"); err != nil {
 		return err
 	}
@@ -115,14 +128,18 @@ func validateSchedulerConfig(s SchedulerConfig) error {
 	}
 	taskTimeout, _ := time.ParseDuration(s.SemanticNeighborsTaskTimeout)
 	batchTimeout, _ := time.ParseDuration(s.SemanticNeighborsBatchTimeout)
+	if batchTimeout < taskTimeout {
+		return fmt.Errorf("scheduler.semantic_neighbors_batch_timeout must be >= scheduler.semantic_neighbors_task_timeout")
+	}
+	return nil
+}
+
+func validateSchedulerLimits(s SchedulerConfig) error {
 	if s.BreakerFailureThreshold < 1 {
 		return fmt.Errorf("scheduler.breaker_failure_threshold must be >= 1")
 	}
 	if s.SemanticNeighborsMinCount < 1 {
 		return fmt.Errorf("scheduler.semantic_neighbors_min_count must be >= 1")
-	}
-	if batchTimeout < taskTimeout {
-		return fmt.Errorf("scheduler.semantic_neighbors_batch_timeout must be >= scheduler.semantic_neighbors_task_timeout")
 	}
 	if s.ONNXRolloutPercent < 0 || s.ONNXRolloutPercent > 100 {
 		return fmt.Errorf("scheduler.onnx_rollout_percent must be between 0 and 100")
@@ -145,6 +162,10 @@ func validateSchedulerConfig(s SchedulerConfig) error {
 	if s.ExecutorConcurrency < 1 {
 		return fmt.Errorf("scheduler.executor_concurrency must be >= 1")
 	}
+	return nil
+}
+
+func validateSchedulerEnums(s SchedulerConfig) error {
 	if !isSchedulerPriority(s.DefaultPriority) {
 		return fmt.Errorf("invalid scheduler.default_priority")
 	}
@@ -167,8 +188,58 @@ func validateSchedulerConfig(s SchedulerConfig) error {
 	return nil
 }
 
+func validateSLAPromotionConfig(s SchedulerConfig) error {
+	if !s.SLAPromotionEnabled {
+		return nil
+	}
+	if s.SLAPromotionCandidateWindow < 1 {
+		return fmt.Errorf("scheduler.sla_promotion_candidate_window must be >= 1")
+	}
+	for i, rule := range s.SLAPromotionRules {
+		if err := validateSLAPromotionRule(i, rule); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateSLAPromotionRule(index int, rule SLAPromotionRule) error {
+	prefix := fmt.Sprintf("scheduler.sla_promotion_rules[%d]", index)
+	if rule.PolicyID == "" {
+		return fmt.Errorf("%s.policy_id is required", prefix)
+	}
+	if rule.TenantID == "" && rule.TenantClass == "" {
+		return fmt.Errorf("%s requires tenant_id or tenant_class", prefix)
+	}
+	if rule.ModelClass == "" {
+		return fmt.Errorf("%s.model_class is required", prefix)
+	}
+	if !isSchedulerRequestKind(rule.RequestKind) {
+		return fmt.Errorf("%s.request_kind is invalid", prefix)
+	}
+	wait, err := time.ParseDuration(rule.WaitThreshold)
+	if err != nil {
+		return fmt.Errorf("invalid duration for %s.wait_threshold", prefix)
+	}
+	if wait <= 0 {
+		return fmt.Errorf("%s.wait_threshold must be > 0", prefix)
+	}
+	return nil
+}
+
 func isSchedulerPriority(value string) bool {
 	return value == "high" || value == "normal" || value == "low"
+}
+
+func isSchedulerRequestKind(value string) bool {
+	switch value {
+	case "simple_qa", "code_gen", "code_review", "summarization", "translation":
+		return true
+	case "structured_output", "multi_step", "tool_call", "rag", "creative":
+		return true
+	default:
+		return false
+	}
 }
 
 func validateHealthCheckConfig(hc *HealthCheckConfig) error {
