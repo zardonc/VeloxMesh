@@ -10,8 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/observability"
 )
 
 func TestSLAPromoterPromotesEligibleSamePriorityTask(t *testing.T) {
@@ -236,6 +238,124 @@ func TestSLAPromoterSkipsAuditForDisabledNotEligibleAndError(t *testing.T) {
 	}
 }
 
+func TestSLAPromoterRecordsMetricForPromoted(t *testing.T) {
+	ctx := context.Background()
+	queue := NewMemoryQueue()
+	registry := NewResultRegistry()
+	now := time.Now()
+	registerPromotionTask(t, registry, queue, promotionTask{
+		id: "first", tenantID: "tenant-a", modelClass: "large", requestKind: RequestKindCodeGen,
+		priority: PriorityNormal, score: 1, enqueue: now.Add(-time.Second),
+	})
+	registerPromotionTask(t, registry, queue, promotionTask{
+		id: "eligible", tenantID: "tenant-a", modelClass: "large", requestKind: RequestKindCodeGen,
+		priority: PriorityNormal, score: 2, enqueue: now.Add(-3 * time.Second),
+	})
+	metrics, registryMetrics := newPromotionMetrics()
+	promoter := testSLAPromoter(queue, registry)
+	promoter.Metrics = metrics
+
+	result, err := promoter.PromoteBeforePop(ctx, now)
+	if err != nil {
+		t.Fatalf("PromoteBeforePop: %v", err)
+	}
+	if result.Outcome != SLAPromotionOutcomePromoted {
+		t.Fatalf("expected promoted, got %#v", result)
+	}
+	assertOneSLAPromotionMetric(t, registryMetrics, promotionMetric{
+		policy: "tier-gold-code", tenantClass: "anonymous", modelClass: "large",
+		requestKind: "code_gen", priority: "normal", outcome: "promoted",
+	})
+}
+
+func TestSLAPromoterRecordsMetricForNotEligibleWithoutAudit(t *testing.T) {
+	ctx := context.Background()
+	queue := NewMemoryQueue()
+	registry := NewResultRegistry()
+	now := time.Now()
+	registerPromotionTask(t, registry, queue, promotionTask{
+		id: "first", tenantID: "tenant-b", modelClass: "large", requestKind: RequestKindCodeGen,
+		priority: PriorityNormal, score: 1, enqueue: now.Add(-3 * time.Second),
+	})
+	metrics, registryMetrics := newPromotionMetrics()
+	audit := &recordingAuditRepo{}
+	promoter := testSLAPromoter(queue, registry)
+	promoter.Audit = audit
+	promoter.Metrics = metrics
+
+	result, err := promoter.PromoteBeforePop(ctx, now)
+	if err != nil {
+		t.Fatalf("PromoteBeforePop: %v", err)
+	}
+	if result.Outcome != SLAPromotionOutcomeNotEligible {
+		t.Fatalf("expected not eligible, got %#v", result)
+	}
+	if len(audit.events) != 0 {
+		t.Fatalf("unexpected audit events: %#v", audit.events)
+	}
+	assertOneSLAPromotionMetric(t, registryMetrics, promotionMetric{
+		policy: "none", tenantClass: "anonymous", modelClass: "unknown",
+		requestKind: "simple_qa", priority: "normal", outcome: "not_eligible",
+	})
+}
+
+func TestSLAPromoterRecordsMetricForDisabledWithoutAudit(t *testing.T) {
+	ctx := context.Background()
+	metrics, registryMetrics := newPromotionMetrics()
+	audit := &recordingAuditRepo{}
+	promoter := &SLAPromoter{Enabled: false, Audit: audit, Metrics: metrics}
+
+	result, err := promoter.PromoteBeforePop(ctx, time.Now())
+	if err != nil {
+		t.Fatalf("PromoteBeforePop: %v", err)
+	}
+	if result.Outcome != SLAPromotionOutcomeDisabled {
+		t.Fatalf("expected disabled, got %#v", result)
+	}
+	if len(audit.events) != 0 {
+		t.Fatalf("unexpected audit events: %#v", audit.events)
+	}
+	assertOneSLAPromotionMetric(t, registryMetrics, promotionMetric{
+		policy: "none", tenantClass: "anonymous", modelClass: "unknown",
+		requestKind: "simple_qa", priority: "normal", outcome: "disabled",
+	})
+}
+
+func TestExecutorRunOneRecordsPromotionErrorAndPopsOriginalTask(t *testing.T) {
+	ctx := context.Background()
+	queue := NewMemoryQueue()
+	registry := NewResultRegistry()
+	ran := false
+	task := registerPromotionTask(t, registry, queue, promotionTask{
+		id: "first", tenantID: "tenant-a", modelClass: "large", requestKind: RequestKindCodeGen,
+		priority: PriorityNormal, score: 1, enqueue: time.Now().Add(-3 * time.Second),
+	})
+	registry.RegisterTask(task, func(context.Context) TaskResult {
+		ran = true
+		return TaskResult{}
+	})
+	metrics, registryMetrics := newPromotionMetrics()
+	executor := &Executor{
+		Queue:    peekErrorQueue{QueueBackend: queue},
+		Registry: registry,
+		Promoter: &SLAPromoter{
+			Enabled: true, CandidateWindow: 1, Queue: peekErrorQueue{QueueBackend: queue},
+			Registry: registry, Metrics: metrics,
+		},
+	}
+
+	if err := executor.RunOne(ctx); err != nil {
+		t.Fatalf("RunOne: %v", err)
+	}
+	if !ran {
+		t.Fatalf("expected original task handler to run")
+	}
+	assertOneSLAPromotionMetric(t, registryMetrics, promotionMetric{
+		policy: "none", tenantClass: "anonymous", modelClass: "unknown",
+		requestKind: "simple_qa", priority: "normal", outcome: "error",
+	})
+}
+
 type promotionTask struct {
 	id          string
 	tenantID    string
@@ -322,6 +442,65 @@ func (errorQueue) PeekMin(context.Context, int) ([]QueueItem, error) {
 func (errorQueue) PopMin(context.Context) (QueueItem, error) { return QueueItem{}, context.Canceled }
 func (errorQueue) Remove(context.Context, string) error      { return context.Canceled }
 func (errorQueue) Len(context.Context) (int64, error)        { return 0, context.Canceled }
+
+type peekErrorQueue struct {
+	QueueBackend
+}
+
+func (q peekErrorQueue) PeekMin(context.Context, int) ([]QueueItem, error) {
+	return nil, context.Canceled
+}
+
+type promotionMetric struct {
+	policy      string
+	tenantClass string
+	modelClass  string
+	requestKind string
+	priority    string
+	outcome     string
+}
+
+func newPromotionMetrics() (observability.Metrics, *prometheus.Registry) {
+	registry := prometheus.NewRegistry()
+	return observability.NewPrometheusMetrics(registry), registry
+}
+
+func assertOneSLAPromotionMetric(t *testing.T, registry *prometheus.Registry, want promotionMetric) {
+	t.Helper()
+	samples := collectSLAPromotionMetrics(t, registry)
+	if len(samples) != 1 {
+		t.Fatalf("metric count=%d, want 1: %#v", len(samples), samples)
+	}
+	if samples[0] != want {
+		t.Fatalf("metric=%#v, want %#v", samples[0], want)
+	}
+}
+
+func collectSLAPromotionMetrics(t *testing.T, registry *prometheus.Registry) []promotionMetric {
+	t.Helper()
+	families, err := registry.Gather()
+	if err != nil {
+		t.Fatalf("gather metrics: %v", err)
+	}
+	for _, family := range families {
+		if family.GetName() != "gateway_scheduler_sla_promotion_total" {
+			continue
+		}
+		samples := make([]promotionMetric, 0, len(family.Metric))
+		for _, metric := range family.Metric {
+			labels := map[string]string{}
+			for _, label := range metric.Label {
+				labels[label.GetName()] = label.GetValue()
+			}
+			samples = append(samples, promotionMetric{
+				policy: labels["policy"], tenantClass: labels["tenant_class"], modelClass: labels["model_class"],
+				requestKind: labels["request_kind"], priority: labels["priority"], outcome: labels["outcome"],
+			})
+		}
+		return samples
+	}
+	return nil
+}
 
 func assertAuditEvent(t *testing.T, audit *recordingAuditRepo, policyID string, outcome string) {
 	t.Helper()
