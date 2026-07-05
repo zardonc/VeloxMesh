@@ -702,6 +702,78 @@ func TestSchedulerConfigValidation(t *testing.T) {
 			},
 			expectedErr: "scheduler.semantic_neighbors_batch_timeout",
 		},
+		{
+			name: "disabled SLA promotion ignores malformed rule",
+			modify: func(c *Config) {
+				c.Scheduler.SLAPromotionEnabled = false
+				c.Scheduler.SLAPromotionCandidateWindow = -1
+				c.Scheduler.SLAPromotionRules = []SLAPromotionRule{{RequestKind: "urgent"}}
+			},
+			expectedErr: "",
+		},
+		{
+			name: "enabled SLA promotion rejects invalid window",
+			modify: func(c *Config) {
+				c.Scheduler.SLAPromotionEnabled = true
+				c.Scheduler.SLAPromotionCandidateWindow = 0
+			},
+			expectedErr: "scheduler.sla_promotion_candidate_window must be >= 1",
+		},
+		{
+			name: "enabled SLA promotion rejects missing policy",
+			modify: func(c *Config) {
+				c.Scheduler.SLAPromotionEnabled = true
+				c.Scheduler.SLAPromotionRules = []SLAPromotionRule{validSLAPromotionRule()}
+				c.Scheduler.SLAPromotionRules[0].PolicyID = ""
+			},
+			expectedErr: "scheduler.sla_promotion_rules[0].policy_id is required",
+		},
+		{
+			name: "enabled SLA promotion rejects missing tenant selector",
+			modify: func(c *Config) {
+				c.Scheduler.SLAPromotionEnabled = true
+				c.Scheduler.SLAPromotionRules = []SLAPromotionRule{validSLAPromotionRule()}
+				c.Scheduler.SLAPromotionRules[0].TenantID = ""
+				c.Scheduler.SLAPromotionRules[0].TenantClass = ""
+			},
+			expectedErr: "scheduler.sla_promotion_rules[0] requires tenant_id or tenant_class",
+		},
+		{
+			name: "enabled SLA promotion rejects missing model class",
+			modify: func(c *Config) {
+				c.Scheduler.SLAPromotionEnabled = true
+				c.Scheduler.SLAPromotionRules = []SLAPromotionRule{validSLAPromotionRule()}
+				c.Scheduler.SLAPromotionRules[0].ModelClass = ""
+			},
+			expectedErr: "scheduler.sla_promotion_rules[0].model_class is required",
+		},
+		{
+			name: "enabled SLA promotion rejects invalid request kind",
+			modify: func(c *Config) {
+				c.Scheduler.SLAPromotionEnabled = true
+				c.Scheduler.SLAPromotionRules = []SLAPromotionRule{validSLAPromotionRule()}
+				c.Scheduler.SLAPromotionRules[0].RequestKind = "urgent"
+			},
+			expectedErr: "scheduler.sla_promotion_rules[0].request_kind is invalid",
+		},
+		{
+			name: "enabled SLA promotion rejects invalid wait threshold",
+			modify: func(c *Config) {
+				c.Scheduler.SLAPromotionEnabled = true
+				c.Scheduler.SLAPromotionRules = []SLAPromotionRule{validSLAPromotionRule()}
+				c.Scheduler.SLAPromotionRules[0].WaitThreshold = "soon"
+			},
+			expectedErr: "invalid duration for scheduler.sla_promotion_rules[0].wait_threshold",
+		},
+		{
+			name: "enabled SLA promotion rejects non-positive wait threshold",
+			modify: func(c *Config) {
+				c.Scheduler.SLAPromotionEnabled = true
+				c.Scheduler.SLAPromotionRules = []SLAPromotionRule{validSLAPromotionRule()}
+				c.Scheduler.SLAPromotionRules[0].WaitThreshold = "0s"
+			},
+			expectedErr: "scheduler.sla_promotion_rules[0].wait_threshold must be > 0",
+		},
 	}
 
 	for _, tt := range tests {
@@ -720,6 +792,16 @@ func TestSchedulerConfigValidation(t *testing.T) {
 				t.Fatalf("expected error containing %q, got %v", tt.expectedErr, err)
 			}
 		})
+	}
+}
+
+func validSLAPromotionRule() SLAPromotionRule {
+	return SLAPromotionRule{
+		PolicyID:      "tier-gold-code",
+		TenantID:      "tenant-a",
+		ModelClass:    "frontier",
+		RequestKind:   "code_gen",
+		WaitThreshold: "2s",
 	}
 }
 
