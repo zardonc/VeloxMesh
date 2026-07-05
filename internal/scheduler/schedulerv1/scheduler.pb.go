@@ -89,6 +89,15 @@ type TaskFeature struct {
 	VocabularyRichnessBucket int32                  `protobuf:"varint,20,opt,name=vocabulary_richness_bucket,json=vocabularyRichnessBucket,proto3" json:"vocabulary_richness_bucket,omitempty"`
 	ConfidenceHint           float64                `protobuf:"fixed64,21,opt,name=confidence_hint,json=confidenceHint,proto3" json:"confidence_hint,omitempty"`
 	UncertaintyHint          float64                `protobuf:"fixed64,22,opt,name=uncertainty_hint,json=uncertaintyHint,proto3" json:"uncertainty_hint,omitempty"`
+	NeighborCount            int64                  `protobuf:"varint,23,opt,name=neighbor_count,json=neighborCount,proto3" json:"neighbor_count,omitempty"`
+	LatencyP50Ms             int64                  `protobuf:"varint,24,opt,name=latency_p50_ms,json=latencyP50Ms,proto3" json:"latency_p50_ms,omitempty"`
+	LatencyP90Ms             int64                  `protobuf:"varint,25,opt,name=latency_p90_ms,json=latencyP90Ms,proto3" json:"latency_p90_ms,omitempty"`
+	LatencyStddevMs          float64                `protobuf:"fixed64,26,opt,name=latency_stddev_ms,json=latencyStddevMs,proto3" json:"latency_stddev_ms,omitempty"`
+	OutputTokensP70          int64                  `protobuf:"varint,27,opt,name=output_tokens_p70,json=outputTokensP70,proto3" json:"output_tokens_p70,omitempty"`
+	SuccessRate              float64                `protobuf:"fixed64,28,opt,name=success_rate,json=successRate,proto3" json:"success_rate,omitempty"`
+	TimeoutRate              float64                `protobuf:"fixed64,29,opt,name=timeout_rate,json=timeoutRate,proto3" json:"timeout_rate,omitempty"`
+	CoverageLevel            string                 `protobuf:"bytes,30,opt,name=coverage_level,json=coverageLevel,proto3" json:"coverage_level,omitempty"`
+	CoverageRatio            float64                `protobuf:"fixed64,31,opt,name=coverage_ratio,json=coverageRatio,proto3" json:"coverage_ratio,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -273,6 +282,69 @@ func (x *TaskFeature) GetConfidenceHint() float64 {
 func (x *TaskFeature) GetUncertaintyHint() float64 {
 	if x != nil {
 		return x.UncertaintyHint
+	}
+	return 0
+}
+
+func (x *TaskFeature) GetNeighborCount() int64 {
+	if x != nil {
+		return x.NeighborCount
+	}
+	return 0
+}
+
+func (x *TaskFeature) GetLatencyP50Ms() int64 {
+	if x != nil {
+		return x.LatencyP50Ms
+	}
+	return 0
+}
+
+func (x *TaskFeature) GetLatencyP90Ms() int64 {
+	if x != nil {
+		return x.LatencyP90Ms
+	}
+	return 0
+}
+
+func (x *TaskFeature) GetLatencyStddevMs() float64 {
+	if x != nil {
+		return x.LatencyStddevMs
+	}
+	return 0
+}
+
+func (x *TaskFeature) GetOutputTokensP70() int64 {
+	if x != nil {
+		return x.OutputTokensP70
+	}
+	return 0
+}
+
+func (x *TaskFeature) GetSuccessRate() float64 {
+	if x != nil {
+		return x.SuccessRate
+	}
+	return 0
+}
+
+func (x *TaskFeature) GetTimeoutRate() float64 {
+	if x != nil {
+		return x.TimeoutRate
+	}
+	return 0
+}
+
+func (x *TaskFeature) GetCoverageLevel() string {
+	if x != nil {
+		return x.CoverageLevel
+	}
+	return ""
+}
+
+func (x *TaskFeature) GetCoverageRatio() float64 {
+	if x != nil {
+		return x.CoverageRatio
 	}
 	return 0
 }

@@ -35,6 +35,7 @@ func ExtractSafeFeatures(req *llm.LLMRequest, priority PriorityClass, routeHint 
 		VocabularyRichnessBucket: bucket(vocabularyRichness(words)),
 		ConfidenceHint:           1,
 		UncertaintyHint:          0,
+		CoverageLevel:            SemanticCoverageNone,
 	}
 }
 

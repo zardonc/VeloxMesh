@@ -40,3 +40,16 @@ func TestExtractSafeFeaturesDoesNotElevatePriorityFromText(t *testing.T) {
 		t.Fatalf("text elevated priority: %s", got.Priority)
 	}
 }
+
+func TestExtractSafeFeaturesSemanticDefaults(t *testing.T) {
+	got := ExtractSafeFeatures(&llm.LLMRequest{}, PriorityNormal, "", time.Now())
+	if got.NeighborCount != 0 || got.LatencyP50Ms != 0 || got.LatencyP90Ms != 0 || got.LatencyStddevMs != 0 {
+		t.Fatalf("unexpected latency aggregate defaults: %#v", got)
+	}
+	if got.OutputTokensP70 != 0 || got.SuccessRate != 0 || got.TimeoutRate != 0 {
+		t.Fatalf("unexpected outcome aggregate defaults: %#v", got)
+	}
+	if got.CoverageLevel != SemanticCoverageNone || got.CoverageRatio != 0 {
+		t.Fatalf("unexpected coverage defaults: %#v", got)
+	}
+}

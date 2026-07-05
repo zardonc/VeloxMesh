@@ -35,6 +35,15 @@ message TaskFeature {
   int32 vocabulary_richness_bucket = 20;
   double confidence_hint = 21;
   double uncertainty_hint = 22;
+  int64 neighbor_count = 23;
+  int64 latency_p50_ms = 24;
+  int64 latency_p90_ms = 25;
+  double latency_stddev_ms = 26;
+  int64 output_tokens_p70 = 27;
+  double success_rate = 28;
+  double timeout_rate = 29;
+  string coverage_level = 30;
+  double coverage_ratio = 31;
 }
 
 message BatchScoreResponse {

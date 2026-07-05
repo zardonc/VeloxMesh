@@ -37,6 +37,12 @@ const (
 	SchedulerTypeONNX      SchedulerType = "onnx"
 )
 
+const (
+	SemanticCoverageNone     = "none"
+	SemanticCoverageTenant   = "tenant"
+	SemanticCoverageFallback = "fallback"
+)
+
 type TaskFeature struct {
 	TaskID                   string
 	ModelClass               string
@@ -60,6 +66,15 @@ type TaskFeature struct {
 	VocabularyRichnessBucket int32
 	ConfidenceHint           float64
 	UncertaintyHint          float64
+	NeighborCount            int64
+	LatencyP50Ms             int64
+	LatencyP90Ms             int64
+	LatencyStddevMs          float64
+	OutputTokensP70          int64
+	SuccessRate              float64
+	TimeoutRate              float64
+	CoverageLevel            string
+	CoverageRatio            float64
 }
 
 type ScoreResult struct {
@@ -101,6 +116,15 @@ func (f TaskFeature) proto() *schedulerv1.TaskFeature {
 		VocabularyRichnessBucket: f.VocabularyRichnessBucket,
 		ConfidenceHint:           f.ConfidenceHint,
 		UncertaintyHint:          f.UncertaintyHint,
+		NeighborCount:            f.NeighborCount,
+		LatencyP50Ms:             f.LatencyP50Ms,
+		LatencyP90Ms:             f.LatencyP90Ms,
+		LatencyStddevMs:          f.LatencyStddevMs,
+		OutputTokensP70:          f.OutputTokensP70,
+		SuccessRate:              f.SuccessRate,
+		TimeoutRate:              f.TimeoutRate,
+		CoverageLevel:            f.CoverageLevel,
+		CoverageRatio:            f.CoverageRatio,
 	}
 }
 
