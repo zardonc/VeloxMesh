@@ -32,9 +32,34 @@ func TestFallbackQueueConcurrentPrimaryFailure(t *testing.T) {
 	}
 }
 
+func TestFallbackQueuePeekMinUsesMemoryAfterPrimaryError(t *testing.T) {
+	ctx := context.Background()
+	q := NewFallbackQueue(failingQueue{}, NewMemoryQueue())
+	if err := q.Push(ctx, QueueItem{TaskID: "fallback", Score: 1}); err != nil {
+		t.Fatalf("Push: %v", err)
+	}
+	items, err := q.PeekMin(ctx, 1)
+	if err != nil {
+		t.Fatalf("PeekMin: %v", err)
+	}
+	if len(items) != 1 || items[0].TaskID != "fallback" {
+		t.Fatalf("unexpected fallback peek: %#v", items)
+	}
+	got, err := q.PopMin(ctx)
+	if err != nil {
+		t.Fatalf("PopMin: %v", err)
+	}
+	if got.TaskID != "fallback" {
+		t.Fatalf("unexpected pop after fallback peek: %#v", got)
+	}
+}
+
 type failingQueue struct{}
 
 func (failingQueue) Push(context.Context, QueueItem) error { return errors.New("primary down") }
+func (failingQueue) PeekMin(context.Context, int) ([]QueueItem, error) {
+	return nil, errors.New("primary down")
+}
 func (failingQueue) PopMin(context.Context) (QueueItem, error) {
 	return QueueItem{}, errors.New("primary down")
 }

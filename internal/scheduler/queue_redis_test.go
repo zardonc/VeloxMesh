@@ -61,6 +61,43 @@ func TestRedisQueueStoresOnlyTaskIDMember(t *testing.T) {
 	}
 }
 
+func TestRedisQueuePeekMinDoesNotPopAndPushReplacesScore(t *testing.T) {
+	ctx := context.Background()
+	client, queue := newRealRedisQueue(t)
+	defer client.Del(ctx, queue.keyForTest())
+
+	for _, item := range []QueueItem{
+		{TaskID: "later", Score: 3},
+		{TaskID: "first", Score: 2},
+		{TaskID: "later", Score: 1},
+	} {
+		if err := queue.Push(ctx, item); err != nil {
+			t.Fatalf("Push: %v", err)
+		}
+	}
+	items, err := queue.PeekMin(ctx, 2)
+	if err != nil {
+		t.Fatalf("PeekMin: %v", err)
+	}
+	if len(items) != 2 || items[0].TaskID != "later" || items[0].Score != 1 || items[1].TaskID != "first" {
+		t.Fatalf("unexpected peek order: %#v", items)
+	}
+	length, err := queue.Len(ctx)
+	if err != nil {
+		t.Fatalf("Len: %v", err)
+	}
+	if length != 2 {
+		t.Fatalf("PeekMin mutated Redis length to %d", length)
+	}
+	got, err := queue.PopMin(ctx)
+	if err != nil {
+		t.Fatalf("PopMin: %v", err)
+	}
+	if got.TaskID != "later" || got.Score != 1 {
+		t.Fatalf("unexpected first pop after peek: %#v", got)
+	}
+}
+
 func TestFallbackQueueUsesMemoryAfterPrimaryError(t *testing.T) {
 	ctx := context.Background()
 	badRedis := redis.NewClient(&redis.Options{Addr: "127.0.0.1:1", DialTimeout: 50 * time.Millisecond})
