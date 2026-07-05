@@ -23,11 +23,30 @@ def sha256_file(path: Path) -> str:
 
 
 def write_constant_onnx(model: dict, path: Path) -> None:
-    output = helper.make_tensor_value_info("p70_output_tokens", TensorProto.FLOAT, [1])
-    value = helper.make_tensor("constant_p70", TensorProto.FLOAT, [1], [float(model["p70_output_tokens"])])
-    node = helper.make_node("Constant", inputs=[], outputs=["p70_output_tokens"], value=value)
-    graph = helper.make_graph([node], "scheduler_p70_predictor", [], [output])
-    onnx_model = helper.make_model(graph, producer_name="veloxmesh-scheduler-training")
+    p70 = float(model["p70_output_tokens"])
+    values = {
+        "p50_output_tokens": p70 * 0.8,
+        "p70_output_tokens": p70,
+        "p90_output_tokens": p70 * 1.2,
+        "quantile_spread": p70 * 0.4,
+        "ood_distance": 0.0,
+    }
+    outputs = [helper.make_tensor_value_info(name, TensorProto.FLOAT, [1]) for name in values]
+    nodes = [
+        helper.make_node(
+            "Constant",
+            inputs=[],
+            outputs=[name],
+            value=helper.make_tensor(f"constant_{name}", TensorProto.FLOAT, [1], [value]),
+        )
+        for name, value in values.items()
+    ]
+    graph = helper.make_graph(nodes, "scheduler_quantile_predictor", [], outputs)
+    onnx_model = helper.make_model(
+        graph,
+        producer_name="veloxmesh-scheduler-training",
+        opset_imports=[helper.make_opsetid("", 26)],
+    )
     onnx.checker.check_model(onnx_model)
     path.parent.mkdir(parents=True, exist_ok=True)
     onnx.save(onnx_model, path)

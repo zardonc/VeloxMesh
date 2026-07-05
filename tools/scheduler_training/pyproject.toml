@@ -3,13 +3,13 @@ name = "scheduler-training"
 version = "0.1.0"
 description = "Offline scheduler training tooling for VeloxMesh"
 requires-python = ">=3.11"
-dependencies = ["onnx>=1.16"]
+dependencies = ["grpcio>=1.81.1", "onnx>=1.16", "onnxruntime>=1.23"]
 
 [project.scripts]
 scheduler-training = "scheduler_training.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = ["grpcio-tools>=1.81.1", "pytest>=8"]
 
 [build-system]
 requires = ["hatchling"]
