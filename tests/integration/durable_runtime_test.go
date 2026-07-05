@@ -43,8 +43,6 @@ type memoryRepository struct {
 	usageRepo controlstate.UsageRepository
 }
 
-
-
 type memoryUsageRepo struct {
 	records []*controlstate.UsageRecord
 }
@@ -261,7 +259,7 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil, pipeline.DefaultRegistry(), nil, nil)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, nil, nil, repo, nil, nil)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, nil, nil, nil, repo, nil, nil)
 
 	// 1. Initial reload with empty repo
 	err = a.ReloadProviders(context.Background(), repo, cipher)

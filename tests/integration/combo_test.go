@@ -96,7 +96,7 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(m, admissionCtrl, healthStore, false, 0, repo, nil, pipeline.DefaultRegistry(), nil, nil)
-	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, nil, hotStateClient, repo, nil, nil)
+	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, nil, nil, hotStateClient, repo, nil, nil)
 
 	server := httptest.NewServer(r)
 	defer server.Close()

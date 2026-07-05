@@ -76,7 +76,7 @@ func TestAdminProvidersIntegration(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil, pipeline.DefaultRegistry(), nil, nil)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil, nil, nil, repo, nil, nil)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, adminHandler, nil, nil, nil, nil, repo, nil, nil)
 
 	// 1. Initial reload with empty repo
 	err = a.ReloadProviders(context.Background(), repo, cipher)
@@ -202,7 +202,7 @@ func TestAdminProvidersRates(t *testing.T) {
 	adminService := controlstate.NewAdminProviderService(repo, cipher, a.RuntimeProviderManager, nil)
 	adminHandler := handlers.NewAdminProvidersHandler(adminService)
 
-	a.Router = router.NewRouter(a.Config, nil, adminHandler, nil, nil, nil, repo, nil, nil)
+	a.Router = router.NewRouter(a.Config, nil, adminHandler, nil, nil, nil, nil, repo, nil, nil)
 
 	server := httptest.NewServer(a.Router)
 	defer server.Close()
