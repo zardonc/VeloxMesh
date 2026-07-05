@@ -76,6 +76,20 @@ func TestSemanticNeighborEnricherDefaultsWithNilDependencies(t *testing.T) {
 	}
 }
 
+func TestSemanticNeighborEmbeddingUsesDefaultModel(t *testing.T) {
+	embedder := &recordingEmbedder{}
+	service := semanticNeighborTestService(1, semanticNeighborSamples())
+	service.Embedder = func() providers.EmbedAdapter { return embedder }
+
+	_, err := service.Enrich(tenantContext("tenant-a"), semanticNeighborRequest(), semanticNeighborFeature())
+	if err != nil {
+		t.Fatalf("Enrich: %v", err)
+	}
+	if embedder.model != semanticNeighborEmbeddingModel {
+		t.Fatalf("expected embedding model %q, got %q", semanticNeighborEmbeddingModel, embedder.model)
+	}
+}
+
 func TestSemanticNeighborIndexerWritesSafeMetadata(t *testing.T) {
 	vector := &fakeVector{}
 	service := semanticNeighborTestService(2, semanticNeighborSamples())
@@ -190,6 +204,16 @@ func (fakeEmbedder) HealthCheck(context.Context) providers.HealthStatus {
 }
 func (fakeEmbedder) Capabilities() providers.CapabilitySet { return providers.CapabilitySet{} }
 func (fakeEmbedder) Embed(context.Context, *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
+	return &llm.EmbeddingResponse{Data: []llm.Embedding{{Embedding: []float32{1, 0}}}}, nil
+}
+
+type recordingEmbedder struct {
+	fakeEmbedder
+	model string
+}
+
+func (e *recordingEmbedder) Embed(_ context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
+	e.model = req.Model
 	return &llm.EmbeddingResponse{Data: []llm.Embedding{{Embedding: []float32{1, 0}}}}, nil
 }
 

@@ -9,6 +9,7 @@ import (
 )
 
 const defaultPostgresPort = "5432"
+const defaultQdrantPort = "6334"
 
 func Load() {
 	root, ok := moduleRoot()
@@ -17,6 +18,7 @@ func Load() {
 	}
 	_ = godotenv.Load(filepath.Join(root, ".env.local"), filepath.Join(root, ".env"))
 	setPostgresTestDSN()
+	setQdrantAddr()
 }
 
 func moduleRoot() (string, bool) {
@@ -59,4 +61,19 @@ func setPostgresTestDSN() {
 		RawQuery: "sslmode=disable",
 	}
 	_ = os.Setenv("POSTGRES_TEST_DSN", dsn.String())
+}
+
+func setQdrantAddr() {
+	if os.Getenv("QDRANT_ADDR") != "" {
+		return
+	}
+	host := os.Getenv("DEV_SERVER_IP")
+	if host == "" {
+		return
+	}
+	port := os.Getenv("QDRANT_PORT")
+	if port == "" {
+		port = defaultQdrantPort
+	}
+	_ = os.Setenv("QDRANT_ADDR", host+":"+port)
 }

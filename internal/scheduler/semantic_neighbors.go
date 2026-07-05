@@ -16,10 +16,11 @@ import (
 )
 
 const (
-	semanticNeighborCollection   = "scheduler_training_samples"
-	semanticNeighborLookback     = 30 * 24 * time.Hour
-	semanticNeighborHydrateLimit = 1000
-	semanticNeighborSearchFactor = 4
+	semanticNeighborCollection     = "scheduler_training_samples"
+	semanticNeighborEmbeddingModel = "text-embedding-3-small"
+	semanticNeighborLookback       = 30 * 24 * time.Hour
+	semanticNeighborHydrateLimit   = 1000
+	semanticNeighborSearchFactor   = 4
 )
 
 var errSemanticNeighborEmbeddingEmpty = errors.New("semantic neighbor embedding empty")
@@ -110,7 +111,10 @@ func (s *SemanticNeighborService) embedder() providers.EmbedAdapter {
 }
 
 func (s *SemanticNeighborService) embed(ctx context.Context, req *llm.LLMRequest) ([]float32, error) {
-	resp, err := s.embedder().Embed(ctx, &llm.EmbeddingRequest{Input: []string{requestText(req)}})
+	resp, err := s.embedder().Embed(ctx, &llm.EmbeddingRequest{
+		Model: semanticNeighborEmbeddingModel,
+		Input: []string{requestText(req)},
+	})
 	if err != nil {
 		return nil, err
 	}
