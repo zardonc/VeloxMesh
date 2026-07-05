@@ -237,6 +237,15 @@ type SchedulerTrainingSample struct {
 	VocabularyRichnessBucket int32     `json:"vocabulary_richness_bucket"`
 	ConfidenceHint           float64   `json:"confidence_hint"`
 	UncertaintyHint          float64   `json:"uncertainty_hint"`
+	NeighborCount            int64     `json:"neighbor_count"`
+	LatencyP50Ms             int64     `json:"latency_p50_ms"`
+	LatencyP90Ms             int64     `json:"latency_p90_ms"`
+	LatencyStddevMs          float64   `json:"latency_stddev_ms"`
+	OutputTokensP70          int64     `json:"output_tokens_p70"`
+	SuccessRate              float64   `json:"success_rate"`
+	TimeoutRate              float64   `json:"timeout_rate"`
+	CoverageLevel            string    `json:"coverage_level"`
+	CoverageRatio            float64   `json:"coverage_ratio"`
 	ActualLatencyMs          int64     `json:"actual_latency_ms"`
 	InputTokens              int64     `json:"input_tokens"`
 	OutputTokens             int64     `json:"output_tokens"`

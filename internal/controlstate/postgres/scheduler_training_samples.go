@@ -52,8 +52,11 @@ func scanSchedulerTrainingSample(rows pgx.Rows, s *controlstate.SchedulerTrainin
 		&s.RouteHint, &s.HasToolCalls, &s.ToolCallDepth, &s.TurnCount, &s.Multimodal,
 		&s.QuestionCount, &s.CodeBlockCount, &s.EnumerationHint, &s.InstructionVerbCount,
 		&s.MaxSentenceLengthBucket, &s.VocabularyRichnessBucket, &s.ConfidenceHint,
-		&s.UncertaintyHint, &s.ActualLatencyMs, &s.InputTokens, &s.OutputTokens,
-		&s.Outcome, &s.ProviderClass, &s.SchedulerVersion, &s.CompletedAt, &s.CreatedAt,
+		&s.UncertaintyHint, &s.NeighborCount, &s.LatencyP50Ms, &s.LatencyP90Ms,
+		&s.LatencyStddevMs, &s.OutputTokensP70, &s.SuccessRate, &s.TimeoutRate,
+		&s.CoverageLevel, &s.CoverageRatio, &s.ActualLatencyMs, &s.InputTokens,
+		&s.OutputTokens, &s.Outcome, &s.ProviderClass, &s.SchedulerVersion,
+		&s.CompletedAt, &s.CreatedAt,
 	)
 }
 
@@ -64,8 +67,11 @@ func sampleValues(s *controlstate.SchedulerTrainingSample) []any {
 		s.RouteHint, s.HasToolCalls, s.ToolCallDepth, s.TurnCount, s.Multimodal,
 		s.QuestionCount, s.CodeBlockCount, s.EnumerationHint, s.InstructionVerbCount,
 		s.MaxSentenceLengthBucket, s.VocabularyRichnessBucket, s.ConfidenceHint,
-		s.UncertaintyHint, s.ActualLatencyMs, s.InputTokens, s.OutputTokens,
-		s.Outcome, s.ProviderClass, s.SchedulerVersion, s.CompletedAt, s.CreatedAt,
+		s.UncertaintyHint, s.NeighborCount, s.LatencyP50Ms, s.LatencyP90Ms,
+		s.LatencyStddevMs, s.OutputTokensP70, s.SuccessRate, s.TimeoutRate,
+		s.CoverageLevel, s.CoverageRatio, s.ActualLatencyMs, s.InputTokens,
+		s.OutputTokens, s.Outcome, s.ProviderClass, s.SchedulerVersion,
+		s.CompletedAt, s.CreatedAt,
 	}
 }
 
@@ -83,12 +89,16 @@ const schedulerTrainingSampleColumns = `
 	has_tool_calls, tool_call_depth, turn_count, multimodal, question_count,
 	code_block_count, enumeration_hint, instruction_verb_count,
 	max_sentence_length_bucket, vocabulary_richness_bucket, confidence_hint,
-	uncertainty_hint, actual_latency_ms, input_tokens, output_tokens, outcome,
-	provider_class, scheduler_version, completed_at, created_at`
+	uncertainty_hint, neighbor_count, latency_p50_ms, latency_p90_ms,
+	latency_stddev_ms, output_tokens_p70, success_rate, timeout_rate,
+	coverage_level, coverage_ratio, actual_latency_ms, input_tokens,
+	output_tokens, outcome, provider_class, scheduler_version, completed_at,
+	created_at`
 
 const insertSchedulerTrainingSampleSQL = `INSERT INTO scheduler_training_samples (` + schedulerTrainingSampleColumns + `)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-	$17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)`
+	$17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31,
+	$32, $33, $34, $35, $36, $37, $38, $39, $40)`
 
 const selectSchedulerTrainingSamplesSQL = `SELECT ` + schedulerTrainingSampleColumns + `
 FROM scheduler_training_samples

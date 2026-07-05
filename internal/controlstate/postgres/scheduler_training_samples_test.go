@@ -23,9 +23,33 @@ func TestPostgresSchedulerTrainingSamplesInsertAndListByWindow(t *testing.T) {
 	if len(got) == 0 {
 		t.Fatalf("expected at least one sample")
 	}
-	if got[0].ID != sample.ID || got[0].OutputTokens != sample.OutputTokens {
-		t.Fatalf("unexpected sample: %#v", got[0])
+	found := findSample(got, sample.ID)
+	if found == nil || found.OutputTokens != sample.OutputTokens {
+		t.Fatalf("expected sample %q in %#v", sample.ID, got)
 	}
+	assertSemanticAggregates(t, found)
+}
+
+func TestPostgresSchedulerTrainingSamplesListDefaultsLegacyAggregates(t *testing.T) {
+	ctx := context.Background()
+	repo := openMigratedPostgres(t)
+	sample := testSchedulerTrainingSample(uniquePostgresID(t, "scheduler-legacy-sample"))
+
+	if err := insertLegacySchedulerTrainingSample(ctx, repo, sample); err != nil {
+		t.Fatalf("legacy insert: %v", err)
+	}
+	got, err := repo.SchedulerTrainingSamples().ListByWindow(ctx, sample.CompletedAt.Add(-time.Second), sample.CompletedAt.Add(time.Second), 10)
+	if err != nil {
+		t.Fatalf("list samples: %v", err)
+	}
+	if len(got) == 0 {
+		t.Fatalf("expected at least one sample")
+	}
+	found := findSample(got, sample.ID)
+	if found == nil {
+		t.Fatalf("expected sample %q in %#v", sample.ID, got)
+	}
+	assertNeutralSemanticAggregates(t, found)
 }
 
 func TestSchedulerTrainingSampleWithCreatedAtDoesNotMutateInput(t *testing.T) {
@@ -54,6 +78,61 @@ func testSchedulerTrainingSample(id string) *controlstate.SchedulerTrainingSampl
 		VocabularyRichnessBucket: 3, ConfidenceHint: 1, ActualLatencyMs: 42,
 		InputTokens: 12, OutputTokens: 80, Outcome: "success",
 		ProviderClass: "openai-compatible", SchedulerVersion: "heuristic-v1",
-		CompletedAt: completed,
+		NeighborCount: 7, LatencyP50Ms: 120, LatencyP90Ms: 240, LatencyStddevMs: 12.5,
+		OutputTokensP70: 90, SuccessRate: 0.8, TimeoutRate: 0.1, CoverageLevel: "tenant",
+		CoverageRatio: 0.7,
+		CompletedAt:   completed,
 	}
+}
+
+func insertLegacySchedulerTrainingSample(ctx context.Context, repo *Repository, sample *controlstate.SchedulerTrainingSample) error {
+	_, err := repo.pool.Exec(ctx, `INSERT INTO scheduler_training_samples (
+		id, task_id, model_class, estimated_input_tokens, estimated_output_tokens,
+		stream, priority, timeout_class, enqueue_time_ms, request_kind, route_hint,
+		has_tool_calls, tool_call_depth, turn_count, multimodal, question_count,
+		code_block_count, enumeration_hint, instruction_verb_count,
+		max_sentence_length_bucket, vocabulary_richness_bucket, confidence_hint,
+		uncertainty_hint, actual_latency_ms, input_tokens, output_tokens, outcome,
+		provider_class, scheduler_version, completed_at, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+		$17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)`,
+		sample.ID, sample.TaskID, sample.ModelClass, sample.EstimatedInputTokens,
+		sample.EstimatedOutputTokens, sample.Stream, sample.Priority, sample.TimeoutClass,
+		sample.EnqueueTimeMs, sample.RequestKind, sample.RouteHint, sample.HasToolCalls,
+		sample.ToolCallDepth, sample.TurnCount, sample.Multimodal, sample.QuestionCount,
+		sample.CodeBlockCount, sample.EnumerationHint, sample.InstructionVerbCount,
+		sample.MaxSentenceLengthBucket, sample.VocabularyRichnessBucket, sample.ConfidenceHint,
+		sample.UncertaintyHint, sample.ActualLatencyMs, sample.InputTokens, sample.OutputTokens,
+		sample.Outcome, sample.ProviderClass, sample.SchedulerVersion, sample.CompletedAt,
+		sample.CompletedAt)
+	return err
+}
+
+func assertSemanticAggregates(t *testing.T, sample *controlstate.SchedulerTrainingSample) {
+	t.Helper()
+	if sample.NeighborCount != 7 || sample.LatencyP50Ms != 120 || sample.LatencyP90Ms != 240 {
+		t.Fatalf("unexpected semantic aggregates: %#v", sample)
+	}
+	if sample.CoverageLevel != "tenant" || sample.CoverageRatio != 0.7 {
+		t.Fatalf("unexpected coverage aggregates: %#v", sample)
+	}
+}
+
+func assertNeutralSemanticAggregates(t *testing.T, sample *controlstate.SchedulerTrainingSample) {
+	t.Helper()
+	if sample.NeighborCount != 0 || sample.LatencyP50Ms != 0 || sample.LatencyP90Ms != 0 {
+		t.Fatalf("expected zero semantic aggregates: %#v", sample)
+	}
+	if sample.CoverageLevel != "none" || sample.CoverageRatio != 0 {
+		t.Fatalf("expected neutral coverage: %#v", sample)
+	}
+}
+
+func findSample(samples []*controlstate.SchedulerTrainingSample, id string) *controlstate.SchedulerTrainingSample {
+	for _, sample := range samples {
+		if sample.ID == id {
+			return sample
+		}
+	}
+	return nil
 }

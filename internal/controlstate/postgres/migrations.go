@@ -32,6 +32,7 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 		{version: 5, file: "migrations/postgres/0005_semantic_rules.sql"},
 		{version: 6, file: "migrations/postgres/0006_scheduler_training_samples.sql"},
 		{version: 7, file: "migrations/postgres/0007_scheduler_quality_rollups.sql"},
+		{version: 8, file: "migrations/postgres/0008_scheduler_training_semantic_aggregates.sql"},
 	}
 
 	tx, err := m.pool.Begin(ctx)
