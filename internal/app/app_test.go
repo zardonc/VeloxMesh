@@ -227,6 +227,46 @@ func TestApp_SchedulerWeightedRolloutStartup(t *testing.T) {
 	}
 }
 
+func TestApp_SchedulerSLAPromotionWiring(t *testing.T) {
+	configPath := t.TempDir() + "/config.json"
+	data := `{
+		"default_provider": "openai-primary",
+		"providers": [{
+			"id": "openai-primary",
+			"type": "openai-compatible",
+			"base_url": "https://api.openai.com/v1",
+			"models": ["gpt-4o-mini"]
+		}],
+		"scheduler": {
+			"sla_promotion_enabled": true,
+			"sla_promotion_candidate_window": 7,
+			"sla_promotion_rules": [{
+				"policy_id": "tier-gold-code",
+				"tenant_id": "tenant-a",
+				"model_class": "large",
+				"request_kind": "code_gen",
+				"wait_threshold": "2s"
+			}]
+		}
+	}`
+	if err := os.WriteFile(configPath, []byte(data), 0o600); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	t.Setenv("CONFIG_FILE", configPath)
+
+	application, err := New()
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	promoter := application.SchedulerRunner.Executor.Promoter
+	if promoter == nil {
+		t.Fatalf("expected SLA promoter")
+	}
+	if promoter.CandidateWindow != 7 || len(promoter.Rules) != 1 {
+		t.Fatalf("unexpected promoter config: %#v", promoter)
+	}
+}
+
 func TestApp_PostgresControlStateFailsClosed(t *testing.T) {
 	t.Setenv("CONFIG_FILE", "")
 	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
