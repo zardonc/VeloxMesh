@@ -71,4 +71,4 @@
 
 ---
 *Requirements defined: 2026-07-05*
-*Last updated: 2026-07-05 after starting v7.5 Scheduler Enhancements*
+*Last updated: 2026-07-05 after completing v7.5 Scheduler Enhancements*
