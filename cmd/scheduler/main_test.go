@@ -46,6 +46,31 @@ func TestSchedulerHTTPHealthAndMetrics(t *testing.T) {
 	}
 }
 
+func TestSchedulerHTTPStatusExposesAnomalyEnums(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	server := httptest.NewServer(newHTTPMux(reg, schedulerStatus{
+		AnomalyStatus: "unavailable",
+		AnomalyReason: "missing_metadata",
+	}))
+	defer server.Close()
+
+	resp, err := http.Get(server.URL + "/status")
+	if err != nil {
+		t.Fatalf("status: %v", err)
+	}
+	defer resp.Body.Close()
+	var body map[string]string
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("decode status: %v", err)
+	}
+	if body["anomaly_status"] != "unavailable" || body["anomaly_reason"] != "missing_metadata" {
+		t.Fatalf("unexpected status body: %#v", body)
+	}
+	if _, ok := body["threshold"]; ok {
+		t.Fatalf("status leaked threshold details: %#v", body)
+	}
+}
+
 func TestSchedulerServiceDefaultsToHeuristic(t *testing.T) {
 	service, err := newSchedulerService("", "", nil)
 	if err != nil {
@@ -65,12 +90,15 @@ func TestSchedulerServiceONNXInvalidArtifactFails(t *testing.T) {
 
 func TestSchedulerServiceONNXValidArtifactStarts(t *testing.T) {
 	dir := writeSchedulerMainTestArtifact(t)
-	service, err := newSchedulerService("onnx", dir, nil)
+	service, status, err := newSchedulerServiceWithStatus("onnx", dir, nil)
 	if err != nil {
 		t.Fatalf("newSchedulerService: %v", err)
 	}
 	if _, ok := service.(*scheduleronnx.BatchScoreService); !ok {
 		t.Fatalf("expected ONNX service, got %T", service)
+	}
+	if status.AnomalyStatus != "unavailable" || status.AnomalyReason != "missing_metadata" {
+		t.Fatalf("unexpected anomaly status: %#v", status)
 	}
 }
 

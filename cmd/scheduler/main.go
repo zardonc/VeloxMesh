@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -28,7 +29,7 @@ func run(ctx context.Context) error {
 	httpAddr := getenv("SCHEDULER_HTTP_ADDR", ":9091")
 	reg := prometheus.NewRegistry()
 	metrics := heuristic.NewMetrics(reg)
-	service, err := newSchedulerService(getenv("SCHEDULER_MODE", "heuristic"), getenv("SCHEDULER_ONNX_ARTIFACT_DIR", ""), metrics)
+	service, status, err := newSchedulerServiceWithStatus(getenv("SCHEDULER_MODE", "heuristic"), getenv("SCHEDULER_ONNX_ARTIFACT_DIR", ""), metrics)
 	if err != nil {
 		return err
 	}
@@ -42,7 +43,7 @@ func run(ctx context.Context) error {
 	go func() { _ = grpcServer.Serve(listener) }()
 	defer grpcServer.Stop()
 
-	httpServer := &http.Server{Addr: httpAddr, Handler: newHTTPMux(reg)}
+	httpServer := &http.Server{Addr: httpAddr, Handler: newHTTPMux(reg, status)}
 	go func() { _ = httpServer.ListenAndServe() }()
 	defer httpServer.Shutdown(ctx)
 
@@ -51,24 +52,44 @@ func run(ctx context.Context) error {
 }
 
 func newSchedulerService(mode, artifactDir string, metrics *heuristic.Metrics) (schedulerv1.TaskSchedulerServer, error) {
+	service, _, err := newSchedulerServiceWithStatus(mode, artifactDir, metrics)
+	return service, err
+}
+
+type schedulerStatus struct {
+	AnomalyStatus string `json:"anomaly_status,omitempty"`
+	AnomalyReason string `json:"anomaly_reason,omitempty"`
+}
+
+func newSchedulerServiceWithStatus(mode, artifactDir string, metrics *heuristic.Metrics) (schedulerv1.TaskSchedulerServer, schedulerStatus, error) {
 	if mode == "" || mode == "heuristic" {
-		return heuristic.NewBatchScoreService(nil, metrics), nil
+		return heuristic.NewBatchScoreService(nil, metrics), schedulerStatus{}, nil
 	}
 	if mode != "onnx" {
-		return nil, fmt.Errorf("unsupported scheduler mode: %s", mode)
+		return nil, schedulerStatus{}, fmt.Errorf("unsupported scheduler mode: %s", mode)
 	}
 	scorer, err := scheduleronnx.NewScorer(artifactDir)
 	if err != nil {
-		return nil, fmt.Errorf("start ONNX scheduler: %w", err)
+		return nil, schedulerStatus{}, fmt.Errorf("start ONNX scheduler: %w", err)
 	}
-	return scheduleronnx.NewBatchScoreService(scorer), nil
+	status := schedulerStatus{AnomalyStatus: scorer.AnomalyStatus(), AnomalyReason: scorer.AnomalyReason()}
+	fmt.Fprintf(os.Stderr, "onnx anomaly_status=%s anomaly_reason=%s\n", status.AnomalyStatus, status.AnomalyReason)
+	return scheduleronnx.NewBatchScoreService(scorer), status, nil
 }
 
-func newHTTPMux(reg *prometheus.Registry) http.Handler {
+func newHTTPMux(reg *prometheus.Registry, statuses ...schedulerStatus) http.Handler {
+	status := schedulerStatus{}
+	if len(statuses) > 0 {
+		status = statuses[0]
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok\n"))
+	})
+	mux.HandleFunc("/status", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(status)
 	})
 	mux.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 	return mux

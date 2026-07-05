@@ -32,6 +32,14 @@ func (s *Scorer) LoadCount() int {
 	return s.loads
 }
 
+func (s *Scorer) AnomalyStatus() string {
+	return s.artifact.AnomalyStatus
+}
+
+func (s *Scorer) AnomalyReason() string {
+	return s.artifact.AnomalyReason
+}
+
 func (s *Scorer) Score(_ context.Context, tasks []scheduler.TaskFeature) ([]scheduler.ScoreResult, error) {
 	results := make([]scheduler.ScoreResult, 0, len(tasks))
 	for _, task := range tasks {
