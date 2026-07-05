@@ -72,9 +72,22 @@ func (a *App) HealthStore() health.Store {
 	return a.RuntimeProviderManager.HealthStore()
 }
 
-func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotstate.Client, logger *slog.Logger, recorder *scheduler.TrainingRecorder, quality *scheduler.PredictionQualityRecorder, rollout *scheduler.SchedulerRolloutController, semanticNeighbors scheduler.SemanticNeighborEnricher) (*scheduler.SynchronousRunner, string) {
+type schedulerRunnerDeps struct {
+	ctx               context.Context
+	cfg               *config.Config
+	hotState          hotstate.Client
+	logger            *slog.Logger
+	repo              controlstate.Repository
+	recorder          *scheduler.TrainingRecorder
+	quality           *scheduler.PredictionQualityRecorder
+	rollout           *scheduler.SchedulerRolloutController
+	semanticNeighbors scheduler.SemanticNeighborEnricher
+}
+
+func newSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner, string) {
+	ctx, cfg, logger := deps.ctx, deps.cfg, deps.logger
 	queue, backend := newSchedulerQueue(ctx, cfg, logger)
-	scorer, err := scheduler.NewScorerWithController(ctx, cfg.Scheduler, rollout)
+	scorer, err := scheduler.NewScorerWithController(ctx, cfg.Scheduler, deps.rollout)
 	if err != nil {
 		logger.Warn("scheduler scorer unavailable; using FIFO fallback", "error", err)
 		scorer = scheduler.FIFOScorer{Reason: "disabled"}
@@ -86,7 +99,7 @@ func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotsta
 		Guard:    scheduler.QueueGuard{SoftLimit: int64(cfg.Scheduler.QueueSoftLimit), HardLimit: int64(cfg.Scheduler.QueueHardLimit)},
 		Scorer:   scorer,
 		Registry: registry,
-		Priority: scheduler.NewPriorityResolver(hotState),
+		Priority: scheduler.NewPriorityResolver(deps.hotState),
 		Policy: scheduler.PriorityPolicy{
 			Default:            scheduler.NormalizePriority(cfg.Scheduler.DefaultPriority),
 			Max:                scheduler.NormalizePriority(cfg.Scheduler.MaxPriority),
@@ -95,7 +108,7 @@ func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotsta
 		},
 		Metrics:           observability.DefaultMetrics,
 		Backend:           backend,
-		SemanticNeighbors: semanticNeighbors,
+		SemanticNeighbors: deps.semanticNeighbors,
 	}
 	if timeout, err := time.ParseDuration(cfg.Scheduler.SemanticNeighborsTaskTimeout); err == nil {
 		intake.SemanticNeighborTaskTimeout = timeout
@@ -104,18 +117,18 @@ func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotsta
 		Queue:    queue,
 		Registry: registry,
 		Metrics:  observability.DefaultMetrics,
-		Promoter: newSLAPromoter(cfg.Scheduler, queue, registry),
+		Promoter: newSLAPromoter(cfg.Scheduler, queue, registry, schedulerAudit(deps.repo), logger),
 	}
 	runner := scheduler.NewSynchronousRunner(intake, executor, registry)
-	runner.Recorder = recorder
-	runner.Quality = quality
-	if indexer, ok := semanticNeighbors.(scheduler.SemanticNeighborIndexer); ok {
+	runner.Recorder = deps.recorder
+	runner.Quality = deps.quality
+	if indexer, ok := deps.semanticNeighbors.(scheduler.SemanticNeighborIndexer); ok {
 		runner.Indexer = indexer
 	}
 	return runner, backend
 }
 
-func newSLAPromoter(cfg config.SchedulerConfig, queue scheduler.QueueBackend, registry *scheduler.ResultRegistry) *scheduler.SLAPromoter {
+func newSLAPromoter(cfg config.SchedulerConfig, queue scheduler.QueueBackend, registry *scheduler.ResultRegistry, audit controlstate.AuditRepository, logger *slog.Logger) *scheduler.SLAPromoter {
 	if !cfg.SLAPromotionEnabled {
 		return nil
 	}
@@ -125,7 +138,16 @@ func newSLAPromoter(cfg config.SchedulerConfig, queue scheduler.QueueBackend, re
 		Rules:           cfg.SLAPromotionRules,
 		Queue:           queue,
 		Registry:        registry,
+		Audit:           audit,
+		Logger:          logger,
 	}
+}
+
+func schedulerAudit(repo controlstate.Repository) controlstate.AuditRepository {
+	if repo == nil {
+		return nil
+	}
+	return repo.Audit()
 }
 
 func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Logger) (scheduler.QueueBackend, string) {
@@ -311,7 +333,17 @@ func New() (*App, error) {
 		qualityRecorder = &scheduler.PredictionQualityRecorder{Repo: repo.SchedulerQualityRollups(), Metrics: observability.DefaultMetrics, Controller: rolloutController}
 	}
 	semanticNeighbors := newSemanticNeighborService(ctx, cfg, logger, m, repo)
-	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger, trainingRecorder, qualityRecorder, rolloutController, semanticNeighbors)
+	schedulerRunner, schedulerBackend := newSchedulerRunner(schedulerRunnerDeps{
+		ctx:               ctx,
+		cfg:               cfg,
+		hotState:          hotStateClient,
+		logger:            logger,
+		repo:              repo,
+		recorder:          trainingRecorder,
+		quality:           qualityRecorder,
+		rollout:           rolloutController,
+		semanticNeighbors: semanticNeighbors,
+	})
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
 	gatewaySvc.SetSchedulerRunner(schedulerRunner)
 

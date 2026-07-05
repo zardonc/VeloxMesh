@@ -2,10 +2,13 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"math"
 	"time"
 
 	"veloxmesh/internal/config"
+	"veloxmesh/internal/controlstate"
 )
 
 type SLAPromotionOutcome string
@@ -35,6 +38,8 @@ type SLAPromoter struct {
 	Rules           []config.SLAPromotionRule
 	Queue           QueueBackend
 	Registry        *ResultRegistry
+	Audit           controlstate.AuditRepository
+	Logger          *slog.Logger
 }
 
 func (p *SLAPromoter) PromoteBeforePop(ctx context.Context, now time.Time) (SLAPromotionResult, error) {
@@ -46,16 +51,21 @@ func (p *SLAPromoter) PromoteBeforePop(ctx context.Context, now time.Time) (SLAP
 	}
 	items, err := p.Queue.PeekMin(ctx, p.CandidateWindow)
 	if err != nil {
-		return SLAPromotionResult{Outcome: SLAPromotionOutcomeError}, err
+		result := SLAPromotionResult{Outcome: SLAPromotionOutcomeError}
+		p.emitEvidence(ctx, result)
+		return result, err
 	}
 	result, score, ok := p.selectCandidate(items, now)
 	if !ok || result.Outcome != SLAPromotionOutcomePromoted {
+		p.emitEvidence(ctx, result)
 		return result, nil
 	}
 	if err := p.Queue.Push(ctx, QueueItem{TaskID: result.TaskID, Score: score}); err != nil {
 		result.Outcome = SLAPromotionOutcomeError
+		p.emitEvidence(ctx, result)
 		return result, err
 	}
+	p.emitEvidence(ctx, result)
 	return result, nil
 }
 
@@ -118,5 +128,61 @@ func promotionResult(task Task, rule config.SLAPromotionRule, outcome SLAPromoti
 		ModelClass:  task.Feature.ModelClass,
 		RequestKind: string(task.Feature.RequestKind),
 		Priority:    task.Feature.Priority,
+	}
+}
+
+func (p *SLAPromoter) emitEvidence(ctx context.Context, result SLAPromotionResult) {
+	switch result.Outcome {
+	case SLAPromotionOutcomePromoted:
+		p.writeAudit(ctx, result)
+		p.writeLog(slog.LevelInfo, result)
+	case SLAPromotionOutcomeBlockedByPriorityOrQuota:
+		p.writeAudit(ctx, result)
+		p.writeLog(slog.LevelWarn, result)
+	case SLAPromotionOutcomeError:
+		p.writeLog(slog.LevelWarn, result)
+	}
+}
+
+func (p *SLAPromoter) writeAudit(ctx context.Context, result SLAPromotionResult) {
+	if p.Audit == nil {
+		return
+	}
+	now := time.Now().UTC()
+	_ = p.Audit.Log(ctx, &controlstate.AuditEvent{
+		ID:        fmt.Sprintf("scheduler.sla_promotion-%d", now.UnixNano()),
+		Actor:     "system",
+		Action:    "scheduler.sla_promotion",
+		TargetID:  result.PolicyID,
+		Outcome:   string(result.Outcome),
+		Metadata:  controlstate.SafeAuditMetadata(slaEvidence(result)),
+		Timestamp: now,
+	})
+}
+
+func (p *SLAPromoter) writeLog(level slog.Level, result SLAPromotionResult) {
+	if p.Logger == nil {
+		return
+	}
+	p.Logger.Log(context.Background(), level, "scheduler SLA promotion",
+		"policy_id", result.PolicyID,
+		"tenant_id", result.TenantID,
+		"tenant_class", result.TenantClass,
+		"model_class", result.ModelClass,
+		"request_kind", result.RequestKind,
+		"priority", string(result.Priority),
+		"outcome", string(result.Outcome),
+	)
+}
+
+func slaEvidence(result SLAPromotionResult) map[string]interface{} {
+	return map[string]interface{}{
+		"policy_id":    result.PolicyID,
+		"tenant_id":    result.TenantID,
+		"tenant_class": result.TenantClass,
+		"model_class":  result.ModelClass,
+		"request_kind": result.RequestKind,
+		"priority":     string(result.Priority),
+		"outcome":      string(result.Outcome),
 	}
 }
