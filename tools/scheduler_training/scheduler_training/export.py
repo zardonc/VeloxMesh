@@ -16,6 +16,32 @@ FORBIDDEN_FIELDS = {
     "secret",
 }
 
+SEMANTIC_AGGREGATE_FIELDS = [
+    "neighbor_count",
+    "latency_p50_ms",
+    "latency_p90_ms",
+    "latency_stddev_ms",
+    "output_tokens_p70",
+    "success_rate",
+    "timeout_rate",
+    "coverage_level",
+    "coverage_ratio",
+]
+
+SEMANTIC_DEFAULTS = {
+    "neighbor_count": 0,
+    "latency_p50_ms": 0,
+    "latency_p90_ms": 0,
+    "latency_stddev_ms": 0.0,
+    "output_tokens_p70": 0,
+    "success_rate": 0.0,
+    "timeout_rate": 0.0,
+    "coverage_level": "none",
+    "coverage_ratio": 0.0,
+}
+
+COVERAGE_LEVELS = {"none", "tenant", "fallback"}
+
 SAFE_FIELDS = [
     "task_id",
     "model_class",
@@ -39,6 +65,7 @@ SAFE_FIELDS = [
     "vocabulary_richness_bucket",
     "confidence_hint",
     "uncertainty_hint",
+    *SEMANTIC_AGGREGATE_FIELDS,
     "actual_latency_ms",
     "input_tokens",
     "output_tokens",
@@ -53,7 +80,15 @@ def sanitize_row(row: dict) -> dict:
     forbidden = forbidden_fields(row)
     if forbidden:
         raise ValueError(f"forbidden scheduler export fields: {', '.join(sorted(forbidden))}")
-    return {field: row.get(field) for field in SAFE_FIELDS}
+    return {field: safe_value(field, row.get(field)) for field in SAFE_FIELDS}
+
+
+def safe_value(field: str, value):
+    if field == "coverage_level" and value not in COVERAGE_LEVELS:
+        return "none"
+    if value is None and field in SEMANTIC_DEFAULTS:
+        return SEMANTIC_DEFAULTS[field]
+    return value
 
 
 def forbidden_fields(row: dict) -> set[str]:

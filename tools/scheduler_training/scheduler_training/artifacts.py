@@ -30,11 +30,15 @@ def write_constant_onnx(model: dict, path: Path) -> None:
 
 
 def build_manifest(model: dict, metrics: dict, model_path: Path, version: str, window: dict) -> dict:
+    semantic_features = list(model.get("semantic_aggregate_features", []))
     return {
         "scheduler_version": version,
         "model_version": version,
         "target": model["target"],
         "feature_schema_version": FEATURE_SCHEMA_VERSION,
+        "features": list(model.get("features", [])),
+        "semantic_aggregate_features": semantic_features,
+        "semantic_aggregates_supported": bool(model.get("semantic_aggregates_supported") or semantic_features),
         "training_window": window,
         "metrics": metrics,
         "onnx_parity": {"passed": True, "max_abs_error": 0.0},
