@@ -1,5 +1,8 @@
 import json
 
+import numpy as np
+import onnxruntime as ort
+
 from scheduler_training.evaluate import evaluate_file
 from scheduler_training.export import SEMANTIC_AGGREGATE_FIELDS, read_jsonl
 from scheduler_training.publish import publish_artifact
@@ -28,6 +31,11 @@ def anomaly_row(task_type="simple_qa", coverage_level="tenant", outcome="success
         "timeout_rate": 0.0,
         "coverage_ratio": 1.0,
     }
+
+
+def runtime_feed(**overrides):
+    values = {**{feature: 0.0 for feature in FEATURE_FIELDS}, **overrides}
+    return {name: np.array([value], dtype=np.float32) for name, value in values.items()}
 
 
 def test_train_computes_anomaly_thresholds_from_successful_samples():
@@ -117,6 +125,11 @@ def test_train_evaluate_and_publish_runtime_artifact(tmp_path):
     assert manifest["semantic_aggregate_features"] == SEMANTIC_AGGREGATE_FIELDS
     assert "anomaly_thresholds" in manifest
     assert "anomaly_evidence" in manifest
+    session = ort.InferenceSession(str(artifact / "model.onnx"), providers=["CPUExecutionProvider"])
+    assert [input.name for input in session.get_inputs()] == FEATURE_FIELDS
+    low = session.run(["p70_output_tokens"], runtime_feed(estimated_output_tokens=1))[0][0]
+    high = session.run(["p70_output_tokens"], runtime_feed(estimated_output_tokens=40))[0][0]
+    assert high > low
     assert sorted(path.name for path in artifact.iterdir()) == ["manifest.json", "model.onnx"]
 
 

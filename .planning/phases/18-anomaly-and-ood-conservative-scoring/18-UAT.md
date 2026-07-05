@@ -7,7 +7,7 @@ source:
   - 18-03-SUMMARY.md
   - 18-04-SUMMARY.md
 started: 2026-07-05T09:42:00-07:00
-updated: 2026-07-05T12:21:27-07:00
+updated: 2026-07-05T12:35:28-07:00
 ---
 
 ## Current Test
@@ -42,22 +42,20 @@ evidence:
 
 ### 5. Real ONNX worker and Scheduler smoke
 expected: Verification starts a real Python worker, loads a published runtime artifact through `onnxruntime.InferenceSession`, serves predictor gRPC, connects Scheduler ONNX mode to that worker, calls `BatchScoreTasks`, and receives a non-fallback predictive score. Tests that only mock the worker or parse a constant ONNX graph in Go do not satisfy this check.
-result: issue
-reported: "Acceptance requires tests to use the same model artifact shape and call chain that production will ship; only training data volume may differ. Current verification uses a `write_constant_onnx` Constant-node artifact, so the worker and Scheduler call path is real but the model artifact is not final production shape."
-severity: blocker
+result: pass
 evidence:
-  - Visible verification artifact generated at `C:\Users\inthe\IdeaProjects\VeloxMesh\.tmp\phase18-real-onnx-verification\artifacts\scheduler-predictor-v1\model.onnx`; size `630` bytes; SHA-256 `5e3b7c7d76386ce7694d475801f6b6b819142c07b630753b492499d14ceaae6a`; manifest `model_sha256` matched.
-  - Direct `onnxruntime.InferenceSession(...\model.onnx, providers=["CPUExecutionProvider"])` call returned outputs `p50=16`, `p70=20`, `p90=24`, `quantile_spread=8`, `ood_distance=0`.
-  - Real worker gRPC call over `scheduler_training.onnx_worker.start_server` returned health ready and quantiles `{50:16, 70:20, 90:24}` with signals `quantile_spread=8`, `feature_coverage=1`, `ood_distance=0`.
-  - `uv run pytest tests/test_onnx_worker.py tests/test_train_publish.py` from `tools/scheduler_training` - 8 passed
-  - `go test -timeout 60s -count=1 ./cmd/scheduler ./internal/scheduler/predictor ./internal/scheduler/predictive` - passed
-  - `go test -timeout 60s -count=1 -v ./cmd/scheduler -run TestSchedulerServiceUsesPythonONNXWorkerSmoke` - passed; ran `TestSchedulerServiceUsesPythonONNXWorkerSmoke`, started the Python worker process, and returned a non-fallback predictive score
+  - Publish path now writes a feature-driven ONNX graph through `write_feature_onnx`; the graph declares scheduler feature inputs and emits quantile/signal outputs instead of Constant nodes.
+  - Direct `onnxruntime.InferenceSession(...\model.onnx, providers=["CPUExecutionProvider"])` verifies input names match `FEATURE_FIELDS` and P70 output increases when `estimated_output_tokens` increases.
+  - Real worker gRPC call over `scheduler_training.onnx_worker.start_server` now feeds each `TaskFeature` into ONNX Runtime and verifies different task features produce different quantiles.
+  - `uv run pytest -v tests/test_artifacts.py tests/test_onnx_worker.py tests/test_train_publish.py tests/test_export_schema.py` from `tools/scheduler_training` - 14 passed
+  - `go test -timeout 60s -count=1 -v ./cmd/scheduler ./internal/scheduler/predictor ./internal/scheduler/predictive -run 'TestSchedulerServiceUsesPythonONNXWorkerSmoke|TestPythonPredictor|TestPredictive'` - passed; ran `TestSchedulerServiceUsesPythonONNXWorkerSmoke`, started the Python worker process, and returned a non-fallback predictive score
+  - `go test -timeout 60s -count=1 ./internal/scheduler/predictive ./internal/scheduler/predictor ./internal/scheduler/onnx ./internal/scheduler ./cmd/scheduler` - passed
 
 ## Summary
 
 total: 5
-passed: 4
-issues: 1
+passed: 5
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
@@ -72,8 +70,8 @@ blocked: 0
 ## Gaps
 
 - truth: "Tests must use the same model artifact shape and call chain that production will ship, with only training data volume differing."
-  status: failed
-  reason: "Current publish path writes a Constant-node ONNX artifact via `tools/scheduler_training/scheduler_training/artifacts.py`; tests call ONNX Runtime and Scheduler through the real worker path, but the artifact is not a production-shape quantile model over scheduler features."
+  status: fixed
+  reason: "Publish now writes a production-shape feature-driven ONNX artifact via `tools/scheduler_training/scheduler_training/artifacts.py`; direct ONNX Runtime, real worker gRPC, and Scheduler smoke tests all use that artifact and verify predictions are feature-dependent."
   severity: blocker
   test: 5
   artifacts:
@@ -81,5 +79,5 @@ blocked: 0
     - tools/scheduler_training/scheduler_training/publish.py
     - tools/scheduler_training/tests/test_onnx_worker.py
     - cmd/scheduler/main_test.go
-  missing:
-    - "Production-shape ONNX export that consumes scheduler feature tensors and emits quantile/signal outputs through the same worker and Scheduler path."
+  fixed:
+    - "Production-shape ONNX export consumes scheduler feature tensors and emits quantile/signal outputs through the same worker and Scheduler path."

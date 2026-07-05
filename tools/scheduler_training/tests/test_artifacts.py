@@ -1,6 +1,6 @@
 import json
 
-from scheduler_training.artifacts import build_manifest, sha256_file, write_constant_onnx
+from scheduler_training.artifacts import build_manifest, sha256_file, write_feature_onnx
 
 
 def test_manifest_contains_runtime_contract(tmp_path):
@@ -13,7 +13,7 @@ def test_manifest_contains_runtime_contract(tmp_path):
         "semantic_aggregates_supported": True,
     }
     metrics = {"mae": 0, "sample_count": 1}
-    write_constant_onnx(model, model_path)
+    write_feature_onnx(model, model_path)
 
     manifest = build_manifest(model, metrics, model_path, "v1", {"start": "s", "end": "e"})
     assert manifest["model_sha256"] == sha256_file(model_path)

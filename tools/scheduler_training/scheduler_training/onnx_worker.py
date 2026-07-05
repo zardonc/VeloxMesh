@@ -7,6 +7,7 @@ from concurrent import futures
 from pathlib import Path
 
 import grpc
+import numpy as np
 import onnxruntime as ort
 
 _BINDINGS_DIR = Path(__file__).with_name("predictorv1")
@@ -15,6 +16,8 @@ if str(_BINDINGS_DIR) not in sys.path:
 
 import predictor_pb2  # noqa: E402
 import predictor_pb2_grpc  # noqa: E402
+
+COVERAGE_LEVEL_ENCODING = {"none": 0.0, "fallback": 0.5, "tenant": 1.0, "all": 1.0}
 
 
 class ONNXWorker(predictor_pb2_grpc.OutputTokenPredictorServicer):
@@ -27,17 +30,18 @@ class ONNXWorker(predictor_pb2_grpc.OutputTokenPredictorServicer):
         return predictor_pb2.HealthResponse(ready=True, model_version=self.manifest.get("model_version", ""))
 
     def BatchPredict(self, request, context):
-        outputs = self._run_model()
-        return predictor_pb2.BatchPredictResponse(predictions=[self._prediction(task, outputs) for task in request.tasks])
+        return predictor_pb2.BatchPredictResponse(predictions=[self._prediction(task) for task in request.tasks])
 
-    def _run_model(self) -> dict[str, float]:
+    def _run_model(self, task) -> dict[str, float]:
         names = [output.name for output in self.session.get_outputs()]
-        values = self.session.run(names, {})
+        feeds = {input.name: tensor(feature_value(task, input.name)) for input in self.session.get_inputs()}
+        values = self.session.run(names, feeds)
         return {name: scalar(value) for name, value in zip(names, values)}
 
-    def _prediction(self, task, outputs: dict[str, float]):
+    def _prediction(self, task):
         if task.estimated_input_tokens < 0 or task.estimated_output_tokens < 0:
             return predictor_pb2.Prediction(model_version=self.manifest.get("model_version", ""), error="invalid_task")
+        outputs = self._run_model(task)
         quantiles = {50: outputs.get("p50_output_tokens", 0), 70: outputs.get("p70_output_tokens", 0), 90: outputs.get("p90_output_tokens", 0)}
         spread = outputs.get("quantile_spread", max(quantiles[90] - quantiles[50], 0))
         signals = {
@@ -46,6 +50,16 @@ class ONNXWorker(predictor_pb2_grpc.OutputTokenPredictorServicer):
             "feature_coverage": task.coverage_ratio,
         }
         return predictor_pb2.Prediction(model_version=self.manifest.get("model_version", ""), quantiles=quantiles, signals=signals)
+
+
+def feature_value(task, name: str) -> float:
+    if name == "coverage_level":
+        return COVERAGE_LEVEL_ENCODING.get(str(task.coverage_level or "none"), 0.0)
+    return float(getattr(task, name, 0) or 0)
+
+
+def tensor(value: float):
+    return np.array([value], dtype=np.float32)
 
 
 def scalar(value) -> float:
@@ -77,4 +91,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
