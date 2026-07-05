@@ -54,6 +54,53 @@ func TestResultRegistryWaitReturnsContextCancellation(t *testing.T) {
 	}
 }
 
+func TestResultRegistryRegisterTaskStoresSafeSnapshot(t *testing.T) {
+	registry := NewResultRegistry()
+	enqueue := time.Now().UTC()
+	task := Task{
+		ID:          "t1",
+		TenantID:    "tenant-a",
+		TenantClass: "gold",
+		Feature: TaskFeature{
+			ModelClass:    "large",
+			RequestKind:   RequestKindCodeGen,
+			Priority:      PriorityNormal,
+			EnqueueTimeMs: enqueue.UnixMilli(),
+		},
+		EnqueueTime: enqueue,
+		Metadata:    map[string]string{"scheduler_type": "fifo"},
+	}
+	registry.RegisterTask(task, func(context.Context) TaskResult { return TaskResult{} })
+
+	got, ok := registry.Task("t1")
+	if !ok {
+		t.Fatalf("expected task snapshot")
+	}
+	if got.TenantID != "tenant-a" || got.TenantClass != "gold" {
+		t.Fatalf("unexpected tenant snapshot: %#v", got)
+	}
+	if got.Feature.ModelClass != "large" || got.Feature.RequestKind != RequestKindCodeGen || got.Feature.Priority != PriorityNormal {
+		t.Fatalf("unexpected safe feature snapshot: %#v", got.Feature)
+	}
+	if !got.EnqueueTime.Equal(enqueue) || got.Feature.EnqueueTimeMs != enqueue.UnixMilli() {
+		t.Fatalf("unexpected enqueue time snapshot: %#v", got)
+	}
+	got.Metadata["scheduler_type"] = "mutated"
+	again, _ := registry.Task("t1")
+	if again.Metadata["scheduler_type"] != "fifo" {
+		t.Fatalf("task snapshot metadata was mutated: %#v", again.Metadata)
+	}
+}
+
+func TestResultRegistryUnregisterRemovesTaskSnapshot(t *testing.T) {
+	registry := NewResultRegistry()
+	registry.RegisterTask(Task{ID: "t1"}, func(context.Context) TaskResult { return TaskResult{} })
+	registry.Unregister("t1")
+	if _, ok := registry.Task("t1"); ok {
+		t.Fatalf("expected task snapshot removed")
+	}
+}
+
 func TestTaskStateVocabulary(t *testing.T) {
 	states := []TaskState{TaskStateQueued, TaskStateRunning, TaskStateCompleted, TaskStateCanceled, TaskStateFailed}
 	for _, state := range states {
