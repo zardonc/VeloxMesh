@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.5
 milestone_name: Scheduler Enhancements
 status: Ready to discuss
-last_updated: "2026-07-05T05:58:27.022Z"
-last_activity: 2026-07-05 -- Phase 18 planning complete
+last_updated: "2026-07-05T16:29:29.103Z"
+last_activity: 2026-07-05
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 33
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
+  percent: 67
 ---
 
 ## Project Reference
@@ -43,25 +43,25 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 ## Planned Next
 
-1. Discuss Phase 18: Anomaly and OOD Conservative Scoring.
+1. Discuss Phase 19: SLA Waiting-Time Promotion.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-discuss-phase 18` - gather context for the next phase.
+- `$gsd-discuss-phase 19` - gather context for the next phase.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 18
+Phase: 19
 Plan: Not started
 Status: Ready to discuss
-Last activity: 2026-07-05 -- Phase 18 planning complete
-Resume file: .planning/phases/18-anomaly-and-ood-conservative-scoring/18-CONTEXT.md
+Last activity: 2026-07-05
+Resume file: None
 
 ## Operator Next Steps
 
-- Start Phase 18 with `$gsd-discuss-phase 18`
+- Start Phase 19 with `$gsd-discuss-phase 19`
 
 ## Deferred Items
 

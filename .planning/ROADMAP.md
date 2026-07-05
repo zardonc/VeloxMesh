@@ -39,7 +39,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 ### Phases
 
 - [x] Phase 17: Semantic Neighbor Feature Aggregates (completed 2026-07-05)
-- [ ] Phase 18: Anomaly and OOD Conservative Scoring
+- [x] Phase 18: Anomaly and OOD Conservative Scoring (completed 2026-07-05)
 - [ ] Phase 19: SLA Waiting-Time Promotion
 
 ### Phase 17: Semantic Neighbor Feature Aggregates
@@ -69,7 +69,7 @@ Candidate plan slices:
 **Priority:** P2
 **Depends on:** Phase 17
 **Requirements:** ANOM-01, ANOM-02, ANOM-03, ANOM-04
-**Plans:** 3 planned
+**Plans:** 3/3 plans complete
 
 Success criteria:
 

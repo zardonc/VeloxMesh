@@ -14,10 +14,10 @@
 
 ### Anomaly and OOD Scoring
 
-- [ ] **ANOM-01**: Offline training and evaluation tooling can compute anomaly/OOD thresholds from safe scheduler samples and publish them in versioned scheduler artifacts.
-- [ ] **ANOM-02**: ONNX Scheduler validates anomaly metadata at startup and reports clear degraded or fallback behavior when metadata is missing or invalid.
-- [ ] **ANOM-03**: ONNX Scheduler applies anomaly/OOD signals to lower confidence and increase uncertainty/score conservatism for unfamiliar tasks.
-- [ ] **ANOM-04**: Quality rollups and metrics can compare anomaly rate, MAPE, and fallback behavior by scheduler version and task type.
+- [x] **ANOM-01**: Offline training and evaluation tooling can compute anomaly/OOD thresholds from safe scheduler samples and publish them in versioned scheduler artifacts.
+- [x] **ANOM-02**: ONNX Scheduler validates anomaly metadata at startup and reports clear degraded or fallback behavior when metadata is missing or invalid.
+- [x] **ANOM-03**: ONNX Scheduler applies anomaly/OOD signals to lower confidence and increase uncertainty/score conservatism for unfamiliar tasks.
+- [x] **ANOM-04**: Quality rollups and metrics can compare anomaly rate, MAPE, and fallback behavior by scheduler version and task type.
 
 ### SLA Waiting-Time Promotion
 
@@ -54,10 +54,10 @@
 | QDR-02 | Phase 17 | Complete |
 | QDR-03 | Phase 17 | Complete |
 | QDR-04 | Phase 17 | Complete |
-| ANOM-01 | Phase 18 | Pending |
-| ANOM-02 | Phase 18 | Pending |
-| ANOM-03 | Phase 18 | Pending |
-| ANOM-04 | Phase 18 | Pending |
+| ANOM-01 | Phase 18 | Complete |
+| ANOM-02 | Phase 18 | Complete |
+| ANOM-03 | Phase 18 | Complete |
+| ANOM-04 | Phase 18 | Complete |
 | SLA-01 | Phase 19 | Pending |
 | SLA-02 | Phase 19 | Pending |
 | SLA-03 | Phase 19 | Pending |
