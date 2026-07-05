@@ -1,5 +1,24 @@
 # Milestones
 
+## v7.5 Scheduler Enhancements (Shipped: 2026-07-05)
+
+**Phases completed:** 3 phases, 10 plans, 28 tasks
+
+**Key accomplishments:**
+
+- Scheduler TaskFeature payloads now carry bounded semantic-neighbor aggregate fields with disabled-by-default config controls
+- Gateway intake now enriches safe scheduler features from completed training-sample neighbors and fails open with sanitized metrics
+- Semantic-neighbor aggregates now persist through training samples, offline feature preparation, and ONNX artifact compatibility without changing heuristic scoring
+- Offline scheduler training now publishes conservative anomaly thresholds in normal ONNX artifact manifests.
+- ONNX scoring now treats out-of-distribution tasks conservatively by lowering confidence and raising uncertainty.
+- Scheduler quality rollups now compare anomaly behavior by scheduler version, task type, and coverage level.
+- Model-neutral scheduler prediction with a real Python ONNX Runtime worker and predictive scoring policy
+- Disabled-by-default SLA promotion policy config with JSON/env loading and enabled-only rule validation.
+- Bounded SLA promotion reorders eligible queued tasks through existing memory/Redis score replacement without priority escalation.
+- Sanitized SLA promotion metrics and durable audit evidence for promoted, blocked, disabled, not-eligible, and error outcomes.
+
+---
+
 ## v7.4 Gateway Scheduler (Shipped: 2026-07-04)
 
 **Delivered:** Completed the optional Gateway Scheduler path while preserving the OpenAI-compatible data-plane contract and FIFO fallback behavior.

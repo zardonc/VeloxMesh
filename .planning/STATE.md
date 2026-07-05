@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v7.5
 milestone_name: Scheduler Enhancements
-status: verifying
-last_updated: "2026-07-05T22:17:21.371Z"
-last_activity: 2026-07-05
+status: Awaiting next milestone
+last_updated: "2026-07-05T23:07:17.322Z"
+last_activity: 2026-07-05 — Milestone v7.5 completed and archived
 progress:
   total_phases: 3
   completed_phases: 3
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** v7.5 Scheduler Enhancements complete — ready for milestone close-out.
+**Current focus:** v7.5 Scheduler Enhancements shipped and archived; next milestone is ready to define.
 
 ## Current Implementation State
 
@@ -47,25 +47,24 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 ## Planned Next
 
-1. Complete the v7.5 milestone archive/release workflow.
+1. Start the next milestone with `$gsd-new-milestone`.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-complete-milestone` - archive the completed v7.5 milestone.
+- `$gsd-new-milestone` - define the next milestone.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
-Status: Phase 19 verified — milestone ready for close-out
-Last activity: 2026-07-05
-Resume file: None
+Phase: Milestone v7.5 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-05 — Milestone v7.5 completed and archived
 
 ## Operator Next Steps
 
-- Complete the v7.5 milestone with `$gsd-complete-milestone`
+- Start the next milestone with `$gsd-new-milestone`
 
 ## Deferred Items
 

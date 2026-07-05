@@ -14,9 +14,10 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 **v7.4 Gateway Scheduler** has shipped and is archived. The gateway now owns optional scheduler-backed queueing, safe training feedback, ONNX runtime scoring, heuristic/ONNX A/B rollout, prediction-quality evidence, and authenticated runtime rollback controls while preserving FIFO fallback and the OpenAI-compatible data-plane API.
 
-**v7.5 Scheduler Enhancements** has completed semantic-neighbor aggregate features, anomaly/OOD conservative scoring, and gateway-owned tenant SLA waiting-time promotion with sanitized metrics, logs, and durable audit evidence.
+**v7.5 Scheduler Enhancements** has shipped and is archived. It completed semantic-neighbor aggregate features, anomaly/OOD conservative scoring, and gateway-owned tenant SLA waiting-time promotion with sanitized metrics, logs, and durable audit evidence.
 
-## Current Milestone: v7.5 Scheduler Enhancements
+<details>
+<summary>Archived Milestone: v7.5 Scheduler Enhancements</summary>
 
 **Goal:** Complete the remaining scheduler enhancement path with safe semantic-neighbor aggregate features, anomaly/OOD conservative scoring, and tenant SLA waiting-time promotion.
 
@@ -24,6 +25,8 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Optional Qdrant-backed semantic-neighbor aggregate features collected by the gateway under a tight timeout budget.
 - ONNX anomaly/OOD signals that reduce confidence and make scheduling more conservative for unfamiliar tasks.
 - Tenant SLA waiting-time promotion that adjusts queued task ordering within trusted priority and quota boundaries.
+
+</details>
 
 <details>
 <summary>Archived Milestone: v7.4 Gateway Scheduler</summary>
@@ -168,4 +171,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-05 after completing Phase 19 SLA waiting-time promotion*
+*Last updated: 2026-07-05 after shipping v7.5 Scheduler Enhancements*

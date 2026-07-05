@@ -4,12 +4,47 @@
 
 | Milestone | Shipped | Phases |
 |-----------|---------|--------|
+| v7.5      | 2026-07-05 | 3      |
 | v7.4      | 2026-07-04 | 3      |
 | v7.3      | 2026-07-03 | 1      |
 | v7.2      | 2026-07-03 | 1      |
 | v7.1      | 2026-07-01 | 1      |
 | v7.0      | 2026-06-30 | 3      |
 | v4        | 2026-06-23 | 4      |
+
+---
+
+## Milestone: v7.5 - Scheduler Enhancements
+
+**Shipped:** 2026-07-05
+**Phases:** 3 | **Plans:** 10
+
+### What Was Built
+- Optional Gateway-owned semantic-neighbor aggregate features with safe bounded scheduler fields and fail-open enrichment.
+- Training/export/ONNX support for semantic aggregate fields while keeping raw prompts, embeddings, auth headers, API keys, and provider secrets out of Scheduler.
+- Conservative anomaly/OOD scoring with manifest metadata, quality rollups, and low-cardinality metrics.
+- A model-neutral predictive scorer backed by a real Python ONNX Runtime worker and Scheduler RPC smoke coverage.
+- Disabled-by-default tenant SLA waiting-time promotion with bounded Redis/memory queue reordering and sanitized audit/log/metric evidence.
+
+### What Worked
+- Keeping semantic lookup and queue promotion in Gateway preserved Scheduler as a stateless scoring service.
+- Requiring the real Python ONNX worker smoke closed the temporary-parser gap and proved the final production-shaped call chain.
+- Retrofitting Nyquist validation from plan and summary artifacts was cheap because each task already carried runnable verification commands.
+
+### What Was Inefficient
+- Phase 18 needed corrective work after the first ONNX path did not prove real runtime invocation.
+- The milestone audit initially failed the Nyquist process gate because validation artifacts were missing despite automated tests existing.
+- `18-VERIFICATION.md` still uses `status: complete` instead of the workflow matrix value `passed`.
+
+### Patterns Established
+- Optional scheduler enrichments default off, validate when enabled, and fail open at runtime.
+- Predictor workers return model evidence; Scheduler policy owns confidence, uncertainty, fallback, and queue scoring.
+- SLA promotion uses bounded pre-pop inspection and existing score replacement instead of adding a second queue mutation API.
+
+### Key Lessons
+- Production-shape model verification should be an acceptance criterion whenever a phase introduces model runtime behavior.
+- Nyquist validation files should be created during phase execution, not reconstructed at milestone close.
+- Low-cardinality metrics and `SafeAuditMetadata` are enough for operator evidence without expanding the sensitive data surface.
 
 ---
 
