@@ -7,10 +7,10 @@
 
 ### Semantic Neighbor Features
 
-- [ ] **QDR-01**: Gateway can optionally collect semantic-neighbor aggregate stats for scheduler tasks using the configured vector and embedding path.
-- [ ] **QDR-02**: Gateway sends only bounded numeric or enum semantic aggregates to Scheduler and training data, never raw prompts, embeddings, semantic-cache payloads, API keys, authorization headers, or provider secrets.
-- [ ] **QDR-03**: Semantic aggregate collection is disabled by default, bounded by a request timeout budget, and falls back without blocking forwarding or scheduler scoring.
-- [ ] **QDR-04**: Training export and ONNX feature preparation include semantic aggregate fields with safe default values when semantic enrichment is unavailable.
+- [x] **QDR-01**: Gateway can optionally collect semantic-neighbor aggregate stats for scheduler tasks using the configured vector and embedding path.
+- [x] **QDR-02**: Gateway sends only bounded numeric or enum semantic aggregates to Scheduler and training data, never raw prompts, embeddings, semantic-cache payloads, API keys, authorization headers, or provider secrets.
+- [x] **QDR-03**: Semantic aggregate collection is disabled by default, bounded by a request timeout budget, and falls back without blocking forwarding or scheduler scoring.
+- [x] **QDR-04**: Training export and ONNX feature preparation include semantic aggregate fields with safe default values when semantic enrichment is unavailable.
 
 ### Anomaly and OOD Scoring
 
@@ -50,10 +50,10 @@
 
 | Requirement | Phase | Status |
 | --- | --- | --- |
-| QDR-01 | Phase 17 | Pending |
-| QDR-02 | Phase 17 | Pending |
-| QDR-03 | Phase 17 | Pending |
-| QDR-04 | Phase 17 | Pending |
+| QDR-01 | Phase 17 | Complete |
+| QDR-02 | Phase 17 | Complete |
+| QDR-03 | Phase 17 | Complete |
+| QDR-04 | Phase 17 | Complete |
 | ANOM-01 | Phase 18 | Pending |
 | ANOM-02 | Phase 18 | Pending |
 | ANOM-03 | Phase 18 | Pending |

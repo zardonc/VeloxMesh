@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v7.5
 milestone_name: Scheduler Enhancements
-status: planning
-last_updated: "2026-07-05T02:35:47.191Z"
-last_activity: 2026-07-04 - Phase 17 planned with 3 execution plans
+status: executing
+last_updated: "2026-07-05T03:07:29.672Z"
+last_activity: 2026-07-05 -- Phase 17 execution started
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 3
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** v7.5 Scheduler Enhancements
+**Current focus:** Phase 17 — semantic-neighbor-feature-aggregates
 
 ## Current Implementation State
 
@@ -51,10 +51,10 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 ## Current Position
 
-Phase: 17 - Semantic Neighbor Feature Aggregates
-Plan: 17-01, 17-02, 17-03
-Status: Planned; ready to execute
-Last activity: 2026-07-04 - Phase 17 planned with 3 execution plans
+Phase: 17 (semantic-neighbor-feature-aggregates) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-07-05 -- Phase 17 execution started
 Resume file: .planning/phases/17-semantic-neighbor-feature-aggregates/17-01-PLAN.md
 
 ## Operator Next Steps
@@ -77,3 +77,4 @@ Items acknowledged at v7.0 close:
 | Phase 15 P15-01 | 52min | 3 tasks | 21 files |
 | Phase 15 P15-02 | 10min | 3 tasks | 15 files |
 | Phase 15 P15-03 | 11min | 3 tasks | 12 files |
+| Phase 17 P01 | 35 min | 2 tasks | 10 files |
