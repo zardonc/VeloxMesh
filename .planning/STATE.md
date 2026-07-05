@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.5
 milestone_name: Scheduler Enhancements
 status: verifying
-last_updated: "2026-07-05T22:10:03.733Z"
-last_activity: 2026-07-05 -- Phase 19 execution started
+last_updated: "2026-07-05T22:17:21.371Z"
+last_activity: 2026-07-05
 progress:
   total_phases: 3
   completed_phases: 3
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 19 — sla-waiting-time-promotion
+**Current focus:** v7.5 Scheduler Enhancements complete — ready for milestone close-out.
 
 ## Current Implementation State
 
@@ -31,6 +31,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 16 A/B Rollout and Prediction Quality (v7.4) is implemented, verified, and shipped.
 - Phase 17 Semantic Neighbor Feature Aggregates (v7.5) is implemented and verified.
 - Phase 18 Anomaly and OOD Conservative Scoring (v7.5) is implemented and verified, including production-shape ONNX artifact and Python worker/Scheduler call-chain coverage.
+- Phase 19 SLA Waiting-Time Promotion (v7.5) is implemented and verified with sanitized promotion metrics, logs, and audit evidence.
 
 ## Completed
 
@@ -42,28 +43,29 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 16: A/B Rollout and Prediction Quality
 - Phase 17: Semantic Neighbor Feature Aggregates
 - Phase 18: Anomaly and OOD Conservative Scoring
+- Phase 19: SLA Waiting-Time Promotion
 
 ## Planned Next
 
-1. Execute Phase 19: SLA Waiting-Time Promotion.
+1. Complete the v7.5 milestone archive/release workflow.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-execute-phase 19` - run the three Phase 19 plans.
+- `$gsd-complete-milestone` - archive the completed v7.5 milestone.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 19 (sla-waiting-time-promotion) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-07-05 -- Phase 19 execution started
+Phase: 19
+Plan: Not started
+Status: Phase 19 verified — milestone ready for close-out
+Last activity: 2026-07-05
 Resume file: None
 
 ## Operator Next Steps
 
-- Execute Phase 19 with `$gsd-execute-phase 19`
+- Complete the v7.5 milestone with `$gsd-complete-milestone`
 
 ## Deferred Items
 
