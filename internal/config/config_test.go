@@ -448,6 +448,35 @@ func TestSchedulerConfigDefaults(t *testing.T) {
 	if cfg.Scheduler.SemanticNeighborsTaskTimeout != "5ms" || cfg.Scheduler.SemanticNeighborsBatchTimeout != "15ms" {
 		t.Fatalf("unexpected semantic neighbor timeout defaults: %#v", cfg.Scheduler)
 	}
+	if cfg.Scheduler.SLAPromotionEnabled {
+		t.Fatalf("expected SLA promotion disabled by default")
+	}
+	if cfg.Scheduler.SLAPromotionCandidateWindow != 32 {
+		t.Fatalf("expected SLA promotion candidate window 32, got %d", cfg.Scheduler.SLAPromotionCandidateWindow)
+	}
+	if len(cfg.Scheduler.SLAPromotionRules) != 0 {
+		t.Fatalf("expected no SLA promotion rules by default")
+	}
+}
+
+func TestSchedulerSLAPromotionConfigEnv(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+	t.Setenv("SCHEDULER_SLA_PROMOTION_ENABLED", "true")
+	t.Setenv("SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW", "8")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.Scheduler.SLAPromotionEnabled {
+		t.Fatalf("expected SLA promotion enabled")
+	}
+	if cfg.Scheduler.SLAPromotionCandidateWindow != 8 {
+		t.Fatalf("expected candidate window 8, got %d", cfg.Scheduler.SLAPromotionCandidateWindow)
+	}
 }
 
 func TestSchedulerFeedbackConfigIsIndependent(t *testing.T) {
@@ -524,7 +553,16 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 			"semantic_neighbors_enabled": true,
 			"semantic_neighbors_min_count": 11,
 			"semantic_neighbors_task_timeout": "6ms",
-			"semantic_neighbors_batch_timeout": "18ms"
+			"semantic_neighbors_batch_timeout": "18ms",
+			"sla_promotion_enabled": true,
+			"sla_promotion_candidate_window": 9,
+			"sla_promotion_rules": [{
+				"policy_id": "tier-gold-code",
+				"tenant_id": "tenant-a",
+				"model_class": "frontier",
+				"request_kind": "code_gen",
+				"wait_threshold": "2s"
+			}]
 		}
 	}`)
 	t.Setenv("CONFIG_FILE", configPath)
@@ -550,6 +588,16 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 	}
 	if cfg.Scheduler.SemanticNeighborsTaskTimeout != "6ms" || cfg.Scheduler.SemanticNeighborsBatchTimeout != "18ms" {
 		t.Fatalf("scheduler semantic neighbor timeout override not applied: %#v", cfg.Scheduler)
+	}
+	if !cfg.Scheduler.SLAPromotionEnabled || cfg.Scheduler.SLAPromotionCandidateWindow != 9 {
+		t.Fatalf("scheduler SLA promotion override not applied: %#v", cfg.Scheduler)
+	}
+	if len(cfg.Scheduler.SLAPromotionRules) != 1 {
+		t.Fatalf("expected one SLA promotion rule, got %d", len(cfg.Scheduler.SLAPromotionRules))
+	}
+	rule := cfg.Scheduler.SLAPromotionRules[0]
+	if rule.PolicyID != "tier-gold-code" || rule.TenantID != "tenant-a" || rule.ModelClass != "frontier" || rule.RequestKind != "code_gen" || rule.WaitThreshold != "2s" {
+		t.Fatalf("unexpected SLA promotion rule: %#v", rule)
 	}
 }
 
