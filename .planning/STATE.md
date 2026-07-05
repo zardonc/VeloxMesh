@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v7.5
 milestone_name: Scheduler Enhancements
-status: verifying
-last_updated: "2026-07-05T04:07:56.494Z"
-last_activity: 2026-07-05 -- Phase 17 execution started
+status: ready
+last_updated: "2026-07-05T04:11:39.561Z"
+last_activity: 2026-07-05
 progress:
   total_phases: 3
   completed_phases: 1
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 17 — semantic-neighbor-feature-aggregates
+**Current focus:** Phase 18 — anomaly-and-ood-conservative-scoring
 
 ## Current Implementation State
 
@@ -29,6 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 14 Scheduler Queue Foundation (v7.4) is implemented, verified, and shipped.
 - Phase 15 Training Feedback and ONNX Path (v7.4) is implemented, verified, and shipped.
 - Phase 16 A/B Rollout and Prediction Quality (v7.4) is implemented, verified, and shipped.
+- Phase 17 Semantic Neighbor Feature Aggregates (v7.5) is implemented and verified.
 
 ## Completed
 
@@ -38,28 +39,29 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 14: Scheduler Queue Foundation
 - Phase 15: Training Feedback and ONNX Path
 - Phase 16: A/B Rollout and Prediction Quality
+- Phase 17: Semantic Neighbor Feature Aggregates
 
 ## Planned Next
 
-1. Execute Phase 17: Semantic Neighbor Feature Aggregates.
+1. Discuss Phase 18: Anomaly and OOD Conservative Scoring.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-execute-phase 17` - execute the three Phase 17 plans.
+- `$gsd-discuss-phase 18` - gather context for the next phase.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 17 (semantic-neighbor-feature-aggregates) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-07-05 -- Phase 17 execution started
-Resume file: .planning/phases/17-semantic-neighbor-feature-aggregates/17-03-PLAN.md
+Phase: 18
+Plan: Not started
+Status: Ready to discuss
+Last activity: 2026-07-05
+Resume file: None
 
 ## Operator Next Steps
 
-- Execute Phase 17 with `$gsd-execute-phase 17`
+- Start Phase 18 with `$gsd-discuss-phase 18`
 
 ## Deferred Items
 
