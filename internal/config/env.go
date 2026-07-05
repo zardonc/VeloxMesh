@@ -11,6 +11,7 @@ const (
 	defaultPGVectorHNSWM                = 16
 	defaultPGVectorHNSWEFConstruction   = 64
 	defaultPGVectorSearchEF             = 40
+	defaultSLAPromotionCandidateWindow  = 32
 )
 
 func getEnv(key, fallback string) string {

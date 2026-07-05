@@ -114,34 +114,46 @@ type Config struct {
 }
 
 type SchedulerConfig struct {
-	Enabled                       bool    `json:"enabled"`
-	Endpoint                      string  `json:"endpoint"`
-	HeuristicEndpoint             string  `json:"heuristic_endpoint"`
-	ONNXEndpoint                  string  `json:"onnx_endpoint"`
-	ONNXRolloutPercent            int     `json:"onnx_rollout_percent"`
-	QualityMAPEAlertPercent       float64 `json:"quality_mape_alert_percent"`
-	ErrorSpikeAlertRate           float64 `json:"error_spike_alert_rate"`
-	Timeout                       string  `json:"timeout"`
-	Strict                        bool    `json:"strict"`
-	BreakerFailureThreshold       int     `json:"breaker_failure_threshold"`
-	BreakerRecoveryTimeout        string  `json:"breaker_recovery_timeout"`
-	QueueBackend                  string  `json:"queue_backend"`
-	QueueSoftLimit                int     `json:"queue_soft_limit"`
-	QueueHardLimit                int     `json:"queue_hard_limit"`
-	QueuePopTimeout               string  `json:"queue_pop_timeout"`
-	ExecutorConcurrency           int     `json:"executor_concurrency"`
-	DefaultPriority               string  `json:"default_priority"`
-	MaxPriority                   string  `json:"max_priority"`
-	HighQuotaPerMinute            int     `json:"high_quota_per_minute"`
-	ScoreUncertaintyPenaltyK      float64 `json:"score_uncertainty_penalty_k"`
-	HeuristicConfigFile           string  `json:"heuristic_config_file"`
-	FeedbackEnabled               bool    `json:"feedback_enabled"`
-	Mode                          string  `json:"mode"`
-	ONNXArtifactDir               string  `json:"onnx_artifact_dir"`
-	SemanticNeighborsEnabled      bool    `json:"semantic_neighbors_enabled"`
-	SemanticNeighborsMinCount     int     `json:"semantic_neighbors_min_count"`
-	SemanticNeighborsTaskTimeout  string  `json:"semantic_neighbors_task_timeout"`
-	SemanticNeighborsBatchTimeout string  `json:"semantic_neighbors_batch_timeout"`
+	Enabled                       bool               `json:"enabled"`
+	Endpoint                      string             `json:"endpoint"`
+	HeuristicEndpoint             string             `json:"heuristic_endpoint"`
+	ONNXEndpoint                  string             `json:"onnx_endpoint"`
+	ONNXRolloutPercent            int                `json:"onnx_rollout_percent"`
+	QualityMAPEAlertPercent       float64            `json:"quality_mape_alert_percent"`
+	ErrorSpikeAlertRate           float64            `json:"error_spike_alert_rate"`
+	Timeout                       string             `json:"timeout"`
+	Strict                        bool               `json:"strict"`
+	BreakerFailureThreshold       int                `json:"breaker_failure_threshold"`
+	BreakerRecoveryTimeout        string             `json:"breaker_recovery_timeout"`
+	QueueBackend                  string             `json:"queue_backend"`
+	QueueSoftLimit                int                `json:"queue_soft_limit"`
+	QueueHardLimit                int                `json:"queue_hard_limit"`
+	QueuePopTimeout               string             `json:"queue_pop_timeout"`
+	ExecutorConcurrency           int                `json:"executor_concurrency"`
+	DefaultPriority               string             `json:"default_priority"`
+	MaxPriority                   string             `json:"max_priority"`
+	HighQuotaPerMinute            int                `json:"high_quota_per_minute"`
+	ScoreUncertaintyPenaltyK      float64            `json:"score_uncertainty_penalty_k"`
+	HeuristicConfigFile           string             `json:"heuristic_config_file"`
+	FeedbackEnabled               bool               `json:"feedback_enabled"`
+	Mode                          string             `json:"mode"`
+	ONNXArtifactDir               string             `json:"onnx_artifact_dir"`
+	SemanticNeighborsEnabled      bool               `json:"semantic_neighbors_enabled"`
+	SemanticNeighborsMinCount     int                `json:"semantic_neighbors_min_count"`
+	SemanticNeighborsTaskTimeout  string             `json:"semantic_neighbors_task_timeout"`
+	SemanticNeighborsBatchTimeout string             `json:"semantic_neighbors_batch_timeout"`
+	SLAPromotionEnabled           bool               `json:"sla_promotion_enabled"`
+	SLAPromotionCandidateWindow   int                `json:"sla_promotion_candidate_window"`
+	SLAPromotionRules             []SLAPromotionRule `json:"sla_promotion_rules"`
+}
+
+type SLAPromotionRule struct {
+	PolicyID      string `json:"policy_id"`
+	TenantID      string `json:"tenant_id"`
+	TenantClass   string `json:"tenant_class"`
+	ModelClass    string `json:"model_class"`
+	RequestKind   string `json:"request_kind"`
+	WaitThreshold string `json:"wait_threshold"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -213,6 +225,8 @@ func LoadConfig() (*Config, error) {
 			SemanticNeighborsMinCount:     getEnvInt("SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT", 20),
 			SemanticNeighborsTaskTimeout:  getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT", "5ms"),
 			SemanticNeighborsBatchTimeout: getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT", "15ms"),
+			SLAPromotionEnabled:           getEnv("SCHEDULER_SLA_PROMOTION_ENABLED", "false") == "true",
+			SLAPromotionCandidateWindow:   getEnvInt("SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW", defaultSLAPromotionCandidateWindow),
 		},
 	}
 
@@ -565,6 +579,15 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
 	if src.SemanticNeighborsBatchTimeout != "" {
 		dst.SemanticNeighborsBatchTimeout = src.SemanticNeighborsBatchTimeout
 	}
+	if src.SLAPromotionEnabled {
+		dst.SLAPromotionEnabled = true
+	}
+	if src.SLAPromotionCandidateWindow != 0 {
+		dst.SLAPromotionCandidateWindow = src.SLAPromotionCandidateWindow
+	}
+	if len(src.SLAPromotionRules) != 0 {
+		dst.SLAPromotionRules = src.SLAPromotionRules
+	}
 }
 
 func applySchedulerDefaults(s *SchedulerConfig) {
@@ -618,6 +641,9 @@ func applySchedulerDefaults(s *SchedulerConfig) {
 	}
 	if s.SemanticNeighborsBatchTimeout == "" {
 		s.SemanticNeighborsBatchTimeout = "15ms"
+	}
+	if s.SLAPromotionCandidateWindow == 0 {
+		s.SLAPromotionCandidateWindow = defaultSLAPromotionCandidateWindow
 	}
 }
 
