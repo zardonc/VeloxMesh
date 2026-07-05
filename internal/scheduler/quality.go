@@ -48,6 +48,8 @@ type qualityScoreEvidence struct {
 	SchedulerType        string
 	SchedulerVersion     string
 	TaskType             string
+	CoverageLevel        string
+	AnomalyStatus        string
 	PredictedLatencyMs   int64
 	SchedulerCallLatency float64
 	Confidence           float64
@@ -58,6 +60,8 @@ func scoreEvidence(task Task) qualityScoreEvidence {
 		SchedulerType:        task.Metadata[schedulerTypeMetadata],
 		SchedulerVersion:     task.Metadata[schedulerVersionMetadata],
 		TaskType:             string(task.Feature.RequestKind),
+		CoverageLevel:        coverageLevel(task.Feature.CoverageLevel),
+		AnomalyStatus:        anomalyStatus(task.Metadata[schedulerAnomalyStatusMeta]),
 		PredictedLatencyMs:   parseInt64(task.Metadata[schedulerPredictedLatencyMeta]),
 		SchedulerCallLatency: float64(parseInt64(task.Metadata[schedulerCallLatencyMetadata])),
 		Confidence:           parseFloat(task.Metadata[schedulerConfidenceMetadata]),
@@ -69,10 +73,12 @@ func qualityRollup(task Task, labels TrainingLabels, score qualityScoreEvidence,
 	return &controlstate.SchedulerQualityRollup{
 		BucketStart: bucketStart, BucketEnd: bucketStart.Add(qualityBucketDuration),
 		SchedulerType: score.SchedulerType, SchedulerVersion: score.SchedulerVersion,
-		TaskType: score.TaskType, ModelClass: task.Feature.ModelClass, SampleCount: 1,
+		TaskType: score.TaskType, CoverageLevel: score.CoverageLevel, ModelClass: task.Feature.ModelClass, SampleCount: 1,
 		MAPESum: mape, WaitMSSum: float64(labels.CompletedAt.Sub(task.EnqueueTime).Milliseconds()),
 		SchedulerCallLatencyMSSum: score.SchedulerCallLatency, ConfidenceSum: score.Confidence,
-		SafeSampleIDs: []string{sampleID},
+		AnomalyCount: anomalyCount(score.AnomalyStatus), AnomalyRate: float64(anomalyCount(score.AnomalyStatus)),
+		AnomalyUnavailableCount: anomalyUnavailableCount(score.AnomalyStatus),
+		SafeSampleIDs:           []string{sampleID},
 	}
 }
 
@@ -80,9 +86,10 @@ func (r *PredictionQualityRecorder) recordMetrics(task Task, score qualityScoreE
 	if r.Metrics == nil {
 		return
 	}
-	r.Metrics.RecordSchedulerPredictionMAPE(score.SchedulerType, score.SchedulerVersion, score.TaskType, mape)
-	r.Metrics.RecordSchedulerComparisonWait(score.SchedulerType, score.SchedulerVersion, score.TaskType, float64(labels.CompletedAt.Sub(task.EnqueueTime).Milliseconds()))
-	r.Metrics.RecordSchedulerComparisonCall(score.SchedulerType, score.SchedulerVersion, score.TaskType, score.SchedulerCallLatency)
+	r.Metrics.RecordSchedulerPredictionMAPE(score.SchedulerType, score.SchedulerVersion, score.TaskType, score.CoverageLevel, score.AnomalyStatus, mape)
+	r.Metrics.RecordSchedulerComparisonWait(score.SchedulerType, score.SchedulerVersion, score.TaskType, score.CoverageLevel, score.AnomalyStatus, float64(labels.CompletedAt.Sub(task.EnqueueTime).Milliseconds()))
+	r.Metrics.RecordSchedulerComparisonCall(score.SchedulerType, score.SchedulerVersion, score.TaskType, score.CoverageLevel, score.AnomalyStatus, score.SchedulerCallLatency)
+	r.Metrics.IncSchedulerAnomalyStatus(score.SchedulerVersion, score.TaskType, score.CoverageLevel, score.AnomalyStatus)
 }
 
 func (r *PredictionQualityRecorder) incError(score qualityScoreEvidence) {
@@ -128,4 +135,36 @@ func parseInt64(value string) int64 {
 func parseFloat(value string) float64 {
 	parsed, _ := strconv.ParseFloat(value, 64)
 	return parsed
+}
+
+func anomalyCount(status string) int64 {
+	if status == AnomalyStatusOOD {
+		return 1
+	}
+	return 0
+}
+
+func anomalyUnavailableCount(status string) int64 {
+	if status == AnomalyStatusUnavailable || status == AnomalyStatusDegraded {
+		return 1
+	}
+	return 0
+}
+
+func anomalyStatus(status string) string {
+	switch status {
+	case AnomalyStatusOOD, AnomalyStatusUnavailable, AnomalyStatusDegraded:
+		return status
+	default:
+		return AnomalyStatusNormal
+	}
+}
+
+func coverageLevel(level string) string {
+	switch level {
+	case SemanticCoverageTenant, SemanticCoverageFallback, SemanticCoverageAll:
+		return level
+	default:
+		return SemanticCoverageNone
+	}
 }

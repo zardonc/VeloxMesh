@@ -38,6 +38,9 @@ func TestSchedulerQualityRollupsUpsertAndListByWindow(t *testing.T) {
 	if len(got) != 1 || got[0].SampleCount != 2 || got[0].MAPEAvg != 50 {
 		t.Fatalf("unexpected rollup: %#v", got)
 	}
+	if got[0].CoverageLevel != "tenant" || got[0].AnomalyCount != 2 || got[0].AnomalyRate != 1 || got[0].AnomalyUnavailableCount != 2 {
+		t.Fatalf("unexpected anomaly rollup fields: %#v", got[0])
+	}
 	if strings.Join(got[0].SafeSampleIDs, ",") != "sample-1,sample-2" {
 		t.Fatalf("unexpected sample IDs: %#v", got[0].SafeSampleIDs)
 	}
@@ -81,7 +84,7 @@ func testSchedulerQualityRollup() *controlstate.SchedulerQualityRollup {
 		BucketStart: start, BucketEnd: start.Add(5 * time.Minute),
 		SchedulerType: "onnx", SchedulerVersion: "v1", TaskType: "code_gen",
 		ModelClass: "standard", SampleCount: 1, MAPESum: 25, WaitMSSum: 10,
-		SchedulerCallLatencyMSSum: 3, ConfidenceSum: 0.8,
-		SafeSampleIDs: []string{"sample-1"},
+		SchedulerCallLatencyMSSum: 3, ConfidenceSum: 0.8, CoverageLevel: "tenant",
+		AnomalyCount: 1, AnomalyUnavailableCount: 1, SafeSampleIDs: []string{"sample-1"},
 	}
 }

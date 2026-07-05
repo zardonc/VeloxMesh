@@ -49,7 +49,7 @@ func (r *schedulerQualityRollupRepo) prepare(ctx context.Context, incoming *cont
 }
 
 func (r *schedulerQualityRollupRepo) get(ctx context.Context, key *controlstate.SchedulerQualityRollup) (*controlstate.SchedulerQualityRollup, error) {
-	row := r.db.QueryRowContext(ctx, selectSchedulerQualityRollupSQL, qualityTime(key.BucketStart), key.SchedulerType, key.SchedulerVersion, key.TaskType, key.ModelClass)
+	row := r.db.QueryRowContext(ctx, selectSchedulerQualityRollupSQL, qualityTime(key.BucketStart), key.SchedulerType, key.SchedulerVersion, key.TaskType, key.ModelClass, key.CoverageLevel)
 	return scanSchedulerQualityRollup(row)
 }
 
@@ -74,10 +74,11 @@ func scanSchedulerQualityRollup(row qualityRollupScanner) (*controlstate.Schedul
 	var bucketStart, bucketEnd, sampleIDs string
 	err := row.Scan(
 		&bucketStart, &bucketEnd, &rollup.SchedulerType, &rollup.SchedulerVersion,
-		&rollup.TaskType, &rollup.ModelClass, &rollup.SampleCount, &rollup.MAPESum,
-		&rollup.MAPEAvg, &rollup.WaitMSSum, &rollup.WaitMSAvg,
+		&rollup.TaskType, &rollup.ModelClass, &rollup.CoverageLevel, &rollup.SampleCount,
+		&rollup.MAPESum, &rollup.MAPEAvg, &rollup.WaitMSSum, &rollup.WaitMSAvg,
 		&rollup.SchedulerCallLatencyMSSum, &rollup.SchedulerCallLatencyMSAvg,
-		&rollup.ErrorCount, &rollup.ConfidenceSum, &rollup.ConfidenceAvg, &sampleIDs,
+		&rollup.ErrorCount, &rollup.ConfidenceSum, &rollup.ConfidenceAvg,
+		&rollup.AnomalyCount, &rollup.AnomalyRate, &rollup.AnomalyUnavailableCount, &sampleIDs,
 	)
 	if err != nil {
 		return nil, err
@@ -92,9 +93,9 @@ func qualityRollupValues(r *controlstate.SchedulerQualityRollup) []any {
 	sampleIDs, _ := json.Marshal(r.SafeSampleIDs)
 	return []any{
 		qualityTime(r.BucketStart), qualityTime(r.BucketEnd), r.SchedulerType, r.SchedulerVersion, r.TaskType,
-		r.ModelClass, r.SampleCount, r.MAPESum, r.MAPEAvg, r.WaitMSSum, r.WaitMSAvg,
+		r.ModelClass, r.CoverageLevel, r.SampleCount, r.MAPESum, r.MAPEAvg, r.WaitMSSum, r.WaitMSAvg,
 		r.SchedulerCallLatencyMSSum, r.SchedulerCallLatencyMSAvg, r.ErrorCount,
-		r.ConfidenceSum, r.ConfidenceAvg, string(sampleIDs),
+		r.ConfidenceSum, r.ConfidenceAvg, r.AnomalyCount, r.AnomalyRate, r.AnomalyUnavailableCount, string(sampleIDs),
 	}
 }
 
@@ -108,17 +109,18 @@ func parseQualityTime(value string) time.Time {
 }
 
 const schedulerQualityRollupColumns = `
-	bucket_start, bucket_end, scheduler_type, scheduler_version, task_type, model_class,
+	bucket_start, bucket_end, scheduler_type, scheduler_version, task_type, model_class, coverage_level,
 	sample_count, mape_sum, mape_avg, wait_ms_sum, wait_ms_avg,
 	scheduler_call_latency_ms_sum, scheduler_call_latency_ms_avg,
-	error_count, confidence_sum, confidence_avg, safe_sample_ids_json`
+	error_count, confidence_sum, confidence_avg,
+	anomaly_count, anomaly_rate, anomaly_unavailable_count, safe_sample_ids_json`
 
 const replaceSchedulerQualityRollupSQL = `INSERT OR REPLACE INTO scheduler_quality_rollups (` + schedulerQualityRollupColumns + `)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 const selectSchedulerQualityRollupSQL = `SELECT ` + schedulerQualityRollupColumns + `
 FROM scheduler_quality_rollups
-WHERE bucket_start = ? AND scheduler_type = ? AND scheduler_version = ? AND task_type = ? AND model_class = ?`
+WHERE bucket_start = ? AND scheduler_type = ? AND scheduler_version = ? AND task_type = ? AND model_class = ? AND coverage_level = ?`
 
 const selectSchedulerQualityRollupsSQL = `SELECT ` + schedulerQualityRollupColumns + `
 FROM scheduler_quality_rollups

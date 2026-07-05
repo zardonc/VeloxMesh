@@ -38,6 +38,28 @@ func TestPredictionQualityRecorderWritesDurableRollup(t *testing.T) {
 	if repo.rollup.ConfidenceSum != 0.75 || repo.rollup.SafeSampleIDs[0] != "safe-sample-1" {
 		t.Fatalf("expected confidence and safe sample link, got %#v", repo.rollup)
 	}
+	if repo.rollup.CoverageLevel != SemanticCoverageTenant || repo.rollup.AnomalyCount != 1 || repo.rollup.AnomalyRate != 1 {
+		t.Fatalf("expected anomaly rollup fields, got %#v", repo.rollup)
+	}
+}
+
+func TestPredictionQualityRecorderRecordsUnavailableAnomalySeparately(t *testing.T) {
+	repo := &qualityRepo{}
+	recorder := &PredictionQualityRecorder{Repo: repo}
+	completed := time.Date(2026, 7, 4, 12, 3, 0, 0, time.UTC)
+	task := qualityTask(completed)
+	task.Metadata[schedulerAnomalyStatusMeta] = AnomalyStatusDegraded
+
+	err := recorder.Record(context.Background(), task, TrainingLabels{
+		ActualLatencyMs: 100,
+		CompletedAt:     completed,
+	}, "safe-sample-1")
+	if err != nil {
+		t.Fatalf("record quality: %v", err)
+	}
+	if repo.rollup.AnomalyUnavailableCount != 1 || repo.rollup.ErrorCount != 0 {
+		t.Fatalf("expected anomaly unavailable separate from errors, got %#v", repo.rollup)
+	}
 }
 
 func TestPredictionQualityRecorderSkipsInvalidMAPE(t *testing.T) {
@@ -67,8 +89,9 @@ func qualityTask(now time.Time) Task {
 		ID:          "task-1",
 		EnqueueTime: now.Add(-time.Second),
 		Feature: TaskFeature{
-			ModelClass:  "standard",
-			RequestKind: RequestKindCodeGen,
+			ModelClass:    "standard",
+			RequestKind:   RequestKindCodeGen,
+			CoverageLevel: SemanticCoverageTenant,
 		},
 		Metadata: map[string]string{
 			schedulerTypeMetadata:         string(SchedulerTypeONNX),
@@ -76,6 +99,7 @@ func qualityTask(now time.Time) Task {
 			schedulerPredictedLatencyMeta: "125",
 			schedulerConfidenceMetadata:   "0.75",
 			schedulerCallLatencyMetadata:  "3",
+			schedulerAnomalyStatusMeta:    AnomalyStatusOOD,
 		},
 	}
 }

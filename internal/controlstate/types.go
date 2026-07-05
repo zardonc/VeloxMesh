@@ -262,6 +262,7 @@ type SchedulerQualityRollup struct {
 	SchedulerType             string    `json:"scheduler_type"`
 	SchedulerVersion          string    `json:"scheduler_version"`
 	TaskType                  string    `json:"task_type"`
+	CoverageLevel             string    `json:"coverage_level"`
 	ModelClass                string    `json:"model_class"`
 	SampleCount               int64     `json:"sample_count"`
 	MAPESum                   float64   `json:"mape_sum"`
@@ -273,5 +274,8 @@ type SchedulerQualityRollup struct {
 	ErrorCount                int64     `json:"error_count"`
 	ConfidenceSum             float64   `json:"confidence_sum"`
 	ConfidenceAvg             float64   `json:"confidence_avg"`
+	AnomalyCount              int64     `json:"anomaly_count"`
+	AnomalyRate               float64   `json:"anomaly_rate"`
+	AnomalyUnavailableCount   int64     `json:"anomaly_unavailable_count"`
 	SafeSampleIDs             []string  `json:"safe_sample_ids"`
 }

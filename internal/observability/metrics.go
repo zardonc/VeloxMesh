@@ -20,9 +20,9 @@ type Metrics interface {
 	RecordSchedulerBreakerState(state string)
 	IncPriorityDowngrade(reason string, from string, to string)
 	IncSchedulerClassificationSource(source string)
-	RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, mape float64)
-	RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, waitMs float64)
-	RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, latencyMs float64)
+	RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, mape float64)
+	RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, waitMs float64)
+	RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, latencyMs float64)
 	IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string)
 	IncSchedulerAnomalyStatus(schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string)
 	IncSchedulerRolloutAlert(reason string)
@@ -67,11 +67,11 @@ func (m *StubMetrics) IncSchedulerError(reason string)                          
 func (m *StubMetrics) RecordSchedulerBreakerState(state string)                      {}
 func (m *StubMetrics) IncPriorityDowngrade(reason string, from string, to string)    {}
 func (m *StubMetrics) IncSchedulerClassificationSource(source string)                {}
-func (m *StubMetrics) RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, mape float64) {
+func (m *StubMetrics) RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, mape float64) {
 }
-func (m *StubMetrics) RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, waitMs float64) {
+func (m *StubMetrics) RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, waitMs float64) {
 }
-func (m *StubMetrics) RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, latencyMs float64) {
+func (m *StubMetrics) RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, latencyMs float64) {
 }
 func (m *StubMetrics) IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string) {
 }

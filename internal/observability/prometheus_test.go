@@ -82,9 +82,9 @@ func TestPrometheusSchedulerPredictionQualityLabels(t *testing.T) {
 	reg := prometheus.NewRegistry()
 	m := NewPrometheusMetrics(reg)
 
-	m.RecordSchedulerPredictionMAPE("onnx", "v1", "code_gen", 25)
-	m.RecordSchedulerComparisonWait("onnx", "v1", "code_gen", 12)
-	m.RecordSchedulerComparisonCall("onnx", "v1", "code_gen", 4)
+	m.RecordSchedulerPredictionMAPE("onnx", "v1", "code_gen", "tenant", "ood", 25)
+	m.RecordSchedulerComparisonWait("onnx", "v1", "code_gen", "tenant", "ood", 12)
+	m.RecordSchedulerComparisonCall("onnx", "v1", "code_gen", "tenant", "ood", 4)
 	m.IncSchedulerComparisonError("onnx", "v1", "code_gen")
 
 	mfs, err := reg.Gather()
@@ -107,7 +107,7 @@ func TestPrometheusSchedulerPredictionQualityLabels(t *testing.T) {
 		for _, metric := range mf.Metric {
 			for _, label := range metric.Label {
 				switch label.GetName() {
-				case "scheduler_type", "scheduler_version", "task_type", "le":
+				case "scheduler_type", "scheduler_version", "task_type", "coverage_level", "anomaly_status", "le":
 				default:
 					t.Fatalf("unexpected quality metric label %q on %s", label.GetName(), mf.GetName())
 				}

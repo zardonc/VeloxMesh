@@ -6,6 +6,7 @@ func NormalizeSchedulerQualityRollup(in *SchedulerQualityRollup) *SchedulerQuali
 	out.WaitMSAvg = average(out.WaitMSSum, out.SampleCount)
 	out.SchedulerCallLatencyMSAvg = average(out.SchedulerCallLatencyMSSum, out.SampleCount)
 	out.ConfidenceAvg = average(out.ConfidenceSum, out.SampleCount)
+	out.AnomalyRate = average(float64(out.AnomalyCount), out.SampleCount)
 	out.SafeSampleIDs = append([]string(nil), in.SafeSampleIDs...)
 	return &out
 }
@@ -18,6 +19,8 @@ func MergeSchedulerQualityRollups(current, incoming *SchedulerQualityRollup) *Sc
 	out.SchedulerCallLatencyMSSum += incoming.SchedulerCallLatencyMSSum
 	out.ErrorCount += incoming.ErrorCount
 	out.ConfidenceSum += incoming.ConfidenceSum
+	out.AnomalyCount += incoming.AnomalyCount
+	out.AnomalyUnavailableCount += incoming.AnomalyUnavailableCount
 	out.SafeSampleIDs = appendUnique(out.SafeSampleIDs, incoming.SafeSampleIDs)
 	return NormalizeSchedulerQualityRollup(&out)
 }

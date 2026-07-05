@@ -122,17 +122,17 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			Name:    "gateway_scheduler_prediction_mape_percent",
 			Help:    "Gateway scheduler prediction MAPE by backend.",
 			Buckets: prometheus.DefBuckets,
-		}, []string{"scheduler_type", "scheduler_version", "task_type"}),
+		}, []string{"scheduler_type", "scheduler_version", "task_type", "coverage_level", "anomaly_status"}),
 		comparisonWait: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Name:    "gateway_scheduler_comparison_wait_duration_ms",
 			Help:    "Gateway scheduler rollout task wait duration by backend.",
 			Buckets: prometheus.DefBuckets,
-		}, []string{"scheduler_type", "scheduler_version", "task_type"}),
+		}, []string{"scheduler_type", "scheduler_version", "task_type", "coverage_level", "anomaly_status"}),
 		comparisonCall: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Name:    "gateway_scheduler_comparison_call_duration_ms",
 			Help:    "Gateway scheduler rollout call duration by backend.",
 			Buckets: prometheus.DefBuckets,
-		}, []string{"scheduler_type", "scheduler_version", "task_type"}),
+		}, []string{"scheduler_type", "scheduler_version", "task_type", "coverage_level", "anomaly_status"}),
 		comparisonErrors: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: "gateway_scheduler_comparison_errors_total",
 			Help: "Gateway scheduler rollout errors by backend.",
@@ -331,16 +331,16 @@ func (m *PrometheusMetrics) IncSchedulerClassificationSource(source string) {
 	m.classificationSrc.WithLabelValues(allowedLabel(source, "fallback", "structured", "rule")).Inc()
 }
 
-func (m *PrometheusMetrics) RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, mape float64) {
-	m.predictionMAPE.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType)).Observe(mape)
+func (m *PrometheusMetrics) RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, mape float64) {
+	m.predictionMAPE.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType), safeCoverageLevel(coverageLevel), safeAnomalyStatus(anomalyStatus)).Observe(mape)
 }
 
-func (m *PrometheusMetrics) RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, waitMs float64) {
-	m.comparisonWait.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType)).Observe(waitMs)
+func (m *PrometheusMetrics) RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, waitMs float64) {
+	m.comparisonWait.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType), safeCoverageLevel(coverageLevel), safeAnomalyStatus(anomalyStatus)).Observe(waitMs)
 }
 
-func (m *PrometheusMetrics) RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, latencyMs float64) {
-	m.comparisonCall.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType)).Observe(latencyMs)
+func (m *PrometheusMetrics) RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, latencyMs float64) {
+	m.comparisonCall.WithLabelValues(safeSchedulerType(schedulerType), safeSchedulerVersion(schedulerVersion), safeTaskType(taskType), safeCoverageLevel(coverageLevel), safeAnomalyStatus(anomalyStatus)).Observe(latencyMs)
 }
 
 func (m *PrometheusMetrics) IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string) {

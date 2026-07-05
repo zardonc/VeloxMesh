@@ -50,7 +50,7 @@ func (r *schedulerQualityRollupRepo) prepare(ctx context.Context, incoming *cont
 }
 
 func (r *schedulerQualityRollupRepo) get(ctx context.Context, key *controlstate.SchedulerQualityRollup) (*controlstate.SchedulerQualityRollup, error) {
-	row := r.pool.QueryRow(ctx, selectSchedulerQualityRollupSQL, key.BucketStart, key.SchedulerType, key.SchedulerVersion, key.TaskType, key.ModelClass)
+	row := r.pool.QueryRow(ctx, selectSchedulerQualityRollupSQL, key.BucketStart, key.SchedulerType, key.SchedulerVersion, key.TaskType, key.ModelClass, key.CoverageLevel)
 	return scanSchedulerQualityRollup(row)
 }
 
@@ -75,10 +75,11 @@ func scanSchedulerQualityRollup(row qualityRollupScanner) (*controlstate.Schedul
 	var sampleIDs []byte
 	err := row.Scan(
 		&rollup.BucketStart, &rollup.BucketEnd, &rollup.SchedulerType, &rollup.SchedulerVersion,
-		&rollup.TaskType, &rollup.ModelClass, &rollup.SampleCount, &rollup.MAPESum,
-		&rollup.MAPEAvg, &rollup.WaitMSSum, &rollup.WaitMSAvg,
+		&rollup.TaskType, &rollup.ModelClass, &rollup.CoverageLevel, &rollup.SampleCount,
+		&rollup.MAPESum, &rollup.MAPEAvg, &rollup.WaitMSSum, &rollup.WaitMSAvg,
 		&rollup.SchedulerCallLatencyMSSum, &rollup.SchedulerCallLatencyMSAvg,
-		&rollup.ErrorCount, &rollup.ConfidenceSum, &rollup.ConfidenceAvg, &sampleIDs,
+		&rollup.ErrorCount, &rollup.ConfidenceSum, &rollup.ConfidenceAvg,
+		&rollup.AnomalyCount, &rollup.AnomalyRate, &rollup.AnomalyUnavailableCount, &sampleIDs,
 	)
 	if err != nil {
 		return nil, err
@@ -91,21 +92,22 @@ func qualityRollupValues(r *controlstate.SchedulerQualityRollup) []any {
 	sampleIDs, _ := json.Marshal(r.SafeSampleIDs)
 	return []any{
 		r.BucketStart, r.BucketEnd, r.SchedulerType, r.SchedulerVersion, r.TaskType,
-		r.ModelClass, r.SampleCount, r.MAPESum, r.MAPEAvg, r.WaitMSSum, r.WaitMSAvg,
+		r.ModelClass, r.CoverageLevel, r.SampleCount, r.MAPESum, r.MAPEAvg, r.WaitMSSum, r.WaitMSAvg,
 		r.SchedulerCallLatencyMSSum, r.SchedulerCallLatencyMSAvg, r.ErrorCount,
-		r.ConfidenceSum, r.ConfidenceAvg, sampleIDs,
+		r.ConfidenceSum, r.ConfidenceAvg, r.AnomalyCount, r.AnomalyRate, r.AnomalyUnavailableCount, sampleIDs,
 	}
 }
 
 const schedulerQualityRollupColumns = `
-	bucket_start, bucket_end, scheduler_type, scheduler_version, task_type, model_class,
+	bucket_start, bucket_end, scheduler_type, scheduler_version, task_type, model_class, coverage_level,
 	sample_count, mape_sum, mape_avg, wait_ms_sum, wait_ms_avg,
 	scheduler_call_latency_ms_sum, scheduler_call_latency_ms_avg,
-	error_count, confidence_sum, confidence_avg, safe_sample_ids_json`
+	error_count, confidence_sum, confidence_avg,
+	anomaly_count, anomaly_rate, anomaly_unavailable_count, safe_sample_ids_json`
 
 const upsertSchedulerQualityRollupSQL = `INSERT INTO scheduler_quality_rollups (` + schedulerQualityRollupColumns + `)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-ON CONFLICT (bucket_start, scheduler_type, scheduler_version, task_type, model_class)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+ON CONFLICT (bucket_start, scheduler_type, scheduler_version, task_type, model_class, coverage_level)
 DO UPDATE SET
 	bucket_end = EXCLUDED.bucket_end,
 	sample_count = EXCLUDED.sample_count,
@@ -118,11 +120,14 @@ DO UPDATE SET
 	error_count = EXCLUDED.error_count,
 	confidence_sum = EXCLUDED.confidence_sum,
 	confidence_avg = EXCLUDED.confidence_avg,
+	anomaly_count = EXCLUDED.anomaly_count,
+	anomaly_rate = EXCLUDED.anomaly_rate,
+	anomaly_unavailable_count = EXCLUDED.anomaly_unavailable_count,
 	safe_sample_ids_json = EXCLUDED.safe_sample_ids_json`
 
 const selectSchedulerQualityRollupSQL = `SELECT ` + schedulerQualityRollupColumns + `
 FROM scheduler_quality_rollups
-WHERE bucket_start = $1 AND scheduler_type = $2 AND scheduler_version = $3 AND task_type = $4 AND model_class = $5`
+WHERE bucket_start = $1 AND scheduler_type = $2 AND scheduler_version = $3 AND task_type = $4 AND model_class = $5 AND coverage_level = $6`
 
 const selectSchedulerQualityRollupsSQL = `SELECT ` + schedulerQualityRollupColumns + `
 FROM scheduler_quality_rollups
