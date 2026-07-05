@@ -14,7 +14,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 **v7.4 Gateway Scheduler** has shipped and is archived. The gateway now owns optional scheduler-backed queueing, safe training feedback, ONNX runtime scoring, heuristic/ONNX A/B rollout, prediction-quality evidence, and authenticated runtime rollback controls while preserving FIFO fallback and the OpenAI-compatible data-plane API.
 
-**v7.5 Scheduler Enhancements** has completed semantic-neighbor aggregate features and anomaly/OOD conservative scoring. Tenant SLA waiting-time promotion remains the active scheduler enhancement slice.
+**v7.5 Scheduler Enhancements** has completed semantic-neighbor aggregate features and anomaly/OOD conservative scoring, including production-shape ONNX artifact verification through the Python worker and Scheduler call chain. Tenant SLA waiting-time promotion remains the active scheduler enhancement slice.
 
 ## Current Milestone: v7.5 Scheduler Enhancements
 
@@ -112,7 +112,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Scheduler implementation reference: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\Gateway-Scheduler-Implementation.md`.
 - Operational resource lookup: test-environment components are configured in `.env`, including the test environment address; provider credentials and model resources for real-provider UAT are configured in `.env.local`. Prefer non-Gemini provider resources for routine real-provider checks because Gemini entries may carry usage-limit notes and should be reserved for Gemini-specific scenarios.
 - The original gateway design is Go-first. TypeScript/Node gateway plans were superseded.
-- Current code includes Phase 1 through Phase 18: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission, Redis VSS fallback for Qdrant degradation, multi-node coordination, PostgreSQL/pgvector compatibility, optional Gateway Scheduler queueing/scoring/rollout controls, semantic-neighbor aggregate scheduler features, and anomaly/OOD conservative scoring. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL is available as the Plan 4 extension path; LanceDB is retained only for edge builds.
+- Current code includes Phase 1 through Phase 18: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission, Redis VSS fallback for Qdrant degradation, multi-node coordination, PostgreSQL/pgvector compatibility, optional Gateway Scheduler queueing/scoring/rollout controls, semantic-neighbor aggregate scheduler features, and anomaly/OOD conservative scoring with a production-shape ONNX predictor artifact served through the Python worker. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL is available as the Plan 4 extension path; LanceDB is retained only for edge builds.
 - Downstream clients should continue to see OpenAI-compatible responses.
 
 ## Constraints
@@ -158,6 +158,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Scheduler A/B rollout and prediction quality are complete | Phase 16 validated weighted heuristic/ONNX routing, quality rollups, runtime rollback controls, and no automatic rollout changes on alert | Good |
 | v7.5 keeps semantic lookup in Gateway | Scheduler may receive bounded aggregate statistics, never embeddings or raw text | Good |
 | ONNX anomaly/OOD scoring is conservative and optional | Missing or invalid anomaly metadata degrades anomaly behavior only; OOD severity lowers confidence and increases uncertainty without changing Scheduler RPC | Good |
+| Runtime ONNX prediction uses Python worker by default | Keeps the default Go build free of ONNX Runtime CGO/native shared-library coupling while still testing the production-shape ONNX artifact and Scheduler call chain | Good |
 | v7.5 SLA promotion remains gateway-owned | Queue ownership and promotion policy stay in Gateway; Scheduler continues to score tasks only | Pending |
 
 ## Evolution

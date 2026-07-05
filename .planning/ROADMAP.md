@@ -77,12 +77,14 @@ Success criteria:
 2. ONNX Scheduler validates anomaly metadata at startup and reports clear degraded or fallback behavior.
 3. Out-of-distribution tasks produce lower confidence, higher uncertainty, and more conservative virtual-deadline scores.
 4. Quality rollups and metrics compare anomaly rate, MAPE, and fallback behavior by scheduler version and task type.
+5. Verification uses the same production-shape ONNX model artifact and Python worker/Scheduler call chain that production will ship; only training data volume may differ.
 
 Candidate plan slices:
 
 - **18-01 Artifact thresholds**: compute and publish anomaly/OOD metadata from safe training samples.
 - **18-02 Runtime conservatism**: apply anomaly signals in ONNX scoring without changing the scheduler RPC contract.
 - **18-03 Quality evidence**: add rollup/metric coverage and tests for anomaly flags, fallback, and prediction quality.
+- **18-04 Predictor boundary and real ONNX Runtime**: route Scheduler ONNX mode through the model-neutral predictor boundary, long-lived Python ONNX Runtime worker, and production-shape feature-driven ONNX artifact.
 
 ### Phase 19: SLA Waiting-Time Promotion
 
@@ -119,4 +121,4 @@ Candidate plan slices:
 - Source code committed to git must not contain hardcoded configuration.
 
 ---
-*Roadmap refreshed: 2026-07-05 after starting v7.5 Scheduler Enhancements*
+*Roadmap refreshed: 2026-07-05 after confirming Phase 18 production-shape ONNX verification*
