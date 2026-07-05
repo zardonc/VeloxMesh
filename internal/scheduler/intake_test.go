@@ -107,6 +107,59 @@ func TestTaskIntakeScorerErrorRecordsOneSchedulerCall(t *testing.T) {
 	}
 }
 
+func TestTaskIntakeSemanticNeighborsRunBeforeScoring(t *testing.T) {
+	events := []string{}
+	scorer := &captureScorer{events: &events}
+	intake := semanticNeighborIntake(scorer, &captureEnricher{events: &events})
+
+	task, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "t1"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
+	if len(events) != 2 || events[0] != "enrich" || events[1] != "score" {
+		t.Fatalf("unexpected ordering: %v", events)
+	}
+	if scorer.feature.NeighborCount != 2 || scorer.feature.CoverageLevel != SemanticCoverageTenant {
+		t.Fatalf("scorer saw unenriched feature: %#v", scorer.feature)
+	}
+	if task.Feature.NeighborCount != 2 {
+		t.Fatalf("queued task lost enriched feature: %#v", task.Feature)
+	}
+}
+
+func TestTaskIntakeSemanticNeighborErrorFailsOpen(t *testing.T) {
+	scorer := &captureScorer{}
+	intake := semanticNeighborIntake(scorer, errorEnricher{})
+
+	_, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "t1"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
+	if scorer.feature.NeighborCount != 0 || scorer.feature.CoverageLevel != SemanticCoverageNone {
+		t.Fatalf("expected neutral scorer feature after enrichment error: %#v", scorer.feature)
+	}
+}
+
+func TestTaskIntakeSemanticNeighborTimeoutFailsOpen(t *testing.T) {
+	scorer := &captureScorer{}
+	intake := semanticNeighborIntake(scorer, blockingEnricher{})
+	intake.SemanticNeighborTaskTimeout = time.Millisecond
+
+	_, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "t1"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
+	if scorer.feature.NeighborCount != 0 || scorer.feature.CoverageLevel != SemanticCoverageNone {
+		t.Fatalf("expected neutral scorer feature after enrichment timeout: %#v", scorer.feature)
+	}
+}
+
 func TestSynchronousRunnerCancelRemovesQueuedTask(t *testing.T) {
 	registry := NewResultRegistry()
 	queue := &recordingQueue{QueueBackend: NewMemoryQueue()}
@@ -142,6 +195,51 @@ type errorScorer struct{}
 
 func (errorScorer) Score(context.Context, []TaskFeature) ([]ScoreResult, error) {
 	return nil, errors.New("scheduler unavailable")
+}
+
+func semanticNeighborIntake(scorer Scorer, enricher SemanticNeighborEnricher) *TaskIntake {
+	return &TaskIntake{
+		Queue: NewMemoryQueue(), Scorer: scorer, Registry: NewResultRegistry(),
+		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh},
+		Backend: "memory", Metrics: observability.NewStubMetrics(), SemanticNeighbors: enricher,
+	}
+}
+
+type captureScorer struct {
+	events  *[]string
+	feature TaskFeature
+}
+
+func (s *captureScorer) Score(_ context.Context, tasks []TaskFeature) ([]ScoreResult, error) {
+	if s.events != nil {
+		*s.events = append(*s.events, "score")
+	}
+	s.feature = tasks[0]
+	return []ScoreResult{{TaskID: tasks[0].TaskID, Score: 1, Priority: tasks[0].Priority}}, nil
+}
+
+type captureEnricher struct {
+	events *[]string
+}
+
+func (e *captureEnricher) Enrich(_ context.Context, _ *llm.LLMRequest, feature TaskFeature) (TaskFeature, error) {
+	*e.events = append(*e.events, "enrich")
+	feature.NeighborCount = 2
+	feature.CoverageLevel = SemanticCoverageTenant
+	return feature, nil
+}
+
+type errorEnricher struct{}
+
+func (errorEnricher) Enrich(context.Context, *llm.LLMRequest, TaskFeature) (TaskFeature, error) {
+	return TaskFeature{}, errors.New("enrichment failed")
+}
+
+type blockingEnricher struct{}
+
+func (blockingEnricher) Enrich(ctx context.Context, _ *llm.LLMRequest, feature TaskFeature) (TaskFeature, error) {
+	<-ctx.Done()
+	return feature, ctx.Err()
 }
 
 type schedulerMetricsSpy struct {

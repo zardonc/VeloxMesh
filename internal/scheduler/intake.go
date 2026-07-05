@@ -12,15 +12,17 @@ import (
 )
 
 type TaskIntake struct {
-	Queue     QueueBackend
-	Guard     QueueGuard
-	Scorer    Scorer
-	Registry  *ResultRegistry
-	Priority  *PriorityResolver
-	Policy    PriorityPolicy
-	Metrics   observability.Metrics
-	Backend   string
-	RouteHint string
+	Queue                       QueueBackend
+	Guard                       QueueGuard
+	Scorer                      Scorer
+	Registry                    *ResultRegistry
+	Priority                    *PriorityResolver
+	Policy                      PriorityPolicy
+	Metrics                     observability.Metrics
+	Backend                     string
+	RouteHint                   string
+	SemanticNeighbors           SemanticNeighborEnricher
+	SemanticNeighborTaskTimeout time.Duration
 }
 
 var ErrTaskIntakeNotConfigured = errors.New("task intake not configured")
@@ -45,6 +47,7 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 	}
 	now := time.Now()
 	feature := ExtractSafeFeatures(req, priority.Resolved, i.RouteHint, now)
+	feature = i.enrichFeatures(ctx, req, feature)
 	scoreStart := time.Now()
 	scores, err := i.Scorer.Score(ctx, []TaskFeature{feature})
 	if err != nil {
@@ -83,6 +86,37 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 		}
 	}
 	return task, nil
+}
+
+func (i *TaskIntake) enrichFeatures(ctx context.Context, req *llm.LLMRequest, feature TaskFeature) TaskFeature {
+	if i.SemanticNeighbors == nil {
+		return feature
+	}
+	enrichCtx := ctx
+	cancel := func() {}
+	if i.SemanticNeighborTaskTimeout > 0 {
+		enrichCtx, cancel = context.WithTimeout(ctx, i.SemanticNeighborTaskTimeout)
+	}
+	defer cancel()
+	enriched, err := i.SemanticNeighbors.Enrich(enrichCtx, req, feature)
+	if err != nil {
+		i.recordSemanticNeighborError(err)
+		return feature
+	}
+	return enriched
+}
+
+func (i *TaskIntake) recordSemanticNeighborError(err error) {
+	if i.Metrics == nil {
+		return
+	}
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+		i.Metrics.IncSemanticNeighborTimeout()
+		i.Metrics.IncSemanticNeighborFallback("timeout")
+		return
+	}
+	i.Metrics.IncSemanticNeighborError("error")
+	i.Metrics.IncSemanticNeighborFallback("error")
 }
 
 func scoreMetadata(score ScoreResult, latency time.Duration) map[string]string {

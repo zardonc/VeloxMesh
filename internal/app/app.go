@@ -31,16 +31,17 @@ import (
 )
 
 type App struct {
-	Config                 *config.Config
-	Logger                 *slog.Logger
-	Router                 http.Handler
-	RuntimeProviderManager *controlstate.RuntimeProviderManager
-	HotState               hotstate.Client
-	Coordinator            coordination.Coordinator
-	ShutdownTracing        func(context.Context) error
-	SchedulerRunner        *scheduler.SynchronousRunner
-	SchedulerQueueBackend  string
-	SchedulerFeedbackOn    bool
+	Config                       *config.Config
+	Logger                       *slog.Logger
+	Router                       http.Handler
+	RuntimeProviderManager       *controlstate.RuntimeProviderManager
+	HotState                     hotstate.Client
+	Coordinator                  coordination.Coordinator
+	ShutdownTracing              func(context.Context) error
+	SchedulerRunner              *scheduler.SynchronousRunner
+	SchedulerQueueBackend        string
+	SchedulerFeedbackOn          bool
+	SchedulerSemanticNeighborsOn bool
 }
 
 const (
@@ -71,7 +72,7 @@ func (a *App) HealthStore() health.Store {
 	return a.RuntimeProviderManager.HealthStore()
 }
 
-func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotstate.Client, logger *slog.Logger, recorder *scheduler.TrainingRecorder, quality *scheduler.PredictionQualityRecorder, rollout *scheduler.SchedulerRolloutController) (*scheduler.SynchronousRunner, string) {
+func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotstate.Client, logger *slog.Logger, recorder *scheduler.TrainingRecorder, quality *scheduler.PredictionQualityRecorder, rollout *scheduler.SchedulerRolloutController, semanticNeighbors scheduler.SemanticNeighborEnricher) (*scheduler.SynchronousRunner, string) {
 	queue, backend := newSchedulerQueue(ctx, cfg, logger)
 	scorer, err := scheduler.NewScorerWithController(ctx, cfg.Scheduler, rollout)
 	if err != nil {
@@ -92,13 +93,20 @@ func newSchedulerRunner(ctx context.Context, cfg *config.Config, hotState hotsta
 			HighQuotaPerMinute: int64(cfg.Scheduler.HighQuotaPerMinute),
 			Strict:             cfg.Scheduler.Strict,
 		},
-		Metrics: observability.DefaultMetrics,
-		Backend: backend,
+		Metrics:           observability.DefaultMetrics,
+		Backend:           backend,
+		SemanticNeighbors: semanticNeighbors,
+	}
+	if timeout, err := time.ParseDuration(cfg.Scheduler.SemanticNeighborsTaskTimeout); err == nil {
+		intake.SemanticNeighborTaskTimeout = timeout
 	}
 	executor := &scheduler.Executor{Queue: queue, Registry: registry, Metrics: observability.DefaultMetrics}
 	runner := scheduler.NewSynchronousRunner(intake, executor, registry)
 	runner.Recorder = recorder
 	runner.Quality = quality
+	if indexer, ok := semanticNeighbors.(scheduler.SemanticNeighborIndexer); ok {
+		runner.Indexer = indexer
+	}
 	return runner, backend
 }
 
@@ -284,23 +292,25 @@ func New() (*App, error) {
 	if repo != nil {
 		qualityRecorder = &scheduler.PredictionQualityRecorder{Repo: repo.SchedulerQualityRollups(), Metrics: observability.DefaultMetrics, Controller: rolloutController}
 	}
-	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger, trainingRecorder, qualityRecorder, rolloutController)
+	semanticNeighbors := newSemanticNeighborService(ctx, cfg, logger, m, repo)
+	schedulerRunner, schedulerBackend := newSchedulerRunner(ctx, cfg, hotStateClient, logger, trainingRecorder, qualityRecorder, rolloutController, semanticNeighbors)
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
 	gatewaySvc.SetSchedulerRunner(schedulerRunner)
 
 	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, adminSchedulerHandler, hotStateClient, repo, coord, lagReporter)
 
 	application := &App{
-		Config:                 cfg,
-		Logger:                 logger,
-		Router:                 r,
-		RuntimeProviderManager: m,
-		HotState:               hotStateClient,
-		Coordinator:            coord,
-		ShutdownTracing:        shutdownTracing,
-		SchedulerRunner:        schedulerRunner,
-		SchedulerQueueBackend:  schedulerBackend,
-		SchedulerFeedbackOn:    schedulerFeedbackOn,
+		Config:                       cfg,
+		Logger:                       logger,
+		Router:                       r,
+		RuntimeProviderManager:       m,
+		HotState:                     hotStateClient,
+		Coordinator:                  coord,
+		ShutdownTracing:              shutdownTracing,
+		SchedulerRunner:              schedulerRunner,
+		SchedulerQueueBackend:        schedulerBackend,
+		SchedulerFeedbackOn:          schedulerFeedbackOn,
+		SchedulerSemanticNeighborsOn: semanticNeighbors != nil,
 	}
 
 	if cfg.ControlStateBackend != "disabled" {
