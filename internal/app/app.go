@@ -84,6 +84,15 @@ type schedulerRunnerDeps struct {
 	semanticNeighbors scheduler.SemanticNeighborEnricher
 }
 
+type slaPromoterDeps struct {
+	cfg      config.SchedulerConfig
+	queue    scheduler.QueueBackend
+	registry *scheduler.ResultRegistry
+	audit    controlstate.AuditRepository
+	logger   *slog.Logger
+	metrics  observability.Metrics
+}
+
 func newSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner, string) {
 	ctx, cfg, logger := deps.ctx, deps.cfg, deps.logger
 	queue, backend := newSchedulerQueue(ctx, cfg, logger)
@@ -117,7 +126,14 @@ func newSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner,
 		Queue:    queue,
 		Registry: registry,
 		Metrics:  observability.DefaultMetrics,
-		Promoter: newSLAPromoter(cfg.Scheduler, queue, registry, schedulerAudit(deps.repo), logger),
+		Promoter: newSLAPromoter(slaPromoterDeps{
+			cfg:      cfg.Scheduler,
+			queue:    queue,
+			registry: registry,
+			audit:    schedulerAudit(deps.repo),
+			logger:   logger,
+			metrics:  observability.DefaultMetrics,
+		}),
 	}
 	runner := scheduler.NewSynchronousRunner(intake, executor, registry)
 	runner.Recorder = deps.recorder
@@ -128,18 +144,19 @@ func newSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner,
 	return runner, backend
 }
 
-func newSLAPromoter(cfg config.SchedulerConfig, queue scheduler.QueueBackend, registry *scheduler.ResultRegistry, audit controlstate.AuditRepository, logger *slog.Logger) *scheduler.SLAPromoter {
-	if !cfg.SLAPromotionEnabled {
+func newSLAPromoter(deps slaPromoterDeps) *scheduler.SLAPromoter {
+	if !deps.cfg.SLAPromotionEnabled {
 		return nil
 	}
 	return &scheduler.SLAPromoter{
 		Enabled:         true,
-		CandidateWindow: cfg.SLAPromotionCandidateWindow,
-		Rules:           cfg.SLAPromotionRules,
-		Queue:           queue,
-		Registry:        registry,
-		Audit:           audit,
-		Logger:          logger,
+		CandidateWindow: deps.cfg.SLAPromotionCandidateWindow,
+		Rules:           deps.cfg.SLAPromotionRules,
+		Queue:           deps.queue,
+		Registry:        deps.registry,
+		Audit:           deps.audit,
+		Logger:          deps.logger,
+		Metrics:         deps.metrics,
 	}
 }
 

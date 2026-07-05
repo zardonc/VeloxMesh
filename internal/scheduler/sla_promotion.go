@@ -9,6 +9,7 @@ import (
 
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/observability"
 )
 
 type SLAPromotionOutcome string
@@ -19,6 +20,13 @@ const (
 	SLAPromotionOutcomeBlockedByPriorityOrQuota SLAPromotionOutcome = "blocked_by_priority_or_quota"
 	SLAPromotionOutcomeDisabled                 SLAPromotionOutcome = "disabled"
 	SLAPromotionOutcomeError                    SLAPromotionOutcome = "error"
+)
+
+const (
+	slaMetricDefaultPolicyID    = "none"
+	slaMetricDefaultTenantClass = "anonymous"
+	slaMetricDefaultModelClass  = "unknown"
+	slaMetricDefaultRequestKind = "simple_qa"
 )
 
 type SLAPromotionResult struct {
@@ -40,33 +48,33 @@ type SLAPromoter struct {
 	Registry        *ResultRegistry
 	Audit           controlstate.AuditRepository
 	Logger          *slog.Logger
+	Metrics         observability.Metrics
 }
 
 func (p *SLAPromoter) PromoteBeforePop(ctx context.Context, now time.Time) (SLAPromotionResult, error) {
-	if p == nil || !p.Enabled {
+	if p == nil {
 		return SLAPromotionResult{Outcome: SLAPromotionOutcomeDisabled}, nil
 	}
+	if !p.Enabled {
+		return p.completePromotion(ctx, SLAPromotionResult{Outcome: SLAPromotionOutcomeDisabled}, nil)
+	}
 	if p.Queue == nil || p.Registry == nil || p.CandidateWindow < 1 {
-		return SLAPromotionResult{Outcome: SLAPromotionOutcomeNotEligible}, nil
+		return p.completePromotion(ctx, SLAPromotionResult{Outcome: SLAPromotionOutcomeNotEligible}, nil)
 	}
 	items, err := p.Queue.PeekMin(ctx, p.CandidateWindow)
 	if err != nil {
 		result := SLAPromotionResult{Outcome: SLAPromotionOutcomeError}
-		p.emitEvidence(ctx, result)
-		return result, err
+		return p.completePromotion(ctx, result, err)
 	}
 	result, score, ok := p.selectCandidate(items, now)
 	if !ok || result.Outcome != SLAPromotionOutcomePromoted {
-		p.emitEvidence(ctx, result)
-		return result, nil
+		return p.completePromotion(ctx, result, nil)
 	}
 	if err := p.Queue.Push(ctx, QueueItem{TaskID: result.TaskID, Score: score}); err != nil {
 		result.Outcome = SLAPromotionOutcomeError
-		p.emitEvidence(ctx, result)
-		return result, err
+		return p.completePromotion(ctx, result, err)
 	}
-	p.emitEvidence(ctx, result)
-	return result, nil
+	return p.completePromotion(ctx, result, nil)
 }
 
 func (p *SLAPromoter) selectCandidate(items []QueueItem, now time.Time) (SLAPromotionResult, float64, bool) {
@@ -129,6 +137,33 @@ func promotionResult(task Task, rule config.SLAPromotionRule, outcome SLAPromoti
 		RequestKind: string(task.Feature.RequestKind),
 		Priority:    task.Feature.Priority,
 	}
+}
+
+func (p *SLAPromoter) completePromotion(ctx context.Context, result SLAPromotionResult, err error) (SLAPromotionResult, error) {
+	p.recordMetric(result)
+	p.emitEvidence(ctx, result)
+	return result, err
+}
+
+func (p *SLAPromoter) recordMetric(result SLAPromotionResult) {
+	if p.Metrics == nil {
+		return
+	}
+	p.Metrics.IncSchedulerSLAPromotion(
+		defaultMetricLabel(result.PolicyID, slaMetricDefaultPolicyID),
+		defaultMetricLabel(result.TenantClass, slaMetricDefaultTenantClass),
+		defaultMetricLabel(result.ModelClass, slaMetricDefaultModelClass),
+		defaultMetricLabel(result.RequestKind, slaMetricDefaultRequestKind),
+		defaultMetricLabel(string(result.Priority), string(PriorityNormal)),
+		defaultMetricLabel(string(result.Outcome), string(SLAPromotionOutcomeError)),
+	)
+}
+
+func defaultMetricLabel(value string, fallback string) string {
+	if value == "" {
+		return fallback
+	}
+	return value
 }
 
 func (p *SLAPromoter) emitEvidence(ctx context.Context, result SLAPromotionResult) {
