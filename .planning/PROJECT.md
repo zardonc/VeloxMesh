@@ -14,16 +14,16 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 **v7.4 Gateway Scheduler** has shipped and is archived. The gateway now owns optional scheduler-backed queueing, safe training feedback, ONNX runtime scoring, heuristic/ONNX A/B rollout, prediction-quality evidence, and authenticated runtime rollback controls while preserving FIFO fallback and the OpenAI-compatible data-plane API.
 
-The project is awaiting the next milestone definition.
+**v7.5 Scheduler Enhancements** is now defining the missing scheduler capabilities that were deferred from v7.4.
 
-## Next Milestone Goals
+## Current Milestone: v7.5 Scheduler Enhancements
 
-**Status:** Not yet selected.
+**Goal:** Complete the remaining scheduler enhancement path with safe semantic-neighbor aggregate features, anomaly/OOD conservative scoring, and tenant SLA waiting-time promotion.
 
-Candidate directions:
-- BFF Layer & Admin Console (Phase 11).
-- Scheduler hardening and optional enhancements after the core path stabilizes.
-- Another gateway priority selected through `$gsd-new-milestone`.
+**Target features:**
+- Optional Qdrant-backed semantic-neighbor aggregate features collected by the gateway under a tight timeout budget.
+- ONNX anomaly/OOD signals that reduce confidence and make scheduling more conservative for unfamiliar tasks.
+- Tenant SLA waiting-time promotion that adjusts queued task ordering within trusted priority and quota boundaries.
 
 <details>
 <summary>Archived Milestone: v7.4 Gateway Scheduler</summary>
@@ -90,12 +90,22 @@ Candidate directions:
 
 ### Active
 
-No active v7.4 requirements remain. Next milestone requirements are not defined yet.
+- [ ] QDR-01: Gateway can optionally enrich scheduler features with bounded semantic-neighbor aggregates from Qdrant or another configured vector adapter.
+- [ ] QDR-02: Semantic scheduler enrichment never sends raw prompts, embeddings, semantic-cache payloads, API keys, authorization headers, or provider secrets to Scheduler.
+- [ ] QDR-03: Semantic aggregate collection is disabled by default, bounded by timeout, and falls back without blocking forwarding or scheduler scoring.
+- [ ] QDR-04: Training export and ONNX feature preparation include semantic aggregate fields with safe defaults.
+- [ ] ANOM-01: ONNX scheduler artifacts can carry anomaly/OOD thresholds derived from safe training samples.
+- [ ] ANOM-02: ONNX Scheduler makes out-of-distribution tasks more conservative through confidence and uncertainty signals.
+- [ ] ANOM-03: ONNX Scheduler validates anomaly metadata and degrades clearly when metadata is missing or invalid.
+- [ ] ANOM-04: Quality rollups and metrics compare anomaly behavior by scheduler version and task type.
+- [ ] SLA-01: Gateway can promote queued tasks that exceed tenant-specific waiting thresholds without giving untrusted prompt text priority influence.
+- [ ] SLA-02: Redis ZSET and in-memory queues can both reorder promoted tasks safely.
+- [ ] SLA-03: SLA promotion respects trusted priority, tenant max-priority, and high-priority quota rules.
+- [ ] SLA-04: Scheduler enhancement metrics and audits expose semantic, anomaly, and SLA promotion behavior with sanitized labels only.
 
 ### Deferred to Future Milestones
 
 - BFF Layer & Admin Console (Phase 11)
-- Optional scheduler semantic-neighbor features, anomaly detection, and SLA waiting-time promotion
 - Full `LimitRule` unification across all scopes outside the PostgreSQL-compatible Plan 4 path
 
 ### Long-Term / Architectural Goals
@@ -152,6 +162,8 @@ No active v7.4 requirements remain. Next milestone requirements are not defined 
 | Gateway-owned queue foundation is complete | Phase 14 validated task-id-only Redis queueing, memory fallback, synchronous waiting, priority safety, and sanitized metrics | Good |
 | Training feedback and ONNX runtime path are complete | Phase 15 validated safe opt-in sample recording, uv-based offline artifact tooling, and startup-loaded ONNX scheduler mode | Good |
 | Scheduler A/B rollout and prediction quality are complete | Phase 16 validated weighted heuristic/ONNX routing, quality rollups, runtime rollback controls, and no automatic rollout changes on alert | Good |
+| v7.5 keeps semantic lookup in Gateway | Scheduler may receive bounded aggregate statistics, never embeddings or raw text | Pending |
+| v7.5 SLA promotion remains gateway-owned | Queue ownership and promotion policy stay in Gateway; Scheduler continues to score tasks only | Pending |
 
 ## Evolution
 
@@ -162,4 +174,4 @@ After each phase:
 4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
 
 ---
-*Last updated: 2026-07-04 after archiving v7.4 Gateway Scheduler*
+*Last updated: 2026-07-05 after starting v7.5 Scheduler Enhancements*

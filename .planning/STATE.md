@@ -1,25 +1,25 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.4
-milestone_name: Gateway Scheduler
-status: Awaiting next milestone
-last_updated: "2026-07-04T22:23:02.989Z"
-last_activity: 2026-07-04 - Milestone v7.4 completed and archived
+milestone: v7.5
+milestone_name: Scheduler Enhancements
+status: planning
+last_updated: "2026-07-05T01:11:16.884Z"
+last_activity: 2026-07-05 - Milestone v7.5 requirements and roadmap drafted
 progress:
   total_phases: 3
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-07-04)
+See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Planning next milestone
+**Current focus:** v7.5 Scheduler Enhancements
 
 ## Current Implementation State
 
@@ -41,24 +41,25 @@ See: `.planning/PROJECT.md` (updated 2026-07-04)
 
 ## Planned Next
 
-1. Start the next milestone and define fresh requirements.
+1. Start Phase 17: Semantic Neighbor Feature Aggregates.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-ship` - prepare the completed work for review and merge.
+- `$gsd-discuss-phase 17` - gather implementation context for Phase 17.
+- `$gsd-plan-phase 17` - skip discussion and plan Phase 17 directly.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: Milestone v7.4 complete
+Phase: 17 - Semantic Neighbor Feature Aggregates
 Plan: -
-Status: Awaiting next milestone
-Last activity: 2026-07-04 - Milestone v7.4 completed and archived
+Status: Ready for phase discussion or planning
+Last activity: 2026-07-05 - Milestone v7.5 requirements and roadmap drafted
 
 ## Operator Next Steps
 
-- Start the next milestone with `$gsd-new-milestone`
+- Start Phase 17 with `$gsd-discuss-phase 17` or `$gsd-plan-phase 17`
 
 ## Deferred Items
 
