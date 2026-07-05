@@ -26,6 +26,7 @@ type Metrics interface {
 	IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string)
 	IncSchedulerAnomalyStatus(schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string)
 	IncSchedulerRolloutAlert(reason string)
+	IncSchedulerSLAPromotion(policyID string, tenantClass string, modelClass string, requestKind string, priority string, outcome string)
 	IncSemanticNeighborAttempt(result string)
 	IncSemanticNeighborTimeout()
 	IncSemanticNeighborError(reason string)
@@ -77,7 +78,9 @@ func (m *StubMetrics) IncSchedulerComparisonError(schedulerType string, schedule
 }
 func (m *StubMetrics) IncSchedulerAnomalyStatus(schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string) {
 }
-func (m *StubMetrics) IncSchedulerRolloutAlert(reason string)    {}
+func (m *StubMetrics) IncSchedulerRolloutAlert(reason string) {}
+func (m *StubMetrics) IncSchedulerSLAPromotion(policyID string, tenantClass string, modelClass string, requestKind string, priority string, outcome string) {
+}
 func (m *StubMetrics) IncSemanticNeighborAttempt(result string)  {}
 func (m *StubMetrics) IncSemanticNeighborTimeout()               {}
 func (m *StubMetrics) IncSemanticNeighborError(reason string)    {}

@@ -2,6 +2,7 @@ package observability
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -27,6 +28,7 @@ type PrometheusMetrics struct {
 	comparisonErrors  *prometheus.CounterVec
 	anomalyStatus     *prometheus.CounterVec
 	rolloutAlerts     *prometheus.CounterVec
+	slaPromotion      *prometheus.CounterVec
 	semanticAttempts  *prometheus.CounterVec
 	semanticTimeouts  prometheus.Counter
 	semanticErrors    *prometheus.CounterVec
@@ -145,6 +147,10 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			Name: "gateway_scheduler_rollout_alerts_total",
 			Help: "Gateway scheduler rollout alert count.",
 		}, []string{"reason"}),
+		slaPromotion: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "gateway_scheduler_sla_promotion_total",
+			Help: "Gateway scheduler SLA promotion outcome count.",
+		}, []string{"policy", "tenant_class", "model_class", "request_kind", "priority", "outcome"}),
 		semanticAttempts: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: "gateway_scheduler_semantic_neighbor_attempts_total",
 			Help: "Gateway scheduler semantic-neighbor enrichment attempts.",
@@ -189,6 +195,7 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			m.comparisonErrors,
 			m.anomalyStatus,
 			m.rolloutAlerts,
+			m.slaPromotion,
 			m.semanticAttempts,
 			m.semanticTimeouts,
 			m.semanticErrors,
@@ -218,6 +225,8 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 							m.anomalyStatus = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.rolloutAlerts {
 							m.rolloutAlerts = are.ExistingCollector.(*prometheus.CounterVec)
+						} else if c == m.slaPromotion {
+							m.slaPromotion = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.semanticAttempts {
 							m.semanticAttempts = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.semanticErrors {
@@ -360,6 +369,17 @@ func (m *PrometheusMetrics) IncSchedulerRolloutAlert(reason string) {
 	m.rolloutAlerts.WithLabelValues(allowedLabel(reason, "mape_degradation", "mape_degradation", "scheduler_error_spike")).Inc()
 }
 
+func (m *PrometheusMetrics) IncSchedulerSLAPromotion(policyID string, tenantClass string, modelClass string, requestKind string, priority string, outcome string) {
+	m.slaPromotion.WithLabelValues(
+		safeBoundedLabel(policyID, "unknown"),
+		safeBoundedLabel(tenantClass, "anonymous"),
+		safeBoundedLabel(modelClass, "unknown"),
+		safeTaskType(requestKind),
+		allowedLabel(priority, "normal", "normal", "high", "low"),
+		allowedLabel(outcome, "error", "promoted", "not_eligible", "blocked_by_priority_or_quota", "disabled", "error"),
+	).Inc()
+}
+
 func (m *PrometheusMetrics) IncSemanticNeighborAttempt(result string) {
 	m.semanticAttempts.WithLabelValues(allowedLabel(result, "fallback", "ok", "fallback", "disabled", "timeout", "error")).Inc()
 }
@@ -401,6 +421,20 @@ func safeCoverageLevel(value string) string {
 
 func safeAnomalyStatus(value string) string {
 	return allowedLabel(value, "normal", "normal", "ood", "unavailable", "degraded")
+}
+
+func safeBoundedLabel(value string, fallback string) string {
+	value = strings.TrimSpace(value)
+	if value == "" || len(value) > 64 {
+		return fallback
+	}
+	for _, r := range value {
+		if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '_' || r == '-' {
+			continue
+		}
+		return fallback
+	}
+	return value
 }
 
 func allowedLabel(value string, fallback string, allowed ...string) string {
