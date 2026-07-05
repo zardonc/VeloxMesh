@@ -107,8 +107,22 @@ func validateSchedulerConfig(s SchedulerConfig) error {
 	if err := validateDurationField(s.QueuePopTimeout, "scheduler.queue_pop_timeout"); err != nil {
 		return err
 	}
+	if err := validateDurationField(s.SemanticNeighborsTaskTimeout, "scheduler.semantic_neighbors_task_timeout"); err != nil {
+		return err
+	}
+	if err := validateDurationField(s.SemanticNeighborsBatchTimeout, "scheduler.semantic_neighbors_batch_timeout"); err != nil {
+		return err
+	}
+	taskTimeout, _ := time.ParseDuration(s.SemanticNeighborsTaskTimeout)
+	batchTimeout, _ := time.ParseDuration(s.SemanticNeighborsBatchTimeout)
 	if s.BreakerFailureThreshold < 1 {
 		return fmt.Errorf("scheduler.breaker_failure_threshold must be >= 1")
+	}
+	if s.SemanticNeighborsMinCount < 1 {
+		return fmt.Errorf("scheduler.semantic_neighbors_min_count must be >= 1")
+	}
+	if batchTimeout < taskTimeout {
+		return fmt.Errorf("scheduler.semantic_neighbors_batch_timeout must be >= scheduler.semantic_neighbors_task_timeout")
 	}
 	if s.ONNXRolloutPercent < 0 || s.ONNXRolloutPercent > 100 {
 		return fmt.Errorf("scheduler.onnx_rollout_percent must be between 0 and 100")

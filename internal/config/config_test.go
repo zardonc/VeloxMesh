@@ -439,6 +439,15 @@ func TestSchedulerConfigDefaults(t *testing.T) {
 	if cfg.Scheduler.QualityMAPEAlertPercent != 25 || cfg.Scheduler.ErrorSpikeAlertRate != 0.05 {
 		t.Fatalf("unexpected scheduler alert defaults: %#v", cfg.Scheduler)
 	}
+	if cfg.Scheduler.SemanticNeighborsEnabled {
+		t.Fatalf("expected semantic neighbors disabled by default")
+	}
+	if cfg.Scheduler.SemanticNeighborsMinCount != 20 {
+		t.Fatalf("expected semantic neighbor min count 20, got %d", cfg.Scheduler.SemanticNeighborsMinCount)
+	}
+	if cfg.Scheduler.SemanticNeighborsTaskTimeout != "5ms" || cfg.Scheduler.SemanticNeighborsBatchTimeout != "15ms" {
+		t.Fatalf("unexpected semantic neighbor timeout defaults: %#v", cfg.Scheduler)
+	}
 }
 
 func TestSchedulerFeedbackConfigIsIndependent(t *testing.T) {
@@ -476,6 +485,28 @@ func TestSchedulerFeedbackConfigEnv(t *testing.T) {
 	}
 }
 
+func TestSchedulerSemanticNeighborsConfigEnv(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED", "true")
+	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT", "9")
+	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT", "7ms")
+	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT", "21ms")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.Scheduler.SemanticNeighborsEnabled || cfg.Scheduler.SemanticNeighborsMinCount != 9 {
+		t.Fatalf("semantic neighbor env overrides not loaded: %#v", cfg.Scheduler)
+	}
+	if cfg.Scheduler.SemanticNeighborsTaskTimeout != "7ms" || cfg.Scheduler.SemanticNeighborsBatchTimeout != "21ms" {
+		t.Fatalf("semantic neighbor timeout overrides not loaded: %#v", cfg.Scheduler)
+	}
+}
+
 func TestSchedulerConfigJSONOverride(t *testing.T) {
 	configPath := writeTempConfig(t, `{
 		"default_provider": "p1",
@@ -489,7 +520,11 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 			"queue_backend": "memory",
 			"feedback_enabled": true,
 			"mode": "onnx",
-			"onnx_artifact_dir": "artifacts/scheduler-p70-v1"
+			"onnx_artifact_dir": "artifacts/scheduler-p70-v1",
+			"semantic_neighbors_enabled": true,
+			"semantic_neighbors_min_count": 11,
+			"semantic_neighbors_task_timeout": "6ms",
+			"semantic_neighbors_batch_timeout": "18ms"
 		}
 	}`)
 	t.Setenv("CONFIG_FILE", configPath)
@@ -509,6 +544,12 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 	}
 	if cfg.Scheduler.Mode != "onnx" || cfg.Scheduler.ONNXArtifactDir == "" {
 		t.Fatalf("scheduler ONNX override not applied: %#v", cfg.Scheduler)
+	}
+	if !cfg.Scheduler.SemanticNeighborsEnabled || cfg.Scheduler.SemanticNeighborsMinCount != 11 {
+		t.Fatalf("scheduler semantic neighbor override not applied: %#v", cfg.Scheduler)
+	}
+	if cfg.Scheduler.SemanticNeighborsTaskTimeout != "6ms" || cfg.Scheduler.SemanticNeighborsBatchTimeout != "18ms" {
+		t.Fatalf("scheduler semantic neighbor timeout override not applied: %#v", cfg.Scheduler)
 	}
 }
 
@@ -590,6 +631,28 @@ func TestSchedulerConfigValidation(t *testing.T) {
 				c.Scheduler.ErrorSpikeAlertRate = -1
 			},
 			expectedErr: "scheduler.error_spike_alert_rate",
+		},
+		{
+			name: "invalid semantic min count",
+			modify: func(c *Config) {
+				c.Scheduler.SemanticNeighborsMinCount = -1
+			},
+			expectedErr: "scheduler.semantic_neighbors_min_count",
+		},
+		{
+			name: "invalid semantic task timeout",
+			modify: func(c *Config) {
+				c.Scheduler.SemanticNeighborsTaskTimeout = "nope"
+			},
+			expectedErr: "scheduler.semantic_neighbors_task_timeout",
+		},
+		{
+			name: "semantic batch timeout below task timeout",
+			modify: func(c *Config) {
+				c.Scheduler.SemanticNeighborsTaskTimeout = "10ms"
+				c.Scheduler.SemanticNeighborsBatchTimeout = "5ms"
+			},
+			expectedErr: "scheduler.semantic_neighbors_batch_timeout",
 		},
 	}
 
@@ -699,7 +762,7 @@ func TestEnvExampleSchedulerDisabledAndSecretSafe(t *testing.T) {
 		t.Fatalf("read .env.example: %v", err)
 	}
 	content := string(data)
-	for _, required := range []string{"# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high"} {
+	for _, required := range []string{"# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high", "# SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=false", "# SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT=20", "# SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT=5ms", "# SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT=15ms"} {
 		if !strings.Contains(content, required) {
 			t.Fatalf(".env.example missing %q", required)
 		}

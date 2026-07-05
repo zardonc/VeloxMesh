@@ -114,30 +114,34 @@ type Config struct {
 }
 
 type SchedulerConfig struct {
-	Enabled                  bool    `json:"enabled"`
-	Endpoint                 string  `json:"endpoint"`
-	HeuristicEndpoint        string  `json:"heuristic_endpoint"`
-	ONNXEndpoint             string  `json:"onnx_endpoint"`
-	ONNXRolloutPercent       int     `json:"onnx_rollout_percent"`
-	QualityMAPEAlertPercent  float64 `json:"quality_mape_alert_percent"`
-	ErrorSpikeAlertRate      float64 `json:"error_spike_alert_rate"`
-	Timeout                  string  `json:"timeout"`
-	Strict                   bool    `json:"strict"`
-	BreakerFailureThreshold  int     `json:"breaker_failure_threshold"`
-	BreakerRecoveryTimeout   string  `json:"breaker_recovery_timeout"`
-	QueueBackend             string  `json:"queue_backend"`
-	QueueSoftLimit           int     `json:"queue_soft_limit"`
-	QueueHardLimit           int     `json:"queue_hard_limit"`
-	QueuePopTimeout          string  `json:"queue_pop_timeout"`
-	ExecutorConcurrency      int     `json:"executor_concurrency"`
-	DefaultPriority          string  `json:"default_priority"`
-	MaxPriority              string  `json:"max_priority"`
-	HighQuotaPerMinute       int     `json:"high_quota_per_minute"`
-	ScoreUncertaintyPenaltyK float64 `json:"score_uncertainty_penalty_k"`
-	HeuristicConfigFile      string  `json:"heuristic_config_file"`
-	FeedbackEnabled          bool    `json:"feedback_enabled"`
-	Mode                     string  `json:"mode"`
-	ONNXArtifactDir          string  `json:"onnx_artifact_dir"`
+	Enabled                       bool    `json:"enabled"`
+	Endpoint                      string  `json:"endpoint"`
+	HeuristicEndpoint             string  `json:"heuristic_endpoint"`
+	ONNXEndpoint                  string  `json:"onnx_endpoint"`
+	ONNXRolloutPercent            int     `json:"onnx_rollout_percent"`
+	QualityMAPEAlertPercent       float64 `json:"quality_mape_alert_percent"`
+	ErrorSpikeAlertRate           float64 `json:"error_spike_alert_rate"`
+	Timeout                       string  `json:"timeout"`
+	Strict                        bool    `json:"strict"`
+	BreakerFailureThreshold       int     `json:"breaker_failure_threshold"`
+	BreakerRecoveryTimeout        string  `json:"breaker_recovery_timeout"`
+	QueueBackend                  string  `json:"queue_backend"`
+	QueueSoftLimit                int     `json:"queue_soft_limit"`
+	QueueHardLimit                int     `json:"queue_hard_limit"`
+	QueuePopTimeout               string  `json:"queue_pop_timeout"`
+	ExecutorConcurrency           int     `json:"executor_concurrency"`
+	DefaultPriority               string  `json:"default_priority"`
+	MaxPriority                   string  `json:"max_priority"`
+	HighQuotaPerMinute            int     `json:"high_quota_per_minute"`
+	ScoreUncertaintyPenaltyK      float64 `json:"score_uncertainty_penalty_k"`
+	HeuristicConfigFile           string  `json:"heuristic_config_file"`
+	FeedbackEnabled               bool    `json:"feedback_enabled"`
+	Mode                          string  `json:"mode"`
+	ONNXArtifactDir               string  `json:"onnx_artifact_dir"`
+	SemanticNeighborsEnabled      bool    `json:"semantic_neighbors_enabled"`
+	SemanticNeighborsMinCount     int     `json:"semantic_neighbors_min_count"`
+	SemanticNeighborsTaskTimeout  string  `json:"semantic_neighbors_task_timeout"`
+	SemanticNeighborsBatchTimeout string  `json:"semantic_neighbors_batch_timeout"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -181,30 +185,34 @@ func LoadConfig() (*Config, error) {
 
 		SemanticPipelineConfigFile: getEnv("SEMANTIC_PIPELINE_CONFIG_FILE", ""),
 		Scheduler: SchedulerConfig{
-			Enabled:                  getEnv("SCHEDULER_ENABLED", "false") == "true",
-			Endpoint:                 getEnv("SCHEDULER_ENDPOINT", ""),
-			HeuristicEndpoint:        getEnv("SCHEDULER_HEURISTIC_ENDPOINT", ""),
-			ONNXEndpoint:             getEnv("SCHEDULER_ONNX_ENDPOINT", ""),
-			ONNXRolloutPercent:       getEnvInt("SCHEDULER_ONNX_ROLLOUT_PERCENT", 0),
-			QualityMAPEAlertPercent:  getEnvFloat("SCHEDULER_QUALITY_MAPE_ALERT_PERCENT", 25),
-			ErrorSpikeAlertRate:      getEnvFloat("SCHEDULER_ERROR_SPIKE_ALERT_RATE", 0.05),
-			Timeout:                  getEnv("SCHEDULER_TIMEOUT", "15ms"),
-			Strict:                   getEnv("SCHEDULER_STRICT", "false") == "true",
-			BreakerFailureThreshold:  getEnvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 3),
-			BreakerRecoveryTimeout:   getEnv("SCHEDULER_BREAKER_RECOVERY_TIMEOUT", "1m"),
-			QueueBackend:             getEnv("SCHEDULER_QUEUE_BACKEND", "auto"),
-			QueueSoftLimit:           getEnvInt("SCHEDULER_QUEUE_SOFT_LIMIT", 0),
-			QueueHardLimit:           getEnvInt("SCHEDULER_QUEUE_HARD_LIMIT", 0),
-			QueuePopTimeout:          getEnv("SCHEDULER_QUEUE_POP_TIMEOUT", "100ms"),
-			ExecutorConcurrency:      getEnvInt("SCHEDULER_EXECUTOR_CONCURRENCY", 1),
-			DefaultPriority:          getEnv("SCHEDULER_DEFAULT_PRIORITY", "normal"),
-			MaxPriority:              getEnv("SCHEDULER_MAX_PRIORITY", "high"),
-			HighQuotaPerMinute:       getEnvInt("SCHEDULER_HIGH_QUOTA_PER_MINUTE", 0),
-			ScoreUncertaintyPenaltyK: getEnvFloat("SCHEDULER_SCORE_UNCERTAINTY_PENALTY_K", 0.2),
-			HeuristicConfigFile:      getEnv("SCHEDULER_HEURISTIC_CONFIG_FILE", ""),
-			FeedbackEnabled:          getEnv("SCHEDULER_FEEDBACK_ENABLED", "false") == "true",
-			Mode:                     getEnv("SCHEDULER_MODE", "heuristic"),
-			ONNXArtifactDir:          getEnv("SCHEDULER_ONNX_ARTIFACT_DIR", ""),
+			Enabled:                       getEnv("SCHEDULER_ENABLED", "false") == "true",
+			Endpoint:                      getEnv("SCHEDULER_ENDPOINT", ""),
+			HeuristicEndpoint:             getEnv("SCHEDULER_HEURISTIC_ENDPOINT", ""),
+			ONNXEndpoint:                  getEnv("SCHEDULER_ONNX_ENDPOINT", ""),
+			ONNXRolloutPercent:            getEnvInt("SCHEDULER_ONNX_ROLLOUT_PERCENT", 0),
+			QualityMAPEAlertPercent:       getEnvFloat("SCHEDULER_QUALITY_MAPE_ALERT_PERCENT", 25),
+			ErrorSpikeAlertRate:           getEnvFloat("SCHEDULER_ERROR_SPIKE_ALERT_RATE", 0.05),
+			Timeout:                       getEnv("SCHEDULER_TIMEOUT", "15ms"),
+			Strict:                        getEnv("SCHEDULER_STRICT", "false") == "true",
+			BreakerFailureThreshold:       getEnvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 3),
+			BreakerRecoveryTimeout:        getEnv("SCHEDULER_BREAKER_RECOVERY_TIMEOUT", "1m"),
+			QueueBackend:                  getEnv("SCHEDULER_QUEUE_BACKEND", "auto"),
+			QueueSoftLimit:                getEnvInt("SCHEDULER_QUEUE_SOFT_LIMIT", 0),
+			QueueHardLimit:                getEnvInt("SCHEDULER_QUEUE_HARD_LIMIT", 0),
+			QueuePopTimeout:               getEnv("SCHEDULER_QUEUE_POP_TIMEOUT", "100ms"),
+			ExecutorConcurrency:           getEnvInt("SCHEDULER_EXECUTOR_CONCURRENCY", 1),
+			DefaultPriority:               getEnv("SCHEDULER_DEFAULT_PRIORITY", "normal"),
+			MaxPriority:                   getEnv("SCHEDULER_MAX_PRIORITY", "high"),
+			HighQuotaPerMinute:            getEnvInt("SCHEDULER_HIGH_QUOTA_PER_MINUTE", 0),
+			ScoreUncertaintyPenaltyK:      getEnvFloat("SCHEDULER_SCORE_UNCERTAINTY_PENALTY_K", 0.2),
+			HeuristicConfigFile:           getEnv("SCHEDULER_HEURISTIC_CONFIG_FILE", ""),
+			FeedbackEnabled:               getEnv("SCHEDULER_FEEDBACK_ENABLED", "false") == "true",
+			Mode:                          getEnv("SCHEDULER_MODE", "heuristic"),
+			ONNXArtifactDir:               getEnv("SCHEDULER_ONNX_ARTIFACT_DIR", ""),
+			SemanticNeighborsEnabled:      getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED", "false") == "true",
+			SemanticNeighborsMinCount:     getEnvInt("SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT", 20),
+			SemanticNeighborsTaskTimeout:  getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT", "5ms"),
+			SemanticNeighborsBatchTimeout: getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT", "15ms"),
 		},
 	}
 
@@ -545,6 +553,18 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
 	if src.ONNXArtifactDir != "" {
 		dst.ONNXArtifactDir = src.ONNXArtifactDir
 	}
+	if src.SemanticNeighborsEnabled {
+		dst.SemanticNeighborsEnabled = true
+	}
+	if src.SemanticNeighborsMinCount != 0 {
+		dst.SemanticNeighborsMinCount = src.SemanticNeighborsMinCount
+	}
+	if src.SemanticNeighborsTaskTimeout != "" {
+		dst.SemanticNeighborsTaskTimeout = src.SemanticNeighborsTaskTimeout
+	}
+	if src.SemanticNeighborsBatchTimeout != "" {
+		dst.SemanticNeighborsBatchTimeout = src.SemanticNeighborsBatchTimeout
+	}
 }
 
 func applySchedulerDefaults(s *SchedulerConfig) {
@@ -589,6 +609,15 @@ func applySchedulerDefaults(s *SchedulerConfig) {
 	}
 	if s.Mode == "" {
 		s.Mode = "heuristic"
+	}
+	if s.SemanticNeighborsMinCount == 0 {
+		s.SemanticNeighborsMinCount = 20
+	}
+	if s.SemanticNeighborsTaskTimeout == "" {
+		s.SemanticNeighborsTaskTimeout = "5ms"
+	}
+	if s.SemanticNeighborsBatchTimeout == "" {
+		s.SemanticNeighborsBatchTimeout = "15ms"
 	}
 }
 
