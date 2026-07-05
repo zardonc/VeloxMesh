@@ -7,7 +7,7 @@ source:
   - 18-03-SUMMARY.md
   - 18-04-SUMMARY.md
 started: 2026-07-05T09:42:00-07:00
-updated: 2026-07-05T12:14:52-07:00
+updated: 2026-07-05T12:21:27-07:00
 ---
 
 ## Current Test
@@ -42,7 +42,9 @@ evidence:
 
 ### 5. Real ONNX worker and Scheduler smoke
 expected: Verification starts a real Python worker, loads a published runtime artifact through `onnxruntime.InferenceSession`, serves predictor gRPC, connects Scheduler ONNX mode to that worker, calls `BatchScoreTasks`, and receives a non-fallback predictive score. Tests that only mock the worker or parse a constant ONNX graph in Go do not satisfy this check.
-result: pass
+result: issue
+reported: "Acceptance requires tests to use the same model artifact shape and call chain that production will ship; only training data volume may differ. Current verification uses a `write_constant_onnx` Constant-node artifact, so the worker and Scheduler call path is real but the model artifact is not final production shape."
+severity: blocker
 evidence:
   - Visible verification artifact generated at `C:\Users\inthe\IdeaProjects\VeloxMesh\.tmp\phase18-real-onnx-verification\artifacts\scheduler-predictor-v1\model.onnx`; size `630` bytes; SHA-256 `5e3b7c7d76386ce7694d475801f6b6b819142c07b630753b492499d14ceaae6a`; manifest `model_sha256` matched.
   - Direct `onnxruntime.InferenceSession(...\model.onnx, providers=["CPUExecutionProvider"])` call returned outputs `p50=16`, `p70=20`, `p90=24`, `quantile_spread=8`, `ood_distance=0`.
@@ -54,8 +56,8 @@ evidence:
 ## Summary
 
 total: 5
-passed: 5
-issues: 0
+passed: 4
+issues: 1
 pending: 0
 skipped: 0
 blocked: 0
@@ -69,4 +71,15 @@ blocked: 0
 
 ## Gaps
 
-None.
+- truth: "Tests must use the same model artifact shape and call chain that production will ship, with only training data volume differing."
+  status: failed
+  reason: "Current publish path writes a Constant-node ONNX artifact via `tools/scheduler_training/scheduler_training/artifacts.py`; tests call ONNX Runtime and Scheduler through the real worker path, but the artifact is not a production-shape quantile model over scheduler features."
+  severity: blocker
+  test: 5
+  artifacts:
+    - tools/scheduler_training/scheduler_training/artifacts.py
+    - tools/scheduler_training/scheduler_training/publish.py
+    - tools/scheduler_training/tests/test_onnx_worker.py
+    - cmd/scheduler/main_test.go
+  missing:
+    - "Production-shape ONNX export that consumes scheduler feature tensors and emits quantile/signal outputs through the same worker and Scheduler path."
