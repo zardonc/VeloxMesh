@@ -1,17 +1,17 @@
 ---
-status: partial
+status: complete
 phase: 17-semantic-neighbor-feature-aggregates
 source:
   - 17-01-SUMMARY.md
   - 17-02-SUMMARY.md
   - 17-03-SUMMARY.md
 started: 2026-07-04T21:25:08.5169884-07:00
-updated: 2026-07-04T21:49:05.8906153-07:00
+updated: 2026-07-04T22:01:21-07:00
 ---
 
 ## Current Test
 
-[retested after loading project test-environment context from `.planning/PROJECT.md`]
+[testing complete]
 
 ## Tests
 
@@ -38,7 +38,7 @@ evidence: same Go command, covering `internal/scheduler/onnx` and `internal/sche
 ### 5. Build And Schema Drift Gate
 expected: The repository builds after phase 17 and GSD schema drift reports no blocking drift.
 result: pass
-evidence: `go build ./...`; `node .\.codex\gsd-core\bin\gsd-tools.cjs query verify.schema-drift 17`
+evidence: `go build ./...`; `node .codex/gsd-core/bin/gsd-tools.cjs query verify.schema-drift 17`
 
 ### 6. Live PostgreSQL Migration And Repository Parity
 expected: A real PostgreSQL database applies phase 17 migration `0008_scheduler_training_semantic_aggregates.sql`; scheduler training samples round-trip aggregate values and legacy rows return neutral defaults.
@@ -47,10 +47,11 @@ evidence: `go test -count=1 -timeout 60s ./internal/controlstate/postgres -run "
 
 ### 7. Live Semantic-Neighbor Vector Collection
 expected: With semantic neighbors explicitly enabled and real embedding/vector dependencies configured, Gateway indexes completed samples and enriches scheduler features from real vector search results without raw prompts, embeddings, payloads, or secrets crossing into Scheduler records.
-result: blocked
-blocked_by: test-config
-reason: "Qdrant is reachable from the `.env` test-environment address, and `QDRANT_ADDR` is now derived by `internal/testenv.Load()` from `DEV_SERVER_IP` plus `QDRANT_PORT`. Full live semantic-neighbor UAT still needs explicit local test config for `SEMANTIC_CACHE_PROVIDER`, `SEMANTIC_CACHE_VECTOR_STORE=qdrant`, and `SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=true`; these are not committed config values. The scheduler semantic-neighbor logic and Qdrant address derivation were retested, including the real embedding model default."
-evidence: `go test -count=1 -timeout 60s ./internal/scheduler -run "TestSemanticNeighbor"`; `go test -count=1 -timeout 60s ./internal/testenv`; TCP probe: `POSTGRES_TCP=REACHABLE`, `QDRANT_TCP=REACHABLE`
+result: skipped
+reason: "Deferred per user instruction: expose/settle the live semantic-neighbor test configuration before the current milestone closes."
+deferred_until: current milestone close
+exposed_config: `SEMANTIC_CACHE_ENABLED`, `SEMANTIC_CACHE_PROVIDER`, `SEMANTIC_CACHE_VECTOR_STORE`, `SEMANTIC_CACHE_VECTOR_DIMENSION`, `QDRANT_ADDR`, `QDRANT_API_KEY`, `SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED`, `SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT`, `SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT`, `SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT`
+evidence: `rg -n "SCHEDULER_SEMANTIC|SEMANTIC_CACHE|QDRANT|DEV_SERVER_IP|QDRANT_PORT" .env.example internal/config internal/testenv .planning/PROJECT.md`; `DEV_SERVER_IP` + `QDRANT_PORT` derives `QDRANT_ADDR` in `internal/testenv`, while semantic cache/vector enablement remains milestone-end config work.
 
 ## Summary
 
@@ -58,9 +59,9 @@ total: 7
 passed: 6
 issues: 0
 pending: 0
-skipped: 0
-blocked: 1
+skipped: 1
+blocked: 0
 
 ## Gaps
 
-None confirmed. Remaining blocked item is missing local live-UAT configuration, not a confirmed Phase 17 code gap.
+None confirmed. Live semantic-neighbor vector UAT configuration is deferred to current milestone close.
