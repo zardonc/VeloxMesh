@@ -85,6 +85,7 @@ def test_train_evaluate_and_publish_runtime_artifact(tmp_path):
     trained = train_file(samples, model)
     assert trained["target"] == TARGET
     assert trained["p70_output_tokens"] == 20
+    assert trained["training_data_hash"]
     assert trained["semantic_aggregates_supported"] is True
     assert trained["semantic_aggregate_features"] == SEMANTIC_AGGREGATE_FIELDS
     assert trained["features"] == FEATURE_FIELDS
@@ -99,6 +100,17 @@ def test_train_evaluate_and_publish_runtime_artifact(tmp_path):
     artifact = publish_artifact(model, metrics, tmp_path / "artifacts", "scheduler-p70-v1", {"start": "a", "end": "b"})
     assert (artifact / "model.onnx").exists()
     manifest = json.loads((artifact / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["protocol_version"] == "predictor-v1"
+    assert manifest["task_type"] == "quantile_regression"
+    assert manifest["quantiles"] == [50, 70, 90]
+    assert manifest["training_data_hash"] == trained["training_data_hash"]
+    assert manifest["compatible_scheduler_version"] == ">=0.9.0"
+    assert manifest["feature_schema"][0] == {
+        "name": "estimated_input_tokens",
+        "type": "float32",
+        "dimensions": [1],
+    }
+    assert manifest["feature_schema"][-2] == {"name": "coverage_level", "type": "enum", "dimensions": [1]}
     assert manifest["onnx_parity"]["passed"] is True
     assert manifest["model_sha256"]
     assert manifest["semantic_aggregates_supported"] is True

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 from pathlib import Path
 
@@ -99,6 +100,14 @@ def coverage_level(row: dict) -> str:
     return str(row.get("coverage_level") or "none")
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def train_p70(rows: list[dict]) -> dict:
     features = prepare_features(rows)
     targets = [float(row["output_tokens"]) for row in rows if row.get("outcome") == "success"]
@@ -122,6 +131,7 @@ def train_p70(rows: list[dict]) -> dict:
 
 def train_file(input_path: Path, model_path: Path) -> dict:
     model = train_p70(read_jsonl(input_path))
+    model["training_data_hash"] = sha256_file(input_path)
     model_path.parent.mkdir(parents=True, exist_ok=True)
     model_path.write_text(json.dumps(model, indent=2, sort_keys=True), encoding="utf-8")
     return model

@@ -8,6 +8,10 @@ import onnx
 from onnx import TensorProto, helper
 
 FEATURE_SCHEMA_VERSION = "scheduler-training-v1"
+PREDICTOR_PROTOCOL_VERSION = "predictor-v1"
+PREDICTOR_TASK_TYPE = "quantile_regression"
+PREDICTOR_QUANTILES = [50, 70, 90]
+COMPATIBLE_SCHEDULER_VERSION = ">=0.9.0"
 
 
 def sha256_file(path: Path) -> str:
@@ -29,14 +33,28 @@ def write_constant_onnx(model: dict, path: Path) -> None:
     onnx.save(onnx_model, path)
 
 
+def build_feature_schema(features: list[str]) -> list[dict]:
+    return [
+        {"name": feature, "type": "enum" if feature == "coverage_level" else "float32", "dimensions": [1]}
+        for feature in features
+    ]
+
+
 def build_manifest(model: dict, metrics: dict, model_path: Path, version: str, window: dict) -> dict:
     semantic_features = list(model.get("semantic_aggregate_features", []))
+    features = list(model.get("features", []))
     return {
+        "protocol_version": PREDICTOR_PROTOCOL_VERSION,
         "scheduler_version": version,
         "model_version": version,
+        "task_type": PREDICTOR_TASK_TYPE,
+        "quantiles": PREDICTOR_QUANTILES,
+        "feature_schema": build_feature_schema(features),
+        "training_data_hash": model.get("training_data_hash") or sha256_file(model_path),
+        "compatible_scheduler_version": COMPATIBLE_SCHEDULER_VERSION,
         "target": model["target"],
         "feature_schema_version": FEATURE_SCHEMA_VERSION,
-        "features": list(model.get("features", [])),
+        "features": features,
         "semantic_aggregate_features": semantic_features,
         "semantic_aggregates_supported": bool(model.get("semantic_aggregates_supported") or semantic_features),
         "training_window": window,
