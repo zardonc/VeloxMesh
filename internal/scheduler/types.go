@@ -32,9 +32,10 @@ const (
 type SchedulerType string
 
 const (
-	SchedulerTypeFIFO      SchedulerType = "fifo"
-	SchedulerTypeHeuristic SchedulerType = "heuristic"
-	SchedulerTypeONNX      SchedulerType = "onnx"
+	SchedulerTypeFIFO       SchedulerType = "fifo"
+	SchedulerTypeHeuristic  SchedulerType = "heuristic"
+	SchedulerTypeONNX       SchedulerType = "onnx"
+	SchedulerTypePredictive SchedulerType = "predictive"
 )
 
 const (

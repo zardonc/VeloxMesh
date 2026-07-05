@@ -1,4 +1,4 @@
-package onnx
+package predictive
 
 import (
 	"context"
@@ -49,37 +49,17 @@ func featureFromProto(task *schedulerv1.TaskFeature) scheduler.TaskFeature {
 		return scheduler.TaskFeature{Priority: scheduler.PriorityNormal, RequestKind: scheduler.RequestKindSimpleQA}
 	}
 	return scheduler.TaskFeature{
-		TaskID:                   task.GetTaskId(),
-		ModelClass:               task.GetModelClass(),
-		EstimatedInputTokens:     task.GetEstimatedInputTokens(),
-		EstimatedOutputTokens:    task.GetEstimatedOutputTokens(),
-		Stream:                   task.GetStream(),
-		Priority:                 scheduler.NormalizePriority(task.GetPriority()),
-		TimeoutClass:             task.GetTimeoutClass(),
-		EnqueueTimeMs:            task.GetEnqueueTimeMs(),
-		RequestKind:              normalizeRequestKind(task.GetRequestKind()),
-		RouteHint:                task.GetRouteHint(),
-		HasToolCalls:             task.GetHasToolCalls(),
-		ToolCallDepth:            task.GetToolCallDepth(),
-		TurnCount:                task.GetTurnCount(),
-		Multimodal:               task.GetMultimodal(),
-		QuestionCount:            task.GetQuestionCount(),
-		CodeBlockCount:           task.GetCodeBlockCount(),
-		EnumerationHint:          task.GetEnumerationHint(),
-		InstructionVerbCount:     task.GetInstructionVerbCount(),
-		MaxSentenceLengthBucket:  task.GetMaxSentenceLengthBucket(),
-		VocabularyRichnessBucket: task.GetVocabularyRichnessBucket(),
-		ConfidenceHint:           task.GetConfidenceHint(),
-		UncertaintyHint:          task.GetUncertaintyHint(),
-		NeighborCount:            task.GetNeighborCount(),
-		LatencyP50Ms:             task.GetLatencyP50Ms(),
-		LatencyP90Ms:             task.GetLatencyP90Ms(),
-		LatencyStddevMs:          task.GetLatencyStddevMs(),
-		OutputTokensP70:          task.GetOutputTokensP70(),
-		SuccessRate:              task.GetSuccessRate(),
-		TimeoutRate:              task.GetTimeoutRate(),
-		CoverageLevel:            task.GetCoverageLevel(),
-		CoverageRatio:            task.GetCoverageRatio(),
+		TaskID: task.GetTaskId(), ModelClass: task.GetModelClass(), EstimatedInputTokens: task.GetEstimatedInputTokens(),
+		EstimatedOutputTokens: task.GetEstimatedOutputTokens(), Stream: task.GetStream(), Priority: scheduler.NormalizePriority(task.GetPriority()),
+		TimeoutClass: task.GetTimeoutClass(), EnqueueTimeMs: task.GetEnqueueTimeMs(), RequestKind: normalizeRequestKind(task.GetRequestKind()),
+		RouteHint: task.GetRouteHint(), HasToolCalls: task.GetHasToolCalls(), ToolCallDepth: task.GetToolCallDepth(), TurnCount: task.GetTurnCount(),
+		Multimodal: task.GetMultimodal(), QuestionCount: task.GetQuestionCount(), CodeBlockCount: task.GetCodeBlockCount(),
+		EnumerationHint: task.GetEnumerationHint(), InstructionVerbCount: task.GetInstructionVerbCount(),
+		MaxSentenceLengthBucket: task.GetMaxSentenceLengthBucket(), VocabularyRichnessBucket: task.GetVocabularyRichnessBucket(),
+		ConfidenceHint: task.GetConfidenceHint(), UncertaintyHint: task.GetUncertaintyHint(), NeighborCount: task.GetNeighborCount(),
+		LatencyP50Ms: task.GetLatencyP50Ms(), LatencyP90Ms: task.GetLatencyP90Ms(), LatencyStddevMs: task.GetLatencyStddevMs(),
+		OutputTokensP70: task.GetOutputTokensP70(), SuccessRate: task.GetSuccessRate(), TimeoutRate: task.GetTimeoutRate(),
+		CoverageLevel: task.GetCoverageLevel(), CoverageRatio: task.GetCoverageRatio(),
 	}
 }
 

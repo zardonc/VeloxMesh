@@ -7,14 +7,25 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 
 	"veloxmesh/internal/scheduler/heuristic"
-	scheduleronnx "veloxmesh/internal/scheduler/onnx"
+	"veloxmesh/internal/scheduler/predictive"
+	"veloxmesh/internal/scheduler/predictor"
 	"veloxmesh/internal/scheduler/schedulerv1"
+)
+
+const (
+	defaultPredictorTimeout        = 15 * time.Millisecond
+	predictorStatusDegraded        = "degraded"
+	predictorStatusUnavailable     = "unavailable"
+	predictorReasonManifestInvalid = "manifest_invalid"
+	predictorReasonSignal          = "predictor_signal"
 )
 
 func main() {
@@ -65,16 +76,24 @@ func newSchedulerServiceWithStatus(mode, artifactDir string, metrics *heuristic.
 	if mode == "" || mode == "heuristic" {
 		return heuristic.NewBatchScoreService(nil, metrics), schedulerStatus{}, nil
 	}
-	if mode != "onnx" {
+	if mode != "onnx" && mode != "predictive" {
 		return nil, schedulerStatus{}, fmt.Errorf("unsupported scheduler mode: %s", mode)
 	}
-	scorer, err := scheduleronnx.NewScorer(artifactDir)
+	scorer, status := newPredictiveScorer(context.Background(), artifactDir, metrics)
+	fmt.Fprintf(os.Stderr, "predictive anomaly_status=%s anomaly_reason=%s\n", status.AnomalyStatus, status.AnomalyReason)
+	return predictive.NewBatchScoreService(scorer), status, nil
+}
+
+func newPredictiveScorer(ctx context.Context, artifactDir string, _ *heuristic.Metrics) (*predictive.Scorer, schedulerStatus) {
+	manifest, err := predictor.LoadManifest(filepath.Join(artifactDir, "manifest.json"))
 	if err != nil {
-		return nil, schedulerStatus{}, fmt.Errorf("start ONNX scheduler: %w", err)
+		p := predictor.NoopPredictor{Reason: err}
+		return predictive.NewScorer(p, predictive.Config{}), schedulerStatus{AnomalyStatus: predictorStatusDegraded, AnomalyReason: predictorReasonManifestInvalid}
 	}
-	status := schedulerStatus{AnomalyStatus: scorer.AnomalyStatus(), AnomalyReason: scorer.AnomalyReason()}
-	fmt.Fprintf(os.Stderr, "onnx anomaly_status=%s anomaly_reason=%s\n", status.AnomalyStatus, status.AnomalyReason)
-	return scheduleronnx.NewBatchScoreService(scorer), status, nil
+	p, _ := predictor.NewPythonONNXPredictor(ctx, predictor.PythonClientConfig{
+		Endpoint: getenv("SCHEDULER_PREDICTOR_ENDPOINT", ""), Timeout: defaultPredictorTimeout,
+	})
+	return predictive.NewScorer(p, predictive.Config{Version: manifest.ModelVersion}), schedulerStatus{AnomalyStatus: predictorStatusUnavailable, AnomalyReason: predictorReasonSignal}
 }
 
 func newHTTPMux(reg *prometheus.Registry, statuses ...schedulerStatus) http.Handler {
