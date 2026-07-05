@@ -47,7 +47,52 @@ func TestLoadArtifactRejectsUnsupportedSchema(t *testing.T) {
 	}
 }
 
+func TestLoadArtifactReadsSemanticAggregateSupport(t *testing.T) {
+	dir := writeTestArtifactWithSemanticSupport(t, "scheduler-p70-v1", true)
+	artifact, err := LoadArtifact(dir)
+	if err != nil {
+		t.Fatalf("LoadArtifact: %v", err)
+	}
+	if !artifact.Manifest.SupportsSemanticAggregates() {
+		t.Fatalf("expected semantic aggregate support")
+	}
+}
+
+func TestLoadArtifactDefaultsWithoutSemanticAggregateSupport(t *testing.T) {
+	dir := writeTestArtifact(t, "scheduler-p70-v1", 42, "scheduler-training-v1")
+	artifact, err := LoadArtifact(dir)
+	if err != nil {
+		t.Fatalf("LoadArtifact: %v", err)
+	}
+	if artifact.Manifest.SupportsSemanticAggregates() {
+		t.Fatalf("expected legacy artifact without semantic aggregate support")
+	}
+}
+
+func TestLoadArtifactRejectsUnknownSemanticFeature(t *testing.T) {
+	dir := writeTestArtifactWithSemanticSupport(t, "scheduler-p70-v1", false)
+	if _, err := LoadArtifact(dir); err == nil {
+		t.Fatalf("expected unsupported semantic feature")
+	}
+}
+
 func writeTestArtifact(t *testing.T, version string, p70 float64, schema string) string {
+	return writeTestArtifactManifest(t, version, p70, schema, nil)
+}
+
+func writeTestArtifactWithSemanticSupport(t *testing.T, version string, valid bool) string {
+	features := append([]string{}, semanticAggregateFeatureNames...)
+	if !valid {
+		features = []string{"tenant_id"}
+	}
+	return writeTestArtifactManifest(t, version, 42, "scheduler-training-v1", func(manifest *Manifest) {
+		manifest.SemanticSupport = true
+		manifest.SemanticFeatures = features
+		manifest.Features = append([]string{"estimated_input_tokens"}, features...)
+	})
+}
+
+func writeTestArtifactManifest(t *testing.T, version string, p70 float64, schema string, mutate func(*Manifest)) string {
 	t.Helper()
 	dir := t.TempDir()
 	model := []byte("onnx-test-model")
@@ -60,6 +105,9 @@ func writeTestArtifact(t *testing.T, version string, p70 float64, schema string)
 		FeatureSchema: schema, TrainingWindow: map[string]string{"start": "a", "end": "b"},
 		Metrics: map[string]float64{"mae": 5}, ONNXParity: Parity{Passed: true},
 		ModelSHA256: hex.EncodeToString(sum[:]), ModelParameters: ModelParameters{P70OutputTokens: p70},
+	}
+	if mutate != nil {
+		mutate(&manifest)
 	}
 	data, err := json.Marshal(manifest)
 	if err != nil {

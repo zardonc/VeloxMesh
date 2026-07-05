@@ -36,6 +36,7 @@ func (s *Scorer) Score(_ context.Context, tasks []scheduler.TaskFeature) ([]sche
 }
 
 func (s *Scorer) scoreTask(task scheduler.TaskFeature) scheduler.ScoreResult {
+	task = normalizeSemanticAggregates(task, s.artifact.Manifest.SupportsSemanticAggregates())
 	predictedTokens := int64(math.Round(s.artifact.Manifest.ModelParameters.P70OutputTokens))
 	if predictedTokens > 0 {
 		task.EstimatedOutputTokens = predictedTokens
@@ -53,22 +54,59 @@ func (s *Scorer) confidence(task scheduler.TaskFeature) float64 {
 	if mae, ok := s.artifact.Manifest.Metrics["mae"]; ok {
 		base = 1 / (1 + math.Max(mae, 0)/100)
 	}
-	coverage := featureCoverage(task)
+	coverage := featureCoverage(task, s.artifact.Manifest.SupportsSemanticAggregates())
 	return math.Max(0.01, math.Min(base*coverage, 1))
 }
 
-func featureCoverage(task scheduler.TaskFeature) float64 {
+func normalizeSemanticAggregates(task scheduler.TaskFeature, supported bool) scheduler.TaskFeature {
+	if supported {
+		if task.CoverageLevel == "" {
+			task.CoverageLevel = scheduler.SemanticCoverageNone
+		}
+		return task
+	}
+	task.NeighborCount = 0
+	task.LatencyP50Ms = 0
+	task.LatencyP90Ms = 0
+	task.LatencyStddevMs = 0
+	task.OutputTokensP70 = 0
+	task.SuccessRate = 0
+	task.TimeoutRate = 0
+	task.CoverageLevel = scheduler.SemanticCoverageNone
+	task.CoverageRatio = 0
+	return task
+}
+
+func featureCoverage(task scheduler.TaskFeature, semanticSupported bool) float64 {
 	covered := 0
-	for _, ok := range []bool{
+	checks := []bool{
 		task.ModelClass != "",
 		task.EstimatedInputTokens > 0,
 		task.EstimatedOutputTokens > 0,
 		task.Priority != "",
 		task.RequestKind != "",
-	} {
+	}
+	if semanticSupported {
+		checks = append(checks, semanticCoverageChecks(task)...)
+	}
+	for _, ok := range checks {
 		if ok {
 			covered++
 		}
 	}
-	return float64(covered) / 5
+	return float64(covered) / float64(len(checks))
+}
+
+func semanticCoverageChecks(task scheduler.TaskFeature) []bool {
+	return []bool{
+		task.NeighborCount > 0,
+		task.LatencyP50Ms > 0,
+		task.LatencyP90Ms > 0,
+		task.LatencyStddevMs > 0,
+		task.OutputTokensP70 > 0,
+		task.SuccessRate > 0,
+		task.TimeoutRate > 0,
+		task.CoverageLevel != "" && task.CoverageLevel != scheduler.SemanticCoverageNone,
+		task.CoverageRatio > 0,
+	}
 }

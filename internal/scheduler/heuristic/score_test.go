@@ -51,6 +51,27 @@ func TestClassifierFallback(t *testing.T) {
 	}
 }
 
+func TestScoreCalculatorIgnoresSemanticAggregates(t *testing.T) {
+	calc := NewScoreCalculator(DefaultConfig())
+	base := baseFeature()
+	enriched := baseFeature()
+	enriched.NeighborCount = 20
+	enriched.LatencyP50Ms = 100
+	enriched.LatencyP90Ms = 200
+	enriched.LatencyStddevMs = 20
+	enriched.OutputTokensP70 = 70
+	enriched.SuccessRate = 0.9
+	enriched.TimeoutRate = 0.1
+	enriched.CoverageLevel = scheduler.SemanticCoverageTenant
+	enriched.CoverageRatio = 1
+
+	baseScore := calc.Score(base).Result
+	enrichedScore := calc.Score(enriched).Result
+	if baseScore != enrichedScore {
+		t.Fatalf("semantic aggregates changed heuristic score: base=%#v enriched=%#v", baseScore, enrichedScore)
+	}
+}
+
 func baseFeature() scheduler.TaskFeature {
 	return scheduler.TaskFeature{
 		TaskID:                "t1",

@@ -19,6 +19,9 @@ type Manifest struct {
 	TrainingWindow   map[string]string  `json:"training_window"`
 	Metrics          map[string]float64 `json:"metrics"`
 	ONNXParity       Parity             `json:"onnx_parity"`
+	Features         []string           `json:"features"`
+	SemanticFeatures []string           `json:"semantic_aggregate_features"`
+	SemanticSupport  bool               `json:"semantic_aggregates_supported"`
 	ModelSHA256      string             `json:"model_sha256"`
 	ModelParameters  ModelParameters    `json:"model_parameters"`
 }
@@ -68,7 +71,44 @@ func readManifest(path string) (Manifest, error) {
 	if !manifest.ONNXParity.Passed {
 		return Manifest{}, fmt.Errorf("ONNX parity check did not pass")
 	}
+	if err := validateSemanticFeatures(manifest); err != nil {
+		return Manifest{}, err
+	}
 	return manifest, nil
+}
+
+func (m Manifest) SupportsSemanticAggregates() bool {
+	return m.SemanticSupport || len(m.SemanticFeatures) > 0
+}
+
+func validateSemanticFeatures(manifest Manifest) error {
+	for _, feature := range manifest.SemanticFeatures {
+		if !supportedSemanticFeature(feature) {
+			return fmt.Errorf("unsupported semantic aggregate feature: %s", feature)
+		}
+	}
+	return nil
+}
+
+func supportedSemanticFeature(feature string) bool {
+	for _, supported := range semanticAggregateFeatureNames {
+		if feature == supported {
+			return true
+		}
+	}
+	return false
+}
+
+var semanticAggregateFeatureNames = []string{
+	"neighbor_count",
+	"latency_p50_ms",
+	"latency_p90_ms",
+	"latency_stddev_ms",
+	"output_tokens_p70",
+	"success_rate",
+	"timeout_rate",
+	"coverage_level",
+	"coverage_ratio",
 }
 
 func validateArtifactModel(path string, manifest Manifest) error {
