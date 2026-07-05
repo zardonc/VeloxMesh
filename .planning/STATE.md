@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v7.5
 milestone_name: Scheduler Enhancements
-status: executing
-last_updated: "2026-07-05T18:53:04.009Z"
-last_activity: 2026-07-05 -- Phase 18 plan execution complete
+status: ready
+last_updated: "2026-07-05T18:56:56.600Z"
+last_activity: 2026-07-05 -- Phase 18 verified complete
 progress:
   total_phases: 3
   completed_phases: 2
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 18 — anomaly-and-ood-conservative-scoring plan execution complete
+**Current focus:** Phase 19 — SLA Waiting-Time Promotion
 
 ## Current Implementation State
 
@@ -30,6 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 15 Training Feedback and ONNX Path (v7.4) is implemented, verified, and shipped.
 - Phase 16 A/B Rollout and Prediction Quality (v7.4) is implemented, verified, and shipped.
 - Phase 17 Semantic Neighbor Feature Aggregates (v7.5) is implemented and verified.
+- Phase 18 Anomaly and OOD Conservative Scoring (v7.5) is implemented and verified.
 
 ## Completed
 
@@ -40,6 +41,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 15: Training Feedback and ONNX Path
 - Phase 16: A/B Rollout and Prediction Quality
 - Phase 17: Semantic Neighbor Feature Aggregates
+- Phase 18: Anomaly and OOD Conservative Scoring
 
 ## Planned Next
 
@@ -53,10 +55,10 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 ## Current Position
 
-Phase: 18 (anomaly-and-ood-conservative-scoring) — EXECUTION COMPLETE
-Plan: 4 of 4
-Status: Ready for phase verification
-Last activity: 2026-07-05 -- Phase 18 plan execution complete
+Phase: 19
+Plan: Not started
+Status: Ready to discuss
+Last activity: 2026-07-05 -- Phase 18 verified complete
 Resume file: None
 
 ## Operator Next Steps
