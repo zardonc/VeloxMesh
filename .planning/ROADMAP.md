@@ -15,16 +15,19 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 **Goal:** Polish the Scheduler to 1.0 release quality and unify the gateway-wide config structure.
 
 ### Phase 20: Config Unification + Scheduler Core Hardening
+
 - CFG-01..04: Group ControlState/Redis/Cache config into named nested structs; support component-scoped config files.
 - SCH-05..07: Executor concurrent slot control, Redis idempotency lock, QueueGuard observability.
 - QDR-05..06: Embedding input truncation, automatic Qdrant collection initialization.
 
 ### Phase 21: Observability, Admin APIs & Tooling
+
 - SCH-08: Admin status endpoint (queue depth, executor slots, circuit-breaker, quality rollups).
 - QDR-07..08: Precise ID hydration for semantic neighbors; configurable embedding model.
 - OBS-03..06: SLA rules API, training sample export, SchedulerType rollup fix, heuristic config file.
 
 ### Phase 22: Documentation, .env.example & UAT
+
 - Updated `config.json.example` and `.env.example` with structured config layout.
 - Scheduler 1.0 operator runbook (deployment guide, config reference, degradation scenarios).
 - End-to-end UAT: scheduler enable/disable, degradation, semantic neighbors, admin APIs.

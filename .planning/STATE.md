@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v7.5
-milestone_name: Scheduler Enhancements
-status: Awaiting next milestone
-last_updated: "2026-07-05T23:07:17.322Z"
-last_activity: 2026-07-05 — Milestone v7.5 completed and archived
+milestone_name: milestone
+status: executing
+last_updated: "2026-07-06T16:35:35.502Z"
+last_activity: 2026-07-06 -- Phase 20 execution started
 progress:
   total_phases: 3
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  completed_phases: 0
+  total_plans: 6
+  completed_plans: 1
+  percent: 0
 ---
 
 ## Project Reference
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** v7.5 Scheduler Enhancements shipped and archived; next milestone is ready to define.
+**Current focus:** Phase 20 — config-unification-scheduler-core-hardening
 
 ## Current Implementation State
 
@@ -57,10 +57,10 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 ## Current Position
 
-Phase: Milestone v7.5 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-05 — Milestone v7.5 completed and archived
+Phase: 20 (config-unification-scheduler-core-hardening) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-07-06 -- Phase 20 execution started
 
 ## Operator Next Steps
 
