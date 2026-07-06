@@ -18,7 +18,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.6 Scheduler 1.0 + Config System Unification** is the active milestone. Phase 21 is complete; the current focus is Phase 22 documentation, `.env.example`, and UAT.
+**v7.6 Scheduler 1.0 + Config System Unification** is complete through Phase 22. The milestone now has Scheduler 1.0 docs, safe structured config examples, and UAT evidence.
 
 **v7.5 Scheduler Enhancements** has shipped and is archived. It completed semantic-neighbor aggregate features, anomaly/OOD conservative scoring, and gateway-owned tenant SLA waiting-time promotion with sanitized metrics, logs, and durable audit evidence.
 
@@ -105,7 +105,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ### Active
 
-- Phase 22 (v7.6): Documentation, `.env.example` & UAT.
+- No active phase. v7.6 is ready for milestone closeout.
 
 ### Deferred to Future Milestones
 
