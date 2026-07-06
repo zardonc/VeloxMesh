@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-15
 **Updated:** 2026-07-06
-**Current focus:** v7.6 Scheduler 1.0 + Config System Unification
+**Current focus:** v7.6 Scheduler 1.0 + Config System Unification complete; ready for milestone closeout
 
 ## Overview
 
@@ -10,7 +10,7 @@ VeloxMesh is being built as vertical gateway slices. The current gateway include
 
 The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path, with PostgreSQL + pgvector available as the Plan 4 extension path. v7.5 completed scheduler enhancement items deferred from v7.4: safe semantic-neighbor aggregate features, anomaly/OOD conservative scoring, and SLA waiting-time promotion.
 
-## Active Milestone: v7.6 Scheduler 1.0 + Config System Unification
+## Completed Milestone: v7.6 Scheduler 1.0 + Config System Unification
 
 **Goal:** Polish the Scheduler to 1.0 release quality and unify the gateway-wide config structure.
 
@@ -35,7 +35,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 
 ## Milestones
 
-- [ ] **v7.6 Scheduler 1.0 + Config** - Phases 20-22 (active)
+- [x] **v7.6 Scheduler 1.0 + Config** - Phases 20-22 (completed 2026-07-06; ready for archive)
 - [x] **v7.5 Scheduler Enhancements** - Phases 17-19 (shipped 2026-07-05; archive: `.planning/milestones/v7.5-ROADMAP.md`)
 - [x] **v7.4 Gateway Scheduler** - Phases 14-16 (shipped 2026-07-04; archive: `.planning/milestones/v7.4-ROADMAP.md`)
 - [x] **v7.3 PostgreSQL Compatibility** - Phase 13 (shipped 2026-07-03; archive: `.planning/milestones/v7.3-ROADMAP.md`)
@@ -70,4 +70,4 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - Config unification in v7.6 is backward-compatible: existing ENV variables remain valid; nested struct grouping is the new preferred form.
 
 ---
-*Roadmap refreshed: 2026-07-06 — v7.6 active*
+*Roadmap refreshed: 2026-07-06 — v7.6 complete*

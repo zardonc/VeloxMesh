@@ -34,6 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 19 SLA Waiting-Time Promotion (v7.5) is implemented and verified with sanitized promotion metrics, logs, and audit evidence.
 - Phase 20 Config Unification + Scheduler Core Hardening (v7.6) is implemented and verified.
 - Phase 21 Observability, Admin APIs & Tooling (v7.6) is implemented and verified.
+- Phase 22 Documentation, .env.example & UAT (v7.6) is implemented and verified.
 
 ## Completed
 
@@ -51,12 +52,12 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 ## Planned Next
 
-1. Verify Phase 22 with `$gsd-verify-work 22`.
+1. Complete the v7.6 milestone with `$gsd-complete-milestone`.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-plan-phase 22` - plan the next active phase.
+- `$gsd-complete-milestone` - archive the completed v7.6 milestone.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
