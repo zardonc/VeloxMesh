@@ -1,9 +1,10 @@
 {
   "enabled": false,
+  "provider": "",
   "vector_dimension": 1536,
-  "vector_store": "",
+  "vector_store": "qdrant",
   "qdrant": {
-    "addr": ""
+    "addr": "localhost:6334"
   },
   "pgvector": {
     "index_type": "hnsw",

@@ -1083,7 +1083,7 @@ func TestEnvExampleSchedulerDisabledAndSecretSafe(t *testing.T) {
 		t.Fatalf("read .env.example: %v", err)
 	}
 	content := string(data)
-	for _, required := range []string{"# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high", "# SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=false", "# SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT=20", "# SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT=5ms", "# SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT=15ms"} {
+	for _, required := range []string{"# SCHEDULER_CONFIG_FILE=config.scheduler.example.json", "# CACHE_CONFIG_FILE=config.cache.example.json", "# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high", "# SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=false", "# SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL=text-embedding-3-small", "# SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT=20", "# SCHEDULER_SEMANTIC_NEIGHBORS_INPUT_MAX_CHARS=16000", "# SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT=5ms", "# SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT=15ms"} {
 		if !strings.Contains(content, required) {
 			t.Fatalf(".env.example missing %q", required)
 		}
@@ -1093,6 +1093,62 @@ func TestEnvExampleSchedulerDisabledAndSecretSafe(t *testing.T) {
 			t.Fatalf(".env.example contains forbidden scheduler secret marker %q", forbidden)
 		}
 	}
+}
+
+func TestConfigExamplesParseAndStayDisabled(t *testing.T) {
+	var main map[string]any
+	readJSONExample(t, "../../config.json.example", &main)
+	for _, block := range []string{"scheduler", "redis", "cache"} {
+		values, ok := main[block].(map[string]any)
+		if !ok {
+			t.Fatalf("config.json.example missing %s block", block)
+		}
+		if values["enabled"] != false {
+			t.Fatalf("config.json.example %s.enabled = %v, want false", block, values["enabled"])
+		}
+	}
+
+	var cache map[string]any
+	readJSONExample(t, "../../config.cache.example.json", &cache)
+	for _, block := range []string{"qdrant", "pgvector"} {
+		if _, ok := cache[block].(map[string]any); !ok {
+			t.Fatalf("config.cache.example.json missing %s block", block)
+		}
+	}
+}
+
+func TestCopyableExamplesDoNotContainSecretShapedValues(t *testing.T) {
+	paths := []string{
+		"../../.env.example",
+		"../../config.json.example",
+		"../../config.scheduler.example.json",
+		"../../config.cache.example.json",
+		"../../config.heuristic.example.json",
+	}
+	for _, path := range paths {
+		content := strings.ToLower(readTextExample(t, path))
+		for _, forbidden := range []string{"sk-", "dev_postgres_secret", "dev_redis_secret", "vx_qdrant_secret", "password", "token", `"api_key": "`} {
+			if strings.Contains(content, forbidden) {
+				t.Fatalf("%s contains forbidden secret-shaped marker %q", path, forbidden)
+			}
+		}
+	}
+}
+
+func readJSONExample(t *testing.T, path string, out any) {
+	t.Helper()
+	if err := json.Unmarshal([]byte(readTextExample(t, path)), out); err != nil {
+		t.Fatalf("parse %s: %v", path, err)
+	}
+}
+
+func readTextExample(t *testing.T, path string) string {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read %s: %v", path, err)
+	}
+	return string(data)
 }
 
 func writeTempConfig(t *testing.T, content string) string {

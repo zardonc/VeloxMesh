@@ -1,5 +1,8 @@
 {
   "default_provider": "openai-primary",
+  "routing_strategy": "least-latency",
+  "fallback_enabled": false,
+  "max_attempts": 1,
   "providers": [
     {
       "id": "openai-primary",
@@ -12,22 +15,67 @@
       "default_model": "gpt-4o-mini"
     }
   ],
+  "scheduler_config_file": "config.scheduler.example.json",
+  "cache_config_file": "config.cache.example.json",
   "control_state": {
-    "backend": "disabled"
+    "backend": "disabled",
+    "dsn": "",
+    "migrate_on_startup": false,
+    "local_seed_enabled": false
   },
   "redis": {
-    "enabled": false
+    "enabled": false,
+    "addr": "",
+    "db": 0,
+    "namespace": "veloxmesh:local",
+    "health_ttl": "1m",
+    "auth_cache_ttl": "5m",
+    "degrade_to_local": true
   },
   "cache": {
     "enabled": false,
+    "provider": "",
+    "vector_store": "",
     "vector_dimension": 1536,
     "qdrant": {
       "addr": ""
+    },
+    "pgvector": {
+      "index_type": "hnsw",
+      "hnsw_m": 16,
+      "hnsw_ef_construction": 64,
+      "search_ef": 40
     }
   },
   "scheduler": {
     "enabled": false,
+    "mode": "heuristic",
+    "timeout": "15ms",
+    "strict": false,
+    "breaker_failure_threshold": 3,
+    "breaker_recovery_timeout": "1m",
     "queue_backend": "auto",
-    "executor_concurrency": 1
+    "queue_soft_limit": 0,
+    "queue_hard_limit": 0,
+    "queue_pop_timeout": "100ms",
+    "executor_concurrency": 1,
+    "default_priority": "normal",
+    "max_priority": "high",
+    "high_quota_per_minute": 0,
+    "score_uncertainty_penalty_k": 0.2,
+    "heuristic_config_file": "config.heuristic.example.json",
+    "onnx_rollout_percent": 0,
+    "quality_mape_alert_percent": 25,
+    "error_spike_alert_rate": 0.05,
+    "feedback_enabled": false,
+    "semantic_neighbors_enabled": false,
+    "semantic_neighbors_embedding_model": "text-embedding-3-small",
+    "semantic_neighbors_min_count": 20,
+    "semantic_neighbors_input_max_chars": 16000,
+    "semantic_neighbors_task_timeout": "5ms",
+    "semantic_neighbors_batch_timeout": "15ms",
+    "sla_promotion_enabled": false,
+    "sla_promotion_candidate_window": 32,
+    "sla_promotion_rules": []
   }
 }
