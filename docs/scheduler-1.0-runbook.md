@@ -81,7 +81,7 @@ CACHE_CONFIG_FILE=config.cache.example.json
 
 ## Vector Backends
 
-Semantic-neighbor lookup is gateway-owned for both backends; Scheduler receives only aggregate scalar features.
+Semantic-neighbor lookup is gateway-owned for both backends; scheduler receives only aggregate scalar features.
 
 | Backend | Best fit | Config location | UAT command |
 | --- | --- | --- | --- |
