@@ -74,7 +74,11 @@ type schedulerStatus struct {
 
 func newSchedulerServiceWithStatus(mode, artifactDir string, metrics *heuristic.Metrics) (schedulerv1.TaskSchedulerServer, schedulerStatus, error) {
 	if mode == "" || mode == "heuristic" {
-		return heuristic.NewBatchScoreService(nil, metrics), schedulerStatus{}, nil
+		cfg, err := heuristic.LoadConfigFile(getenv("SCHEDULER_HEURISTIC_CONFIG_FILE", ""), heuristic.DefaultConfig())
+		if err != nil {
+			return nil, schedulerStatus{}, err
+		}
+		return heuristic.NewBatchScoreService(heuristic.NewScoreCalculator(cfg), metrics), schedulerStatus{}, nil
 	}
 	if mode != "onnx" && mode != "predictive" {
 		return nil, schedulerStatus{}, fmt.Errorf("unsupported scheduler mode: %s", mode)

@@ -35,6 +35,9 @@ func TestPredictionQualityRecorderWritesDurableRollup(t *testing.T) {
 	if repo.rollup == nil || repo.rollup.MAPESum != 25 || repo.rollup.ModelClass != "standard" {
 		t.Fatalf("unexpected rollup: %#v", repo.rollup)
 	}
+	if repo.rollup.SchedulerType == "" {
+		t.Fatalf("expected non-empty scheduler type: %#v", repo.rollup)
+	}
 	if repo.rollup.ConfidenceSum != 0.75 || repo.rollup.SafeSampleIDs[0] != "safe-sample-1" {
 		t.Fatalf("expected confidence and safe sample link, got %#v", repo.rollup)
 	}

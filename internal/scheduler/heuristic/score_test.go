@@ -1,6 +1,9 @@
 package heuristic
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"veloxmesh/internal/scheduler"
@@ -72,6 +75,38 @@ func TestScoreCalculatorIgnoresSemanticAggregates(t *testing.T) {
 	}
 }
 
+func TestLoadConfigFileAppliesNarrowOverrides(t *testing.T) {
+	path := writeHeuristicConfig(t, `{"base_latency":{"simple_qa":1600},"model_multipliers":{"standard":2}}`)
+	cfg, err := LoadConfigFile(path, DefaultConfig())
+	if err != nil {
+		t.Fatalf("LoadConfigFile: %v", err)
+	}
+	if cfg.BaseLatencyMs[scheduler.RequestKindSimpleQA] != 1600 {
+		t.Fatalf("base latency override missing: %#v", cfg.BaseLatencyMs)
+	}
+	if cfg.ModelMultiplier["standard"] != 2 {
+		t.Fatalf("model multiplier override missing: %#v", cfg.ModelMultiplier)
+	}
+	if cfg.PriorityMultiplier[scheduler.PriorityHigh] != DefaultConfig().PriorityMultiplier[scheduler.PriorityHigh] {
+		t.Fatalf("omitted priority defaults changed: %#v", cfg.PriorityMultiplier)
+	}
+}
+
+func TestLoadConfigFileRejectsUnknownFields(t *testing.T) {
+	path := writeHeuristicConfig(t, `{"priority_multipliers":{"high":1}}`)
+	_, err := LoadConfigFile(path, DefaultConfig())
+	if err == nil || !strings.Contains(err.Error(), "unknown field") {
+		t.Fatalf("expected unknown field error, got %v", err)
+	}
+}
+
+func TestScoreCalculatorSetsSchedulerType(t *testing.T) {
+	score := NewScoreCalculator(DefaultConfig()).Score(baseFeature()).Result
+	if score.SchedulerType != scheduler.SchedulerTypeHeuristic {
+		t.Fatalf("expected heuristic scheduler type, got %#v", score)
+	}
+}
+
 func baseFeature() scheduler.TaskFeature {
 	return scheduler.TaskFeature{
 		TaskID:                "t1",
@@ -83,4 +118,13 @@ func baseFeature() scheduler.TaskFeature {
 		EnqueueTimeMs:         1000,
 		ConfidenceHint:        1,
 	}
+}
+
+func writeHeuristicConfig(t *testing.T, body string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "heuristic.json")
+	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
+		t.Fatalf("write heuristic config: %v", err)
+	}
+	return path
 }

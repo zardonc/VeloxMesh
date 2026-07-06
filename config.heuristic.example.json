@@ -1,0 +1,11 @@
+{
+  "base_latency": {
+    "simple_qa": 800,
+    "code_gen": 4000
+  },
+  "model_multipliers": {
+    "small": 0.7,
+    "standard": 1,
+    "large": 1.4
+  }
+}

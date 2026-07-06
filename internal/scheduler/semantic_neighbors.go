@@ -33,9 +33,10 @@ type SemanticNeighborIndexer interface {
 }
 
 type SemanticNeighborConfig struct {
-	Enabled       bool
-	MinCount      int
-	InputMaxChars int
+	Enabled        bool
+	MinCount       int
+	InputMaxChars  int
+	EmbeddingModel string
 }
 
 type SemanticNeighborService struct {
@@ -116,7 +117,7 @@ func (s *SemanticNeighborService) embed(ctx context.Context, req *llm.LLMRequest
 		s.recordError("input_truncated")
 	}
 	resp, err := s.embedder().Embed(ctx, &llm.EmbeddingRequest{
-		Model: semanticNeighborEmbeddingModel,
+		Model: s.embeddingModel(),
 		Input: []string{input},
 	})
 	if err != nil {
@@ -182,6 +183,13 @@ func (s *SemanticNeighborService) inputMaxChars() int {
 		return defaultSemanticNeighborInputMaxChars
 	}
 	return s.Config.InputMaxChars
+}
+
+func (s *SemanticNeighborService) embeddingModel() string {
+	if s == nil || s.Config.EmbeddingModel == "" {
+		return semanticNeighborEmbeddingModel
+	}
+	return s.Config.EmbeddingModel
 }
 
 func (s *SemanticNeighborService) recordError(reason string) {

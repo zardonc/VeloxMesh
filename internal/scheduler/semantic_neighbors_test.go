@@ -117,6 +117,21 @@ func TestSemanticNeighborEmbeddingUsesDefaultModel(t *testing.T) {
 	}
 }
 
+func TestSemanticNeighborEmbeddingUsesConfiguredModel(t *testing.T) {
+	embedder := &recordingEmbedder{}
+	service := semanticNeighborTestService(1, semanticNeighborSamples())
+	service.Config.EmbeddingModel = "text-embedding-3-large"
+	service.Embedder = func() providers.EmbedAdapter { return embedder }
+
+	_, err := service.Enrich(tenantContext("tenant-a"), semanticNeighborRequest(), semanticNeighborFeature())
+	if err != nil {
+		t.Fatalf("Enrich: %v", err)
+	}
+	if embedder.model != "text-embedding-3-large" {
+		t.Fatalf("expected configured embedding model, got %q", embedder.model)
+	}
+}
+
 func TestSemanticNeighborEmbeddingTruncatesInputByDefault(t *testing.T) {
 	var input string
 	server := semanticNeighborEmbeddingServer(t, &input)

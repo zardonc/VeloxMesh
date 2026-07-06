@@ -58,6 +58,7 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 		scores, _ = FIFOScorer{Reason: "missing_score"}.Score(ctx, []TaskFeature{feature})
 	}
 	score := scores[0]
+	score = scoreWithDefaultType(score)
 	scoreLatency := time.Since(scoreStart)
 	i.recordSchedulerResult(score.FallbackReason, scoreLatency, score.FallbackReason)
 	guard := i.Guard.Check(ctx, i.Queue, priority.Resolved)
@@ -135,6 +136,13 @@ func (i *TaskIntake) recordSemanticNeighborError(err error) {
 	}
 	i.Metrics.IncSemanticNeighborError("error")
 	i.Metrics.IncSemanticNeighborFallback("error")
+}
+
+func scoreWithDefaultType(score ScoreResult) ScoreResult {
+	if score.SchedulerType == "" {
+		score.SchedulerType = SchedulerTypeFIFO
+	}
+	return score
 }
 
 func scoreMetadata(score ScoreResult, latency time.Duration) map[string]string {

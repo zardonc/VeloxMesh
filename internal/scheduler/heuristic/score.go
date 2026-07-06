@@ -38,6 +38,7 @@ func (c *ScoreCalculator) Score(feature scheduler.TaskFeature) Score {
 			PredictedLatencyMs: predicted,
 			Confidence:         classification.Confidence,
 			SchedulerVersion:   c.cfg.Version,
+			SchedulerType:      scheduler.SchedulerTypeHeuristic,
 			FallbackReason:     classification.Source,
 		},
 		ClassificationSource: classification.Source,

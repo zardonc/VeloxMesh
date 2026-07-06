@@ -6,13 +6,14 @@ import (
 )
 
 const (
-	defaultSemanticCacheVectorDimension  = 1536
-	defaultPGVectorIndexType             = "hnsw"
-	defaultPGVectorHNSWM                 = 16
-	defaultPGVectorHNSWEFConstruction    = 64
-	defaultPGVectorSearchEF              = 40
-	defaultSLAPromotionCandidateWindow   = 32
-	defaultSemanticNeighborInputMaxChars = 16000
+	defaultSemanticCacheVectorDimension   = 1536
+	defaultPGVectorIndexType              = "hnsw"
+	defaultPGVectorHNSWM                  = 16
+	defaultPGVectorHNSWEFConstruction     = 64
+	defaultPGVectorSearchEF               = 40
+	defaultSLAPromotionCandidateWindow    = 32
+	defaultSemanticNeighborInputMaxChars  = 16000
+	defaultSemanticNeighborEmbeddingModel = "text-embedding-3-small"
 )
 
 func getEnv(key, fallback string) string {

@@ -91,6 +91,28 @@ func TestSchedulerServiceDefaultsToHeuristic(t *testing.T) {
 	}
 }
 
+func TestSchedulerServiceLoadsHeuristicConfigFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "heuristic.json")
+	if err := os.WriteFile(path, []byte(`{"base_latency":{"simple_qa":1600}}`), 0o600); err != nil {
+		t.Fatalf("write heuristic config: %v", err)
+	}
+	t.Setenv("SCHEDULER_HEURISTIC_CONFIG_FILE", path)
+	service, err := newSchedulerService("", "", nil)
+	if err != nil {
+		t.Fatalf("newSchedulerService: %v", err)
+	}
+	resp, err := service.BatchScoreTasks(context.Background(), &schedulerv1.BatchScoreRequest{Tasks: []*schedulerv1.TaskFeature{{
+		TaskId: "t1", ModelClass: "standard", EstimatedInputTokens: 256,
+		Priority: string(scheduler.PriorityNormal), RequestKind: string(scheduler.RequestKindSimpleQA),
+	}}})
+	if err != nil {
+		t.Fatalf("BatchScoreTasks: %v", err)
+	}
+	if resp.GetResults()[0].GetPredictedLatencyMs() != 1600 {
+		t.Fatalf("expected override latency 1600, got %d", resp.GetResults()[0].GetPredictedLatencyMs())
+	}
+}
+
 func TestSchedulerServiceONNXInvalidArtifactDegrades(t *testing.T) {
 	service, status, err := newSchedulerServiceWithStatus("onnx", t.TempDir(), nil)
 	if err != nil {

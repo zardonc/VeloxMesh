@@ -37,9 +37,10 @@ func newSemanticNeighborService(ctx context.Context, cfg *config.Config, logger 
 	}
 	return &scheduler.SemanticNeighborService{
 		Config: scheduler.SemanticNeighborConfig{
-			Enabled:       true,
-			MinCount:      cfg.Scheduler.SemanticNeighborsMinCount,
-			InputMaxChars: cfg.Scheduler.SemanticNeighborsInputMaxChars,
+			Enabled:        true,
+			MinCount:       cfg.Scheduler.SemanticNeighborsMinCount,
+			InputMaxChars:  cfg.Scheduler.SemanticNeighborsInputMaxChars,
+			EmbeddingModel: cfg.Scheduler.SemanticNeighborsEmbeddingModel,
 		},
 		Embedder: semanticNeighborEmbedder(m, cfg.SemanticCacheProvider),
 		Vector:   vector,

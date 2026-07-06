@@ -25,7 +25,7 @@ func TestDisabledScorerDoesNotDialAndUsesFIFO(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Score: %v", err)
 	}
-	if results[0].Score != 42 || results[0].FallbackReason != "disabled" {
+	if results[0].Score != 42 || results[0].FallbackReason != "disabled" || results[0].SchedulerType != SchedulerTypeFIFO {
 		t.Fatalf("expected disabled FIFO fallback, got %#v", results[0])
 	}
 }
@@ -47,7 +47,7 @@ func TestGRPCScorerCallsRealSchedulerOverTCP(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Score: %v", err)
 	}
-	if results[0].Score != 12.5 || results[0].SchedulerVersion != "test-scheduler" || results[0].FallbackReason != "" {
+	if results[0].Score != 12.5 || results[0].SchedulerVersion != "test-scheduler" || results[0].SchedulerType != SchedulerTypeHeuristic || results[0].FallbackReason != "" {
 		t.Fatalf("expected scheduler score from real TCP call, got %#v", results[0])
 	}
 }
@@ -68,8 +68,15 @@ func TestGRPCScorerTimeoutFallsBackToFIFO(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Score: %v", err)
 	}
-	if results[0].Score != 7 || results[0].FallbackReason != "timeout" {
+	if results[0].Score != 7 || results[0].FallbackReason != "timeout" || results[0].SchedulerType != SchedulerTypeFIFO {
 		t.Fatalf("expected timeout FIFO fallback, got %#v", results[0])
+	}
+}
+
+func TestScoreWithDefaultTypePreventsEmptyQualityMetadata(t *testing.T) {
+	score := scoreWithDefaultType(ScoreResult{})
+	if score.SchedulerType != SchedulerTypeFIFO {
+		t.Fatalf("expected FIFO default type, got %#v", score)
 	}
 }
 
