@@ -621,6 +621,35 @@ func TestSchedulerFeedbackConfigIsIndependent(t *testing.T) {
 	}
 }
 
+func TestSchedulerConfigFileLoadsWithoutMainConfigFile(t *testing.T) {
+	path := t.TempDir() + "/scheduler.json"
+	data := `{
+		"enabled": true,
+		"timeout": "25ms",
+		"queue_backend": "memory",
+		"semantic_neighbors_input_max_chars": 2048
+	}`
+	if err := os.WriteFile(path, []byte(data), 0o600); err != nil {
+		t.Fatalf("write scheduler config: %v", err)
+	}
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("SCHEDULER_CONFIG_FILE", path)
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.Scheduler.Enabled || cfg.Scheduler.Timeout != "25ms" {
+		t.Fatalf("scheduler config file not loaded: %#v", cfg.Scheduler)
+	}
+	if cfg.Scheduler.QueueBackend != "memory" || cfg.Scheduler.SemanticNeighborsInputMaxChars != 2048 {
+		t.Fatalf("scheduler config file overrides missing: %#v", cfg.Scheduler)
+	}
+}
+
 func TestSchedulerFeedbackConfigEnv(t *testing.T) {
 	t.Setenv("CONFIG_FILE", "")
 	t.Setenv("DEFAULT_PROVIDER", "p1")
@@ -990,6 +1019,15 @@ func TestPlan4PostgresConfigValidationFailures(t *testing.T) {
 				c.QdrantAddr = ""
 			},
 			expectedErr: "qdrant_addr is required",
+		},
+		{
+			name: "pgvector cache requires dsn",
+			modify: func(c *Config) {
+				c.ControlStateDSN = ""
+				c.SemanticCacheEnabled = true
+				c.SemanticCacheVectorStore = "pgvector"
+			},
+			expectedErr: "control_state.dsn is required",
 		},
 		{
 			name: "invalid vector dimension",

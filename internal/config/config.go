@@ -95,9 +95,6 @@ func LoadConfig() (*Config, error) {
 			return nil, err
 		}
 		applyFileConfig(cfg, fileCfg)
-		if err := applyComponentConfigFiles(cfg); err != nil {
-			return nil, err
-		}
 		if fileCfg.FallbackEnabled == nil {
 			cfg.FallbackEnabled = len(cfg.Providers) > 1
 		}
@@ -126,6 +123,9 @@ func LoadConfig() (*Config, error) {
 				Timeout:      "30s",
 			},
 		}
+	}
+	if err := applyComponentConfigFiles(cfg); err != nil {
+		return nil, err
 	}
 
 	applyDefaults(cfg)

@@ -95,6 +95,9 @@ func validateSemanticCacheConfig(c *Config) error {
 	if cache.VectorStore == "qdrant" && cache.Qdrant.Addr == "" {
 		return fmt.Errorf("qdrant_addr is required when semantic_cache_vector_store is qdrant")
 	}
+	if cache.VectorStore == "pgvector" && c.ControlState.DSN == "" {
+		return fmt.Errorf("control_state.dsn is required when semantic_cache_vector_store is pgvector")
+	}
 	return nil
 }
 

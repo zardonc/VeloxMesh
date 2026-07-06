@@ -39,7 +39,7 @@ func TestPGVectorMigrationAndSearch(t *testing.T) {
 	testenv.Load()
 	dsn := os.Getenv("POSTGRES_TEST_DSN")
 	if dsn == "" {
-		t.Skip("Skipping pgvector integration test because POSTGRES_TEST_DSN is not set")
+		t.Fatalf("POSTGRES_TEST_DSN is required for real pgvector tests")
 	}
 	ctx := context.Background()
 	adapter, err := NewPGVectorAdapter(ctx, dsn, PGVectorOptions{
@@ -72,6 +72,30 @@ func TestPGVectorMigrationAndSearch(t *testing.T) {
 	}
 	if _, ok := results[0]["prompt"]; ok {
 		t.Fatalf("raw prompt leaked into search metadata")
+	}
+}
+
+func TestPGVectorEnsureCollectionUsesRealSchema(t *testing.T) {
+	testenv.Load()
+	dsn := os.Getenv("POSTGRES_TEST_DSN")
+	if dsn == "" {
+		t.Fatalf("POSTGRES_TEST_DSN is required for real pgvector tests")
+	}
+	ctx := context.Background()
+	adapter, err := NewPGVectorAdapter(ctx, dsn, PGVectorOptions{
+		Dimension:          1536,
+		HNSWM:              16,
+		HNSWEFConstruction: 64,
+		SearchEF:           40,
+	})
+	if err != nil {
+		t.Fatalf("new pgvector adapter: %v", err)
+	}
+	if err := adapter.EnsureCollection(ctx, "scheduler_training_samples", 1536); err != nil {
+		t.Fatalf("ensure pgvector collection: %v", err)
+	}
+	if err := adapter.EnsureCollection(ctx, "scheduler_training_samples", 3); err == nil {
+		t.Fatalf("expected pgvector dimension mismatch")
 	}
 }
 

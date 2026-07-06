@@ -30,6 +30,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 
 - Updated `config.json.example` and `.env.example` with structured config layout.
 - Scheduler 1.0 operator runbook (deployment guide, config reference, degradation scenarios).
+- Document Qdrant and pgvector parity for vector-backed semantic-neighbor deployments, plus Scheduler purpose, fit, disabled-by-default behavior, enablement, and separate config-file location.
 - End-to-end UAT: scheduler enable/disable, degradation, semantic neighbors, admin APIs.
 
 ## Milestones

@@ -29,8 +29,8 @@ func newSemanticNeighborService(ctx context.Context, cfg *config.Config, logger 
 			observability.DefaultMetrics.IncSemanticNeighborFallback("error")
 			return nil
 		}
-	} else if cfg.SemanticCacheVectorStore == "qdrant" {
-		logger.Warn("semantic neighbors disabled; Qdrant collection ensure unavailable", "reason", "startup_ensure")
+	} else if cfg.SemanticCacheVectorStore == "qdrant" || cfg.SemanticCacheVectorStore == "pgvector" {
+		logger.Warn("semantic neighbors disabled; vector collection ensure unavailable", "reason", "startup_ensure", "store", cfg.SemanticCacheVectorStore)
 		observability.DefaultMetrics.IncSemanticNeighborError("startup_ensure")
 		observability.DefaultMetrics.IncSemanticNeighborFallback("error")
 		return nil

@@ -207,6 +207,28 @@ func TestApp_SemanticNeighborsEnsureCollectionKeepsServiceEnabled(t *testing.T) 
 	}
 }
 
+func TestApp_SemanticNeighborsPGVectorEnsureKeepsServiceEnabled(t *testing.T) {
+	testenv.Load()
+	dsn := os.Getenv("POSTGRES_TEST_DSN")
+	if dsn == "" {
+		t.Fatalf("POSTGRES_TEST_DSN is required for real pgvector semantic-neighbor startup test")
+	}
+	dsn = isolatedAppPostgresDSN(t, dsn)
+	seedLivePostgresStartupProvider(t, dsn, livePostgresTestEncryptionKey)
+	setSemanticNeighborPGVectorAppEnv(t, dsn)
+
+	application, err := New()
+	if err != nil {
+		t.Fatalf("expected semantic-neighbor startup with real pgvector: %v", err)
+	}
+	if !application.SchedulerSemanticNeighborsOn {
+		t.Fatalf("expected semantic neighbors enabled after pgvector ensure")
+	}
+	if application.Config.Cache.VectorDimension != 3 {
+		t.Fatalf("expected configured cache vector dimension 3, got %d", application.Config.Cache.VectorDimension)
+	}
+}
+
 func TestApp_SemanticNeighborsEnsureFailureFailsOpen(t *testing.T) {
 	setSemanticNeighborAppEnv(t, "127.0.0.1:1")
 
@@ -366,6 +388,24 @@ func setSemanticNeighborAppEnv(t *testing.T, qdrantAddr string) {
 	t.Setenv("SEMANTIC_CACHE_VECTOR_STORE", "qdrant")
 	t.Setenv("SEMANTIC_CACHE_VECTOR_DIMENSION", "3")
 	t.Setenv("QDRANT_ADDR", qdrantAddr)
+}
+
+func setSemanticNeighborPGVectorAppEnv(t *testing.T, dsn string) {
+	t.Helper()
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "app-live-provider")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+	t.Setenv("CONTROL_STATE_BACKEND", "postgres")
+	t.Setenv("CONTROL_STATE_DSN", dsn)
+	t.Setenv("CONTROL_STATE_MIGRATE_ON_STARTUP", "true")
+	t.Setenv("CONTROL_STATE_ENCRYPTION_KEY", livePostgresTestEncryptionKey)
+	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED", "true")
+	t.Setenv("SEMANTIC_CACHE_PROVIDER", "app-live-provider")
+	t.Setenv("SEMANTIC_CACHE_VECTOR_STORE", "pgvector")
+	t.Setenv("SEMANTIC_CACHE_VECTOR_DIMENSION", "3")
 }
 
 func isolatedAppPostgresDSN(t *testing.T, dsn string) string {
