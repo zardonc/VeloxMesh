@@ -59,6 +59,7 @@ completed: 2026-07-06
 ## Task Commits
 
 1. **Tasks 1-3: semantic-neighbor safeguards** - `1558ca0` (`feat(20-03): harden semantic neighbors`)
+2. **Review fix: character-safe input cap** - `5f913a7` (`fix(20-03): cap semantic neighbor input by character`)
 
 ## Files Created/Modified
 
@@ -78,7 +79,20 @@ completed: 2026-07-06
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 2 - Missing Critical] Made semantic-neighbor input cap count characters instead of bytes**
+- **Found during:** Code review gate
+- **Issue:** The initial truncation used byte length, which could split multibyte UTF-8 text even though the requirement specified a character cap.
+- **Fix:** Added rune-aware truncation and a real adapter test for multibyte input.
+- **Files modified:** `internal/scheduler/semantic_neighbors.go`, `internal/scheduler/semantic_neighbors_test.go`
+- **Verification:** `go test -timeout 60s ./internal/scheduler`; `go test -timeout 60s ./...`; `go build ./...`
+- **Committed in:** `5f913a7`
+
+---
+
+**Total deviations:** 1 auto-fixed (Rule 2).
+**Impact on plan:** Correctness improved; scope stayed within QDR-05.
 
 ## Issues Encountered
 
