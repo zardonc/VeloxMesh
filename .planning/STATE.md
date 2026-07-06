@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.5
-milestone_name: milestone
-status: verifying
-last_updated: "2026-07-06T17:04:35.649Z"
-last_activity: 2026-07-06 -- Phase 20 execution started
+milestone: v7.6
+milestone_name: Scheduler 1.0 + Config System Unification
+status: ready
+last_updated: "2026-07-06T17:13:45Z"
+last_activity: 2026-07-06
 progress:
   total_phases: 3
   completed_phases: 1
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 20 — config-unification-scheduler-core-hardening
+**Current focus:** Phase 21 — observability-admin-apis-tooling
 
 ## Current Implementation State
 
@@ -32,6 +32,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 17 Semantic Neighbor Feature Aggregates (v7.5) is implemented and verified.
 - Phase 18 Anomaly and OOD Conservative Scoring (v7.5) is implemented and verified, including production-shape ONNX artifact and Python worker/Scheduler call-chain coverage.
 - Phase 19 SLA Waiting-Time Promotion (v7.5) is implemented and verified with sanitized promotion metrics, logs, and audit evidence.
+- Phase 20 Config Unification + Scheduler Core Hardening (v7.6) is implemented and verified.
 
 ## Completed
 
@@ -44,27 +45,28 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 17: Semantic Neighbor Feature Aggregates
 - Phase 18: Anomaly and OOD Conservative Scoring
 - Phase 19: SLA Waiting-Time Promotion
+- Phase 20: Config Unification + Scheduler Core Hardening
 
 ## Planned Next
 
-1. Start the next milestone with `$gsd-new-milestone`.
+1. Plan Phase 21 with `$gsd-plan-phase 21`.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-new-milestone` - define the next milestone.
+- `$gsd-plan-phase 21` - plan the next active phase.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 20 (config-unification-scheduler-core-hardening) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-07-06 -- Phase 20 execution started
+Phase: 21
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-06 -- Phase 20 completed and verified
 
 ## Operator Next Steps
 
-- Start the next milestone with `$gsd-new-milestone`
+- Plan Phase 21 with `$gsd-plan-phase 21`
 
 ## Deferred Items
 

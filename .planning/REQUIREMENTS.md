@@ -7,16 +7,16 @@
 
 ### Config System Unification (CFG)
 
-- [ ] **CFG-01**: All major gateway subsystems (ControlState, Redis, Cache/Qdrant, Scheduler) are represented as named nested config structs in `Config`, consistent with the existing `SchedulerConfig` pattern. Flat root-level fields for these subsystems are grouped without breaking existing ENV variable names.
-- [ ] **CFG-02**: Config file loading supports component-scoped reference files (`scheduler_config_file`, `cache_config_file`) that override the corresponding inline block in the main config file, using the same struct format.
-- [ ] **CFG-03**: A new `config.json.example` and updated `.env.example` document the structured config layout, clearly separating essential fields from optional subsystem configuration.
-- [ ] **CFG-04**: Gateway startup without Scheduler, Redis, or Semantic Cache enabled requires no changes to existing deployments; all optional subsystem config defaults to disabled.
+- [x] **CFG-01**: All major gateway subsystems (ControlState, Redis, Cache/Qdrant, Scheduler) are represented as named nested config structs in `Config`, consistent with the existing `SchedulerConfig` pattern. Flat root-level fields for these subsystems are grouped without breaking existing ENV variable names.
+- [x] **CFG-02**: Config file loading supports component-scoped reference files (`scheduler_config_file`, `cache_config_file`) that override the corresponding inline block in the main config file, using the same struct format.
+- [x] **CFG-03**: A new `config.json.example` and updated `.env.example` document the structured config layout, clearly separating essential fields from optional subsystem configuration.
+- [x] **CFG-04**: Gateway startup without Scheduler, Redis, or Semantic Cache enabled requires no changes to existing deployments; all optional subsystem config defaults to disabled.
 
 ### Scheduler Hardening (SCH)
 
-- [ ] **SCH-05**: Executor supports configurable concurrent slot control via semaphore so that `SCHEDULER_EXECUTOR_CONCURRENCY > 1` allows parallel task execution without race conditions.
-- [ ] **SCH-06**: Multi-node task execution uses a Redis SET NX idempotency lock per task ID; single-node deployments skip the lock without code change.
-- [ ] **SCH-07**: Queue admission events (soft-limit throttle, hard-limit reject) are recorded as Prometheus counters with priority and reason labels; queue depth is recorded as a histogram at intake time.
+- [x] **SCH-05**: Executor supports configurable concurrent slot control via semaphore so that `SCHEDULER_EXECUTOR_CONCURRENCY > 1` allows parallel task execution without race conditions.
+- [x] **SCH-06**: Multi-node task execution uses a Redis SET NX idempotency lock per task ID; single-node deployments skip the lock without code change.
+- [x] **SCH-07**: Queue admission events (soft-limit throttle, hard-limit reject) are recorded as Prometheus counters with priority and reason labels; queue depth is recorded as a histogram at intake time.
 - [ ] **SCH-08**: Admin scheduler status endpoint returns queue depth, executor slot utilization, circuit-breaker state, and the last N quality rollup entries in a single response.
 
 ### Semantic Neighbor Hardening (QDR)
@@ -59,16 +59,16 @@
 
 | Requirement | Phase | Status |
 | --- | --- | --- |
-| CFG-01 | Phase 20 | Planned |
-| CFG-02 | Phase 20 | Planned |
-| CFG-03 | Phase 20 | Planned |
-| CFG-04 | Phase 20 | Planned |
-| SCH-05 | Phase 20 | Planned |
-| SCH-06 | Phase 20 | Planned |
-| SCH-07 | Phase 20 | Planned |
+| CFG-01 | Phase 20 | Complete |
+| CFG-02 | Phase 20 | Complete |
+| CFG-03 | Phase 20 | Complete |
+| CFG-04 | Phase 20 | Complete |
+| SCH-05 | Phase 20 | Complete |
+| SCH-06 | Phase 20 | Complete |
+| SCH-07 | Phase 20 | Complete |
 | SCH-08 | Phase 21 | Planned |
-| QDR-05 | Phase 20 | Planned |
-| QDR-06 | Phase 20 | Planned |
+| QDR-05 | Phase 20 | Complete |
+| QDR-06 | Phase 20 | Complete |
 | QDR-07 | Phase 21 | Planned |
 | QDR-08 | Phase 21 | Planned |
 | OBS-03 | Phase 21 | Planned |
