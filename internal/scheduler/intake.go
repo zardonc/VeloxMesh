@@ -62,7 +62,17 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 	i.recordSchedulerResult(score.FallbackReason, scoreLatency, score.FallbackReason)
 	guard := i.Guard.Check(ctx, i.Queue, priority.Resolved)
 	if guard.Err != nil {
+		if errors.Is(guard.Err, ErrQueueFull) {
+			i.recordAdmission(priority.Resolved, "rejected", "hard_limit")
+		} else {
+			i.recordAdmission(priority.Resolved, "guard_error", "guard_error")
+		}
 		return Task{}, guard.Err
+	}
+	if guard.Throttled {
+		i.recordAdmission(priority.Resolved, "throttled", "soft_limit")
+	} else {
+		i.recordAdmission(priority.Resolved, "accepted", "none")
 	}
 	task := Task{
 		ID:          req.RequestID,
@@ -88,6 +98,12 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 		}
 	}
 	return task, nil
+}
+
+func (i *TaskIntake) recordAdmission(priority PriorityClass, outcome string, reason string) {
+	if i.Metrics != nil {
+		i.Metrics.IncQueueAdmission(i.Backend, string(priority), outcome, reason)
+	}
 }
 
 func (i *TaskIntake) enrichFeatures(ctx context.Context, req *llm.LLMRequest, feature TaskFeature) TaskFeature {

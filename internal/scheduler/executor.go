@@ -14,6 +14,12 @@ type Executor struct {
 	Registry *ResultRegistry
 	Metrics  observability.Metrics
 	Promoter *SLAPromoter
+	Locker   TaskLocker
+}
+
+type TaskLocker interface {
+	Claim(ctx context.Context, taskID string) (bool, error)
+	Release(ctx context.Context, taskID string) error
 }
 
 func (e *Executor) RunOne(ctx context.Context) error {
@@ -23,6 +29,19 @@ func (e *Executor) RunOne(ctx context.Context) error {
 	item, err := e.Queue.PopMin(ctx)
 	if err != nil {
 		return err
+	}
+	if e.Locker != nil {
+		claimed, err := e.Locker.Claim(ctx, item.TaskID)
+		if err != nil {
+			return err
+		}
+		if !claimed {
+			if e.Metrics != nil {
+				e.Metrics.IncSchedulerTaskLockSkip("redis", "lock_exists")
+			}
+			return nil
+		}
+		defer func() { _ = e.Locker.Release(context.Background(), item.TaskID) }()
 	}
 	handler, ok := e.Registry.Handler(item.TaskID)
 	if !ok {
@@ -48,10 +67,18 @@ type SynchronousRunner struct {
 	Recorder *TrainingRecorder
 	Quality  *PredictionQualityRecorder
 	Indexer  SemanticNeighborIndexer
+	slots    chan struct{}
 }
 
 func NewSynchronousRunner(intake *TaskIntake, executor *Executor, registry *ResultRegistry) *SynchronousRunner {
-	return &SynchronousRunner{Intake: intake, Executor: executor, Registry: registry}
+	return NewSynchronousRunnerWithConcurrency(intake, executor, registry, 1)
+}
+
+func NewSynchronousRunnerWithConcurrency(intake *TaskIntake, executor *Executor, registry *ResultRegistry, concurrency int) *SynchronousRunner {
+	if concurrency < 1 {
+		concurrency = 1
+	}
+	return &SynchronousRunner{Intake: intake, Executor: executor, Registry: registry, slots: make(chan struct{}, concurrency)}
 }
 
 func (r *SynchronousRunner) RunChat(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error)) (*llm.LLMResponse, error) {
@@ -130,7 +157,11 @@ func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (Tas
 		result TaskResult
 		err    error
 	}, 1)
-	go func() { execDone <- r.Executor.RunOne(ctx) }()
+	go func() {
+		r.slots <- struct{}{}
+		defer func() { <-r.slots }()
+		execDone <- r.Executor.RunOne(ctx)
+	}()
 	go func() {
 		result, err := r.Registry.Wait(ctx, taskID)
 		waitDone <- struct {

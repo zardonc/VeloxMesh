@@ -52,6 +52,43 @@ func TestSynchronousRunnerReturnsResponse(t *testing.T) {
 	}
 }
 
+func TestSynchronousRunnerHonorsExecutorConcurrency(t *testing.T) {
+	registry := NewResultRegistry()
+	queue := NewMemoryQueue()
+	intake := &TaskIntake{
+		Queue: queue, Scorer: FIFOScorer{Reason: "disabled"}, Registry: registry,
+		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh}, Backend: "memory",
+	}
+	runner := NewSynchronousRunnerWithConcurrency(intake, &Executor{Queue: queue, Registry: registry}, registry, 2)
+	started := make(chan struct{}, 2)
+	done := make(chan struct{}, 2)
+	release := make(chan struct{})
+	run := func(id string) {
+		defer func() { done <- struct{}{} }()
+		_, err := runner.RunChat(context.Background(), &llm.LLMRequest{RequestID: id}, func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error) {
+			started <- struct{}{}
+			<-release
+			return &llm.LLMResponse{GatewayID: id}, nil
+		})
+		if err != nil {
+			t.Errorf("RunChat %s: %v", id, err)
+		}
+	}
+	go run("t1")
+	go run("t2")
+	for i := 0; i < 2; i++ {
+		select {
+		case <-started:
+		case <-time.After(time.Second):
+			t.Fatalf("expected two concurrent handlers, got %d", i)
+		}
+	}
+	close(release)
+	for i := 0; i < 2; i++ {
+		<-done
+	}
+}
+
 func TestExecutorCancelRemovesAndUnregisters(t *testing.T) {
 	registry := NewResultRegistry()
 	queue := NewMemoryQueue()

@@ -16,6 +16,7 @@ type PrometheusMetrics struct {
 	requestOutcome    *prometheus.CounterVec
 	requestOutcomeLat *prometheus.HistogramVec
 	queueDepth        *prometheus.GaugeVec
+	queueAdmission    *prometheus.CounterVec
 	taskWait          *prometheus.HistogramVec
 	schedulerCall     *prometheus.HistogramVec
 	schedulerErrors   *prometheus.CounterVec
@@ -28,6 +29,7 @@ type PrometheusMetrics struct {
 	comparisonErrors  *prometheus.CounterVec
 	anomalyStatus     *prometheus.CounterVec
 	rolloutAlerts     *prometheus.CounterVec
+	taskLockSkips     *prometheus.CounterVec
 	slaPromotion      *prometheus.CounterVec
 	semanticAttempts  *prometheus.CounterVec
 	semanticTimeouts  prometheus.Counter
@@ -94,6 +96,10 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			Name: "gateway_queue_depth",
 			Help: "Current gateway scheduler queue depth.",
 		}, []string{"backend", "priority"}),
+		queueAdmission: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "gateway_queue_admission_total",
+			Help: "Gateway scheduler queue admission outcomes.",
+		}, []string{"backend", "priority", "outcome", "reason"}),
 		taskWait: prometheus.NewHistogramVec(prometheus.HistogramOpts{
 			Name:    "gateway_task_wait_duration_ms",
 			Help:    "Gateway task queue wait duration in milliseconds.",
@@ -147,6 +153,10 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			Name: "gateway_scheduler_rollout_alerts_total",
 			Help: "Gateway scheduler rollout alert count.",
 		}, []string{"reason"}),
+		taskLockSkips: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "gateway_scheduler_task_lock_skips_total",
+			Help: "Gateway scheduler task execution lock skips.",
+		}, []string{"backend", "reason"}),
 		slaPromotion: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: "gateway_scheduler_sla_promotion_total",
 			Help: "Gateway scheduler SLA promotion outcome count.",
@@ -183,6 +193,7 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			m.requestOutcome,
 			m.requestOutcomeLat,
 			m.queueDepth,
+			m.queueAdmission,
 			m.taskWait,
 			m.schedulerCall,
 			m.schedulerErrors,
@@ -195,6 +206,7 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 			m.comparisonErrors,
 			m.anomalyStatus,
 			m.rolloutAlerts,
+			m.taskLockSkips,
 			m.slaPromotion,
 			m.semanticAttempts,
 			m.semanticTimeouts,
@@ -225,6 +237,10 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 							m.anomalyStatus = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.rolloutAlerts {
 							m.rolloutAlerts = are.ExistingCollector.(*prometheus.CounterVec)
+						} else if c == m.queueAdmission {
+							m.queueAdmission = are.ExistingCollector.(*prometheus.CounterVec)
+						} else if c == m.taskLockSkips {
+							m.taskLockSkips = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.slaPromotion {
 							m.slaPromotion = are.ExistingCollector.(*prometheus.CounterVec)
 						} else if c == m.semanticAttempts {
@@ -311,6 +327,15 @@ func (m *PrometheusMetrics) RecordQueueDepth(backend string, priority string, de
 	m.queueDepth.WithLabelValues(allowedLabel(backend, "memory", "redis"), allowedLabel(priority, "normal", "high", "low")).Set(float64(depth))
 }
 
+func (m *PrometheusMetrics) IncQueueAdmission(backend string, priority string, outcome string, reason string) {
+	m.queueAdmission.WithLabelValues(
+		allowedLabel(backend, "memory", "redis"),
+		allowedLabel(priority, "normal", "high", "low"),
+		allowedLabel(outcome, "accepted", "throttled", "rejected", "guard_error"),
+		allowedLabel(reason, "none", "soft_limit", "hard_limit", "guard_error"),
+	).Inc()
+}
+
 func (m *PrometheusMetrics) RecordTaskWait(priority string, waitMs float64) {
 	m.taskWait.WithLabelValues(allowedLabel(priority, "normal", "high", "low")).Observe(waitMs)
 }
@@ -367,6 +392,13 @@ func (m *PrometheusMetrics) IncSchedulerAnomalyStatus(schedulerVersion string, t
 
 func (m *PrometheusMetrics) IncSchedulerRolloutAlert(reason string) {
 	m.rolloutAlerts.WithLabelValues(allowedLabel(reason, "mape_degradation", "mape_degradation", "scheduler_error_spike")).Inc()
+}
+
+func (m *PrometheusMetrics) IncSchedulerTaskLockSkip(backend string, reason string) {
+	m.taskLockSkips.WithLabelValues(
+		allowedLabel(backend, "redis"),
+		allowedLabel(reason, "lock_exists", "error"),
+	).Inc()
 }
 
 func (m *PrometheusMetrics) IncSchedulerSLAPromotion(policyID string, tenantClass string, modelClass string, requestKind string, priority string, outcome string) {

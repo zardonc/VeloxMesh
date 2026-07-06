@@ -52,21 +52,26 @@ func TestPrometheusMetricsSchedulerMetrics(t *testing.T) {
 	m := NewPrometheusMetrics(reg)
 
 	m.RecordQueueDepth("redis", "normal", 3)
+	m.IncQueueAdmission("redis", "normal", "accepted", "none")
+	m.IncQueueAdmission("redis", "high", "throttled", "soft_limit")
 	m.RecordTaskWait("normal", 12)
 	m.RecordSchedulerCall("ok", 4)
 	m.IncSchedulerError("timeout")
 	m.RecordSchedulerBreakerState("closed")
 	m.IncPriorityDowngrade("quota", "high", "normal")
 	m.IncSchedulerClassificationSource("structured")
+	m.IncSchedulerTaskLockSkip("redis", "lock_exists")
 
 	for _, name := range []string{
 		"gateway_queue_depth",
+		"gateway_queue_admission_total",
 		"gateway_task_wait_duration_ms",
 		"gateway_scheduler_call_duration_ms",
 		"gateway_scheduler_errors_total",
 		"gateway_circuit_breaker_state",
 		"gateway_priority_downgrade_total",
 		"gateway_scheduler_classification_source_total",
+		"gateway_scheduler_task_lock_skips_total",
 	} {
 		count, err := testutil.GatherAndCount(reg, name)
 		if err != nil {
@@ -76,6 +81,18 @@ func TestPrometheusMetricsSchedulerMetrics(t *testing.T) {
 			t.Fatalf("metric %s was not gathered", name)
 		}
 	}
+}
+
+func TestPrometheusQueueAdmissionLabelsAreBounded(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	m := NewPrometheusMetrics(reg)
+
+	m.IncQueueAdmission("redis://secret", "tenant-priority", "raw-prompt", "api-key")
+	labels := labelsForMetric(t, reg, "gateway_queue_admission_total")
+	if got := labels[0]; got["backend"] != "memory" || got["priority"] != "normal" || got["outcome"] != "accepted" || got["reason"] != "none" {
+		t.Fatalf("unexpected sanitized admission labels: %#v", got)
+	}
+	forbiddenMetricLabels(t, labels[0])
 }
 
 func TestPrometheusSchedulerPredictionQualityLabels(t *testing.T) {

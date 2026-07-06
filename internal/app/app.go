@@ -95,7 +95,7 @@ type slaPromoterDeps struct {
 
 func newSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner, string) {
 	ctx, cfg, logger := deps.ctx, deps.cfg, deps.logger
-	queue, backend := newSchedulerQueue(ctx, cfg, logger)
+	queue, backend, locker := newSchedulerQueue(ctx, cfg, logger)
 	scorer, err := scheduler.NewScorerWithController(ctx, cfg.Scheduler, deps.rollout)
 	if err != nil {
 		logger.Warn("scheduler scorer unavailable; using FIFO fallback", "error", err)
@@ -134,8 +134,9 @@ func newSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner,
 			logger:   logger,
 			metrics:  observability.DefaultMetrics,
 		}),
+		Locker: locker,
 	}
-	runner := scheduler.NewSynchronousRunner(intake, executor, registry)
+	runner := scheduler.NewSynchronousRunnerWithConcurrency(intake, executor, registry, cfg.Scheduler.ExecutorConcurrency)
 	runner.Recorder = deps.recorder
 	runner.Quality = deps.quality
 	if indexer, ok := deps.semanticNeighbors.(scheduler.SemanticNeighborIndexer); ok {
@@ -167,20 +168,20 @@ func schedulerAudit(repo controlstate.Repository) controlstate.AuditRepository {
 	return repo.Audit()
 }
 
-func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Logger) (scheduler.QueueBackend, string) {
+func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Logger) (scheduler.QueueBackend, string, scheduler.TaskLocker) {
 	memoryQueue := scheduler.NewMemoryQueue()
 	backend := strings.ToLower(cfg.Scheduler.QueueBackend)
 	if backend == "memory" || !cfg.RedisEnabled {
-		return memoryQueue, "memory"
+		return memoryQueue, "memory", nil
 	}
 	redisClient := newControlRedisClient(cfg)
 	if err := redisClient.Ping(ctx).Err(); err != nil {
 		logger.Warn("scheduler redis queue unavailable; using memory queue", "error", err)
 		_ = redisClient.Close()
-		return memoryQueue, "memory"
+		return memoryQueue, "memory", nil
 	}
 	redisQueue := scheduler.NewRedisQueue(redisClient, cfg.RedisNamespace, "gateway")
-	return scheduler.NewFallbackQueue(redisQueue, memoryQueue), "redis"
+	return scheduler.NewFallbackQueue(redisQueue, memoryQueue), "redis", scheduler.NewRedisTaskLocker(redisClient, cfg.RedisNamespace)
 }
 
 func New() (*App, error) {
