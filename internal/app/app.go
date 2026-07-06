@@ -345,9 +345,6 @@ func New() (*App, error) {
 
 		adminSemanticRulesSvc := controlstate.NewAdminSemanticRulesService(repo, hotStateClient)
 		adminSemanticRulesHandler = handlers.NewAdminSemanticRulesHandler(adminSemanticRulesSvc)
-
-		adminSchedulerSvc := scheduler.NewAdminSchedulerService(repo, rolloutController)
-		adminSchedulerHandler = handlers.NewAdminSchedulerHandler(adminSchedulerSvc)
 	}
 
 	schedulerFeedbackOn := cfg.Scheduler.FeedbackEnabled && repo != nil
@@ -374,6 +371,10 @@ func New() (*App, error) {
 		rollout:           rolloutController,
 		semanticNeighbors: semanticNeighbors,
 	})
+	if repo != nil {
+		adminSchedulerSvc := scheduler.NewAdminSchedulerService(repo, rolloutController, schedulerRunner)
+		adminSchedulerHandler = handlers.NewAdminSchedulerHandler(adminSchedulerSvc)
+	}
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
 	gatewaySvc.SetSchedulerRunner(schedulerRunner)
 

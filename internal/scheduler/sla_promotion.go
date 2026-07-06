@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"sync"
 	"time"
 
 	"veloxmesh/internal/config"
@@ -41,6 +42,7 @@ type SLAPromotionResult struct {
 }
 
 type SLAPromoter struct {
+	mu              sync.RWMutex
 	Enabled         bool
 	CandidateWindow int
 	Rules           []config.SLAPromotionRule
@@ -49,6 +51,27 @@ type SLAPromoter struct {
 	Audit           controlstate.AuditRepository
 	Logger          *slog.Logger
 	Metrics         observability.Metrics
+}
+
+func (p *SLAPromoter) SnapshotRules() []config.SLAPromotionRule {
+	if p == nil {
+		return nil
+	}
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return append([]config.SLAPromotionRule(nil), p.Rules...)
+}
+
+func (p *SLAPromoter) ReplaceRules(rules []config.SLAPromotionRule) []config.SLAPromotionRule {
+	if p == nil {
+		return nil
+	}
+	next := append([]config.SLAPromotionRule(nil), rules...)
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	old := append([]config.SLAPromotionRule(nil), p.Rules...)
+	p.Rules = next
+	return old
 }
 
 func (p *SLAPromoter) PromoteBeforePop(ctx context.Context, now time.Time) (SLAPromotionResult, error) {
@@ -108,7 +131,7 @@ func (p *SLAPromoter) candidateResult(task Task, rule config.SLAPromotionRule, h
 }
 
 func (p *SLAPromoter) matchRule(task Task) (config.SLAPromotionRule, bool) {
-	for _, rule := range p.Rules {
+	for _, rule := range p.SnapshotRules() {
 		tenantMatch := rule.TenantID != "" && rule.TenantID == task.TenantID
 		classMatch := rule.TenantClass != "" && rule.TenantClass == task.TenantClass
 		if !tenantMatch && !classMatch {

@@ -202,7 +202,11 @@ func validateSLAPromotionConfig(s SchedulerConfig) error {
 	if s.SLAPromotionCandidateWindow < 1 {
 		return fmt.Errorf("scheduler.sla_promotion_candidate_window must be >= 1")
 	}
-	for i, rule := range s.SLAPromotionRules {
+	return ValidateSLAPromotionRules(s.SLAPromotionRules)
+}
+
+func ValidateSLAPromotionRules(rules []SLAPromotionRule) error {
+	for i, rule := range rules {
 		if err := validateSLAPromotionRule(i, rule); err != nil {
 			return err
 		}

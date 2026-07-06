@@ -81,6 +81,13 @@ func NewSynchronousRunnerWithConcurrency(intake *TaskIntake, executor *Executor,
 	return &SynchronousRunner{Intake: intake, Executor: executor, Registry: registry, slots: make(chan struct{}, concurrency)}
 }
 
+func (r *SynchronousRunner) SlotUsage() (used int, total int, ok bool) {
+	if r == nil || r.slots == nil {
+		return 0, 0, false
+	}
+	return len(r.slots), cap(r.slots), true
+}
+
 func (r *SynchronousRunner) RunChat(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error)) (*llm.LLMResponse, error) {
 	start := time.Now()
 	task, err := r.Intake.Submit(ctx, req, func(runCtx context.Context) TaskResult {

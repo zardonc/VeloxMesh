@@ -14,6 +14,7 @@ import (
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	controlsqlite "veloxmesh/internal/controlstate/sqlite"
+	"veloxmesh/internal/coordination"
 	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/scheduler"
 )
@@ -70,7 +71,7 @@ func TestAdminSchedulerAuditMetadataIsSanitized(t *testing.T) {
 	ctx := context.Background()
 	repo := testAdminSchedulerRepo(t)
 	controller := scheduler.NewSchedulerRolloutController(config.SchedulerConfig{Enabled: true, HeuristicEndpoint: "h", ONNXEndpoint: "o", ONNXRolloutPercent: 10})
-	service := scheduler.NewAdminSchedulerService(repo, controller)
+	service := scheduler.NewAdminSchedulerService(repo, controller, testSchedulerRunner(nil))
 
 	_, err := service.Update(ctx, &scheduler.RolloutPatchRequest{ONNXRolloutPercent: ptrInt(0)})
 	if err != nil {
@@ -108,7 +109,7 @@ func TestAdminSchedulerRolloutUsesRealSQLiteRepository(t *testing.T) {
 	controller := scheduler.NewSchedulerRolloutController(config.SchedulerConfig{
 		Enabled: true, HeuristicEndpoint: "heuristic:9000", ONNXEndpoint: "onnx:9000", ONNXRolloutPercent: 10,
 	})
-	handler := NewAdminSchedulerHandler(scheduler.NewAdminSchedulerService(repo, controller))
+	handler := NewAdminSchedulerHandler(scheduler.NewAdminSchedulerService(repo, controller, testSchedulerRunner(nil)))
 	r := chi.NewRouter()
 	r.With(middleware.AdminAuth(&config.Config{AdminAPIKey: "admin"})).Patch("/admin/scheduler/rollout", handler.PatchRollout)
 	r.With(middleware.AdminAuth(&config.Config{AdminAPIKey: "admin"})).Get("/admin/scheduler/rollout", handler.GetRollout)
@@ -137,11 +138,130 @@ func TestAdminSchedulerRolloutUsesRealSQLiteRepository(t *testing.T) {
 	}
 }
 
+func TestAdminSchedulerStatusRequiresAdminAuth(t *testing.T) {
+	handler := testAdminSchedulerHandler(t)
+	r := chi.NewRouter()
+	r.With(middleware.AdminAuth(&config.Config{AdminAPIKey: "admin"})).Get("/admin/v1/scheduler/status", handler.GetStatus)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, httptest.NewRequest("GET", "/admin/v1/scheduler/status", nil))
+
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", rr.Code)
+	}
+}
+
+func TestAdminSchedulerStatusUsesLimitAndDefaultWithRealSQLite(t *testing.T) {
+	ctx := context.Background()
+	repo := testAdminSchedulerRepo(t)
+	for i := 0; i < 101; i++ {
+		start := time.Now().UTC().Add(-30*time.Minute + time.Duration(i)*time.Second)
+		if err := repo.SchedulerQualityRollups().Upsert(ctx, testRollup(start, i)); err != nil {
+			t.Fatalf("seed rollup %d: %v", i, err)
+		}
+	}
+	handler := NewAdminSchedulerHandler(scheduler.NewAdminSchedulerService(repo, testRolloutController(), testSchedulerRunner(nil)))
+	r := chi.NewRouter()
+	r.Get("/admin/v1/scheduler/status", handler.GetStatus)
+
+	limited := httptest.NewRecorder()
+	r.ServeHTTP(limited, httptest.NewRequest("GET", "/admin/v1/scheduler/status?limit=5", nil))
+	if got := decodeRuntimeStatus(t, limited).QualityRollups; len(got) != 5 {
+		t.Fatalf("expected 5 rollups, got %d", len(got))
+	}
+
+	defaulted := httptest.NewRecorder()
+	r.ServeHTTP(defaulted, httptest.NewRequest("GET", "/admin/v1/scheduler/status", nil))
+	if got := decodeRuntimeStatus(t, defaulted).QualityRollups; len(got) != 100 {
+		t.Fatalf("expected default 100 rollups, got %d", len(got))
+	}
+}
+
+func TestAdminSchedulerStatusWarnsWhenRollupsUnavailable(t *testing.T) {
+	service := scheduler.NewAdminSchedulerService(nil, testRolloutController(), testSchedulerRunner(nil))
+	resp := service.RuntimeStatus(context.Background(), 0)
+
+	if resp.QueueDepth == nil || resp.SlotsUsed == nil || resp.SlotsTotal == nil {
+		t.Fatalf("expected available queue and slot fields: %#v", resp)
+	}
+	if !contains(resp.Warnings, "quality_rollups_unavailable") {
+		t.Fatalf("expected rollup warning, got %#v", resp.Warnings)
+	}
+}
+
+func TestAdminSchedulerSLARulesPutRequiresWritableAdminRoute(t *testing.T) {
+	handler := testAdminSchedulerHandler(t)
+	cluster := coordination.NewFakeCluster()
+	follower := coordination.NewFakeCoordinator(cluster, "node-a")
+	r := chi.NewRouter()
+	r.With(
+		middleware.AdminAuth(&config.Config{AdminAPIKey: "admin"}),
+		middleware.RequireWritable(follower),
+	).Put("/admin/v1/scheduler/sla-rules", handler.PutSLARules)
+
+	req := httptest.NewRequest("PUT", "/admin/v1/scheduler/sla-rules", strings.NewReader(`{"rules":[]}`))
+	req.Header.Set("Authorization", "Bearer admin")
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503 from writable middleware, got %d", rr.Code)
+	}
+}
+
+func TestAdminSchedulerInvalidSLARulesLeaveOldRules(t *testing.T) {
+	oldRule := validSLARule("old")
+	service := scheduler.NewAdminSchedulerService(testAdminSchedulerRepo(t), testRolloutController(), testSchedulerRunner([]config.SLAPromotionRule{oldRule}))
+
+	_, err := service.ReplaceSLARules(context.Background(), &scheduler.SLARulesReplaceRequest{
+		Rules: []config.SLAPromotionRule{{PolicyID: "bad", TenantClass: "gold", ModelClass: "standard", RequestKind: "urgent", WaitThreshold: "1s"}},
+	})
+	if err == nil {
+		t.Fatal("expected invalid rule error")
+	}
+	got := service.SLARules().Rules
+	if len(got) != 1 || got[0].PolicyID != oldRule.PolicyID {
+		t.Fatalf("expected old rule to remain, got %#v", got)
+	}
+}
+
+func TestAdminSchedulerSLARulesReplaceAuditsSafeMetadata(t *testing.T) {
+	ctx := context.Background()
+	repo := testAdminSchedulerRepo(t)
+	handler := NewAdminSchedulerHandler(scheduler.NewAdminSchedulerService(repo, testRolloutController(), testSchedulerRunner([]config.SLAPromotionRule{validSLARule("old")})))
+	r := chi.NewRouter()
+	r.Put("/admin/v1/scheduler/sla-rules", handler.PutSLARules)
+
+	body := `{"rules":[{"policy_id":"new","tenant_id":"tenant-123","tenant_class":"gold","model_class":"standard","request_kind":"code_gen","wait_threshold":"2s"}]}`
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, httptest.NewRequest("PUT", "/admin/v1/scheduler/sla-rules", strings.NewReader(body)))
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", rr.Code, rr.Body.String())
+	}
+	events, err := repo.Audit().List(ctx, "scheduler-sla-rules")
+	if err != nil {
+		t.Fatalf("list audit events: %v", err)
+	}
+	if len(events) != 1 {
+		t.Fatalf("expected one audit event, got %d", len(events))
+	}
+	metadata := string(events[0].Metadata)
+	for _, want := range []string{"old_count", "new_count", "policy_id", "tenant_class", "model_class", "request_kind"} {
+		if !strings.Contains(metadata, want) {
+			t.Fatalf("expected audit metadata to contain %q: %s", want, metadata)
+		}
+	}
+	for _, forbidden := range []string{"tenant-123", "tenant_id", "prompt", "payload", "embedding", "authorization", "api_key", "secret"} {
+		if strings.Contains(metadata, forbidden) {
+			t.Fatalf("audit metadata contains forbidden token %q: %s", forbidden, metadata)
+		}
+	}
+}
+
 func testAdminSchedulerHandler(t *testing.T) *AdminSchedulerHandler {
 	t.Helper()
 	repo := testAdminSchedulerRepo(t)
-	controller := scheduler.NewSchedulerRolloutController(config.SchedulerConfig{Enabled: true, HeuristicEndpoint: "h", ONNXEndpoint: "o", ONNXRolloutPercent: 10})
-	return NewAdminSchedulerHandler(scheduler.NewAdminSchedulerService(repo, controller))
+	return NewAdminSchedulerHandler(scheduler.NewAdminSchedulerService(repo, testRolloutController(), testSchedulerRunner(nil)))
 }
 
 func testAdminSchedulerRepo(t *testing.T) *controlsqlite.Repository {
@@ -159,4 +279,60 @@ func testAdminSchedulerRepo(t *testing.T) *controlsqlite.Repository {
 
 func ptrInt(value int) *int {
 	return &value
+}
+
+func testRolloutController() *scheduler.SchedulerRolloutController {
+	return scheduler.NewSchedulerRolloutController(config.SchedulerConfig{Enabled: true, HeuristicEndpoint: "h", ONNXEndpoint: "o", ONNXRolloutPercent: 10})
+}
+
+func testSchedulerRunner(rules []config.SLAPromotionRule) *scheduler.SynchronousRunner {
+	queue := scheduler.NewMemoryQueue()
+	registry := scheduler.NewResultRegistry()
+	executor := &scheduler.Executor{
+		Queue:    queue,
+		Registry: registry,
+		Promoter: &scheduler.SLAPromoter{Enabled: true, Rules: rules},
+	}
+	return scheduler.NewSynchronousRunnerWithConcurrency(&scheduler.TaskIntake{}, executor, registry, 3)
+}
+
+func validSLARule(policyID string) config.SLAPromotionRule {
+	return config.SLAPromotionRule{
+		PolicyID:      policyID,
+		TenantClass:   "gold",
+		ModelClass:    "standard",
+		RequestKind:   "code_gen",
+		WaitThreshold: "1s",
+	}
+}
+
+func testRollup(start time.Time, i int) *controlstate.SchedulerQualityRollup {
+	return &controlstate.SchedulerQualityRollup{
+		BucketStart: start, BucketEnd: start.Add(time.Second),
+		SchedulerType: "onnx", SchedulerVersion: "v1", TaskType: "code_gen",
+		ModelClass: "standard", CoverageLevel: "tenant", SampleCount: int64(i + 1),
+		MAPESum: 25, WaitMSSum: 10, SchedulerCallLatencyMSSum: 3, ConfidenceSum: 0.8,
+		SafeSampleIDs: []string{"sample"},
+	}
+}
+
+func decodeRuntimeStatus(t *testing.T, rr *httptest.ResponseRecorder) scheduler.SchedulerRuntimeStatus {
+	t.Helper()
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", rr.Code, rr.Body.String())
+	}
+	var resp scheduler.SchedulerRuntimeStatus
+	if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode status: %v", err)
+	}
+	return resp
+}
+
+func contains(values []string, want string) bool {
+	for _, value := range values {
+		if value == want {
+			return true
+		}
+	}
+	return false
 }

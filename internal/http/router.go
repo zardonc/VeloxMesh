@@ -77,6 +77,9 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 			r.Patch("/admin/scheduler/rollout", adminSchedulerHandler.PatchRollout)
 			r.Get("/admin/v1/scheduler/rollout", adminSchedulerHandler.GetRollout)
 			r.Patch("/admin/v1/scheduler/rollout", adminSchedulerHandler.PatchRollout)
+			r.Get("/admin/v1/scheduler/status", adminSchedulerHandler.GetStatus)
+			r.Get("/admin/v1/scheduler/sla-rules", adminSchedulerHandler.GetSLARules)
+			r.Put("/admin/v1/scheduler/sla-rules", adminSchedulerHandler.PutSLARules)
 		})
 	}
 
