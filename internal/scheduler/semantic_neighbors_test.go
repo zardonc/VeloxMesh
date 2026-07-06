@@ -2,7 +2,11 @@ package scheduler
 
 import (
 	"context"
+	"encoding/json"
 	"math"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -11,6 +15,7 @@ import (
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/observability"
 	"veloxmesh/internal/providers"
+	"veloxmesh/internal/providers/openai"
 )
 
 func TestSemanticNeighborEnricherUsesTenantScope(t *testing.T) {
@@ -87,6 +92,59 @@ func TestSemanticNeighborEmbeddingUsesDefaultModel(t *testing.T) {
 	}
 	if embedder.model != semanticNeighborEmbeddingModel {
 		t.Fatalf("expected embedding model %q, got %q", semanticNeighborEmbeddingModel, embedder.model)
+	}
+}
+
+func TestSemanticNeighborEmbeddingTruncatesInputByDefault(t *testing.T) {
+	var input string
+	server := semanticNeighborEmbeddingServer(t, &input)
+	defer server.Close()
+	service := semanticNeighborTestService(1, semanticNeighborSamples())
+	service.Embedder = func() providers.EmbedAdapter {
+		return openai.NewAdapter("openai-test", server.URL, "test-key", semanticNeighborEmbeddingModel)
+	}
+	service.Metrics = &semanticNeighborMetricsSpy{StubMetrics: observability.NewStubMetrics()}
+
+	_, err := service.Enrich(tenantContext("tenant-a"), semanticNeighborLongRequest(defaultSemanticNeighborInputMaxChars+32), semanticNeighborFeature())
+	if err != nil {
+		t.Fatalf("Enrich: %v", err)
+	}
+	if len(input) != defaultSemanticNeighborInputMaxChars {
+		t.Fatalf("expected capped input length %d, got %d", defaultSemanticNeighborInputMaxChars, len(input))
+	}
+	if service.Metrics.(*semanticNeighborMetricsSpy).errorReason != "input_truncated" {
+		t.Fatalf("expected input_truncated metric, got %q", service.Metrics.(*semanticNeighborMetricsSpy).errorReason)
+	}
+}
+
+func TestSemanticNeighborEmbeddingUsesCustomInputCap(t *testing.T) {
+	const inputCap = 32
+	var input string
+	server := semanticNeighborEmbeddingServer(t, &input)
+	defer server.Close()
+	service := semanticNeighborTestService(1, semanticNeighborSamples())
+	service.Config.InputMaxChars = inputCap
+	service.Embedder = func() providers.EmbedAdapter {
+		return openai.NewAdapter("openai-test", server.URL, "test-key", semanticNeighborEmbeddingModel)
+	}
+
+	_, err := service.Enrich(tenantContext("tenant-a"), semanticNeighborLongRequest(inputCap+7), semanticNeighborFeature())
+	if err != nil {
+		t.Fatalf("Enrich: %v", err)
+	}
+	if len(input) != inputCap {
+		t.Fatalf("expected custom capped input length %d, got %d", inputCap, len(input))
+	}
+}
+
+func TestSemanticNeighborRequestTextEmptyInput(t *testing.T) {
+	got, truncated := requestText(nil, defaultSemanticNeighborInputMaxChars)
+	if got != "" || truncated {
+		t.Fatalf("expected empty non-truncated nil request, got %q truncated=%v", got, truncated)
+	}
+	got, truncated = requestText(&llm.LLMRequest{}, defaultSemanticNeighborInputMaxChars)
+	if got != "" || truncated {
+		t.Fatalf("expected empty non-truncated request, got %q truncated=%v", got, truncated)
 	}
 }
 
@@ -188,6 +246,39 @@ func semanticNeighborRequest() *llm.LLMRequest {
 	return &llm.LLMRequest{Messages: []llm.Message{{Role: llm.RoleUser, Content: "hello"}}}
 }
 
+func semanticNeighborLongRequest(length int) *llm.LLMRequest {
+	return &llm.LLMRequest{Messages: []llm.Message{{Role: llm.RoleUser, Content: strings.Repeat("x", length)}}}
+}
+
+func semanticNeighborEmbeddingServer(t *testing.T, input *string) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Input []string `json:"input"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("decode embedding request: %v", err)
+		}
+		if len(body.Input) != 1 {
+			t.Fatalf("expected one embedding input, got %d", len(body.Input))
+		}
+		*input = body.Input[0]
+		w.Header().Set("Content-Type", "application/json")
+		err := json.NewEncoder(w).Encode(map[string]interface{}{
+			"object": "list",
+			"data": []map[string]interface{}{{
+				"object":    "embedding",
+				"index":     0,
+				"embedding": []float32{1, 0},
+			}},
+			"model": semanticNeighborEmbeddingModel,
+		})
+		if err != nil {
+			t.Fatalf("encode embedding response: %v", err)
+		}
+	}))
+}
+
 func tenantContext(id string) context.Context {
 	return context.WithValue(context.Background(), middleware.AuthIdentityKey, &middleware.AuthIdentity{ID: id})
 }
@@ -272,8 +363,13 @@ func (i *orderingIndexer) IndexCompletedSample(_ context.Context, _ *llm.LLMRequ
 type semanticNeighborMetricsSpy struct {
 	*observability.StubMetrics
 	fallbackReason string
+	errorReason    string
 }
 
 func (m *semanticNeighborMetricsSpy) IncSemanticNeighborFallback(reason string) {
 	m.fallbackReason = reason
+}
+
+func (m *semanticNeighborMetricsSpy) IncSemanticNeighborError(reason string) {
+	m.errorReason = reason
 }

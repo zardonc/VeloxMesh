@@ -50,36 +50,37 @@ func LoadConfig() (*Config, error) {
 		SchedulerConfigFile:        getEnv("SCHEDULER_CONFIG_FILE", ""),
 		CacheConfigFile:            getEnv("CACHE_CONFIG_FILE", ""),
 		Scheduler: SchedulerConfig{
-			Enabled:                       getEnv("SCHEDULER_ENABLED", "false") == "true",
-			Endpoint:                      getEnv("SCHEDULER_ENDPOINT", ""),
-			HeuristicEndpoint:             getEnv("SCHEDULER_HEURISTIC_ENDPOINT", ""),
-			ONNXEndpoint:                  getEnv("SCHEDULER_ONNX_ENDPOINT", ""),
-			ONNXRolloutPercent:            getEnvInt("SCHEDULER_ONNX_ROLLOUT_PERCENT", 0),
-			QualityMAPEAlertPercent:       getEnvFloat("SCHEDULER_QUALITY_MAPE_ALERT_PERCENT", 25),
-			ErrorSpikeAlertRate:           getEnvFloat("SCHEDULER_ERROR_SPIKE_ALERT_RATE", 0.05),
-			Timeout:                       getEnv("SCHEDULER_TIMEOUT", "15ms"),
-			Strict:                        getEnv("SCHEDULER_STRICT", "false") == "true",
-			BreakerFailureThreshold:       getEnvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 3),
-			BreakerRecoveryTimeout:        getEnv("SCHEDULER_BREAKER_RECOVERY_TIMEOUT", "1m"),
-			QueueBackend:                  getEnv("SCHEDULER_QUEUE_BACKEND", "auto"),
-			QueueSoftLimit:                getEnvInt("SCHEDULER_QUEUE_SOFT_LIMIT", 0),
-			QueueHardLimit:                getEnvInt("SCHEDULER_QUEUE_HARD_LIMIT", 0),
-			QueuePopTimeout:               getEnv("SCHEDULER_QUEUE_POP_TIMEOUT", "100ms"),
-			ExecutorConcurrency:           getEnvInt("SCHEDULER_EXECUTOR_CONCURRENCY", 1),
-			DefaultPriority:               getEnv("SCHEDULER_DEFAULT_PRIORITY", "normal"),
-			MaxPriority:                   getEnv("SCHEDULER_MAX_PRIORITY", "high"),
-			HighQuotaPerMinute:            getEnvInt("SCHEDULER_HIGH_QUOTA_PER_MINUTE", 0),
-			ScoreUncertaintyPenaltyK:      getEnvFloat("SCHEDULER_SCORE_UNCERTAINTY_PENALTY_K", 0.2),
-			HeuristicConfigFile:           getEnv("SCHEDULER_HEURISTIC_CONFIG_FILE", ""),
-			FeedbackEnabled:               getEnv("SCHEDULER_FEEDBACK_ENABLED", "false") == "true",
-			Mode:                          getEnv("SCHEDULER_MODE", "heuristic"),
-			ONNXArtifactDir:               getEnv("SCHEDULER_ONNX_ARTIFACT_DIR", ""),
-			SemanticNeighborsEnabled:      getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED", "false") == "true",
-			SemanticNeighborsMinCount:     getEnvInt("SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT", 20),
-			SemanticNeighborsTaskTimeout:  getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT", "5ms"),
-			SemanticNeighborsBatchTimeout: getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT", "15ms"),
-			SLAPromotionEnabled:           getEnv("SCHEDULER_SLA_PROMOTION_ENABLED", "false") == "true",
-			SLAPromotionCandidateWindow:   getEnvInt("SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW", defaultSLAPromotionCandidateWindow),
+			Enabled:                        getEnv("SCHEDULER_ENABLED", "false") == "true",
+			Endpoint:                       getEnv("SCHEDULER_ENDPOINT", ""),
+			HeuristicEndpoint:              getEnv("SCHEDULER_HEURISTIC_ENDPOINT", ""),
+			ONNXEndpoint:                   getEnv("SCHEDULER_ONNX_ENDPOINT", ""),
+			ONNXRolloutPercent:             getEnvInt("SCHEDULER_ONNX_ROLLOUT_PERCENT", 0),
+			QualityMAPEAlertPercent:        getEnvFloat("SCHEDULER_QUALITY_MAPE_ALERT_PERCENT", 25),
+			ErrorSpikeAlertRate:            getEnvFloat("SCHEDULER_ERROR_SPIKE_ALERT_RATE", 0.05),
+			Timeout:                        getEnv("SCHEDULER_TIMEOUT", "15ms"),
+			Strict:                         getEnv("SCHEDULER_STRICT", "false") == "true",
+			BreakerFailureThreshold:        getEnvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 3),
+			BreakerRecoveryTimeout:         getEnv("SCHEDULER_BREAKER_RECOVERY_TIMEOUT", "1m"),
+			QueueBackend:                   getEnv("SCHEDULER_QUEUE_BACKEND", "auto"),
+			QueueSoftLimit:                 getEnvInt("SCHEDULER_QUEUE_SOFT_LIMIT", 0),
+			QueueHardLimit:                 getEnvInt("SCHEDULER_QUEUE_HARD_LIMIT", 0),
+			QueuePopTimeout:                getEnv("SCHEDULER_QUEUE_POP_TIMEOUT", "100ms"),
+			ExecutorConcurrency:            getEnvInt("SCHEDULER_EXECUTOR_CONCURRENCY", 1),
+			DefaultPriority:                getEnv("SCHEDULER_DEFAULT_PRIORITY", "normal"),
+			MaxPriority:                    getEnv("SCHEDULER_MAX_PRIORITY", "high"),
+			HighQuotaPerMinute:             getEnvInt("SCHEDULER_HIGH_QUOTA_PER_MINUTE", 0),
+			ScoreUncertaintyPenaltyK:       getEnvFloat("SCHEDULER_SCORE_UNCERTAINTY_PENALTY_K", 0.2),
+			HeuristicConfigFile:            getEnv("SCHEDULER_HEURISTIC_CONFIG_FILE", ""),
+			FeedbackEnabled:                getEnv("SCHEDULER_FEEDBACK_ENABLED", "false") == "true",
+			Mode:                           getEnv("SCHEDULER_MODE", "heuristic"),
+			ONNXArtifactDir:                getEnv("SCHEDULER_ONNX_ARTIFACT_DIR", ""),
+			SemanticNeighborsEnabled:       getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED", "false") == "true",
+			SemanticNeighborsMinCount:      getEnvInt("SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT", 20),
+			SemanticNeighborsInputMaxChars: getEnvInt("SCHEDULER_SEMANTIC_NEIGHBORS_INPUT_MAX_CHARS", defaultSemanticNeighborInputMaxChars),
+			SemanticNeighborsTaskTimeout:   getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT", "5ms"),
+			SemanticNeighborsBatchTimeout:  getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT", "15ms"),
+			SLAPromotionEnabled:            getEnv("SCHEDULER_SLA_PROMOTION_ENABLED", "false") == "true",
+			SLAPromotionCandidateWindow:    getEnvInt("SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW", defaultSLAPromotionCandidateWindow),
 		},
 	}
 	cfg.ControlState = controlStateConfigFromEnv()
@@ -282,6 +283,9 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
 	if src.SemanticNeighborsMinCount != 0 {
 		dst.SemanticNeighborsMinCount = src.SemanticNeighborsMinCount
 	}
+	if src.SemanticNeighborsInputMaxChars != 0 {
+		dst.SemanticNeighborsInputMaxChars = src.SemanticNeighborsInputMaxChars
+	}
 	if src.SemanticNeighborsTaskTimeout != "" {
 		dst.SemanticNeighborsTaskTimeout = src.SemanticNeighborsTaskTimeout
 	}
@@ -344,6 +348,9 @@ func applySchedulerDefaults(s *SchedulerConfig) {
 	}
 	if s.SemanticNeighborsMinCount == 0 {
 		s.SemanticNeighborsMinCount = 20
+	}
+	if s.SemanticNeighborsInputMaxChars == 0 {
+		s.SemanticNeighborsInputMaxChars = defaultSemanticNeighborInputMaxChars
 	}
 	if s.SemanticNeighborsTaskTimeout == "" {
 		s.SemanticNeighborsTaskTimeout = "5ms"

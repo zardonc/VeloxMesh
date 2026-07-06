@@ -9,6 +9,7 @@ import (
 	"veloxmesh/internal/observability"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/scheduler"
+	"veloxmesh/internal/storage"
 )
 
 func newSemanticNeighborService(ctx context.Context, cfg *config.Config, logger *slog.Logger, m *controlstate.RuntimeProviderManager, repo controlstate.Repository) *scheduler.SemanticNeighborService {
@@ -19,13 +20,29 @@ func newSemanticNeighborService(ctx context.Context, cfg *config.Config, logger 
 		logger.Warn("semantic neighbors disabled; durable samples or embedding provider unavailable")
 		return nil
 	}
+	vector := newVectorAdapter(ctx, cfg, logger)
+	if ensurer, ok := vector.(storage.VectorCollectionEnsurer); ok {
+		err := ensurer.EnsureCollection(ctx, scheduler.SemanticNeighborCollection, cfg.Cache.VectorDimension)
+		if err != nil {
+			logger.Warn("semantic neighbors disabled; vector collection ensure failed", "reason", "startup_ensure", "error", err)
+			observability.DefaultMetrics.IncSemanticNeighborError("startup_ensure")
+			observability.DefaultMetrics.IncSemanticNeighborFallback("error")
+			return nil
+		}
+	} else if cfg.SemanticCacheVectorStore == "qdrant" {
+		logger.Warn("semantic neighbors disabled; Qdrant collection ensure unavailable", "reason", "startup_ensure")
+		observability.DefaultMetrics.IncSemanticNeighborError("startup_ensure")
+		observability.DefaultMetrics.IncSemanticNeighborFallback("error")
+		return nil
+	}
 	return &scheduler.SemanticNeighborService{
 		Config: scheduler.SemanticNeighborConfig{
-			Enabled:  true,
-			MinCount: cfg.Scheduler.SemanticNeighborsMinCount,
+			Enabled:       true,
+			MinCount:      cfg.Scheduler.SemanticNeighborsMinCount,
+			InputMaxChars: cfg.Scheduler.SemanticNeighborsInputMaxChars,
 		},
 		Embedder: semanticNeighborEmbedder(m, cfg.SemanticCacheProvider),
-		Vector:   newVectorAdapter(ctx, cfg, logger),
+		Vector:   vector,
 		Repo:     repo.SchedulerTrainingSamples(),
 		Metrics:  observability.DefaultMetrics,
 	}

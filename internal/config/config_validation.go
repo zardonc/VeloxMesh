@@ -142,6 +142,9 @@ func validateSchedulerLimits(s SchedulerConfig) error {
 	if s.SemanticNeighborsMinCount < 1 {
 		return fmt.Errorf("scheduler.semantic_neighbors_min_count must be >= 1")
 	}
+	if s.SemanticNeighborsInputMaxChars < 1 {
+		return fmt.Errorf("scheduler.semantic_neighbors_input_max_chars must be >= 1")
+	}
 	if s.ONNXRolloutPercent < 0 || s.ONNXRolloutPercent > 100 {
 		return fmt.Errorf("scheduler.onnx_rollout_percent must be between 0 and 100")
 	}

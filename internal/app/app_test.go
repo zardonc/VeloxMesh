@@ -187,6 +187,38 @@ func TestApp_SemanticNeighborsMissingDependenciesDoNotBlockStartup(t *testing.T)
 	}
 }
 
+func TestApp_SemanticNeighborsEnsureCollectionKeepsServiceEnabled(t *testing.T) {
+	testenv.Load()
+	qdrantAddr := os.Getenv("QDRANT_ADDR")
+	if qdrantAddr == "" {
+		t.Fatalf("QDRANT_ADDR is required for real semantic-neighbor startup test")
+	}
+	setSemanticNeighborAppEnv(t, qdrantAddr)
+
+	application, err := New()
+	if err != nil {
+		t.Fatalf("expected semantic-neighbor startup with real qdrant: %v", err)
+	}
+	if !application.SchedulerSemanticNeighborsOn {
+		t.Fatalf("expected semantic neighbors enabled after collection ensure")
+	}
+	if application.Config.Cache.VectorDimension != 3 {
+		t.Fatalf("expected configured cache vector dimension 3, got %d", application.Config.Cache.VectorDimension)
+	}
+}
+
+func TestApp_SemanticNeighborsEnsureFailureFailsOpen(t *testing.T) {
+	setSemanticNeighborAppEnv(t, "127.0.0.1:1")
+
+	application, err := New()
+	if err != nil {
+		t.Fatalf("expected app startup to fail open: %v", err)
+	}
+	if application.SchedulerSemanticNeighborsOn {
+		t.Fatalf("expected semantic neighbors disabled after qdrant ensure failure")
+	}
+}
+
 func TestApp_SchedulerHeuristicOnlyStartup(t *testing.T) {
 	t.Setenv("CONFIG_FILE", "")
 	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
@@ -314,6 +346,26 @@ func TestApp_PostgresControlStateStartsWithLiveDSN(t *testing.T) {
 	if application.Router == nil {
 		t.Fatalf("expected initialized router")
 	}
+}
+
+func setSemanticNeighborAppEnv(t *testing.T, qdrantAddr string) {
+	t.Helper()
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+	t.Setenv("CONTROL_STATE_BACKEND", "sqlite")
+	t.Setenv("CONTROL_STATE_DSN", "file:"+strings.ReplaceAll(t.Name(), "/", "_")+"?mode=memory&cache=shared")
+	t.Setenv("CONTROL_STATE_MIGRATE_ON_STARTUP", "true")
+	t.Setenv("CONTROL_STATE_LOCAL_SEED_ENABLED", "true")
+	t.Setenv("CONTROL_STATE_ENCRYPTION_KEY", livePostgresTestEncryptionKey)
+	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED", "true")
+	t.Setenv("SEMANTIC_CACHE_PROVIDER", "openai-primary")
+	t.Setenv("SEMANTIC_CACHE_VECTOR_STORE", "qdrant")
+	t.Setenv("SEMANTIC_CACHE_VECTOR_DIMENSION", "3")
+	t.Setenv("QDRANT_ADDR", qdrantAddr)
 }
 
 func isolatedAppPostgresDSN(t *testing.T, dsn string) string {

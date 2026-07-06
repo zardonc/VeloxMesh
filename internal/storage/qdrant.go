@@ -50,60 +50,15 @@ func (q *QdrantVectorAdapter) Insert(ctx context.Context, collection string, vec
 	if len(vectors) == 0 {
 		return nil
 	}
-	
-	// Ensure collection exists (lazy creation)
-	exists, err := q.client.CollectionExists(ctx, collection)
-	if err != nil {
-		return fmt.Errorf("failed to check if collection exists: %w", err)
-	}
-	if !exists {
-		// Use vector dimension from the first vector
-		dimension := uint64(len(vectors[0]))
-		err = q.client.CreateCollection(ctx, &qdrant.CreateCollection{
-			CollectionName: collection,
-			VectorsConfig: qdrant.NewVectorsConfig(&qdrant.VectorParams{
-				Size:     dimension,
-				Distance: qdrant.Distance_Cosine,
-			}),
-		})
-		if err != nil {
-			return fmt.Errorf("failed to create collection: %w", err)
-		}
-	}
 
-	points := make([]*qdrant.PointStruct, len(vectors))
-	for i, vec := range vectors {
-		id := uuid.New().String()
-		
-		payload := make(map[string]*qdrant.Value)
-		if i < len(metadata) {
-			for k, v := range metadata[i] {
-				switch val := v.(type) {
-				case string:
-					payload[k] = qdrant.NewValueString(val)
-				case int:
-					payload[k] = qdrant.NewValueInt(int64(val))
-				case int64:
-					payload[k] = qdrant.NewValueInt(val)
-				case float64:
-					payload[k] = qdrant.NewValueDouble(val)
-				case bool:
-					payload[k] = qdrant.NewValueBool(val)
-				}
-			}
-		}
-
-		points[i] = &qdrant.PointStruct{
-			Id:      qdrant.NewIDUUID(id),
-			Vectors: qdrant.NewVectors(vec...),
-			Payload: payload,
-		}
+	if err := q.EnsureCollection(ctx, collection, len(vectors[0])); err != nil {
+		return err
 	}
 
 	operationInfo, err := q.client.Upsert(ctx, &qdrant.UpsertPoints{
 		CollectionName: collection,
 		Wait:           qdrant.PtrOf(true),
-		Points:         points,
+		Points:         qdrantPoints(vectors, metadata),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to insert points into qdrant: %w", err)
@@ -113,6 +68,73 @@ func (q *QdrantVectorAdapter) Insert(ctx context.Context, collection string, vec
 		return fmt.Errorf("qdrant upsert did not complete, status: %v", operationInfo.Status)
 	}
 
+	return nil
+}
+
+func qdrantPoints(vectors [][]float32, metadata []map[string]interface{}) []*qdrant.PointStruct {
+	points := make([]*qdrant.PointStruct, len(vectors))
+	for i, vec := range vectors {
+		meta := map[string]interface{}{}
+		if i < len(metadata) {
+			meta = metadata[i]
+		}
+		points[i] = &qdrant.PointStruct{
+			Id:      qdrant.NewIDUUID(uuid.New().String()),
+			Vectors: qdrant.NewVectors(vec...),
+			Payload: qdrantPayload(meta),
+		}
+	}
+	return points
+}
+
+func qdrantPayload(metadata map[string]interface{}) map[string]*qdrant.Value {
+	payload := make(map[string]*qdrant.Value)
+	for key, value := range metadata {
+		if converted := qdrantValue(value); converted != nil {
+			payload[key] = converted
+		}
+	}
+	return payload
+}
+
+func qdrantValue(value interface{}) *qdrant.Value {
+	switch typed := value.(type) {
+	case string:
+		return qdrant.NewValueString(typed)
+	case int:
+		return qdrant.NewValueInt(int64(typed))
+	case int64:
+		return qdrant.NewValueInt(typed)
+	case float64:
+		return qdrant.NewValueDouble(typed)
+	case bool:
+		return qdrant.NewValueBool(typed)
+	default:
+		return nil
+	}
+}
+
+func (q *QdrantVectorAdapter) EnsureCollection(ctx context.Context, collection string, dimension int) error {
+	if dimension < 1 {
+		return fmt.Errorf("qdrant collection dimension must be >= 1")
+	}
+	exists, err := q.client.CollectionExists(ctx, collection)
+	if err != nil {
+		return fmt.Errorf("failed to check if collection exists: %w", err)
+	}
+	if exists {
+		return nil
+	}
+	err = q.client.CreateCollection(ctx, &qdrant.CreateCollection{
+		CollectionName: collection,
+		VectorsConfig: qdrant.NewVectorsConfig(&qdrant.VectorParams{
+			Size:     uint64(dimension),
+			Distance: qdrant.Distance_Cosine,
+		}),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create collection: %w", err)
+	}
 	return nil
 }
 
@@ -161,4 +183,3 @@ func (q *QdrantVectorAdapter) Delete(ctx context.Context, collection string, fil
 	// For Phase 7, we provide the seam implementation.
 	return errors.New("delete not implemented for qdrant yet")
 }
-

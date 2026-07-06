@@ -421,7 +421,7 @@ func (m *PrometheusMetrics) IncSemanticNeighborTimeout() {
 }
 
 func (m *PrometheusMetrics) IncSemanticNeighborError(reason string) {
-	m.semanticErrors.WithLabelValues(allowedLabel(reason, "error", "embedding", "vector_search", "sample_hydrate", "index")).Inc()
+	m.semanticErrors.WithLabelValues(allowedLabel(reason, "error", "embedding", "vector_search", "sample_hydrate", "index", "input_truncated", "startup_ensure")).Inc()
 }
 
 func (m *PrometheusMetrics) IncSemanticNeighborFallback(reason string) {

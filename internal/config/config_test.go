@@ -644,6 +644,7 @@ func TestSchedulerSemanticNeighborsConfigEnv(t *testing.T) {
 	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
 	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED", "true")
 	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT", "9")
+	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_INPUT_MAX_CHARS", "1234")
 	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT", "7ms")
 	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT", "21ms")
 	t.Setenv("QDRANT_ADDR", "http://qdrant:6333")
@@ -654,6 +655,9 @@ func TestSchedulerSemanticNeighborsConfigEnv(t *testing.T) {
 	}
 	if !cfg.Scheduler.SemanticNeighborsEnabled || cfg.Scheduler.SemanticNeighborsMinCount != 9 {
 		t.Fatalf("semantic neighbor env overrides not loaded: %#v", cfg.Scheduler)
+	}
+	if cfg.Scheduler.SemanticNeighborsInputMaxChars != 1234 {
+		t.Fatalf("semantic neighbor input cap override not loaded: %#v", cfg.Scheduler)
 	}
 	if cfg.Scheduler.SemanticNeighborsTaskTimeout != "7ms" || cfg.Scheduler.SemanticNeighborsBatchTimeout != "21ms" {
 		t.Fatalf("semantic neighbor timeout overrides not loaded: %#v", cfg.Scheduler)
@@ -676,6 +680,7 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 			"onnx_artifact_dir": "artifacts/scheduler-p70-v1",
 			"semantic_neighbors_enabled": true,
 			"semantic_neighbors_min_count": 11,
+			"semantic_neighbors_input_max_chars": 4321,
 			"semantic_neighbors_task_timeout": "6ms",
 			"semantic_neighbors_batch_timeout": "18ms",
 			"sla_promotion_enabled": true,
@@ -710,6 +715,9 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 	}
 	if !cfg.Scheduler.SemanticNeighborsEnabled || cfg.Scheduler.SemanticNeighborsMinCount != 11 {
 		t.Fatalf("scheduler semantic neighbor override not applied: %#v", cfg.Scheduler)
+	}
+	if cfg.Scheduler.SemanticNeighborsInputMaxChars != 4321 {
+		t.Fatalf("scheduler semantic neighbor input cap override not applied: %#v", cfg.Scheduler)
 	}
 	if cfg.Scheduler.SemanticNeighborsTaskTimeout != "6ms" || cfg.Scheduler.SemanticNeighborsBatchTimeout != "18ms" {
 		t.Fatalf("scheduler semantic neighbor timeout override not applied: %#v", cfg.Scheduler)

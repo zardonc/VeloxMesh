@@ -16,11 +16,12 @@ import (
 )
 
 const (
-	semanticNeighborCollection     = "scheduler_training_samples"
-	semanticNeighborEmbeddingModel = "text-embedding-3-small"
-	semanticNeighborLookback       = 30 * 24 * time.Hour
-	semanticNeighborHydrateLimit   = 1000
-	semanticNeighborSearchFactor   = 4
+	SemanticNeighborCollection           = "scheduler_training_samples"
+	defaultSemanticNeighborInputMaxChars = 16000
+	semanticNeighborEmbeddingModel       = "text-embedding-3-small"
+	semanticNeighborLookback             = 30 * 24 * time.Hour
+	semanticNeighborHydrateLimit         = 1000
+	semanticNeighborSearchFactor         = 4
 )
 
 var errSemanticNeighborEmbeddingEmpty = errors.New("semantic neighbor embedding empty")
@@ -34,8 +35,9 @@ type SemanticNeighborIndexer interface {
 }
 
 type SemanticNeighborConfig struct {
-	Enabled  bool
-	MinCount int
+	Enabled       bool
+	MinCount      int
+	InputMaxChars int
 }
 
 type SemanticNeighborService struct {
@@ -62,7 +64,7 @@ func (s *SemanticNeighborService) Enrich(ctx context.Context, req *llm.LLMReques
 		s.recordEnrichError("embedding", err)
 		return semanticDefaults(feature), nil
 	}
-	results, err := s.Vector.Search(ctx, semanticNeighborCollection, vector, s.searchLimit())
+	results, err := s.Vector.Search(ctx, SemanticNeighborCollection, vector, s.searchLimit())
 	if err != nil {
 		s.recordEnrichError("vector_search", err)
 		return semanticDefaults(feature), nil
@@ -92,7 +94,7 @@ func (s *SemanticNeighborService) IndexCompletedSample(ctx context.Context, req 
 		"outcome":      labels.Outcome,
 		"completed_at": labels.CompletedAt.UTC().Format(time.RFC3339),
 	}}
-	if err := s.Vector.Insert(ctx, semanticNeighborCollection, [][]float32{vector}, metadata); err != nil {
+	if err := s.Vector.Insert(ctx, SemanticNeighborCollection, [][]float32{vector}, metadata); err != nil {
 		s.recordError("index")
 		return err
 	}
@@ -111,9 +113,13 @@ func (s *SemanticNeighborService) embedder() providers.EmbedAdapter {
 }
 
 func (s *SemanticNeighborService) embed(ctx context.Context, req *llm.LLMRequest) ([]float32, error) {
+	input, truncated := requestText(req, s.inputMaxChars())
+	if truncated {
+		s.recordError("input_truncated")
+	}
 	resp, err := s.embedder().Embed(ctx, &llm.EmbeddingRequest{
 		Model: semanticNeighborEmbeddingModel,
-		Input: []string{requestText(req)},
+		Input: []string{input},
 	})
 	if err != nil {
 		return nil, err
@@ -172,6 +178,13 @@ func (s *SemanticNeighborService) minCount() int {
 
 func (s *SemanticNeighborService) searchLimit() int {
 	return max(s.minCount()*semanticNeighborSearchFactor, s.minCount())
+}
+
+func (s *SemanticNeighborService) inputMaxChars() int {
+	if s == nil || s.Config.InputMaxChars <= 0 {
+		return defaultSemanticNeighborInputMaxChars
+	}
+	return s.Config.InputMaxChars
 }
 
 func (s *SemanticNeighborService) recordError(reason string) {
@@ -318,9 +331,9 @@ func outcomeRate(samples []*controlstate.SchedulerTrainingSample, outcome string
 	return float64(count) / float64(len(samples))
 }
 
-func requestText(req *llm.LLMRequest) string {
+func requestText(req *llm.LLMRequest, maxChars int) (string, bool) {
 	if req == nil {
-		return ""
+		return "", false
 	}
 	parts := make([]string, 0, len(req.Messages))
 	for _, msg := range req.Messages {
@@ -331,7 +344,11 @@ func requestText(req *llm.LLMRequest) string {
 			}
 		}
 	}
-	return strings.Join(parts, "\n")
+	text := strings.Join(parts, "\n")
+	if maxChars <= 0 || len(text) <= maxChars {
+		return text, false
+	}
+	return text[:maxChars], true
 }
 
 func stringValue(value interface{}) string {
