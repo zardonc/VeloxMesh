@@ -178,6 +178,9 @@ Common settings:
 | `REDIS_ENABLED` | Enable Redis-backed hot state |
 | `REDIS_ADDR` | Redis server address |
 | `QDRANT_ADDR` | Qdrant server address for vector features |
+| `SCHEDULER_ENABLED` | Optional Scheduler scoring path; disabled by default |
+| `SCHEDULER_CONFIG_FILE` | Optional scheduler component config file |
+| `CACHE_CONFIG_FILE` | Optional cache/vector component config file |
 
 Keep secrets in environment variables or local secret stores. Do not commit real provider keys.
 
@@ -233,6 +236,8 @@ Offline scheduler model tooling lives under `tools/scheduler_training` and is ru
 ## Scheduler Rollout
 
 Set `SCHEDULER_ONNX_ROLLOUT_PERCENT=0` to keep ONNX traffic off at startup. During runtime, authenticated admins can set `onnx_rollout_percent` to `0` with `PATCH /admin/scheduler/rollout` to roll ONNX traffic back to heuristic while leaving scheduler services running for diagnostics. The emergency FIFO bypass remains the existing `SCHEDULER_ENABLED=false` configuration.
+
+For deployment, degradation, admin API, and Qdrant/pgvector semantic-neighbor guidance, see [Scheduler 1.0 Operator Runbook](docs/scheduler-1.0-runbook.md).
 
 ## Technology Snapshot
 
