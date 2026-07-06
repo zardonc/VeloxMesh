@@ -1,0 +1,33 @@
+{
+  "default_provider": "openai-primary",
+  "providers": [
+    {
+      "id": "openai-primary",
+      "type": "openai-compatible",
+      "base_url": "https://api.openai.com/v1",
+      "auth": {
+        "api_key_env": "OPENAI_PRIMARY_API_KEY"
+      },
+      "models": ["gpt-4o-mini"],
+      "default_model": "gpt-4o-mini"
+    }
+  ],
+  "control_state": {
+    "backend": "disabled"
+  },
+  "redis": {
+    "enabled": false
+  },
+  "cache": {
+    "enabled": false,
+    "vector_dimension": 1536,
+    "qdrant": {
+      "addr": ""
+    }
+  },
+  "scheduler": {
+    "enabled": false,
+    "queue_backend": "auto",
+    "executor_concurrency": 1
+  }
+}

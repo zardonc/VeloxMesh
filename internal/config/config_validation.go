@@ -74,24 +74,25 @@ func validateFallback(c *Config) error {
 }
 
 func validateSemanticCacheConfig(c *Config) error {
-	if c.SemanticCacheVectorDimension <= 0 {
+	cache := c.Cache
+	if cache.VectorDimension <= 0 {
 		return fmt.Errorf("semantic_cache_vector_dimension must be >= 1")
 	}
-	if c.PGVectorHNSWM <= 0 || c.PGVectorHNSWEFConstruction <= 0 || c.PGVectorSearchEF <= 0 {
+	if cache.PGVector.HNSWM <= 0 || cache.PGVector.HNSWEFConstruct <= 0 || cache.PGVector.SearchEF <= 0 {
 		return fmt.Errorf("pgvector numeric settings must be >= 1")
 	}
-	if c.PGVectorIndexType != "hnsw" && c.PGVectorIndexType != "ivfflat" {
+	if cache.PGVector.IndexType != "hnsw" && cache.PGVector.IndexType != "ivfflat" {
 		return fmt.Errorf("pgvector_index_type must be 'hnsw' or 'ivfflat'")
 	}
-	if !c.SemanticCacheEnabled {
+	if !cache.Enabled {
 		return nil
 	}
-	switch c.SemanticCacheVectorStore {
+	switch cache.VectorStore {
 	case "", "lancedb", "qdrant", "pgvector":
 	default:
-		return fmt.Errorf("unsupported semantic_cache_vector_store: %s", c.SemanticCacheVectorStore)
+		return fmt.Errorf("unsupported semantic_cache_vector_store: %s", cache.VectorStore)
 	}
-	if c.SemanticCacheVectorStore == "qdrant" && c.QdrantAddr == "" {
+	if cache.VectorStore == "qdrant" && cache.Qdrant.Addr == "" {
 		return fmt.Errorf("qdrant_addr is required when semantic_cache_vector_store is qdrant")
 	}
 	return nil

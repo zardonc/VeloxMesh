@@ -1,0 +1,10 @@
+{
+  "enabled": false,
+  "queue_backend": "auto",
+  "queue_soft_limit": 0,
+  "queue_hard_limit": 0,
+  "queue_pop_timeout": "100ms",
+  "executor_concurrency": 1,
+  "default_priority": "normal",
+  "max_priority": "high"
+}

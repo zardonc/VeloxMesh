@@ -1,0 +1,14 @@
+{
+  "enabled": false,
+  "vector_dimension": 1536,
+  "vector_store": "",
+  "qdrant": {
+    "addr": ""
+  },
+  "pgvector": {
+    "index_type": "hnsw",
+    "hnsw_m": 16,
+    "hnsw_ef_construction": 64,
+    "search_ef": 40
+  }
+}

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"strings"
 	"testing"
@@ -383,6 +384,128 @@ func TestRedisConfigEnv(t *testing.T) {
 	if cfg.RedisDegradeToLocal {
 		t.Errorf("expected degrade to local to be false")
 	}
+	if !cfg.Redis.Enabled || cfg.Redis.Addr != "redis:6379" {
+		t.Fatalf("expected nested Redis env compatibility, got %#v", cfg.Redis)
+	}
+}
+
+func TestNestedConfigEnvCompatibility(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+	t.Setenv("CONTROL_STATE_BACKEND", "disabled")
+	t.Setenv("REDIS_ENABLED", "true")
+	t.Setenv("REDIS_ADDR", "redis:6379")
+	t.Setenv("SEMANTIC_CACHE_ENABLED", "true")
+	t.Setenv("SEMANTIC_CACHE_VECTOR_STORE", "qdrant")
+	t.Setenv("SEMANTIC_CACHE_VECTOR_DIMENSION", "512")
+	t.Setenv("QDRANT_ADDR", "http://qdrant:6333")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.ControlState.Backend != "disabled" {
+		t.Fatalf("expected nested control state env, got %#v", cfg.ControlState)
+	}
+	if !cfg.Cache.Enabled || cfg.Cache.VectorDimension != 512 || cfg.Cache.Qdrant.Addr != "http://qdrant:6333" {
+		t.Fatalf("expected nested cache env compatibility, got %#v", cfg.Cache)
+	}
+}
+
+func TestNestedConfigLoadsFromLegacyFlatJSON(t *testing.T) {
+	configPath := writeTempConfig(t, `{
+		"default_provider": "p1",
+		"providers": [{"id":"p1","type":"openai-compatible","base_url":"http://test","models":["m1"]}],
+		"control_state_backend": "disabled",
+		"redis_enabled": true,
+		"redis_addr": "redis:6379",
+		"semantic_cache_enabled": true,
+		"semantic_cache_vector_store": "qdrant",
+		"semantic_cache_vector_dimension": 768,
+		"qdrant_addr": "http://qdrant:6333"
+	}`)
+	t.Setenv("CONFIG_FILE", configPath)
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.Redis.Enabled || cfg.Redis.Addr != "redis:6379" {
+		t.Fatalf("legacy redis fields did not normalize: %#v", cfg.Redis)
+	}
+	if !cfg.Cache.Enabled || cfg.Cache.VectorDimension != 768 || cfg.Cache.Qdrant.Addr != "http://qdrant:6333" {
+		t.Fatalf("legacy cache fields did not normalize: %#v", cfg.Cache)
+	}
+}
+
+func TestNestedConfigWinsOverFlatJSON(t *testing.T) {
+	configPath := writeTempConfig(t, `{
+		"default_provider": "p1",
+		"providers": [{"id":"p1","type":"openai-compatible","base_url":"http://test","models":["m1"]}],
+		"redis_enabled": true,
+		"redis_addr": "legacy:6379",
+		"semantic_cache_vector_dimension": 384,
+		"qdrant_addr": "http://legacy:6333",
+		"redis": {"enabled": false, "addr": "nested:6379"},
+		"cache": {"vector_dimension": 1024, "qdrant": {"addr": "http://nested:6333"}}
+	}`)
+	t.Setenv("CONFIG_FILE", configPath)
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Redis.Enabled || cfg.Redis.Addr != "nested:6379" {
+		t.Fatalf("nested redis did not win: %#v", cfg.Redis)
+	}
+	if cfg.Cache.VectorDimension != 1024 || cfg.Cache.Qdrant.Addr != "http://nested:6333" {
+		t.Fatalf("nested cache did not win: %#v", cfg.Cache)
+	}
+}
+
+func TestComponentConfigFilesOverrideOnlyTheirBlocks(t *testing.T) {
+	schedulerPath := writeTempConfig(t, `{"executor_concurrency": 3}`)
+	cachePath := writeTempConfig(t, `{"vector_dimension": 2048, "qdrant": {"addr": "http://component:6333"}}`)
+	configPath := writeTempConfig(t, `{
+		"default_provider": "p1",
+		"providers": [{"id":"p1","type":"openai-compatible","base_url":"http://test","models":["m1"]}],
+		"scheduler_config_file": `+jsonString(t, schedulerPath)+`,
+		"cache_config_file": `+jsonString(t, cachePath)+`,
+		"scheduler": {"executor_concurrency": 1},
+		"cache": {"vector_dimension": 768, "qdrant": {"addr": "http://main:6333"}},
+		"redis": {"enabled": false, "addr": "redis-main:6379"}
+	}`)
+	t.Setenv("CONFIG_FILE", configPath)
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Scheduler.ExecutorConcurrency != 3 {
+		t.Fatalf("scheduler component override missing: %#v", cfg.Scheduler)
+	}
+	if cfg.Cache.VectorDimension != 2048 || cfg.Cache.Qdrant.Addr != "http://component:6333" {
+		t.Fatalf("cache component override missing: %#v", cfg.Cache)
+	}
+	if cfg.Redis.Addr != "redis-main:6379" {
+		t.Fatalf("cache component altered redis: %#v", cfg.Redis)
+	}
+}
+
+func TestMissingComponentConfigFileReportsPath(t *testing.T) {
+	configPath := writeTempConfig(t, `{
+		"default_provider": "p1",
+		"providers": [{"id":"p1","type":"openai-compatible","base_url":"http://test","models":["m1"]}],
+		"cache_config_file": "/missing/cache.json"
+	}`)
+	t.Setenv("CONFIG_FILE", configPath)
+
+	_, err := LoadConfig()
+	if err == nil || !strings.Contains(err.Error(), "/missing/cache.json") {
+		t.Fatalf("expected missing component path in error, got %v", err)
+	}
 }
 
 func TestPlan4PostgresConfigDefaults(t *testing.T) {
@@ -523,6 +646,7 @@ func TestSchedulerSemanticNeighborsConfigEnv(t *testing.T) {
 	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT", "9")
 	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT", "7ms")
 	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT", "21ms")
+	t.Setenv("QDRANT_ADDR", "http://qdrant:6333")
 
 	cfg, err := LoadConfig()
 	if err != nil {
@@ -563,7 +687,8 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 				"request_kind": "code_gen",
 				"wait_threshold": "2s"
 			}]
-		}
+		},
+		"cache": {"qdrant": {"addr": "http://qdrant:6333"}}
 	}`)
 	t.Setenv("CONFIG_FILE", configPath)
 
@@ -850,6 +975,15 @@ func TestPlan4PostgresConfigValidationFailures(t *testing.T) {
 			expectedErr: "unsupported semantic_cache_vector_store",
 		},
 		{
+			name: "qdrant cache requires address",
+			modify: func(c *Config) {
+				c.SemanticCacheEnabled = true
+				c.SemanticCacheVectorStore = "qdrant"
+				c.QdrantAddr = ""
+			},
+			expectedErr: "qdrant_addr is required",
+		},
+		{
 			name: "invalid vector dimension",
 			modify: func(c *Config) {
 				c.SemanticCacheVectorDimension = -1
@@ -911,6 +1045,15 @@ func writeTempConfig(t *testing.T, content string) string {
 		t.Fatalf("write temp config: %v", err)
 	}
 	return path
+}
+
+func jsonString(t *testing.T, value string) string {
+	t.Helper()
+	data, err := json.Marshal(value)
+	if err != nil {
+		t.Fatalf("marshal json string: %v", err)
+	}
+	return string(data)
 }
 
 func validPlan4TestConfig() *Config {

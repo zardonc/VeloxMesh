@@ -1,160 +1,11 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/google/uuid"
 )
-
-type ProviderAuthConfig struct {
-	APIKeyEnv string `json:"api_key_env"`
-}
-
-type ProviderHealthCheckConfig struct {
-	Enabled          *bool  `json:"enabled"`
-	Interval         string `json:"interval"`
-	Timeout          string `json:"timeout"`
-	InitialDelay     string `json:"initial_delay"`
-	FailureThreshold int    `json:"failure_threshold"`
-	SuccessThreshold int    `json:"success_threshold"`
-}
-
-type HealthCheckConfig struct {
-	Enabled          *bool  `json:"enabled"`
-	Interval         string `json:"interval"`
-	Timeout          string `json:"timeout"`
-	InitialDelay     string `json:"initial_delay"`
-	FailureThreshold int    `json:"failure_threshold"`
-	SuccessThreshold int    `json:"success_threshold"`
-	StaleAfter       string `json:"stale_after"`
-	MaxConcurrency   int    `json:"max_concurrency"`
-}
-
-type ProviderConfig struct {
-	ID           string                     `json:"id"`
-	Type         string                     `json:"type"` // e.g. "openai-compatible"
-	BaseURL      string                     `json:"base_url"`
-	APIKey       string                     `json:"api_key"`
-	Auth         *ProviderAuthConfig        `json:"auth"`
-	Models       []string                   `json:"models"`
-	DefaultModel string                     `json:"default_model"`
-	Timeout      string                     `json:"timeout"`
-	Weight       int                        `json:"weight"`
-	HealthCheck  *ProviderHealthCheckConfig `json:"health_check"`
-}
-
-func (p *ProviderConfig) ResolveAPIKey() string {
-	if p.Auth != nil && p.Auth.APIKeyEnv != "" {
-		if val, exists := os.LookupEnv(p.Auth.APIKeyEnv); exists {
-			return val
-		}
-	}
-	return p.APIKey
-}
-
-type Config struct {
-	GatewayDataAddr    string
-	GatewayAdminAddr   string
-	GatewayMetricsAddr string
-	LogLevel           string
-	DevAPIKey          string
-
-	MultiNodeEnabled bool   `json:"multi_node_enabled"`
-	NodeID           string `json:"node_id"`
-
-	RoutingStrategy string // e.g. "round-robin", "least-latency"
-	DefaultProvider string
-
-	FallbackEnabled bool
-	MaxAttempts     int
-
-	HealthCheck HealthCheckConfig
-
-	Providers []ProviderConfig
-
-	// Phase 3 Control State Fields
-	ControlStateBackend          string `json:"control_state_backend"`
-	ControlStateDSN              string `json:"control_state_dsn"`
-	ControlStateMigrateOnStartup bool   `json:"control_state_migrate_on_startup"`
-	ControlStateLocalSeedEnabled bool   `json:"control_state_local_seed_enabled"`
-	ControlStateEncryptionKey    string `json:"control_state_encryption_key"`
-	AdminAPIKey                  string `json:"admin_api_key"`
-	AuditRetention               string `json:"audit_retention"`
-
-	// Phase 3 Hot State Fields
-	RedisEnabled        bool   `json:"redis_enabled"`
-	RedisAddr           string `json:"redis_addr"`
-	RedisPassword       string `json:"redis_password"`
-	RedisDB             int    `json:"redis_db"`
-	RedisNamespace      string `json:"redis_namespace"`
-	RedisHealthTTL      string `json:"redis_health_ttl"`
-	RedisAuthCacheTTL   string `json:"redis_auth_cache_ttl"`
-	RedisDegradeToLocal bool   `json:"redis_degrade_to_local"`
-
-	// Phase 4 Semantic Cache Fields
-	SemanticCacheEnabled         bool   `json:"semantic_cache_enabled"`
-	SemanticCacheProvider        string `json:"semantic_cache_provider"`
-	SemanticCacheVectorStore     string `json:"semantic_cache_vector_store"`
-	SemanticCacheVectorDimension int    `json:"semantic_cache_vector_dimension"`
-	PGVectorIndexType            string `json:"pgvector_index_type"`
-	PGVectorHNSWM                int    `json:"pgvector_hnsw_m"`
-	PGVectorHNSWEFConstruction   int    `json:"pgvector_hnsw_ef_construction"`
-	PGVectorSearchEF             int    `json:"pgvector_search_ef"`
-	QdrantAddr                   string `json:"qdrant_addr"`
-	QdrantAPIKey                 string `json:"qdrant_api_key"`
-
-	// Phase 8 Semantic Pipeline
-	SemanticPipelineConfigFile string `json:"semantic_pipeline_config_file"`
-
-	// Phase 14 Scheduler
-	Scheduler SchedulerConfig `json:"scheduler"`
-}
-
-type SchedulerConfig struct {
-	Enabled                       bool               `json:"enabled"`
-	Endpoint                      string             `json:"endpoint"`
-	HeuristicEndpoint             string             `json:"heuristic_endpoint"`
-	ONNXEndpoint                  string             `json:"onnx_endpoint"`
-	ONNXRolloutPercent            int                `json:"onnx_rollout_percent"`
-	QualityMAPEAlertPercent       float64            `json:"quality_mape_alert_percent"`
-	ErrorSpikeAlertRate           float64            `json:"error_spike_alert_rate"`
-	Timeout                       string             `json:"timeout"`
-	Strict                        bool               `json:"strict"`
-	BreakerFailureThreshold       int                `json:"breaker_failure_threshold"`
-	BreakerRecoveryTimeout        string             `json:"breaker_recovery_timeout"`
-	QueueBackend                  string             `json:"queue_backend"`
-	QueueSoftLimit                int                `json:"queue_soft_limit"`
-	QueueHardLimit                int                `json:"queue_hard_limit"`
-	QueuePopTimeout               string             `json:"queue_pop_timeout"`
-	ExecutorConcurrency           int                `json:"executor_concurrency"`
-	DefaultPriority               string             `json:"default_priority"`
-	MaxPriority                   string             `json:"max_priority"`
-	HighQuotaPerMinute            int                `json:"high_quota_per_minute"`
-	ScoreUncertaintyPenaltyK      float64            `json:"score_uncertainty_penalty_k"`
-	HeuristicConfigFile           string             `json:"heuristic_config_file"`
-	FeedbackEnabled               bool               `json:"feedback_enabled"`
-	Mode                          string             `json:"mode"`
-	ONNXArtifactDir               string             `json:"onnx_artifact_dir"`
-	SemanticNeighborsEnabled      bool               `json:"semantic_neighbors_enabled"`
-	SemanticNeighborsMinCount     int                `json:"semantic_neighbors_min_count"`
-	SemanticNeighborsTaskTimeout  string             `json:"semantic_neighbors_task_timeout"`
-	SemanticNeighborsBatchTimeout string             `json:"semantic_neighbors_batch_timeout"`
-	SLAPromotionEnabled           bool               `json:"sla_promotion_enabled"`
-	SLAPromotionCandidateWindow   int                `json:"sla_promotion_candidate_window"`
-	SLAPromotionRules             []SLAPromotionRule `json:"sla_promotion_rules"`
-}
-
-type SLAPromotionRule struct {
-	PolicyID      string `json:"policy_id"`
-	TenantID      string `json:"tenant_id"`
-	TenantClass   string `json:"tenant_class"`
-	ModelClass    string `json:"model_class"`
-	RequestKind   string `json:"request_kind"`
-	WaitThreshold string `json:"wait_threshold"`
-}
 
 func LoadConfig() (*Config, error) {
 	cfg := &Config{
@@ -196,6 +47,8 @@ func LoadConfig() (*Config, error) {
 		QdrantAPIKey:                 getEnv("QDRANT_API_KEY", ""),
 
 		SemanticPipelineConfigFile: getEnv("SEMANTIC_PIPELINE_CONFIG_FILE", ""),
+		SchedulerConfigFile:        getEnv("SCHEDULER_CONFIG_FILE", ""),
+		CacheConfigFile:            getEnv("CACHE_CONFIG_FILE", ""),
 		Scheduler: SchedulerConfig{
 			Enabled:                       getEnv("SCHEDULER_ENABLED", "false") == "true",
 			Endpoint:                      getEnv("SCHEDULER_ENDPOINT", ""),
@@ -229,168 +82,22 @@ func LoadConfig() (*Config, error) {
 			SLAPromotionCandidateWindow:   getEnvInt("SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW", defaultSLAPromotionCandidateWindow),
 		},
 	}
+	cfg.ControlState = controlStateConfigFromEnv()
+	cfg.Redis = redisConfigFromEnv()
+	cfg.Cache = cacheConfigFromEnv()
+	syncLegacyConfigFields(cfg)
 
 	configFile := getEnv("CONFIG_FILE", "")
 	if configFile != "" {
-		data, err := os.ReadFile(configFile)
+		fileCfg, err := readFileConfig(configFile)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read config file: %v", err)
+			return nil, err
 		}
-
-		var fileCfg struct {
-			MultiNodeEnabled *bool             `json:"multi_node_enabled"`
-			NodeID           string            `json:"node_id"`
-			RoutingStrategy  string            `json:"routing_strategy"`
-			DefaultProvider  string            `json:"default_provider"`
-			FallbackEnabled  *bool             `json:"fallback_enabled"`
-			MaxAttempts      *int              `json:"max_attempts"`
-			HealthCheck      HealthCheckConfig `json:"health_check"`
-			Providers        []ProviderConfig  `json:"providers"`
-
-			ControlStateBackend          string `json:"control_state_backend"`
-			ControlStateDSN              string `json:"control_state_dsn"`
-			ControlStateMigrateOnStartup *bool  `json:"control_state_migrate_on_startup"`
-			ControlStateLocalSeedEnabled *bool  `json:"control_state_local_seed_enabled"`
-			ControlStateEncryptionKey    string `json:"control_state_encryption_key"`
-			AdminAPIKey                  string `json:"admin_api_key"`
-			AuditRetention               string `json:"audit_retention"`
-
-			RedisEnabled        *bool  `json:"redis_enabled"`
-			RedisAddr           string `json:"redis_addr"`
-			RedisPassword       string `json:"redis_password"`
-			RedisDB             *int   `json:"redis_db"`
-			RedisNamespace      string `json:"redis_namespace"`
-			RedisHealthTTL      string `json:"redis_health_ttl"`
-			RedisAuthCacheTTL   string `json:"redis_auth_cache_ttl"`
-			RedisDegradeToLocal *bool  `json:"redis_degrade_to_local"`
-
-			SemanticCacheEnabled         *bool  `json:"semantic_cache_enabled"`
-			SemanticCacheProvider        string `json:"semantic_cache_provider"`
-			SemanticCacheVectorStore     string `json:"semantic_cache_vector_store"`
-			SemanticCacheVectorDimension *int   `json:"semantic_cache_vector_dimension"`
-			PGVectorIndexType            string `json:"pgvector_index_type"`
-			PGVectorHNSWM                *int   `json:"pgvector_hnsw_m"`
-			PGVectorHNSWEFConstruction   *int   `json:"pgvector_hnsw_ef_construction"`
-			PGVectorSearchEF             *int   `json:"pgvector_search_ef"`
-			QdrantAddr                   string `json:"qdrant_addr"`
-			QdrantAPIKey                 string `json:"qdrant_api_key"`
-
-			SemanticPipelineConfigFile string          `json:"semantic_pipeline_config_file"`
-			Scheduler                  SchedulerConfig `json:"scheduler"`
+		applyFileConfig(cfg, fileCfg)
+		if err := applyComponentConfigFiles(cfg); err != nil {
+			return nil, err
 		}
-		if err := json.Unmarshal(data, &fileCfg); err != nil {
-			return nil, fmt.Errorf("failed to parse config file: %v", err)
-		}
-
-		fallbackEnabledSet := false
-		if fileCfg.FallbackEnabled != nil {
-			cfg.FallbackEnabled = *fileCfg.FallbackEnabled
-			fallbackEnabledSet = true
-		}
-		if fileCfg.MaxAttempts != nil {
-			cfg.MaxAttempts = *fileCfg.MaxAttempts
-		}
-
-		if fileCfg.MultiNodeEnabled != nil {
-			cfg.MultiNodeEnabled = *fileCfg.MultiNodeEnabled
-		}
-		if fileCfg.NodeID != "" {
-			cfg.NodeID = fileCfg.NodeID
-		}
-
-		if fileCfg.RoutingStrategy != "" {
-			cfg.RoutingStrategy = fileCfg.RoutingStrategy
-		}
-		if fileCfg.DefaultProvider != "" {
-			cfg.DefaultProvider = fileCfg.DefaultProvider
-		}
-		cfg.HealthCheck = fileCfg.HealthCheck
-		cfg.Providers = fileCfg.Providers
-
-		if fileCfg.ControlStateBackend != "" {
-			cfg.ControlStateBackend = fileCfg.ControlStateBackend
-		}
-		if fileCfg.ControlStateDSN != "" {
-			cfg.ControlStateDSN = fileCfg.ControlStateDSN
-		}
-		if fileCfg.ControlStateMigrateOnStartup != nil {
-			cfg.ControlStateMigrateOnStartup = *fileCfg.ControlStateMigrateOnStartup
-		}
-		if fileCfg.ControlStateLocalSeedEnabled != nil {
-			cfg.ControlStateLocalSeedEnabled = *fileCfg.ControlStateLocalSeedEnabled
-		}
-		if fileCfg.ControlStateEncryptionKey != "" {
-			cfg.ControlStateEncryptionKey = fileCfg.ControlStateEncryptionKey
-		}
-		if fileCfg.AdminAPIKey != "" {
-			cfg.AdminAPIKey = fileCfg.AdminAPIKey
-		}
-		if fileCfg.AuditRetention != "" {
-			cfg.AuditRetention = fileCfg.AuditRetention
-		}
-
-		if fileCfg.RedisEnabled != nil {
-			cfg.RedisEnabled = *fileCfg.RedisEnabled
-		}
-		if fileCfg.RedisAddr != "" {
-			cfg.RedisAddr = fileCfg.RedisAddr
-		}
-		if fileCfg.RedisPassword != "" {
-			cfg.RedisPassword = fileCfg.RedisPassword
-		}
-		if fileCfg.RedisDB != nil {
-			cfg.RedisDB = *fileCfg.RedisDB
-		}
-		if fileCfg.RedisNamespace != "" {
-			cfg.RedisNamespace = fileCfg.RedisNamespace
-		}
-		if fileCfg.RedisHealthTTL != "" {
-			cfg.RedisHealthTTL = fileCfg.RedisHealthTTL
-		}
-		if fileCfg.RedisAuthCacheTTL != "" {
-			cfg.RedisAuthCacheTTL = fileCfg.RedisAuthCacheTTL
-		}
-		if fileCfg.RedisDegradeToLocal != nil {
-			cfg.RedisDegradeToLocal = *fileCfg.RedisDegradeToLocal
-		}
-
-		if fileCfg.SemanticCacheEnabled != nil {
-			cfg.SemanticCacheEnabled = *fileCfg.SemanticCacheEnabled
-		}
-		if fileCfg.SemanticCacheProvider != "" {
-			cfg.SemanticCacheProvider = fileCfg.SemanticCacheProvider
-		}
-		if fileCfg.SemanticCacheVectorStore != "" {
-			cfg.SemanticCacheVectorStore = fileCfg.SemanticCacheVectorStore
-		}
-		if fileCfg.SemanticCacheVectorDimension != nil {
-			cfg.SemanticCacheVectorDimension = *fileCfg.SemanticCacheVectorDimension
-		}
-		if fileCfg.PGVectorIndexType != "" {
-			cfg.PGVectorIndexType = fileCfg.PGVectorIndexType
-		}
-		if fileCfg.PGVectorHNSWM != nil {
-			cfg.PGVectorHNSWM = *fileCfg.PGVectorHNSWM
-		}
-		if fileCfg.PGVectorHNSWEFConstruction != nil {
-			cfg.PGVectorHNSWEFConstruction = *fileCfg.PGVectorHNSWEFConstruction
-		}
-		if fileCfg.PGVectorSearchEF != nil {
-			cfg.PGVectorSearchEF = *fileCfg.PGVectorSearchEF
-		}
-		if fileCfg.QdrantAddr != "" {
-			cfg.QdrantAddr = fileCfg.QdrantAddr
-		}
-		if fileCfg.QdrantAPIKey != "" {
-			cfg.QdrantAPIKey = fileCfg.QdrantAPIKey
-		}
-
-		if fileCfg.SemanticPipelineConfigFile != "" {
-			cfg.SemanticPipelineConfigFile = fileCfg.SemanticPipelineConfigFile
-		}
-		mergeSchedulerConfig(&cfg.Scheduler, fileCfg.Scheduler)
-
-		if !fallbackEnabledSet {
+		if fileCfg.FallbackEnabled == nil {
 			cfg.FallbackEnabled = len(cfg.Providers) > 1
 		}
 	} else {
@@ -472,25 +179,27 @@ func applyDefaults(cfg *Config) {
 		}
 	}
 
-	applySemanticDefaults(cfg)
+	normalizeConfigBlocks(cfg)
+	applySemanticDefaults(&cfg.Cache)
 	applySchedulerDefaults(&cfg.Scheduler)
+	syncLegacyConfigFields(cfg)
 }
 
-func applySemanticDefaults(cfg *Config) {
-	if cfg.SemanticCacheVectorDimension == 0 {
-		cfg.SemanticCacheVectorDimension = defaultSemanticCacheVectorDimension
+func applySemanticDefaults(cache *CacheConfig) {
+	if cache.VectorDimension == 0 {
+		cache.VectorDimension = defaultSemanticCacheVectorDimension
 	}
-	if cfg.PGVectorIndexType == "" {
-		cfg.PGVectorIndexType = defaultPGVectorIndexType
+	if cache.PGVector.IndexType == "" {
+		cache.PGVector.IndexType = defaultPGVectorIndexType
 	}
-	if cfg.PGVectorHNSWM == 0 {
-		cfg.PGVectorHNSWM = defaultPGVectorHNSWM
+	if cache.PGVector.HNSWM == 0 {
+		cache.PGVector.HNSWM = defaultPGVectorHNSWM
 	}
-	if cfg.PGVectorHNSWEFConstruction == 0 {
-		cfg.PGVectorHNSWEFConstruction = defaultPGVectorHNSWEFConstruction
+	if cache.PGVector.HNSWEFConstruct == 0 {
+		cache.PGVector.HNSWEFConstruct = defaultPGVectorHNSWEFConstruction
 	}
-	if cfg.PGVectorSearchEF == 0 {
-		cfg.PGVectorSearchEF = defaultPGVectorSearchEF
+	if cache.PGVector.SearchEF == 0 {
+		cache.PGVector.SearchEF = defaultPGVectorSearchEF
 	}
 }
 
@@ -648,8 +357,10 @@ func applySchedulerDefaults(s *SchedulerConfig) {
 }
 
 func (c *Config) Validate() error {
-	applySemanticDefaults(c)
+	normalizeConfigBlocks(c)
+	applySemanticDefaults(&c.Cache)
 	applySchedulerDefaults(&c.Scheduler)
+	syncLegacyConfigFields(c)
 
 	if c.RoutingStrategy != "round-robin" && c.RoutingStrategy != "least-latency" {
 		return fmt.Errorf("invalid routing strategy")
@@ -659,24 +370,24 @@ func (c *Config) Validate() error {
 		return err
 	}
 
-	if c.ControlStateBackend != "disabled" && c.ControlStateBackend != "sqlite" && c.ControlStateBackend != "postgres" {
-		return fmt.Errorf("invalid control state backend: %s. Must be 'sqlite', 'postgres', or 'disabled'", c.ControlStateBackend)
+	if c.ControlState.Backend != "disabled" && c.ControlState.Backend != "sqlite" && c.ControlState.Backend != "postgres" {
+		return fmt.Errorf("invalid control state backend: %s. Must be 'sqlite', 'postgres', or 'disabled'", c.ControlState.Backend)
 	}
 
-	if c.ControlStateBackend == "sqlite" {
-		if c.ControlStateDSN == "" {
+	if c.ControlState.Backend == "sqlite" {
+		if c.ControlState.DSN == "" {
 			return fmt.Errorf("sqlite control state backend requires a DSN (e.g. file:veloxmesh.db?cache=shared). This is the default Plan 1 deployment")
 		}
 	}
-	if c.ControlStateBackend == "postgres" && c.ControlStateDSN == "" {
+	if c.ControlState.Backend == "postgres" && c.ControlState.DSN == "" {
 		return fmt.Errorf("postgres control state backend requires a DSN")
 	}
-	if c.ControlStateBackend == "sqlite" || c.ControlStateBackend == "postgres" {
-		if c.ControlStateEncryptionKey != "" && len(c.ControlStateEncryptionKey) != 32 {
+	if c.ControlState.Backend == "sqlite" || c.ControlState.Backend == "postgres" {
+		if c.ControlState.EncryptionKey != "" && len(c.ControlState.EncryptionKey) != 32 {
 			return fmt.Errorf("control state encryption key must be exactly 32 bytes (required when durable backend is used)")
 		}
-		if c.ControlStateEncryptionKey == "" {
-			return fmt.Errorf("control state encryption key is required when a durable backend (%s) is used", c.ControlStateBackend)
+		if c.ControlState.EncryptionKey == "" {
+			return fmt.Errorf("control state encryption key is required when a durable backend (%s) is used", c.ControlState.Backend)
 		}
 	}
 
