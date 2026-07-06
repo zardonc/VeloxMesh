@@ -17,21 +17,21 @@
 - [x] **SCH-05**: Executor supports configurable concurrent slot control via semaphore so that `SCHEDULER_EXECUTOR_CONCURRENCY > 1` allows parallel task execution without race conditions.
 - [x] **SCH-06**: Multi-node task execution uses a Redis SET NX idempotency lock per task ID; single-node deployments skip the lock without code change.
 - [x] **SCH-07**: Queue admission events (soft-limit throttle, hard-limit reject) are recorded as Prometheus counters with priority and reason labels; queue depth is recorded as a histogram at intake time.
-- [ ] **SCH-08**: Admin scheduler status endpoint returns queue depth, executor slot utilization, circuit-breaker state, and the last N quality rollup entries in a single response.
+- [x] **SCH-08**: Admin scheduler status endpoint returns queue depth, executor slot utilization, circuit-breaker state, and the last N quality rollup entries in a single response.
 
 ### Semantic Neighbor Hardening (QDR)
 
 - [x] **QDR-05**: `requestText()` enforces a maximum input length before embedding to prevent token-limit errors from long prompts.
 - [x] **QDR-06**: `SemanticNeighborService` checks for and creates the Qdrant collection at startup when semantic neighbors are enabled, using the configured vector dimension.
-- [ ] **QDR-07**: Completed-sample hydration uses a precise ID lookup instead of a full time-window scan; `SchedulerTrainingSampleRepository` exposes `ListByIDs`.
-- [ ] **QDR-08**: The embedding model identifier used by semantic neighbor enrichment is configurable; `SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL` overrides the current hardcoded constant.
+- [x] **QDR-07**: Completed-sample hydration uses a precise ID lookup instead of a full time-window scan; `SchedulerTrainingSampleRepository` exposes `ListByIDs`.
+- [x] **QDR-08**: The embedding model identifier used by semantic neighbor enrichment is configurable; `SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL` overrides the current hardcoded constant.
 
 ### Scheduler Observability & Admin (OBS)
 
-- [ ] **OBS-03**: Admin API exposes SLA promotion rules as readable and runtime-updatable (in-memory) without a restart; changes are audit-logged.
-- [ ] **OBS-04**: Admin API exposes a training-sample export endpoint returning safe structured features and completion labels, filterable by time window and task type.
-- [ ] **OBS-05**: `ScoreResult.SchedulerType` is populated in all scoring paths so quality rollups correctly attribute MAPE and wait-time metrics by scheduler type.
-- [ ] **OBS-06**: Heuristic `base_latency` lookup table and model-family multipliers are loaded from `heuristic_config_file`; a template file is provided for operator customization.
+- [x] **OBS-03**: Admin API exposes SLA promotion rules as readable and runtime-updatable (in-memory) without a restart; changes are audit-logged.
+- [x] **OBS-04**: Admin API exposes a training-sample export endpoint returning safe structured features and completion labels, filterable by time window and task type.
+- [x] **OBS-05**: `ScoreResult.SchedulerType` is populated in all scoring paths so quality rollups correctly attribute MAPE and wait-time metrics by scheduler type.
+- [x] **OBS-06**: Heuristic `base_latency` lookup table and model-family multipliers are loaded from `heuristic_config_file`; a template file is provided for operator customization.
 
 ## Carried-Over Future Requirements
 
@@ -66,15 +66,15 @@
 | SCH-05 | Phase 20 | Complete |
 | SCH-06 | Phase 20 | Complete |
 | SCH-07 | Phase 20 | Complete |
-| SCH-08 | Phase 21 | Planned |
+| SCH-08 | Phase 21 | Complete |
 | QDR-05 | Phase 20 | Complete |
 | QDR-06 | Phase 20 | Complete |
-| QDR-07 | Phase 21 | Planned |
-| QDR-08 | Phase 21 | Planned |
-| OBS-03 | Phase 21 | Planned |
-| OBS-04 | Phase 21 | Planned |
-| OBS-05 | Phase 21 | Planned |
-| OBS-06 | Phase 21 | Planned |
+| QDR-07 | Phase 21 | Complete |
+| QDR-08 | Phase 21 | Complete |
+| OBS-03 | Phase 21 | Complete |
+| OBS-04 | Phase 21 | Complete |
+| OBS-05 | Phase 21 | Complete |
+| OBS-06 | Phase 21 | Complete |
 
 **Coverage:**
 

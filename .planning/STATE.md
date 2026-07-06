@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.6
 milestone_name: Scheduler 1.0 + Config System Unification
 status: ready
-last_updated: "2026-07-06T17:13:45Z"
-last_activity: 2026-07-06
+last_updated: "2026-07-06T20:45:00Z"
+last_activity: 2026-07-06 -- Phase 21 completed and verified
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 3
-  percent: 33
+  completed_plans: 6
+  percent: 67
 ---
 
 ## Project Reference
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 21 — observability-admin-apis-tooling
+**Current focus:** Phase 22 — documentation, .env.example & UAT
 
 ## Current Implementation State
 
@@ -33,6 +33,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 18 Anomaly and OOD Conservative Scoring (v7.5) is implemented and verified, including production-shape ONNX artifact and Python worker/Scheduler call-chain coverage.
 - Phase 19 SLA Waiting-Time Promotion (v7.5) is implemented and verified with sanitized promotion metrics, logs, and audit evidence.
 - Phase 20 Config Unification + Scheduler Core Hardening (v7.6) is implemented and verified.
+- Phase 21 Observability, Admin APIs & Tooling (v7.6) is implemented and verified.
 
 ## Completed
 
@@ -46,27 +47,28 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 18: Anomaly and OOD Conservative Scoring
 - Phase 19: SLA Waiting-Time Promotion
 - Phase 20: Config Unification + Scheduler Core Hardening
+- Phase 21: Observability, Admin APIs & Tooling
 
 ## Planned Next
 
-1. Plan Phase 21 with `$gsd-plan-phase 21`.
+1. Plan Phase 22 with `$gsd-plan-phase 22`.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-plan-phase 21` - plan the next active phase.
+- `$gsd-plan-phase 22` - plan the next active phase.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 21
+Phase: 22
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-07-06 -- Phase 20 completed and verified
+Last activity: 2026-07-06 -- Phase 21 completed and verified
 
 ## Operator Next Steps
 
-- Plan Phase 21 with `$gsd-plan-phase 21`
+- Plan Phase 22 with `$gsd-plan-phase 22`
 
 ## Deferred Items
 

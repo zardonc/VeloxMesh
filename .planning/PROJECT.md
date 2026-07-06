@@ -18,7 +18,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.6 Scheduler 1.0 + Config System Unification** is the active milestone. Phase 20 is complete; the current focus is Phase 21 observability, admin APIs, and scheduler tooling.
+**v7.6 Scheduler 1.0 + Config System Unification** is the active milestone. Phase 21 is complete; the current focus is Phase 22 documentation, `.env.example`, and UAT.
 
 **v7.5 Scheduler Enhancements** has shipped and is archived. It completed semantic-neighbor aggregate features, anomaly/OOD conservative scoring, and gateway-owned tenant SLA waiting-time promotion with sanitized metrics, logs, and durable audit evidence.
 
@@ -105,7 +105,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ### Active
 
-- Phase 21 (v7.6): Observability, Admin APIs & Tooling — SCH-08, QDR-07, QDR-08, OBS-03, OBS-04, OBS-05, OBS-06
+- Phase 22 (v7.6): Documentation, `.env.example` & UAT.
 
 ### Deferred to Future Milestones
 
@@ -172,4 +172,4 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Config grouped into named nested structs | All optional subsystems (ControlState, Redis, Cache, Scheduler) follow the same nested struct pattern in v7.6; ENV variables remain backward-compatible, and component-scoped config file references are introduced alongside the unified structure | Good |
 
 ---
-*Last updated: 2026-07-06 — v7.6 Scheduler 1.0 + Config System Unification active*
+*Last updated: 2026-07-06 — Phase 21 complete; Phase 22 active*
