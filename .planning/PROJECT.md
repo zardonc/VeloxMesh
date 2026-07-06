@@ -4,6 +4,12 @@
 
 VeloxMesh is a lightweight AI gateway for routing, governing, and observing LLM traffic across multiple providers. The current repository focuses on the gateway binary: a Go/Chi OpenAI-compatible data-plane API with provider adapters, streaming support, durable provider control state, credit quotas, usage settlement, semantic caching, and Redis-backed hot-state coordination where configured.
 
+# VeloxMesh
+
+## What This Is
+
+VeloxMesh is a lightweight AI gateway for routing, governing, and observing LLM traffic across multiple providers. The current repository focuses on the gateway binary: a Go/Chi OpenAI-compatible data-plane API with provider adapters, streaming support, durable provider control state, credit quotas, usage settlement, semantic caching, and Redis-backed hot-state coordination where configured.
+
 The gateway is intended to remain a unified OpenAI-compatible entry point for downstream clients while provider adapters translate to each upstream provider's native protocol where needed.
 
 ## Core Value
@@ -12,7 +18,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.4 Gateway Scheduler** has shipped and is archived. The gateway now owns optional scheduler-backed queueing, safe training feedback, ONNX runtime scoring, heuristic/ONNX A/B rollout, prediction-quality evidence, and authenticated runtime rollback controls while preserving FIFO fallback and the OpenAI-compatible data-plane API.
+**v7.6 Scheduler 1.0 + Config System Unification** is the active milestone. It targets polishing the Scheduler to 1.0 release quality and unifying the gateway-wide config structure into consistent named nested structs.
 
 **v7.5 Scheduler Enhancements** has shipped and is archived. It completed semantic-neighbor aggregate features, anomaly/OOD conservative scoring, and gateway-owned tenant SLA waiting-time promotion with sanitized metrics, logs, and durable audit evidence.
 
@@ -92,11 +98,14 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Phase 17: Semantic Neighbor Feature Aggregates - v7.5 (QDR-01, QDR-02, QDR-03, and QDR-04).
 - Phase 18: Anomaly and OOD Conservative Scoring - v7.5 (ANOM-01, ANOM-02, ANOM-03, and ANOM-04).
 - Phase 19: SLA Waiting-Time Promotion - v7.5 (SLA-01, SLA-02, SLA-03, and SLA-04).
+- Phase 20: Config System Unification + Scheduler Core Hardening - v7.6 (CFG-01..04, SCH-05..07, QDR-05..06).
+- Phase 21: Observability, Admin APIs & Tooling - v7.6 (SCH-08, QDR-07..08, OBS-03..06).
+- Phase 22: Documentation, .env.example & UAT - v7.6.
 
 
 ### Active
 
-None - v7.5 Scheduler Enhancements requirements are validated.
+- Phase 20 (v7.6): Config System Unification + Scheduler Core Hardening — CFG-01, CFG-02, CFG-03, CFG-04, SCH-05, SCH-06, SCH-07, QDR-05, QDR-06
 
 ### Deferred to Future Milestones
 
@@ -160,15 +169,7 @@ None - v7.5 Scheduler Enhancements requirements are validated.
 | v7.5 keeps semantic lookup in Gateway | Scheduler may receive bounded aggregate statistics, never embeddings or raw text | Good |
 | ONNX anomaly/OOD scoring is conservative and optional | Missing or invalid anomaly metadata degrades anomaly behavior only; OOD severity lowers confidence and increases uncertainty without changing Scheduler RPC | Good |
 | Runtime ONNX prediction uses Python worker by default | Keeps the default Go build free of ONNX Runtime CGO/native shared-library coupling while still testing the production-shape ONNX artifact and Scheduler call chain | Good |
-| v7.5 SLA promotion remains gateway-owned | Queue ownership and promotion policy stay in Gateway; Scheduler continues to score tasks only | Good |
-
-## Evolution
-
-After each phase:
-1. Move completed active requirements to Validated when implementation and verification pass.
-2. Update Active with the next planned slice.
-3. Record new key decisions when provider, routing, storage, or API-contract choices are locked.
-4. Keep `What This Is` honest if the repository expands beyond the gateway binary.
+| Config grouped into named nested structs | All optional subsystems (ControlState, Redis, Cache, Scheduler) follow the same nested struct pattern in v7.6; ENV variables remain backward-compatible, and component-scoped config file references are introduced alongside the unified structure | Planned |
 
 ---
-*Last updated: 2026-07-05 after shipping v7.5 Scheduler Enhancements*
+*Last updated: 2026-07-06 — v7.6 Scheduler 1.0 + Config System Unification active*

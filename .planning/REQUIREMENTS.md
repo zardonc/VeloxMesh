@@ -1,32 +1,39 @@
 # Requirements: VeloxMesh
 
-**Defined:** 2026-07-05
+**Defined:** 2026-07-06
 **Core Value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-## v7.5 Requirements
+## v7.6 Requirements
 
-### Semantic Neighbor Features
+### Config System Unification (CFG)
 
-- [x] **QDR-01**: Gateway can optionally collect semantic-neighbor aggregate stats for scheduler tasks using the configured vector and embedding path.
-- [x] **QDR-02**: Gateway sends only bounded numeric or enum semantic aggregates to Scheduler and training data, never raw prompts, embeddings, semantic-cache payloads, API keys, authorization headers, or provider secrets.
-- [x] **QDR-03**: Semantic aggregate collection is disabled by default, bounded by a request timeout budget, and falls back without blocking forwarding or scheduler scoring.
-- [x] **QDR-04**: Training export and ONNX feature preparation include semantic aggregate fields with safe default values when semantic enrichment is unavailable.
+- [ ] **CFG-01**: All major gateway subsystems (ControlState, Redis, Cache/Qdrant, Scheduler) are represented as named nested config structs in `Config`, consistent with the existing `SchedulerConfig` pattern. Flat root-level fields for these subsystems are grouped without breaking existing ENV variable names.
+- [ ] **CFG-02**: Config file loading supports component-scoped reference files (`scheduler_config_file`, `cache_config_file`) that override the corresponding inline block in the main config file, using the same struct format.
+- [ ] **CFG-03**: A new `config.json.example` and updated `.env.example` document the structured config layout, clearly separating essential fields from optional subsystem configuration.
+- [ ] **CFG-04**: Gateway startup without Scheduler, Redis, or Semantic Cache enabled requires no changes to existing deployments; all optional subsystem config defaults to disabled.
 
-### Anomaly and OOD Scoring
+### Scheduler Hardening (SCH)
 
-- [x] **ANOM-01**: Offline training and evaluation tooling can compute anomaly/OOD thresholds from safe scheduler samples and publish them in versioned scheduler artifacts.
-- [x] **ANOM-02**: ONNX Scheduler validates anomaly metadata at startup and reports clear degraded or fallback behavior when metadata is missing or invalid.
-- [x] **ANOM-03**: ONNX Scheduler applies anomaly/OOD signals to lower confidence and increase uncertainty/score conservatism for unfamiliar tasks.
-- [x] **ANOM-04**: Quality rollups and metrics can compare anomaly rate, MAPE, and fallback behavior by scheduler version and task type.
+- [ ] **SCH-05**: Executor supports configurable concurrent slot control via semaphore so that `SCHEDULER_EXECUTOR_CONCURRENCY > 1` allows parallel task execution without race conditions.
+- [ ] **SCH-06**: Multi-node task execution uses a Redis SET NX idempotency lock per task ID; single-node deployments skip the lock without code change.
+- [ ] **SCH-07**: Queue admission events (soft-limit throttle, hard-limit reject) are recorded as Prometheus counters with priority and reason labels; queue depth is recorded as a histogram at intake time.
+- [ ] **SCH-08**: Admin scheduler status endpoint returns queue depth, executor slot utilization, circuit-breaker state, and the last N quality rollup entries in a single response.
 
-### SLA Waiting-Time Promotion
+### Semantic Neighbor Hardening (QDR)
 
-- [x] **SLA-01**: Operators can configure tenant, model, and request-kind waiting thresholds with scheduler SLA promotion disabled by default.
-- [x] **SLA-02**: Gateway can promote queued tasks that exceed configured waiting thresholds by reordering Redis ZSET and in-memory queue entries.
-- [x] **SLA-03**: Promotion respects trusted priority, tenant max-priority, and high-priority quota rules; prompt text cannot influence promotion.
-- [x] **SLA-04**: Promotions emit sanitized audit, log, and metric records with task class, policy, and tenant identifiers only.
+- [ ] **QDR-05**: `requestText()` enforces a maximum input length before embedding to prevent token-limit errors from long prompts.
+- [ ] **QDR-06**: `SemanticNeighborService` checks for and creates the Qdrant collection at startup when semantic neighbors are enabled, using the configured vector dimension.
+- [ ] **QDR-07**: Completed-sample hydration uses a precise ID lookup instead of a full time-window scan; `SchedulerTrainingSampleRepository` exposes `ListByIDs`.
+- [ ] **QDR-08**: The embedding model identifier used by semantic neighbor enrichment is configurable; `SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL` overrides the current hardcoded constant.
 
-## Future Requirements
+### Scheduler Observability & Admin (OBS)
+
+- [ ] **OBS-03**: Admin API exposes SLA promotion rules as readable and runtime-updatable (in-memory) without a restart; changes are audit-logged.
+- [ ] **OBS-04**: Admin API exposes a training-sample export endpoint returning safe structured features and completion labels, filterable by time window and task type.
+- [ ] **OBS-05**: `ScoreResult.SchedulerType` is populated in all scoring paths so quality rollups correctly attribute MAPE and wait-time metrics by scheduler type.
+- [ ] **OBS-06**: Heuristic `base_latency` lookup table and model-family multipliers are loaded from `heuristic_config_file`; a template file is provided for operator customization.
+
+## Carried-Over Future Requirements
 
 ### Admin Console
 
@@ -36,39 +43,45 @@
 
 - **AUTO-01**: Gateway can automatically change ONNX rollout percentage based on quality signals after operators explicitly enable automated rollout control.
 
-## Out of Scope
+## Out of Scope (v7.6)
 
 | Feature | Reason |
 | --- | --- |
-| Raw prompt, embedding, or semantic-cache payload transfer to Scheduler | Scheduler receives only bounded aggregate features; sensitive request content stays in Gateway-owned boundaries. |
-| Scheduler-owned vector lookup | Gateway owns semantic lookup so Scheduler remains a stateless scoring service. |
-| Scheduler-owned queueing or execution | Gateway remains responsible for intake, queue storage, task execution, promotion, and fallback behavior. |
-| Continuous dynamic Redis re-ranking outside SLA triggers | v7.5 only adds bounded, policy-driven waiting-time promotion. |
-| Admin Console UI | UI remains Phase 11/BFF scope; v7.5 exposes backend metrics and status only. |
+| Raw prompt, embedding, or semantic-cache payload transfer to Scheduler | Security boundary; unchanged from prior milestones. |
+| Scheduler-owned vector lookup or queueing | Gateway ownership unchanged. |
+| Continuous dynamic Redis re-ranking outside SLA triggers | Static virtual deadline design decision. |
+| Admin Console UI | Phase 11/BFF scope. |
+| Isolation Forest full integration | Awaiting training data accumulation. |
+| Multi-Scheduler endpoint weighted routing | heuristic/ONNX A/B path already covers the need. |
+| Automatic ONNX rollout on quality signal | Operator approval required; blocked by design. |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 | --- | --- | --- |
-| QDR-01 | Phase 17 | Complete |
-| QDR-02 | Phase 17 | Complete |
-| QDR-03 | Phase 17 | Complete |
-| QDR-04 | Phase 17 | Complete |
-| ANOM-01 | Phase 18 | Complete |
-| ANOM-02 | Phase 18 | Complete |
-| ANOM-03 | Phase 18 | Complete |
-| ANOM-04 | Phase 18 | Complete |
-| SLA-01 | Phase 19 | Complete |
-| SLA-02 | Phase 19 | Complete |
-| SLA-03 | Phase 19 | Complete |
-| SLA-04 | Phase 19 | Complete |
+| CFG-01 | Phase 20 | Planned |
+| CFG-02 | Phase 20 | Planned |
+| CFG-03 | Phase 20 | Planned |
+| CFG-04 | Phase 20 | Planned |
+| SCH-05 | Phase 20 | Planned |
+| SCH-06 | Phase 20 | Planned |
+| SCH-07 | Phase 20 | Planned |
+| SCH-08 | Phase 21 | Planned |
+| QDR-05 | Phase 20 | Planned |
+| QDR-06 | Phase 20 | Planned |
+| QDR-07 | Phase 21 | Planned |
+| QDR-08 | Phase 21 | Planned |
+| OBS-03 | Phase 21 | Planned |
+| OBS-04 | Phase 21 | Planned |
+| OBS-05 | Phase 21 | Planned |
+| OBS-06 | Phase 21 | Planned |
 
 **Coverage:**
 
-- v7.5 requirements: 12 total
-- Mapped to phases: 12
+- v7.6 requirements: 16 total
+- Mapped to phases: 16
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-07-05*
-*Last updated: 2026-07-05 after completing v7.5 Scheduler Enhancements*
+*Requirements defined: 2026-07-06*
+*Last updated: 2026-07-06 — v7.6 Scheduler 1.0 + Config System Unification*
