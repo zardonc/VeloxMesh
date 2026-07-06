@@ -29,12 +29,13 @@ type RolloutResponse struct {
 }
 
 type SchedulerRuntimeStatus struct {
-	RolloutStatus  SchedulerRolloutStatus                 `json:"rollout_status"`
-	QueueDepth     *int64                                 `json:"queue_depth,omitempty"`
-	SlotsUsed      *int                                   `json:"slots_used,omitempty"`
-	SlotsTotal     *int                                   `json:"slots_total,omitempty"`
-	QualityRollups []*controlstate.SchedulerQualityRollup `json:"quality_rollups"`
-	Warnings       []string                               `json:"warnings"`
+	RolloutStatus       SchedulerRolloutStatus                 `json:"rollout_status"`
+	QueueDepth          *int64                                 `json:"queue_depth,omitempty"`
+	SlotsUsed           *int                                   `json:"slots_used,omitempty"`
+	SlotsTotal          *int                                   `json:"slots_total,omitempty"`
+	CircuitBreakerState string                                 `json:"circuit_breaker_state,omitempty"`
+	QualityRollups      []*controlstate.SchedulerQualityRollup `json:"quality_rollups"`
+	Warnings            []string                               `json:"warnings"`
 }
 
 type SafeSLARule struct {
@@ -113,6 +114,7 @@ func (s *AdminSchedulerService) RuntimeStatus(ctx context.Context, limit int) *S
 	}
 	s.addQueueStatus(ctx, resp)
 	s.addSlotStatus(resp)
+	s.addBreakerStatus(resp)
 	s.addQualityRollups(ctx, resp, limit)
 	return resp
 }
@@ -187,6 +189,10 @@ func (s *AdminSchedulerService) addQueueStatus(ctx context.Context, resp *Schedu
 }
 
 func (s *AdminSchedulerService) addSlotStatus(resp *SchedulerRuntimeStatus) {
+	if s.runner == nil {
+		resp.Warnings = append(resp.Warnings, "executor_slots_unavailable")
+		return
+	}
 	used, total, ok := s.runner.SlotUsage()
 	if !ok {
 		resp.Warnings = append(resp.Warnings, "executor_slots_unavailable")
@@ -194,6 +200,19 @@ func (s *AdminSchedulerService) addSlotStatus(resp *SchedulerRuntimeStatus) {
 	}
 	resp.SlotsUsed = &used
 	resp.SlotsTotal = &total
+}
+
+func (s *AdminSchedulerService) addBreakerStatus(resp *SchedulerRuntimeStatus) {
+	if s.runner == nil || s.runner.Intake == nil || s.runner.Intake.Scorer == nil {
+		resp.Warnings = append(resp.Warnings, "circuit_breaker_unavailable")
+		return
+	}
+	reporter, ok := s.runner.Intake.Scorer.(interface{ BreakerState() string })
+	if !ok {
+		resp.Warnings = append(resp.Warnings, "circuit_breaker_unavailable")
+		return
+	}
+	resp.CircuitBreakerState = reporter.BreakerState()
 }
 
 func (s *AdminSchedulerService) addQualityRollups(ctx context.Context, resp *SchedulerRuntimeStatus, limit int) {

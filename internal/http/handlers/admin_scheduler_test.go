@@ -189,6 +189,37 @@ func TestAdminSchedulerStatusWarnsWhenRollupsUnavailable(t *testing.T) {
 	}
 }
 
+func TestAdminSchedulerStatusWarnsWhenRuntimeComponentsUnavailable(t *testing.T) {
+	service := scheduler.NewAdminSchedulerService(nil, testRolloutController(), nil)
+	resp := service.RuntimeStatus(context.Background(), 0)
+
+	for _, warning := range []string{"queue_unavailable", "executor_slots_unavailable", "circuit_breaker_unavailable"} {
+		if !contains(resp.Warnings, warning) {
+			t.Fatalf("expected warning %q, got %#v", warning, resp.Warnings)
+		}
+	}
+}
+
+func TestAdminSchedulerStatusIncludesCircuitBreakerState(t *testing.T) {
+	scorer, err := scheduler.NewGRPCScorer(context.Background(), config.SchedulerConfig{
+		Enabled: true, Endpoint: "127.0.0.1:1", Timeout: "1ms",
+	})
+	if err != nil {
+		t.Fatalf("new grpc scorer: %v", err)
+	}
+	t.Cleanup(func() { _ = scorer.Close() })
+
+	service := scheduler.NewAdminSchedulerService(nil, testRolloutController(), testSchedulerRunnerWithScorer(nil, scorer))
+	resp := service.RuntimeStatus(context.Background(), 0)
+
+	if resp.CircuitBreakerState != "closed" {
+		t.Fatalf("expected closed circuit breaker, got %#v", resp)
+	}
+	if contains(resp.Warnings, "circuit_breaker_unavailable") {
+		t.Fatalf("expected breaker state without unavailable warning: %#v", resp.Warnings)
+	}
+}
+
 func TestAdminSchedulerSLARulesPutRequiresWritableAdminRoute(t *testing.T) {
 	handler := testAdminSchedulerHandler(t)
 	cluster := coordination.NewFakeCluster()
@@ -335,6 +366,10 @@ func testRolloutController() *scheduler.SchedulerRolloutController {
 }
 
 func testSchedulerRunner(rules []config.SLAPromotionRule) *scheduler.SynchronousRunner {
+	return testSchedulerRunnerWithScorer(rules, nil)
+}
+
+func testSchedulerRunnerWithScorer(rules []config.SLAPromotionRule, scorer scheduler.Scorer) *scheduler.SynchronousRunner {
 	queue := scheduler.NewMemoryQueue()
 	registry := scheduler.NewResultRegistry()
 	executor := &scheduler.Executor{
@@ -342,7 +377,7 @@ func testSchedulerRunner(rules []config.SLAPromotionRule) *scheduler.Synchronous
 		Registry: registry,
 		Promoter: &scheduler.SLAPromoter{Enabled: true, Rules: rules},
 	}
-	return scheduler.NewSynchronousRunnerWithConcurrency(&scheduler.TaskIntake{}, executor, registry, 3)
+	return scheduler.NewSynchronousRunnerWithConcurrency(&scheduler.TaskIntake{Scorer: scorer}, executor, registry, 3)
 }
 
 func validSLARule(policyID string) config.SLAPromotionRule {

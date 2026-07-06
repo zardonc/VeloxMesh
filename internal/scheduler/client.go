@@ -108,6 +108,13 @@ func (s *GRPCScorer) Close() error {
 	return s.conn.Close()
 }
 
+func (s *GRPCScorer) BreakerState() string {
+	if s == nil || s.breaker == nil {
+		return "unknown"
+	}
+	return s.breaker.State()
+}
+
 func (s *GRPCScorer) Score(ctx context.Context, tasks []TaskFeature) ([]ScoreResult, error) {
 	if len(tasks) == 0 {
 		return nil, nil
@@ -176,6 +183,10 @@ func (s WeightedScorer) rolloutPercent() int {
 		return s.Controller.RolloutPercent()
 	}
 	return s.ONNXRolloutPercent
+}
+
+func (s WeightedScorer) BreakerState() string {
+	return "heuristic=" + scorerBreakerState(s.Heuristic) + ",onnx=" + scorerBreakerState(s.ONNX)
 }
 
 type indexedTask struct {
@@ -304,6 +315,19 @@ func (b *breaker) Allow() bool {
 	return time.Since(b.openedAt) >= b.recovery
 }
 
+func (b *breaker) State() string {
+	if b == nil {
+		return "unknown"
+	}
+	if b.openedAt.IsZero() {
+		return "closed"
+	}
+	if time.Since(b.openedAt) >= b.recovery {
+		return "half_open"
+	}
+	return "open"
+}
+
 func (b *breaker) Record(success bool) {
 	if success {
 		b.failures = 0
@@ -314,4 +338,12 @@ func (b *breaker) Record(success bool) {
 	if b.failures >= b.threshold {
 		b.openedAt = time.Now()
 	}
+}
+
+func scorerBreakerState(scorer Scorer) string {
+	reporter, ok := scorer.(interface{ BreakerState() string })
+	if !ok {
+		return "unavailable"
+	}
+	return reporter.BreakerState()
 }
