@@ -345,10 +345,21 @@ func requestText(req *llm.LLMRequest, maxChars int) (string, bool) {
 		}
 	}
 	text := strings.Join(parts, "\n")
-	if maxChars <= 0 || len(text) <= maxChars {
+	return truncateText(text, maxChars)
+}
+
+func truncateText(text string, maxChars int) (string, bool) {
+	if maxChars <= 0 {
 		return text, false
 	}
-	return text[:maxChars], true
+	count := 0
+	for index := range text {
+		if count == maxChars {
+			return text[:index], true
+		}
+		count++
+	}
+	return text, false
 }
 
 func stringValue(value interface{}) string {

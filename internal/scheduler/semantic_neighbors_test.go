@@ -137,6 +137,27 @@ func TestSemanticNeighborEmbeddingUsesCustomInputCap(t *testing.T) {
 	}
 }
 
+func TestSemanticNeighborEmbeddingCapsMultibyteInputByCharacter(t *testing.T) {
+	const inputCap = 8
+	var input string
+	server := semanticNeighborEmbeddingServer(t, &input)
+	defer server.Close()
+	service := semanticNeighborTestService(1, semanticNeighborSamples())
+	service.Config.InputMaxChars = inputCap
+	service.Embedder = func() providers.EmbedAdapter {
+		return openai.NewAdapter("openai-test", server.URL, "test-key", semanticNeighborEmbeddingModel)
+	}
+
+	req := &llm.LLMRequest{Messages: []llm.Message{{Role: llm.RoleUser, Content: strings.Repeat("界", inputCap+3)}}}
+	_, err := service.Enrich(tenantContext("tenant-a"), req, semanticNeighborFeature())
+	if err != nil {
+		t.Fatalf("Enrich: %v", err)
+	}
+	if len([]rune(input)) != inputCap {
+		t.Fatalf("expected %d characters, got %d in %q", inputCap, len([]rune(input)), input)
+	}
+}
+
 func TestSemanticNeighborRequestTextEmptyInput(t *testing.T) {
 	got, truncated := requestText(nil, defaultSemanticNeighborInputMaxChars)
 	if got != "" || truncated {
