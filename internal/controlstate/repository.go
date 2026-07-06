@@ -106,6 +106,7 @@ type FallbackLogRepository interface {
 type SchedulerTrainingSampleRepository interface {
 	Insert(ctx context.Context, sample *SchedulerTrainingSample) error
 	ListByWindow(ctx context.Context, start, end time.Time, limit int) ([]*SchedulerTrainingSample, error)
+	ListByIDs(ctx context.Context, ids []string) ([]*SchedulerTrainingSample, error)
 }
 
 type SchedulerQualityRollupRepository interface {

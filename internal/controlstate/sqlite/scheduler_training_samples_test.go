@@ -60,6 +60,42 @@ func TestSchedulerTrainingSamplesListDefaultsLegacyAggregates(t *testing.T) {
 	assertNeutralSemanticAggregates(t, got[0])
 }
 
+func TestSchedulerTrainingSamplesListByIDsPreservesOrderAndOmitsMissing(t *testing.T) {
+	ctx := context.Background()
+	repo, err := Open("file:scheduler-samples-by-id?mode=memory&cache=shared")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer repo.Close()
+	if err := NewMigrator(repo.db).Migrate(ctx); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+
+	first := testSchedulerTrainingSample()
+	first.ID = "first"
+	second := testSchedulerTrainingSample()
+	second.ID = "second"
+	for _, sample := range []*controlstate.SchedulerTrainingSample{first, second} {
+		if err := repo.SchedulerTrainingSamples().Insert(ctx, sample); err != nil {
+			t.Fatalf("insert sample: %v", err)
+		}
+	}
+	got, err := repo.SchedulerTrainingSamples().ListByIDs(ctx, []string{"second", "missing", "first"})
+	if err != nil {
+		t.Fatalf("list by ids: %v", err)
+	}
+	if len(got) != 2 || got[0].ID != "second" || got[1].ID != "first" {
+		t.Fatalf("unexpected ordered samples: %#v", got)
+	}
+	empty, err := repo.SchedulerTrainingSamples().ListByIDs(ctx, nil)
+	if err != nil {
+		t.Fatalf("empty list by ids: %v", err)
+	}
+	if len(empty) != 0 {
+		t.Fatalf("expected empty result, got %#v", empty)
+	}
+}
+
 func TestSchedulerTrainingSampleSchemaExcludesForbiddenFields(t *testing.T) {
 	ctx := context.Background()
 	repo, err := Open("file:scheduler-sample-schema?mode=memory&cache=shared")

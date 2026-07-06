@@ -114,6 +114,20 @@ func (r *memoryTrainingSampleRepo) ListByWindow(ctx context.Context, start, end 
 	return r.samples, nil
 }
 
+func (r *memoryTrainingSampleRepo) ListByIDs(ctx context.Context, ids []string) ([]*controlstate.SchedulerTrainingSample, error) {
+	byID := make(map[string]*controlstate.SchedulerTrainingSample, len(r.samples))
+	for _, sample := range r.samples {
+		byID[sample.ID] = sample
+	}
+	out := make([]*controlstate.SchedulerTrainingSample, 0, len(ids))
+	for _, id := range ids {
+		if sample := byID[id]; sample != nil {
+			out = append(out, sample)
+		}
+	}
+	return out, nil
+}
+
 func assertSemanticAggregates(t *testing.T, sample *controlstate.SchedulerTrainingSample) {
 	t.Helper()
 	if sample.NeighborCount != 7 || sample.LatencyP50Ms != 120 || sample.LatencyP90Ms != 240 {

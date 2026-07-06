@@ -3,6 +3,7 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"veloxmesh/internal/controlstate"
@@ -30,6 +31,28 @@ func (r *schedulerTrainingSampleRepo) ListByWindow(ctx context.Context, start, e
 	}
 	defer rows.Close()
 	return scanSchedulerTrainingSamples(rows)
+}
+
+func (r *schedulerTrainingSampleRepo) ListByIDs(ctx context.Context, ids []string) ([]*controlstate.SchedulerTrainingSample, error) {
+	if len(ids) == 0 {
+		return []*controlstate.SchedulerTrainingSample{}, nil
+	}
+	args := make([]any, 0, len(ids))
+	placeholders := make([]string, 0, len(ids))
+	for _, id := range ids {
+		args = append(args, id)
+		placeholders = append(placeholders, "?")
+	}
+	rows, err := r.db.QueryContext(ctx, selectSchedulerTrainingSamplesByIDSQL(strings.Join(placeholders, ",")), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	samples, err := scanSchedulerTrainingSamples(rows)
+	if err != nil {
+		return nil, err
+	}
+	return orderTrainingSamplesByID(ids, samples), nil
 }
 
 func scanSchedulerTrainingSamples(rows *sql.Rows) ([]*controlstate.SchedulerTrainingSample, error) {
@@ -102,3 +125,23 @@ FROM scheduler_training_samples
 WHERE completed_at >= ? AND completed_at < ?
 ORDER BY completed_at ASC
 LIMIT ?`
+
+func selectSchedulerTrainingSamplesByIDSQL(placeholders string) string {
+	return `SELECT ` + schedulerTrainingSampleColumns + `
+FROM scheduler_training_samples
+WHERE id IN (` + placeholders + `)`
+}
+
+func orderTrainingSamplesByID(ids []string, samples []*controlstate.SchedulerTrainingSample) []*controlstate.SchedulerTrainingSample {
+	byID := make(map[string]*controlstate.SchedulerTrainingSample, len(samples))
+	for _, sample := range samples {
+		byID[sample.ID] = sample
+	}
+	out := make([]*controlstate.SchedulerTrainingSample, 0, len(samples))
+	for _, id := range ids {
+		if sample := byID[id]; sample != nil {
+			out = append(out, sample)
+		}
+	}
+	return out
+}

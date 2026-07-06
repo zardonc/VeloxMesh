@@ -33,6 +33,22 @@ func (r *schedulerTrainingSampleRepo) ListByWindow(ctx context.Context, start, e
 	return scanSchedulerTrainingSamples(rows)
 }
 
+func (r *schedulerTrainingSampleRepo) ListByIDs(ctx context.Context, ids []string) ([]*controlstate.SchedulerTrainingSample, error) {
+	if len(ids) == 0 {
+		return []*controlstate.SchedulerTrainingSample{}, nil
+	}
+	rows, err := r.pool.Query(ctx, selectSchedulerTrainingSamplesByIDSQL, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	samples, err := scanSchedulerTrainingSamples(rows)
+	if err != nil {
+		return nil, err
+	}
+	return orderTrainingSamplesByID(ids, samples), nil
+}
+
 func scanSchedulerTrainingSamples(rows pgx.Rows) ([]*controlstate.SchedulerTrainingSample, error) {
 	var samples []*controlstate.SchedulerTrainingSample
 	for rows.Next() {
@@ -105,3 +121,21 @@ FROM scheduler_training_samples
 WHERE completed_at >= $1 AND completed_at < $2
 ORDER BY completed_at ASC
 LIMIT $3`
+
+const selectSchedulerTrainingSamplesByIDSQL = `SELECT ` + schedulerTrainingSampleColumns + `
+FROM scheduler_training_samples
+WHERE id = ANY($1)`
+
+func orderTrainingSamplesByID(ids []string, samples []*controlstate.SchedulerTrainingSample) []*controlstate.SchedulerTrainingSample {
+	byID := make(map[string]*controlstate.SchedulerTrainingSample, len(samples))
+	for _, sample := range samples {
+		byID[sample.ID] = sample
+	}
+	out := make([]*controlstate.SchedulerTrainingSample, 0, len(samples))
+	for _, id := range ids {
+		if sample := byID[id]; sample != nil {
+			out = append(out, sample)
+		}
+	}
+	return out
+}

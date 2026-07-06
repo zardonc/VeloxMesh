@@ -81,6 +81,28 @@ func TestSemanticNeighborEnricherDefaultsWithNilDependencies(t *testing.T) {
 	}
 }
 
+func TestSemanticNeighborHydrationUsesExactIDsInVectorOrder(t *testing.T) {
+	repo := &fakeTrainingRepo{samples: semanticNeighborSamples()}
+	service := semanticNeighborTestService(1, semanticNeighborSamples())
+	service.Repo = repo
+	service.Vector = &fakeVector{results: []map[string]interface{}{
+		{"sample_id": "s3", "tenant": "tenant-a"},
+		{"sample_id": "missing", "tenant": "tenant-a"},
+		{"sample_id": "s1", "tenant": "tenant-a"},
+	}}
+
+	got, err := service.hydrate(context.Background(), service.Vector.(*fakeVector).results)
+	if err != nil {
+		t.Fatalf("hydrate: %v", err)
+	}
+	if strings.Join(repo.listByIDs, ",") != "s3,missing,s1" {
+		t.Fatalf("expected exact IDs, got %#v", repo.listByIDs)
+	}
+	if len(got) != 2 || got[0].Sample.ID != "s3" || got[1].Sample.ID != "s1" {
+		t.Fatalf("expected found samples in vector order, got %#v", got)
+	}
+}
+
 func TestSemanticNeighborEmbeddingUsesDefaultModel(t *testing.T) {
 	embedder := &recordingEmbedder{}
 	service := semanticNeighborTestService(1, semanticNeighborSamples())
@@ -345,7 +367,8 @@ func (v *fakeVector) Insert(_ context.Context, _ string, _ [][]float32, metadata
 func (v *fakeVector) Delete(context.Context, string, map[string]interface{}) error { return nil }
 
 type fakeTrainingRepo struct {
-	samples []*controlstate.SchedulerTrainingSample
+	samples   []*controlstate.SchedulerTrainingSample
+	listByIDs []string
 }
 
 func (r *fakeTrainingRepo) Insert(context.Context, *controlstate.SchedulerTrainingSample) error {
@@ -353,6 +376,18 @@ func (r *fakeTrainingRepo) Insert(context.Context, *controlstate.SchedulerTraini
 }
 func (r *fakeTrainingRepo) ListByWindow(context.Context, time.Time, time.Time, int) ([]*controlstate.SchedulerTrainingSample, error) {
 	return r.samples, nil
+}
+
+func (r *fakeTrainingRepo) ListByIDs(_ context.Context, ids []string) ([]*controlstate.SchedulerTrainingSample, error) {
+	r.listByIDs = append([]string(nil), ids...)
+	byID := samplesByID(r.samples)
+	out := make([]*controlstate.SchedulerTrainingSample, 0, len(ids))
+	for _, id := range ids {
+		if sample := byID[id]; sample != nil {
+			out = append(out, sample)
+		}
+	}
+	return out, nil
 }
 
 type orderingTrainingRepo struct {
@@ -365,6 +400,10 @@ func (r *orderingTrainingRepo) Insert(_ context.Context, sample *controlstate.Sc
 }
 
 func (r *orderingTrainingRepo) ListByWindow(context.Context, time.Time, time.Time, int) ([]*controlstate.SchedulerTrainingSample, error) {
+	return nil, nil
+}
+
+func (r *orderingTrainingRepo) ListByIDs(context.Context, []string) ([]*controlstate.SchedulerTrainingSample, error) {
 	return nil, nil
 }
 

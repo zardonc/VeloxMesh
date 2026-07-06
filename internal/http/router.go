@@ -80,6 +80,7 @@ func NewRouter(cfg *config.Config, svc *gateway.Service, adminProvHandler *handl
 			r.Get("/admin/v1/scheduler/status", adminSchedulerHandler.GetStatus)
 			r.Get("/admin/v1/scheduler/sla-rules", adminSchedulerHandler.GetSLARules)
 			r.Put("/admin/v1/scheduler/sla-rules", adminSchedulerHandler.PutSLARules)
+			r.Get("/admin/v1/scheduler/training-samples/export", adminSchedulerHandler.ExportTrainingSamples)
 		})
 	}
 

@@ -11,6 +11,9 @@ import (
 )
 
 const defaultStatusRollupLimit = 100
+const defaultTrainingExportLimit = 1000
+const maxTrainingExportLimit = 10000
+const defaultTrainingExportWindow = 30 * 24 * time.Hour
 
 type RolloutPatchRequest struct {
 	ONNXRolloutPercent *int `json:"onnx_rollout_percent"`
@@ -45,6 +48,41 @@ type SafeSLARule struct {
 
 type SLARulesResponse struct {
 	Rules []SafeSLARule `json:"rules"`
+}
+
+type TrainingExportRequest struct {
+	Start    time.Time
+	End      time.Time
+	TaskType string
+	Limit    int
+}
+
+type TrainingExportResponse struct {
+	Samples []TrainingExportSample `json:"samples"`
+}
+
+type TrainingExportSample struct {
+	Features TrainingExportFeatures `json:"features"`
+	Labels   TrainingExportLabels   `json:"labels"`
+}
+
+type TrainingExportFeatures struct {
+	ModelClass       string  `json:"model_class"`
+	RequestKind      string  `json:"request_kind"`
+	Priority         string  `json:"priority"`
+	Stream           bool    `json:"stream"`
+	CoverageLevel    string  `json:"coverage_level"`
+	CoverageRatio    float64 `json:"coverage_ratio"`
+	SchedulerVersion string  `json:"scheduler_version"`
+}
+
+type TrainingExportLabels struct {
+	Outcome         string    `json:"outcome"`
+	ActualLatencyMs int64     `json:"actual_latency_ms"`
+	InputTokens     int64     `json:"input_tokens"`
+	OutputTokens    int64     `json:"output_tokens"`
+	ProviderClass   string    `json:"provider_class"`
+	CompletedAt     time.Time `json:"completed_at"`
 }
 
 type AdminSchedulerService struct {
@@ -102,6 +140,18 @@ func (s *AdminSchedulerService) ReplaceSLARules(ctx context.Context, req *SLARul
 	old := promoter.ReplaceRules(rules)
 	s.recordSLARulesAudit(ctx, old, rules)
 	return s.SLARules(), nil
+}
+
+func (s *AdminSchedulerService) ExportTrainingSamples(ctx context.Context, req TrainingExportRequest) (*TrainingExportResponse, error) {
+	if s.repo == nil || s.repo.SchedulerTrainingSamples() == nil {
+		return nil, gwErr.NewGatewayError("scheduler_unavailable", "training samples are unavailable", 503)
+	}
+	start, end := trainingExportWindow(req.Start, req.End)
+	rows, err := s.repo.SchedulerTrainingSamples().ListByWindow(ctx, start, end, trainingExportQueryLimit(req))
+	if err != nil {
+		return nil, err
+	}
+	return &TrainingExportResponse{Samples: projectTrainingSamples(rows, req)}, nil
 }
 
 func (s *AdminSchedulerService) Update(ctx context.Context, req *RolloutPatchRequest) (_ *RolloutResponse, err error) {
@@ -233,4 +283,57 @@ func safeTenantSelector(rule config.SLAPromotionRule) string {
 		return "id"
 	}
 	return ""
+}
+
+func trainingExportWindow(start time.Time, end time.Time) (time.Time, time.Time) {
+	if end.IsZero() {
+		end = time.Now().UTC().Add(time.Minute)
+	}
+	if start.IsZero() {
+		start = end.Add(-defaultTrainingExportWindow)
+	}
+	return start, end
+}
+
+func trainingExportLimit(limit int) int {
+	if limit <= 0 {
+		return defaultTrainingExportLimit
+	}
+	return min(limit, maxTrainingExportLimit)
+}
+
+func trainingExportQueryLimit(req TrainingExportRequest) int {
+	if req.TaskType != "" {
+		return maxTrainingExportLimit
+	}
+	return trainingExportLimit(req.Limit)
+}
+
+func projectTrainingSamples(rows []*controlstate.SchedulerTrainingSample, req TrainingExportRequest) []TrainingExportSample {
+	limit := trainingExportLimit(req.Limit)
+	out := make([]TrainingExportSample, 0, min(len(rows), limit))
+	for _, row := range rows {
+		if req.TaskType != "" && row.RequestKind != req.TaskType {
+			continue
+		}
+		out = append(out, projectTrainingSample(row))
+		if len(out) == limit {
+			return out
+		}
+	}
+	return out
+}
+
+func projectTrainingSample(row *controlstate.SchedulerTrainingSample) TrainingExportSample {
+	return TrainingExportSample{
+		Features: TrainingExportFeatures{
+			ModelClass: row.ModelClass, RequestKind: row.RequestKind, Priority: row.Priority,
+			Stream: row.Stream, CoverageLevel: row.CoverageLevel, CoverageRatio: row.CoverageRatio,
+			SchedulerVersion: row.SchedulerVersion,
+		},
+		Labels: TrainingExportLabels{
+			Outcome: row.Outcome, ActualLatencyMs: row.ActualLatencyMs, InputTokens: row.InputTokens,
+			OutputTokens: row.OutputTokens, ProviderClass: row.ProviderClass, CompletedAt: row.CompletedAt,
+		},
+	}
 }

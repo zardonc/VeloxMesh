@@ -258,6 +258,55 @@ func TestAdminSchedulerSLARulesReplaceAuditsSafeMetadata(t *testing.T) {
 	}
 }
 
+func TestAdminSchedulerTrainingExportJSONAndNDJSONAreSafe(t *testing.T) {
+	ctx := context.Background()
+	repo := testAdminSchedulerRepo(t)
+	now := time.Now().UTC()
+	for _, sample := range []*controlstate.SchedulerTrainingSample{
+		testTrainingSample("sample-a", "code_gen", now),
+		testTrainingSample("sample-b", "simple_qa", now.Add(time.Second)),
+	} {
+		if err := repo.SchedulerTrainingSamples().Insert(ctx, sample); err != nil {
+			t.Fatalf("insert sample: %v", err)
+		}
+	}
+	handler := NewAdminSchedulerHandler(scheduler.NewAdminSchedulerService(repo, testRolloutController(), testSchedulerRunner(nil)))
+	r := chi.NewRouter()
+	r.Get("/admin/v1/scheduler/training-samples/export", handler.ExportTrainingSamples)
+
+	jsonRR := httptest.NewRecorder()
+	r.ServeHTTP(jsonRR, httptest.NewRequest("GET", "/admin/v1/scheduler/training-samples/export?task_type=code_gen", nil))
+	if jsonRR.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", jsonRR.Code, jsonRR.Body.String())
+	}
+	if !strings.Contains(jsonRR.Header().Get("Content-Type"), "application/json") {
+		t.Fatalf("expected JSON content type, got %q", jsonRR.Header().Get("Content-Type"))
+	}
+	assertSafeExportBody(t, jsonRR.Body.String())
+	var resp scheduler.TrainingExportResponse
+	if err := json.Unmarshal(jsonRR.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode export: %v", err)
+	}
+	if len(resp.Samples) != 1 || resp.Samples[0].Features.RequestKind != "code_gen" {
+		t.Fatalf("expected filtered code_gen sample, got %#v", resp.Samples)
+	}
+
+	ndjsonRR := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/admin/v1/scheduler/training-samples/export?format=ndjson", nil)
+	r.ServeHTTP(ndjsonRR, req)
+	if ndjsonRR.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", ndjsonRR.Code, ndjsonRR.Body.String())
+	}
+	if !strings.Contains(ndjsonRR.Header().Get("Content-Type"), "application/x-ndjson") {
+		t.Fatalf("expected NDJSON content type, got %q", ndjsonRR.Header().Get("Content-Type"))
+	}
+	lines := strings.Split(strings.TrimSpace(ndjsonRR.Body.String()), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("expected two NDJSON lines, got %d: %q", len(lines), ndjsonRR.Body.String())
+	}
+	assertSafeExportBody(t, ndjsonRR.Body.String())
+}
+
 func testAdminSchedulerHandler(t *testing.T) *AdminSchedulerHandler {
 	t.Helper()
 	repo := testAdminSchedulerRepo(t)
@@ -313,6 +362,25 @@ func testRollup(start time.Time, i int) *controlstate.SchedulerQualityRollup {
 		ModelClass: "standard", CoverageLevel: "tenant", SampleCount: int64(i + 1),
 		MAPESum: 25, WaitMSSum: 10, SchedulerCallLatencyMSSum: 3, ConfidenceSum: 0.8,
 		SafeSampleIDs: []string{"sample"},
+	}
+}
+
+func testTrainingSample(id string, requestKind string, completed time.Time) *controlstate.SchedulerTrainingSample {
+	return &controlstate.SchedulerTrainingSample{
+		ID: id, TaskID: "task-" + id, ModelClass: "standard", RequestKind: requestKind,
+		Priority: "normal", Stream: true, CoverageLevel: "tenant", CoverageRatio: 0.8,
+		SchedulerVersion: "heuristic-v1", Outcome: "success", ActualLatencyMs: 42,
+		InputTokens: 12, OutputTokens: 80, ProviderClass: "openai-compatible",
+		CompletedAt: completed,
+	}
+}
+
+func assertSafeExportBody(t *testing.T, body string) {
+	t.Helper()
+	for _, forbidden := range []string{"task-", "tenant_id", "user_id", "prompt", "embedding", "payload", "authorization", "api_key", "secret"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("export body contains forbidden token %q: %s", forbidden, body)
+		}
 	}
 }
 

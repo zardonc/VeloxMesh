@@ -19,8 +19,6 @@ const (
 	SemanticNeighborCollection           = "scheduler_training_samples"
 	defaultSemanticNeighborInputMaxChars = 16000
 	semanticNeighborEmbeddingModel       = "text-embedding-3-small"
-	semanticNeighborLookback             = 30 * 24 * time.Hour
-	semanticNeighborHydrateLimit         = 1000
 	semanticNeighborSearchFactor         = 4
 )
 
@@ -135,8 +133,7 @@ func (s *SemanticNeighborService) hydrate(ctx context.Context, results []map[str
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	end := time.Now().UTC()
-	rows, err := s.Repo.ListByWindow(ctx, end.Add(-semanticNeighborLookback), end, semanticNeighborHydrateLimit)
+	rows, err := s.Repo.ListByIDs(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -230,11 +227,16 @@ type neighborSample struct {
 	Tenant string
 }
 
-func resultIDs(results []map[string]interface{}) map[string]struct{} {
-	ids := make(map[string]struct{}, len(results))
+func resultIDs(results []map[string]interface{}) []string {
+	seen := make(map[string]struct{}, len(results))
+	ids := make([]string, 0, len(results))
 	for _, result := range results {
 		if id := stringValue(result["sample_id"]); id != "" {
-			ids[id] = struct{}{}
+			if _, ok := seen[id]; ok {
+				continue
+			}
+			seen[id] = struct{}{}
+			ids = append(ids, id)
 		}
 	}
 	return ids

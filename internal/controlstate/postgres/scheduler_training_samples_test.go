@@ -52,6 +52,32 @@ func TestPostgresSchedulerTrainingSamplesListDefaultsLegacyAggregates(t *testing
 	assertNeutralSemanticAggregates(t, found)
 }
 
+func TestPostgresSchedulerTrainingSamplesListByIDsPreservesOrderAndOmitsMissing(t *testing.T) {
+	ctx := context.Background()
+	repo := openMigratedPostgres(t)
+	first := testSchedulerTrainingSample(uniquePostgresID(t, "scheduler-sample-first"))
+	second := testSchedulerTrainingSample(uniquePostgresID(t, "scheduler-sample-second"))
+	for _, sample := range []*controlstate.SchedulerTrainingSample{first, second} {
+		if err := repo.SchedulerTrainingSamples().Insert(ctx, sample); err != nil {
+			t.Fatalf("insert sample: %v", err)
+		}
+	}
+	got, err := repo.SchedulerTrainingSamples().ListByIDs(ctx, []string{second.ID, "missing", first.ID})
+	if err != nil {
+		t.Fatalf("list by ids: %v", err)
+	}
+	if len(got) != 2 || got[0].ID != second.ID || got[1].ID != first.ID {
+		t.Fatalf("unexpected ordered samples: %#v", got)
+	}
+	empty, err := repo.SchedulerTrainingSamples().ListByIDs(ctx, nil)
+	if err != nil {
+		t.Fatalf("empty list by ids: %v", err)
+	}
+	if len(empty) != 0 {
+		t.Fatalf("expected empty result, got %#v", empty)
+	}
+}
+
 func TestSchedulerTrainingSampleWithCreatedAtDoesNotMutateInput(t *testing.T) {
 	sample := testSchedulerTrainingSample(uniquePostgresID(t, "scheduler-sample"))
 	sample.CreatedAt = time.Time{}
