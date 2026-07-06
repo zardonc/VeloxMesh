@@ -2,8 +2,10 @@ package integration_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,7 +20,7 @@ func TestRedisHotState_PubSub(t *testing.T) {
 	redisPassword := os.Getenv("REDIS_PASSWORD")
 
 	ctx := context.Background()
-	namespace := "veloxmesh:test:" + time.Now().Format("20060102150405")
+	namespace := uniqueRedisNamespace(t)
 	client, err := hotstate.NewRedisClient(ctx, redisAddr, redisPassword, 0, namespace)
 	if err != nil {
 		t.Fatalf("failed to connect to redis: %v", err)
@@ -77,12 +79,18 @@ func getRedisClient(t *testing.T) (*hotstate.RedisClient, string) {
 	redisPassword := os.Getenv("REDIS_PASSWORD")
 
 	ctx := context.Background()
-	namespace := "veloxmesh:test:" + time.Now().Format("20060102150405.000")
+	namespace := uniqueRedisNamespace(t)
 	client, err := hotstate.NewRedisClient(ctx, redisAddr, redisPassword, 0, namespace)
 	if err != nil {
 		t.Fatalf("failed to connect to redis: %v", err)
 	}
 	return client, namespace
+}
+
+func uniqueRedisNamespace(t *testing.T) string {
+	t.Helper()
+	name := strings.ReplaceAll(t.Name(), "/", "_")
+	return "veloxmesh:test:" + name + ":" + fmt.Sprint(time.Now().UnixNano())
 }
 
 func TestRedisHotState_ByteCache(t *testing.T) {

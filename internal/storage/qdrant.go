@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/qdrant/go-client/qdrant"
@@ -16,22 +18,11 @@ type QdrantVectorAdapter struct {
 }
 
 func NewQdrantVectorAdapter(addr string, apiKey string) (*QdrantVectorAdapter, error) {
-	host, portStr, err := net.SplitHostPort(addr)
+	cfg, err := qdrantClientConfig(addr, apiKey)
 	if err != nil {
-		host = addr
-		portStr = "6334"
+		return nil, err
 	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid port in qdrant addr: %w", err)
-	}
-
-	client, err := qdrant.NewClient(&qdrant.Config{
-		Host:   host,
-		Port:   port,
-		APIKey: apiKey,
-		UseTLS: false,
-	})
+	client, err := qdrant.NewClient(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create qdrant client: %w", err)
 	}
@@ -44,6 +35,44 @@ func NewQdrantVectorAdapter(addr string, apiKey string) (*QdrantVectorAdapter, e
 	return &QdrantVectorAdapter{
 		client: client,
 	}, nil
+}
+
+func qdrantClientConfig(addr string, apiKey string) (*qdrant.Config, error) {
+	host, portStr, useTLS, err := qdrantEndpoint(addr)
+	if err != nil {
+		return nil, err
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid port in qdrant addr: %w", err)
+	}
+	return &qdrant.Config{Host: host, Port: port, APIKey: apiKey, UseTLS: useTLS}, nil
+}
+
+func qdrantEndpoint(addr string) (string, string, bool, error) {
+	if strings.Contains(addr, "://") {
+		parsed, err := url.Parse(addr)
+		if err != nil {
+			return "", "", false, fmt.Errorf("invalid qdrant addr: %w", err)
+		}
+		if parsed.Scheme != "http" && parsed.Scheme != "https" {
+			return "", "", false, fmt.Errorf("invalid qdrant addr scheme: %s", parsed.Scheme)
+		}
+		host := parsed.Hostname()
+		if host == "" {
+			return "", "", false, fmt.Errorf("invalid qdrant addr: missing host")
+		}
+		port := parsed.Port()
+		if port == "" {
+			port = "6334"
+		}
+		return host, port, parsed.Scheme == "https", nil
+	}
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return addr, "6334", false, nil
+	}
+	return host, port, false, nil
 }
 
 func (q *QdrantVectorAdapter) Insert(ctx context.Context, collection string, vectors [][]float32, metadata []map[string]interface{}) error {

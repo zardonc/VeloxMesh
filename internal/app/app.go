@@ -25,6 +25,7 @@ import (
 	"veloxmesh/internal/providers/anthropic"
 	"veloxmesh/internal/providers/gemini"
 	"veloxmesh/internal/providers/openai"
+	"veloxmesh/internal/redisconn"
 	"veloxmesh/internal/scheduler"
 
 	"github.com/redis/go-redis/v9"
@@ -53,19 +54,20 @@ const (
 	controlRedisMaxRetryBackoff = 100 * time.Millisecond
 )
 
-func newControlRedisClient(cfg *config.Config) *redis.Client {
-	return redis.NewClient(&redis.Options{
-		Addr:                  cfg.RedisAddr,
-		Password:              cfg.RedisPassword,
-		DB:                    cfg.RedisDB,
-		DialTimeout:           controlRedisDialTimeout,
-		ReadTimeout:           controlRedisReadTimeout,
-		WriteTimeout:          controlRedisWriteTimeout,
-		MaxRetries:            controlRedisMaxRetries,
-		MinRetryBackoff:       controlRedisMinRetryBackoff,
-		MaxRetryBackoff:       controlRedisMaxRetryBackoff,
-		ContextTimeoutEnabled: true,
-	})
+func newControlRedisClient(cfg *config.Config, logger *slog.Logger) (*redis.Client, error) {
+	opts, err := redisconn.Options(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
+	if err != nil {
+		return nil, err
+	}
+	redisconn.WarnPlaintextCredentials(logger, "control", opts)
+	opts.DialTimeout = controlRedisDialTimeout
+	opts.ReadTimeout = controlRedisReadTimeout
+	opts.WriteTimeout = controlRedisWriteTimeout
+	opts.MaxRetries = controlRedisMaxRetries
+	opts.MinRetryBackoff = controlRedisMinRetryBackoff
+	opts.MaxRetryBackoff = controlRedisMaxRetryBackoff
+	opts.ContextTimeoutEnabled = true
+	return redis.NewClient(opts), nil
 }
 
 func (a *App) HealthStore() health.Store {
@@ -174,7 +176,11 @@ func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Log
 	if backend == "memory" || !cfg.RedisEnabled {
 		return memoryQueue, "memory", nil
 	}
-	redisClient := newControlRedisClient(cfg)
+	redisClient, err := newControlRedisClient(cfg, logger)
+	if err != nil {
+		logger.Warn("scheduler redis queue unavailable; using memory queue", "error", err)
+		return memoryQueue, "memory", nil
+	}
 	if err := redisClient.Ping(ctx).Err(); err != nil {
 		logger.Warn("scheduler redis queue unavailable; using memory queue", "error", err)
 		_ = redisClient.Close()
@@ -226,7 +232,10 @@ func New() (*App, error) {
 
 	var coord coordination.Coordinator
 	if cfg.MultiNodeEnabled && cfg.RedisEnabled {
-		rdb := newControlRedisClient(cfg)
+		rdb, err := newControlRedisClient(cfg, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize redis coordination: %w", err)
+		}
 		coord = coordination.NewRedisCoordinator(rdb, cfg.RedisNamespace, cfg.NodeID)
 	} else {
 		coord = coordination.NewNoopCoordinator()
@@ -303,7 +312,10 @@ func New() (*App, error) {
 	var lagReporter handlers.LagReporter
 	var consumer *replication.Consumer
 	if cfg.MultiNodeEnabled && cfg.RedisEnabled && repo != nil {
-		rdb := newControlRedisClient(cfg)
+		rdb, err := newControlRedisClient(cfg, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize redis replication: %w", err)
+		}
 
 		producer := replication.NewRedisStreamProducer(rdb, replication.ControlStreamName)
 		wrappedRepo := replication.NewRepository(repo, coord, producer)

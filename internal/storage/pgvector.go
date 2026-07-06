@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"veloxmesh/internal/postgresconn"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -29,7 +30,12 @@ func NewPGVectorAdapter(ctx context.Context, dsn string, opts PGVectorOptions) (
 	if opts.Dimension < 1 {
 		return nil, errors.New("pgvector dimension must be >= 1")
 	}
-	pool, err := pgxpool.New(ctx, dsn)
+	cfg, err := postgresconn.PoolConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+	postgresconn.WarnPlaintextCredentials(nil, "pgvector", cfg)
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}

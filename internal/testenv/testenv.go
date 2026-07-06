@@ -10,6 +10,7 @@ import (
 
 const defaultPostgresPort = "5432"
 const defaultQdrantPort = "6334"
+const defaultRedisPort = "6379"
 
 func Load() {
 	root, ok := moduleRoot()
@@ -19,6 +20,7 @@ func Load() {
 	_ = godotenv.Load(filepath.Join(root, ".env.local"), filepath.Join(root, ".env"))
 	setPostgresTestDSN()
 	setQdrantAddr()
+	setRedisAddr()
 }
 
 func moduleRoot() (string, bool) {
@@ -76,4 +78,19 @@ func setQdrantAddr() {
 		port = defaultQdrantPort
 	}
 	_ = os.Setenv("QDRANT_ADDR", host+":"+port)
+}
+
+func setRedisAddr() {
+	if os.Getenv("REDIS_ADDR") != "" {
+		return
+	}
+	host := os.Getenv("DEV_SERVER_IP")
+	if host == "" {
+		return
+	}
+	port := os.Getenv("REDIS_PORT")
+	if port == "" {
+		port = defaultRedisPort
+	}
+	_ = os.Setenv("REDIS_ADDR", host+":"+port)
 }

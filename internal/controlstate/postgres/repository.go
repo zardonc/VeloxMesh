@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/postgresconn"
 )
 
 type Repository struct {
@@ -16,7 +17,12 @@ type Repository struct {
 }
 
 func Open(ctx context.Context, dsn string) (*Repository, error) {
-	pool, err := pgxpool.New(ctx, dsn)
+	cfg, err := postgresconn.PoolConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+	postgresconn.WarnPlaintextCredentials(nil, "controlstate", cfg)
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,41 @@ import (
 	"veloxmesh/internal/testenv"
 )
 
+func TestQdrantClientConfigInfersTLSFromAddress(t *testing.T) {
+	tests := []struct {
+		name   string
+		addr   string
+		host   string
+		port   int
+		useTLS bool
+	}{
+		{name: "host with port defaults to plaintext", addr: "qdrant.local:6334", host: "qdrant.local", port: 6334},
+		{name: "host without port defaults to grpc plaintext", addr: "qdrant.local", host: "qdrant.local", port: 6334},
+		{name: "http scheme is plaintext", addr: "http://qdrant.local:6334", host: "qdrant.local", port: 6334},
+		{name: "https scheme enables tls", addr: "https://qdrant.local:6334", host: "qdrant.local", port: 6334, useTLS: true},
+		{name: "https without port uses default grpc port", addr: "https://qdrant.local", host: "qdrant.local", port: 6334, useTLS: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg, err := qdrantClientConfig(tt.addr, "test-key")
+			if err != nil {
+				t.Fatalf("qdrant client config: %v", err)
+			}
+			if cfg.Host != tt.host || cfg.Port != tt.port || cfg.UseTLS != tt.useTLS {
+				t.Fatalf("got host=%q port=%d useTLS=%v", cfg.Host, cfg.Port, cfg.UseTLS)
+			}
+		})
+	}
+}
+
+func TestQdrantClientConfigRejectsInvalidAddress(t *testing.T) {
+	for _, addr := range []string{"grpc://qdrant.local:6334", "https://:6334", "qdrant.local:not-a-port"} {
+		if _, err := qdrantClientConfig(addr, "test-key"); err == nil {
+			t.Fatalf("expected invalid qdrant addr error for %q", addr)
+		}
+	}
+}
+
 func TestQdrantEnsureCollectionCreatesRealCollection(t *testing.T) {
 	adapter, ctx := liveQdrantAdapter(t)
 	collection := "scheduler_training_samples_test_" + time.Now().UTC().Format("20060102150405000000000")

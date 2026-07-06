@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"veloxmesh/internal/testenv"
 )
 
@@ -32,6 +33,24 @@ func TestPGVectorMetadataAllowlist(t *testing.T) {
 	}
 	if meta["id"] != "id-1" || meta["scope"] != "scope-1" || meta["model"] != "gpt-4" {
 		t.Fatalf("safe metadata fields missing: %+v", meta)
+	}
+}
+
+func TestPostgresDSNControlsTLSInPGXClient(t *testing.T) {
+	tlsConfig, err := pgconn.ParseConfig("postgres://user:pass@localhost:5432/db?sslmode=require")
+	if err != nil {
+		t.Fatalf("parse TLS postgres DSN: %v", err)
+	}
+	if tlsConfig.TLSConfig == nil {
+		t.Fatalf("sslmode=require should enable TLS in pgx config")
+	}
+
+	plainConfig, err := pgconn.ParseConfig("postgres://user:pass@localhost:5432/db?sslmode=disable")
+	if err != nil {
+		t.Fatalf("parse plaintext postgres DSN: %v", err)
+	}
+	if plainConfig.TLSConfig != nil {
+		t.Fatalf("sslmode=disable should leave TLS disabled in pgx config")
 	}
 }
 
