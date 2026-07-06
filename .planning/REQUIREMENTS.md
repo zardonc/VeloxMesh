@@ -21,8 +21,8 @@
 
 ### Semantic Neighbor Hardening (QDR)
 
-- [ ] **QDR-05**: `requestText()` enforces a maximum input length before embedding to prevent token-limit errors from long prompts.
-- [ ] **QDR-06**: `SemanticNeighborService` checks for and creates the Qdrant collection at startup when semantic neighbors are enabled, using the configured vector dimension.
+- [x] **QDR-05**: `requestText()` enforces a maximum input length before embedding to prevent token-limit errors from long prompts.
+- [x] **QDR-06**: `SemanticNeighborService` checks for and creates the Qdrant collection at startup when semantic neighbors are enabled, using the configured vector dimension.
 - [ ] **QDR-07**: Completed-sample hydration uses a precise ID lookup instead of a full time-window scan; `SchedulerTrainingSampleRepository` exposes `ListByIDs`.
 - [ ] **QDR-08**: The embedding model identifier used by semantic neighbor enrichment is configurable; `SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL` overrides the current hardcoded constant.
 
