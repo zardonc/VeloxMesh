@@ -119,7 +119,7 @@ pgvector example:
 
 ## Admin APIs
 
-Use the existing admin protections for these routes:
+Use the existing admin protections for these routes. Send `Authorization: Bearer <ADMIN_API_KEY>`.
 
 | Route | Purpose |
 | --- | --- |
@@ -128,6 +128,22 @@ Use the existing admin protections for these routes:
 | `PUT /admin/v1/scheduler/sla-rules` | Replace the in-memory rule set after validation. |
 | `GET /admin/v1/scheduler/training-samples/export` | Export safe training features and labels as JSON or NDJSON. |
 | `PATCH /admin/scheduler/rollout` | Roll ONNX traffic back to heuristic by setting rollout to `0`. |
+
+SLA rule replacement body:
+
+```json
+{
+  "rules": [
+    {
+      "policy_id": "gold-code",
+      "tenant_class": "gold",
+      "model_class": "standard",
+      "request_kind": "code_gen",
+      "wait_threshold": "2s"
+    }
+  ]
+}
+```
 
 ## UAT
 

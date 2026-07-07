@@ -1083,7 +1083,7 @@ func TestEnvExampleSchedulerDisabledAndSecretSafe(t *testing.T) {
 		t.Fatalf("read .env.example: %v", err)
 	}
 	content := string(data)
-	for _, required := range []string{"# SCHEDULER_CONFIG_FILE=config.scheduler.example.json", "# CACHE_CONFIG_FILE=config.cache.example.json", "# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high", "# SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=false", "# SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL=text-embedding-3-small", "# SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT=20", "# SCHEDULER_SEMANTIC_NEIGHBORS_INPUT_MAX_CHARS=16000", "# SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT=5ms", "# SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT=15ms"} {
+	for _, required := range []string{"# SCHEDULER_CONFIG_FILE=config.scheduler.example.json", "# CACHE_CONFIG_FILE=config.cache.example.json", "# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high", "# SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=false", "# SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL=text-embedding-3-small", "# SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT=20", "# SCHEDULER_SEMANTIC_NEIGHBORS_INPUT_MAX_CHARS=16000", "# SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT=5ms", "# SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT=15ms", "# SCHEDULER_SLA_PROMOTION_ENABLED=false", "# SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW=32"} {
 		if !strings.Contains(content, required) {
 			t.Fatalf(".env.example missing %q", required)
 		}
