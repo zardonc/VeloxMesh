@@ -4,12 +4,6 @@
 
 VeloxMesh is a lightweight AI gateway for routing, governing, and observing LLM traffic across multiple providers. The current repository focuses on the gateway binary: a Go/Chi OpenAI-compatible data-plane API with provider adapters, streaming support, durable provider control state, credit quotas, usage settlement, semantic caching, and Redis-backed hot-state coordination where configured.
 
-# VeloxMesh
-
-## What This Is
-
-VeloxMesh is a lightweight AI gateway for routing, governing, and observing LLM traffic across multiple providers. The current repository focuses on the gateway binary: a Go/Chi OpenAI-compatible data-plane API with provider adapters, streaming support, durable provider control state, credit quotas, usage settlement, semantic caching, and Redis-backed hot-state coordination where configured.
-
 The gateway is intended to remain a unified OpenAI-compatible entry point for downstream clients while provider adapters translate to each upstream provider's native protocol where needed.
 
 ## Core Value
@@ -18,7 +12,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.6 Scheduler 1.0 + Config System Unification** is complete through Phase 22. The milestone now has Scheduler 1.0 docs, safe structured config examples, and UAT evidence.
+**v7.6 Scheduler 1.0 + Config System Unification** has shipped and is archived. The milestone delivered Scheduler 1.0 docs, safe structured config examples, scheduler admin/observability APIs, and real-component UAT evidence.
 
 **v7.5 Scheduler Enhancements** has shipped and is archived. It completed semantic-neighbor aggregate features, anomaly/OOD conservative scoring, and gateway-owned tenant SLA waiting-time promotion with sanitized metrics, logs, and durable audit evidence.
 
@@ -105,7 +99,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ### Active
 
-- No active phase. v7.6 is ready for milestone closeout.
+- No active phase. v7.6 is archived; the next milestone is not selected yet.
 
 ### Deferred to Future Milestones
 
@@ -122,7 +116,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Scheduler implementation reference: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\Gateway-Scheduler-Implementation.md`.
 - Operational resource lookup: test-environment components are configured in `.env`, including the test environment address; provider credentials and model resources for real-provider UAT are configured in `.env.local`. Prefer non-Gemini provider resources for routine real-provider checks because Gemini entries may carry usage-limit notes and should be reserved for Gemini-specific scenarios.
 - The original gateway design is Go-first. TypeScript/Node gateway plans were superseded.
-- Current code includes Phase 1 through Phase 20: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission, Redis VSS fallback for Qdrant degradation, multi-node coordination, PostgreSQL/pgvector compatibility, optional Gateway Scheduler queueing/scoring/rollout controls, semantic-neighbor aggregate scheduler features, anomaly/OOD conservative scoring with a production-shape ONNX predictor artifact served through the Python worker, gateway-owned SLA waiting-time promotion with bounded priority-safe queue reordering, unified nested config blocks, scheduler execution hardening, and semantic-neighbor input/Qdrant startup safeguards. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL is available as the Plan 4 extension path; LanceDB is retained only for edge builds.
+- Current code includes Phase 1 through Phase 22: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission, Redis VSS fallback for Qdrant degradation, multi-node coordination, PostgreSQL/pgvector compatibility, optional Gateway Scheduler queueing/scoring/rollout controls, semantic-neighbor aggregate scheduler features, anomaly/OOD conservative scoring with a production-shape ONNX predictor artifact served through the Python worker, gateway-owned SLA waiting-time promotion with bounded priority-safe queue reordering, unified nested config blocks, scheduler execution hardening, semantic-neighbor input/Qdrant startup safeguards, scheduler admin/observability APIs, safe training export, and Scheduler 1.0 operator documentation. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL is available as the Plan 4 extension path; LanceDB is retained only for edge builds.
 - Downstream clients should continue to see OpenAI-compatible responses.
 
 ## Constraints
@@ -172,4 +166,4 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Config grouped into named nested structs | All optional subsystems (ControlState, Redis, Cache, Scheduler) follow the same nested struct pattern in v7.6; ENV variables remain backward-compatible, and component-scoped config file references are introduced alongside the unified structure | Good |
 
 ---
-*Last updated: 2026-07-06 — Phase 22 complete; v7.6 ready for closeout*
+*Last updated: 2026-07-06 - v7.6 archived; awaiting next milestone*

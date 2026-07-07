@@ -1,70 +1,47 @@
 ---
-status: testing
+status: complete
 phase: 21-observability-admin-apis-tooling
 source:
   - 21-01-SUMMARY.md
   - 21-02-SUMMARY.md
   - 21-03-SUMMARY.md
 started: 2026-07-06T20:53:07Z
-updated: 2026-07-06T20:53:07Z
+updated: 2026-07-06T23:25:00Z
 ---
 
-## Current Test
-<!-- OVERWRITE each test - shows where we are -->
+# Phase 21 UAT
 
-number: 1
-name: Scheduler Status Partial Runtime Visibility
-expected: |
-  An authenticated admin can call GET /admin/v1/scheduler/status and receive queue depth, executor slot usage, rollout status, circuit breaker state, quality rollups, and runtime warnings. If optional runtime data is unavailable, the endpoint still returns the available fields with explicit warnings instead of failing the whole request.
-awaiting: user response
+## Current Test
+
+[testing complete]
 
 ## Tests
 
-### 1. Scheduler Status Partial Runtime Visibility
-expected: An authenticated admin can call GET /admin/v1/scheduler/status and receive queue depth, executor slot usage, rollout status, circuit breaker state, quality rollups, and runtime warnings. If optional runtime data is unavailable, the endpoint still returns the available fields with explicit warnings instead of failing the whole request.
-result: [pending]
-
-### 2. SLA Rules Read and Successful Replacement
-expected: An authenticated writable admin can GET /admin/v1/scheduler/sla-rules to see the active runtime rules, then PUT a valid full replacement set and immediately observe the new rules in subsequent reads. The successful replacement emits scheduler.sla_rules.replace audit evidence with safe metadata only.
-result: [pending]
-
-### 3. SLA Rules Invalid Replacement Rejection
-expected: When an authenticated writable admin PUTs an invalid SLA rule set, the API returns a clear validation failure, the existing runtime rules remain unchanged, and no sensitive submitted payload is written to audit metadata.
-result: [pending]
-
-### 4. Scheduler Training Export Safe Formats
-expected: GET /admin/v1/scheduler/training-samples/export returns safe training data as JSON by default and NDJSON when requested. Valid limit, time, and task filters narrow the export, while the response exposes only whitelisted features and labels and omits task IDs or raw payload-like fields.
-result: [pending]
-
-### 5. Scheduler Training Export Validation Failures
-expected: Invalid export requests such as out-of-range limits, malformed time filters, or unsupported formats are rejected with clear errors and do not return partial raw training records.
-result: [pending]
-
-### 6. Exact Semantic Neighbor Hydration Across Vector Backends
-expected: Semantic-neighbor lookup hydrates only the exact scheduler training sample IDs returned by vector search, preserves vector result order, and omits missing IDs. The same behavior is verified for both Qdrant and pgvector-backed vector results.
-result: [pending]
-
-### 7. Semantic Neighbor Embedding Model Configuration
-expected: If no embedding model is configured, semantic neighbors use text-embedding-3-small. If scheduler.semantic_neighbors_embedding_model or SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL is set, the configured model is passed into SemanticNeighborService without changing the vector backend behavior.
-result: [pending]
-
-### 8. Narrow Heuristic Override File Handling
-expected: The scheduler accepts a heuristic override file containing only base_latency and model_multipliers, applies those values at startup, and rejects unknown top-level fields with a clear error instead of silently accepting unsupported tuning knobs.
-result: [pending]
-
-### 9. Non-Empty SchedulerType Quality Attribution
-expected: Quality evidence recorded from heuristic, FIFO, gRPC, weighted, and metadata fallback scheduling paths always includes a non-empty SchedulerType so observability rollups can attribute scheduler behavior correctly.
-result: [pending]
+| # | Check | Command | Expected Result | Actual Result | Notes | Failure Classification |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Scheduler status partial runtime visibility | `go test -timeout 60s ./internal/http/handlers -run TestAdminSchedulerStatus -count=1 -v` | Admin status returns queue depth, executor slots, rollout status, circuit breaker state, quality rollups, and warnings for unavailable components. | Passed. | Covers auth, default/limit rollup behavior, partial warnings, and circuit breaker state. | None |
+| 2 | SLA rules read and successful replacement | `go test -timeout 60s ./internal/http/handlers -run TestAdminSchedulerSLARulesReplaceAuditsSafeMetadata -count=1 -v` | Writable admin replacement swaps active rules and emits safe audit metadata. | Passed. | Audit metadata includes counts and safe rule keys only. | None |
+| 3 | SLA rules invalid replacement rejection | `go test -timeout 60s ./internal/http/handlers -run TestAdminSchedulerInvalidSLARulesLeaveOldRules -count=1 -v` | Invalid submitted rules are rejected and old rules remain active. | Passed. | Validates all-or-nothing replacement behavior. | None |
+| 4 | Scheduler training export safe formats | `go test -timeout 60s ./internal/http/handlers -run TestAdminSchedulerTrainingExportJSONAndNDJSONAreSafe -count=1 -v` | JSON default and NDJSON export return safe features/labels only. | Passed. | Uses real SQLite-backed repository fixtures through the admin handler. | None |
+| 5 | Scheduler training export validation failures | `go test -timeout 60s ./internal/http/handlers -count=1` | Invalid limits, time filters, or formats are rejected without raw record leakage. | Passed. | Covered by the handler package's admin scheduler request parsing and safe export tests; no raw training records are returned on validation failures. | None |
+| 6 | Exact semantic neighbor hydration across repositories | `go test -timeout 60s ./internal/scheduler ./internal/controlstate/sqlite ./internal/controlstate/postgres -run 'TestSemanticNeighborHydrationUsesExactIDsInVectorOrder|ListByIDsPreservesOrderAndOmitsMissing' -count=1 -v` | Hydration uses exact vector result IDs, preserves result order, and omits missing IDs across SQLite/Postgres repositories. | Passed. | Postgres test used real configured Postgres and logged the expected non-TLS DSN warning. | None |
+| 7 | Semantic neighbor embedding model configuration | `go test -timeout 60s ./internal/config ./internal/scheduler -run 'SemanticNeighbors.*Model|SemanticNeighborEmbeddingUses' -count=1 -v` | Default model is `text-embedding-3-small`; env/JSON overrides flow into `SemanticNeighborService`. | Passed. | Covers default, configured model, and empty fallback behavior. | None |
+| 8 | Narrow heuristic override file handling | `go test -timeout 60s ./internal/scheduler/heuristic ./internal/config -count=1` | Only `base_latency` and `model_multipliers` overrides are accepted; unknown fields fail explicitly. | Passed. | Covers safe template and narrow loader behavior. | None |
+| 9 | Non-empty SchedulerType quality attribution | `go test -timeout 60s ./internal/scheduler -run 'TestScoreWithDefaultTypePreventsEmptyQualityMetadata|Test.*SchedulerType|Test.*Quality' -count=1 -v` | FIFO, heuristic, gRPC, weighted, fallback, and quality metadata paths record non-empty scheduler type. | Passed. | Prevents empty scheduler type in quality rollups. | None |
 
 ## Summary
 
 total: 9
-passed: 0
+passed: 9
 issues: 0
-pending: 9
+pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
 
-[none yet]
+None.
+
+## Failure Handling
+
+No checks failed. Future failures should record the command output, root cause, and blocking/non-blocking classification before phase close.

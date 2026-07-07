@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v7.6
 milestone_name: Scheduler 1.0 + Config System Unification
-status: complete
-last_updated: "2026-07-06T22:45:56.243Z"
-last_activity: 2026-07-06 -- Phase 22 completed and verified
+status: Awaiting next milestone
+last_updated: "2026-07-06T23:43:03.141Z"
+last_activity: 2026-07-06 — Milestone v7.6 completed and archived
 progress:
   total_phases: 3
   completed_phases: 3
@@ -15,11 +15,11 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-07-05)
+See: `.planning/PROJECT.md` (updated 2026-07-06)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 22 — Documentation, .env.example & UAT
+**Current focus:** Planning the next milestone
 
 ## Current Implementation State
 
@@ -49,27 +49,28 @@ See: `.planning/PROJECT.md` (updated 2026-07-05)
 - Phase 19: SLA Waiting-Time Promotion
 - Phase 20: Config Unification + Scheduler Core Hardening
 - Phase 21: Observability, Admin APIs & Tooling
+- Phase 22: Documentation, .env.example & UAT
 
 ## Planned Next
 
-1. Complete the v7.6 milestone with `$gsd-complete-milestone`.
+1. Start the next milestone with `$gsd-new-milestone`.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-complete-milestone` - archive the completed v7.6 milestone.
+- `$gsd-new-milestone` - define the next milestone.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 22 (Documentation, .env.example & UAT) — COMPLETE
-Plan: 1 of 1
-Status: Phase complete and verified
-Last activity: 2026-07-06 -- Phase 22 completed and verified
+Phase: Milestone v7.6 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-06 — Milestone v7.6 completed and archived
 
 ## Operator Next Steps
 
-- Complete the v7.6 milestone with `$gsd-complete-milestone`
+- Start the next milestone with /gsd-new-milestone
 
 ## Deferred Items
 

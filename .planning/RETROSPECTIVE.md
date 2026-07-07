@@ -4,6 +4,7 @@
 
 | Milestone | Shipped | Phases |
 |-----------|---------|--------|
+| v7.6      | 2026-07-06 | 3      |
 | v7.5      | 2026-07-05 | 3      |
 | v7.4      | 2026-07-04 | 3      |
 | v7.3      | 2026-07-03 | 1      |
@@ -11,6 +12,40 @@
 | v7.1      | 2026-07-01 | 1      |
 | v7.0      | 2026-06-30 | 3      |
 | v4        | 2026-06-23 | 4      |
+
+---
+
+## Milestone: v7.6 - Scheduler 1.0 + Config System Unification
+
+**Shipped:** 2026-07-06
+**Phases:** 3 | **Plans:** 7
+
+### What Was Built
+- Nested ControlState, Redis, Cache/Qdrant, and Scheduler config blocks while preserving legacy env compatibility.
+- Component-scoped scheduler/cache config file loading.
+- Scheduler executor concurrency controls, Redis task idempotency locks, and QueueGuard admission metrics.
+- Semantic-neighbor input caps, Qdrant collection startup checks, precise sample hydration, and configurable embedding model.
+- Scheduler admin status, SLA promotion rules API, safe training-sample export, heuristic config overrides, and SchedulerType quality attribution.
+- Scheduler 1.0 runbook, updated `.env.example` and `config.json.example`, vector-backend guidance, and UAT evidence.
+
+### What Worked
+- Keeping Scheduler optional and disabled by default preserved the existing gateway startup path.
+- Component-scoped config files solved operator customization without adding new runtime control surfaces.
+- Real-component UAT caught the important distinction between documented behavior and deployed-provider behavior.
+
+### What Was Inefficient
+- Phase 21 UAT and v7.6 Nyquist validation artifacts had to be reconciled during closeout instead of during the phase.
+- Local Python/uv cache configuration caused an initial test failure before `UV_CACHE_DIR` was redirected into the project `.tmp` area.
+
+### Patterns Established
+- Optional subsystem configs should use named nested structs plus legacy aliases for compatibility.
+- Scheduler-facing admin/export APIs must expose safe structured features only.
+- Milestone closeout should run `audit-open`, full tests, and build before archiving.
+
+### Key Lessons
+- Validation artifacts should be created at phase close, not milestone close.
+- Python worker/model smoke tests need a project-local cache path in constrained workspaces.
+- Documentation and env examples are most useful when they mirror the exact structured config shape operators run.
 
 ---
 

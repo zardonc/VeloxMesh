@@ -60,4 +60,4 @@ Code review completed with no findings in `.planning/phases/22-documentation-env
 
 Phase UAT evidence is recorded in `.planning/phases/22-documentation-env-example-uat/22-UAT.md`.
 
-The full real-provider UAT remains a non-blocking gated check because it requires `.env.local` provider resources. It is documented with required environment variables and can be run when the operator intentionally supplies those resources.
+The full real-provider UAT was rerun during milestone closeout with `.env.local` provider resources available. `TestPlan4PostgresSansPrimaryRealProviderSmoke` returned HTTP 200 through `/v1/chat/completions`; the run logged the expected plaintext Postgres DSN warning for the configured non-TLS test DSN.

@@ -1,5 +1,27 @@
 # Milestones
 
+## v7.6 Scheduler 1.0 + Config System Unification (Shipped: 2026-07-06)
+
+**Phases completed:** 3 phases, 7 plans, 22 tasks
+
+**Key accomplishments:**
+
+- Nested ControlState, Redis, and Cache config with legacy flat JSON aliases and component override files
+- Bounded scheduler execution slots with Redis SET NX task locks and QueueGuard admission metrics
+- Semantic-neighbor embedding input caps with explicit Qdrant collection startup checks and fail-open app wiring
+- Admin scheduler status and in-memory SLA rules APIs with sanitized audit evidence
+- Safe scheduler training export plus precise semantic-neighbor sample hydration
+- Configurable semantic-neighbor embedding model, narrow heuristic overrides, and SchedulerType quality attribution
+- Scheduler 1.0 runbook, safe nested config examples, vector-backend guidance, and Phase 22 UAT evidence
+
+**Archived:**
+
+- `.planning/milestones/v7.6-ROADMAP.md`
+- `.planning/milestones/v7.6-REQUIREMENTS.md`
+- `.planning/milestones/v7.6-MILESTONE-AUDIT.md`
+
+---
+
 ## v7.5 Scheduler Enhancements (Shipped: 2026-07-05)
 
 **Phases completed:** 3 phases, 10 plans, 28 tasks
@@ -66,6 +88,12 @@
 - Added pgvector semantic-cache/vector adapter behavior behind the storage boundary.
 - Added SQLite-to-PostgreSQL migration guidance/tooling and Plan 4 smoke verification.
 
+**Archived:**
+
+- `.planning/milestones/v7.3-ROADMAP.md`
+- `.planning/milestones/v7.3-REQUIREMENTS.md`
+- `.planning/milestones/v7.3-MILESTONE-AUDIT.md`
+
 **Known deferred work:**
 
 - BFF/Admin Console UI remains Phase 11 scope.
@@ -109,6 +137,7 @@
 
 - `.planning/milestones/v7.1-ROADMAP.md`
 - `.planning/milestones/v7.1-REQUIREMENTS.md`
+- `.planning/milestones/v7.1-MILESTONE-AUDIT.md`
 
 **What's next:** Define the next milestone around Phase 12 multi-node coordination.
 

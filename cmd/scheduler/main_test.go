@@ -218,19 +218,77 @@ artifact = publish_artifact(model, metrics, root / "artifacts", "scheduler-predi
 print(artifact)
 `
 	cmd := exec.Command("uv", "run", "python", "-c", script, root)
-	cmd.Dir = filepath.Join("..", "..", "tools", "scheduler_training")
+	cmd.Dir = schedulerTrainingDir()
+	cmd.Env = schedulerTrainingEnv()
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("publish runtime artifact: %v\n%s", err, string(out))
 	}
-	return strings.TrimSpace(string(out))
+	return lastOutputLine(string(out))
+}
+
+func lastOutputLine(out string) string {
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(lines) == 0 {
+		return ""
+	}
+	return strings.TrimSpace(lines[len(lines)-1])
 }
 
 func schedulerTrainingPython() string {
+	venv := schedulerTrainingVenv()
 	if runtime.GOOS == "windows" {
-		return filepath.Join("..", "..", "tools", "scheduler_training", ".venv", "Scripts", "python.exe")
+		return filepath.Join(venv, "Scripts", "python.exe")
 	}
-	return filepath.Join("..", "..", "tools", "scheduler_training", ".venv", "bin", "python")
+	return filepath.Join(venv, "bin", "python")
+}
+
+func schedulerTrainingDir() string {
+	return filepath.Join("..", "..", "tools", "scheduler_training")
+}
+
+func schedulerTrainingVenv() string {
+	return absTestPath(filepath.Join("..", "..", ".tmp", "scheduler-training-venv"))
+}
+
+func schedulerTrainingEnv() []string {
+	return withEnv(os.Environ(), []string{
+		"UV_PROJECT_ENVIRONMENT=" + schedulerTrainingVenv(),
+		"UV_CACHE_DIR=" + absTestPath(filepath.Join("..", "..", ".tmp", "uv-cache")),
+	})
+}
+
+func absTestPath(path string) string {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return path
+	}
+	return abs
+}
+
+func withEnv(env []string, overrides []string) []string {
+	filtered := make([]string, 0, len(env)+len(overrides))
+	for _, item := range env {
+		if envKeyOverridden(item, overrides) {
+			continue
+		}
+		filtered = append(filtered, item)
+	}
+	return append(filtered, overrides...)
+}
+
+func envKeyOverridden(item string, overrides []string) bool {
+	key, _, ok := strings.Cut(item, "=")
+	if !ok {
+		return false
+	}
+	for _, override := range overrides {
+		overrideKey, _, _ := strings.Cut(override, "=")
+		if strings.EqualFold(key, overrideKey) {
+			return true
+		}
+	}
+	return false
 }
 
 func freeLocalEndpoint(t *testing.T) string {
