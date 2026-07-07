@@ -23,6 +23,7 @@ type TaskIntake struct {
 	RouteHint                   string
 	SemanticNeighbors           SemanticNeighborEnricher
 	SemanticNeighborTaskTimeout time.Duration
+	ThrottleWait                time.Duration
 }
 
 var ErrTaskIntakeNotConfigured = errors.New("task intake not configured")
@@ -33,6 +34,7 @@ const (
 	schedulerConfidenceMetadata   = "scheduler_confidence"
 	schedulerCallLatencyMetadata  = "scheduler_call_latency_ms"
 	schedulerAnomalyStatusMeta    = "scheduler_anomaly_status"
+	defaultThrottleWait           = 100 * time.Millisecond
 )
 
 func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler TaskHandler) (Task, error) {
@@ -49,31 +51,10 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 	now := time.Now()
 	feature := ExtractSafeFeatures(req, priority.Resolved, i.RouteHint, now)
 	feature = i.enrichFeatures(ctx, req, feature)
-	scoreStart := time.Now()
-	scores, err := i.Scorer.Score(ctx, []TaskFeature{feature})
-	if err != nil {
-		scores, _ = FIFOScorer{Reason: "scheduler_error"}.Score(ctx, []TaskFeature{feature})
-	}
-	if len(scores) == 0 {
-		scores, _ = FIFOScorer{Reason: "missing_score"}.Score(ctx, []TaskFeature{feature})
-	}
-	score := scores[0]
-	score = scoreWithDefaultType(score)
-	scoreLatency := time.Since(scoreStart)
+	score, scoreLatency := i.scoreFeature(ctx, feature)
 	i.recordSchedulerResult(score.FallbackReason, scoreLatency, score.FallbackReason)
-	guard := i.Guard.Check(ctx, i.Queue, priority.Resolved)
-	if guard.Err != nil {
-		if errors.Is(guard.Err, ErrQueueFull) {
-			i.recordAdmission(priority.Resolved, "rejected", "hard_limit")
-		} else {
-			i.recordAdmission(priority.Resolved, "guard_error", "guard_error")
-		}
-		return Task{}, guard.Err
-	}
-	if guard.Throttled {
-		i.recordAdmission(priority.Resolved, "throttled", "soft_limit")
-	} else {
-		i.recordAdmission(priority.Resolved, "accepted", "none")
+	if err := i.checkAdmission(ctx, priority.Resolved); err != nil {
+		return Task{}, err
 	}
 	task := Task{
 		ID:          req.RequestID,
@@ -99,6 +80,75 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 		}
 	}
 	return task, nil
+}
+
+func (i *TaskIntake) scoreFeature(ctx context.Context, feature TaskFeature) (ScoreResult, time.Duration) {
+	scoreStart := time.Now()
+	scores, err := i.Scorer.Score(ctx, []TaskFeature{feature})
+	if err != nil {
+		scores, _ = FIFOScorer{Reason: "scheduler_error"}.Score(ctx, []TaskFeature{feature})
+	}
+	if len(scores) == 0 {
+		scores, _ = FIFOScorer{Reason: "missing_score"}.Score(ctx, []TaskFeature{feature})
+	}
+	return scoreWithDefaultType(scores[0]), time.Since(scoreStart)
+}
+
+func (i *TaskIntake) checkAdmission(ctx context.Context, priority PriorityClass) error {
+	guard := i.Guard.Check(ctx, i.Queue, priority)
+	if guard.Err != nil {
+		i.recordGuardError(priority, guard.Err)
+		return guard.Err
+	}
+	reason := "none"
+	if guard.Throttled {
+		guard, reason = i.softThrottleWait(ctx, priority)
+		if guard.Err != nil {
+			i.recordGuardError(priority, guard.Err)
+			return guard.Err
+		}
+	}
+	i.recordAdmission(priority, "accepted", reason)
+	return nil
+}
+
+func (i *TaskIntake) softThrottleWait(ctx context.Context, priority PriorityClass) (QueueGuardResult, string) {
+	if priority == PriorityHigh {
+		return QueueGuardResult{Allowed: true}, "priority_bypass"
+	}
+	timer := time.NewTimer(i.throttleWait())
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return QueueGuardResult{Err: ctx.Err()}, ""
+	case <-timer.C:
+	}
+	result := i.Guard.Check(ctx, i.Queue, priority)
+	if result.Err != nil {
+		return result, ""
+	}
+	if result.Throttled {
+		return QueueGuardResult{Err: ErrQueueBackpressure}, ""
+	}
+	return result, "soft_limit"
+}
+
+func (i *TaskIntake) throttleWait() time.Duration {
+	if i.ThrottleWait > 0 {
+		return i.ThrottleWait
+	}
+	return defaultThrottleWait
+}
+
+func (i *TaskIntake) recordGuardError(priority PriorityClass, err error) {
+	switch {
+	case errors.Is(err, ErrQueueFull):
+		i.recordAdmission(priority, "rejected", "hard_limit")
+	case errors.Is(err, ErrQueueBackpressure):
+		i.recordAdmission(priority, "rejected", "soft_limit")
+	default:
+		i.recordAdmission(priority, "guard_error", "guard_error")
+	}
 }
 
 func (i *TaskIntake) recordAdmission(priority PriorityClass, outcome string, reason string) {

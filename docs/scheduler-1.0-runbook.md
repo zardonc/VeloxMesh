@@ -51,6 +51,9 @@ Use environment variables for local development and JSON files for structured de
 | Scheduler component file | `SCHEDULER_CONFIG_FILE` / `scheduler_config_file` | unset |
 | Cache component file | `CACHE_CONFIG_FILE` / `cache_config_file` | unset |
 | Heuristic overrides | `SCHEDULER_HEURISTIC_CONFIG_FILE` / `scheduler.heuristic_config_file` | unset |
+| Queue soft limit | `SCHEDULER_QUEUE_SOFT_LIMIT` / `scheduler.queue_soft_limit` | `0` |
+| Queue hard limit | `SCHEDULER_QUEUE_HARD_LIMIT` / `scheduler.queue_hard_limit` | `0` |
+| Soft-limit wait | `SCHEDULER_QUEUE_POP_TIMEOUT` / `scheduler.queue_pop_timeout` | `100ms` |
 
 Local scheduler-enabled example:
 
@@ -60,6 +63,15 @@ SCHEDULER_MODE=heuristic
 SCHEDULER_QUEUE_BACKEND=auto
 SCHEDULER_EXECUTOR_CONCURRENCY=1
 ```
+
+Queue limit behavior:
+
+- `queue_soft_limit=0` disables soft-limit backpressure.
+- `queue_hard_limit=0` disables hard-limit rejection.
+- When `soft <= depth < hard`, high-priority requests bypass the soft limit.
+- Normal and low-priority requests wait once for `queue_pop_timeout`, then retry admission.
+- If the queue is still at the soft limit after that wait, the gateway returns `429 scheduler_backpressure`.
+- If the queue reaches the hard limit, the gateway returns `503 scheduler_queue_full`.
 
 Semantic-neighbor example:
 

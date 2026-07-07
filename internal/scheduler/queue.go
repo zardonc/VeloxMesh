@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	ErrQueueFull    = errors.New("queue full")
-	ErrQueueEmpty   = errors.New("queue empty")
-	ErrTaskNotFound = errors.New("task not found")
+	ErrQueueFull         = errors.New("queue full")
+	ErrQueueBackpressure = errors.New("queue backpressure")
+	ErrQueueEmpty        = errors.New("queue empty")
+	ErrTaskNotFound      = errors.New("task not found")
 )
 
 type QueueItem struct {

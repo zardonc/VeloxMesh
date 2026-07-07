@@ -145,6 +145,105 @@ func TestTaskIntakeScorerErrorRecordsOneSchedulerCall(t *testing.T) {
 	}
 }
 
+func TestTaskIntakeHighPriorityBypassesSoftLimit(t *testing.T) {
+	queue := NewMemoryQueue()
+	seedQueue(t, queue, "queued")
+	intake := softLimitIntake(queue, time.Hour)
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	_, err := intake.Submit(ctx, &llm.LLMRequest{RequestID: "high", PriorityClass: "high"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
+	if length, err := queue.Len(context.Background()); err != nil || length != 2 {
+		t.Fatalf("expected high priority enqueue at soft limit, len=%d err=%v", length, err)
+	}
+}
+
+func TestTaskIntakeSoftLimitAcceptsAfterWaitWhenQueueDrains(t *testing.T) {
+	queue := NewMemoryQueue()
+	seedQueue(t, queue, "queued")
+	intake := softLimitIntake(queue, 20*time.Millisecond)
+	drained := make(chan error, 1)
+	go func() {
+		time.Sleep(2 * time.Millisecond)
+		_, err := queue.PopMin(context.Background())
+		drained <- err
+	}()
+
+	task, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "normal", PriorityClass: "normal"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
+	if err := <-drained; err != nil {
+		t.Fatalf("drain queue: %v", err)
+	}
+	item, err := queue.PopMin(context.Background())
+	if err != nil {
+		t.Fatalf("PopMin: %v", err)
+	}
+	if item.TaskID != task.ID {
+		t.Fatalf("expected submitted task after wait, got %#v task=%#v", item, task)
+	}
+}
+
+func TestTaskIntakeSoftLimitReturnsBackpressureAfterWait(t *testing.T) {
+	queue := NewMemoryQueue()
+	seedQueue(t, queue, "queued")
+	intake := softLimitIntake(queue, time.Millisecond)
+
+	_, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "normal", PriorityClass: "normal"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if !errors.Is(err, ErrQueueBackpressure) {
+		t.Fatalf("expected backpressure, got %v", err)
+	}
+	if length, err := queue.Len(context.Background()); err != nil || length != 1 {
+		t.Fatalf("expected rejected task not to enqueue, len=%d err=%v", length, err)
+	}
+}
+
+func TestTaskIntakeSoftLimitPreservesHardLimitAfterWait(t *testing.T) {
+	queue := NewMemoryQueue()
+	seedQueue(t, queue, "queued")
+	intake := softLimitIntake(queue, 20*time.Millisecond)
+	filled := make(chan error, 1)
+	go func() {
+		time.Sleep(2 * time.Millisecond)
+		filled <- queue.Push(context.Background(), QueueItem{TaskID: "filler", Score: 1})
+	}()
+
+	_, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "normal", PriorityClass: "normal"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if !errors.Is(err, ErrQueueFull) {
+		t.Fatalf("expected hard limit after wait, got %v", err)
+	}
+	if err := <-filled; err != nil {
+		t.Fatalf("fill queue: %v", err)
+	}
+}
+
+func TestTaskIntakeSoftLimitReturnsContextCancelDuringWait(t *testing.T) {
+	queue := NewMemoryQueue()
+	seedQueue(t, queue, "queued")
+	intake := softLimitIntake(queue, time.Hour)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := intake.Submit(ctx, &llm.LLMRequest{RequestID: "normal", PriorityClass: "normal"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context canceled, got %v", err)
+	}
+}
+
 func TestTaskIntakeSemanticNeighborsRunBeforeScoring(t *testing.T) {
 	events := []string{}
 	scorer := &captureScorer{events: &events}
@@ -280,6 +379,21 @@ func semanticNeighborIntake(scorer Scorer, enricher SemanticNeighborEnricher) *T
 		Queue: NewMemoryQueue(), Scorer: scorer, Registry: NewResultRegistry(),
 		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh},
 		Backend: "memory", Metrics: observability.NewStubMetrics(), SemanticNeighbors: enricher,
+	}
+}
+
+func softLimitIntake(queue *MemoryQueue, wait time.Duration) *TaskIntake {
+	return &TaskIntake{
+		Queue: queue, Guard: QueueGuard{SoftLimit: 1, HardLimit: 2}, Scorer: FIFOScorer{Reason: "disabled"}, Registry: NewResultRegistry(),
+		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh},
+		Backend: "memory", ThrottleWait: wait,
+	}
+}
+
+func seedQueue(t *testing.T, queue *MemoryQueue, taskID string) {
+	t.Helper()
+	if err := queue.Push(context.Background(), QueueItem{TaskID: taskID, Score: 1}); err != nil {
+		t.Fatalf("Push: %v", err)
 	}
 }
 

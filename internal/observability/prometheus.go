@@ -332,7 +332,7 @@ func (m *PrometheusMetrics) IncQueueAdmission(backend string, priority string, o
 		allowedLabel(backend, "memory", "redis"),
 		allowedLabel(priority, "normal", "high", "low"),
 		allowedLabel(outcome, "accepted", "throttled", "rejected", "guard_error"),
-		allowedLabel(reason, "none", "soft_limit", "hard_limit", "guard_error"),
+		allowedLabel(reason, "none", "soft_limit", "hard_limit", "guard_error", "priority_bypass"),
 	).Inc()
 }
 

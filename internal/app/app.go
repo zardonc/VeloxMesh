@@ -124,6 +124,9 @@ func newSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner,
 	if timeout, err := time.ParseDuration(cfg.Scheduler.SemanticNeighborsTaskTimeout); err == nil {
 		intake.SemanticNeighborTaskTimeout = timeout
 	}
+	if timeout, err := time.ParseDuration(cfg.Scheduler.QueuePopTimeout); err == nil {
+		intake.ThrottleWait = timeout
+	}
 	executor := &scheduler.Executor{
 		Queue:    queue,
 		Registry: registry,

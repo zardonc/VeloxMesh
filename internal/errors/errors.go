@@ -24,11 +24,11 @@ func NewGatewayError(code, message string, httpStatus int) *GatewayError {
 
 // Common routing errors
 var (
-	ErrNoHealthyProvider          = NewGatewayError("no_healthy_provider", "no healthy providers available", 503)
-	ErrNoEligibleProvider         = NewGatewayError("no_eligible_provider", "no configured provider supports the requested model and operation", 400)
-	ErrUnknownProviderOverride    = NewGatewayError("unknown_provider_override", "requested provider override is unknown", 400)
-	ErrUnhealthyProviderOverride  = NewGatewayError("unhealthy_provider_override", "requested provider override is unhealthy", 503)
-	ErrIneligibleProviderOverride = NewGatewayError("ineligible_provider_override", "requested provider override does not support the requested model and operation", 400)
+	ErrNoHealthyProvider            = NewGatewayError("no_healthy_provider", "no healthy providers available", 503)
+	ErrNoEligibleProvider           = NewGatewayError("no_eligible_provider", "no configured provider supports the requested model and operation", 400)
+	ErrUnknownProviderOverride      = NewGatewayError("unknown_provider_override", "requested provider override is unknown", 400)
+	ErrUnhealthyProviderOverride    = NewGatewayError("unhealthy_provider_override", "requested provider override is unhealthy", 503)
+	ErrIneligibleProviderOverride   = NewGatewayError("ineligible_provider_override", "requested provider override does not support the requested model and operation", 400)
 	ErrCompositeScoreBelowThreshold = NewGatewayError("composite_score_below_threshold", "no provider met the minimum composite score threshold", 503)
 
 	// Control state runtime errors
@@ -49,6 +49,8 @@ const (
 	ProviderUnavailable    = "provider_unavailable"
 	ProviderBadResponse    = "provider_bad_response"
 	ProviderError          = "provider_error"
+	SchedulerBackpressure  = "scheduler_backpressure"
+	SchedulerQueueFull     = "scheduler_queue_full"
 )
 
 // AffectsProviderHealth determines whether a given error should count as a provider failure
@@ -67,6 +69,8 @@ func AffectsProviderHealth(err error) bool {
 	switch gwErr.Code {
 	case ProviderInvalidRequest:
 		// Invalid requests caused by client input should not poison provider health
+		return false
+	case SchedulerBackpressure, SchedulerQueueFull:
 		return false
 	case ProviderInvalidModel:
 		// Invalid model implies misconfiguration in provider setup, so it should degrade health

@@ -56,6 +56,16 @@ func TestAffectsProviderHealth(t *testing.T) {
 			expected: false,
 		},
 		{
+			name:     "scheduler backpressure",
+			err:      NewGatewayError(SchedulerBackpressure, "queue pressure", http.StatusTooManyRequests),
+			expected: false,
+		},
+		{
+			name:     "scheduler queue full",
+			err:      NewGatewayError(SchedulerQueueFull, "queue full", http.StatusServiceUnavailable),
+			expected: false,
+		},
+		{
 			name:     "provider invalid model",
 			err:      NewGatewayError(ProviderInvalidModel, "model not found", http.StatusBadRequest),
 			expected: true,
@@ -95,6 +105,8 @@ func TestIsRetryableProviderError(t *testing.T) {
 		{"provider invalid request", NewGatewayError(ProviderInvalidRequest, "test", 400), false},
 		{"provider invalid model", NewGatewayError(ProviderInvalidModel, "test", 400), false},
 		{"provider auth error", NewGatewayError(ProviderAuthError, "test", 401), false},
+		{"scheduler backpressure", NewGatewayError(SchedulerBackpressure, "test", 429), false},
+		{"scheduler queue full", NewGatewayError(SchedulerQueueFull, "test", 503), false},
 		{"routing no healthy provider", ErrNoHealthyProvider, false},
 		{"routing unknown override", ErrUnknownProviderOverride, false},
 	}

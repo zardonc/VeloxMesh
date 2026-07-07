@@ -3,7 +3,10 @@ package gateway
 import (
 	"context"
 	"encoding/json"
+	stdlib_errors "errors"
+	"net/http"
 	"time"
+
 	"veloxmesh/internal/admission"
 	"veloxmesh/internal/cache"
 	"veloxmesh/internal/controlstate"
@@ -693,12 +696,31 @@ func (s *Service) runScheduledChat(ctx context.Context, req *llm.LLMRequest, exe
 	if s.schedulerRunner == nil {
 		return execute(ctx, req)
 	}
-	return s.schedulerRunner.RunChat(ctx, req, execute)
+	resp, err := s.schedulerRunner.RunChat(ctx, req, execute)
+	if err != nil {
+		return nil, schedulerGatewayError(err)
+	}
+	return resp, nil
 }
 
 func (s *Service) runScheduledStream(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error)) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
 	if s.schedulerRunner == nil {
 		return execute(ctx, req)
 	}
-	return s.schedulerRunner.RunStream(ctx, req, execute)
+	ch, resp, err := s.schedulerRunner.RunStream(ctx, req, execute)
+	if err != nil {
+		return nil, nil, schedulerGatewayError(err)
+	}
+	return ch, resp, nil
+}
+
+func schedulerGatewayError(err error) error {
+	switch {
+	case stdlib_errors.Is(err, scheduler.ErrQueueBackpressure):
+		return errors.NewGatewayError(errors.SchedulerBackpressure, "Scheduler queue is under pressure; retry later", http.StatusTooManyRequests)
+	case stdlib_errors.Is(err, scheduler.ErrQueueFull):
+		return errors.NewGatewayError(errors.SchedulerQueueFull, "Scheduler queue is full; retry later", http.StatusServiceUnavailable)
+	default:
+		return err
+	}
 }

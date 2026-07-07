@@ -3,6 +3,7 @@ package gateway_test
 import (
 	"context"
 	stdlib_errors "errors"
+	"net/http"
 	"testing"
 	"time"
 
@@ -369,6 +370,54 @@ func TestService_HandleChatCompletion_WithSchedulerRunner(t *testing.T) {
 	}
 }
 
+func TestService_HandleChatCompletionSchedulerAdmissionErrors(t *testing.T) {
+	tests := []struct {
+		name   string
+		guard  scheduler.QueueGuard
+		queued int
+		code   string
+		status int
+	}{
+		{
+			name:   "soft backpressure",
+			guard:  scheduler.QueueGuard{SoftLimit: 1, HardLimit: 2},
+			queued: 1,
+			code:   errors.SchedulerBackpressure,
+			status: http.StatusTooManyRequests,
+		},
+		{
+			name:   "hard full",
+			guard:  scheduler.QueueGuard{SoftLimit: 1, HardLimit: 2},
+			queued: 2,
+			code:   errors.SchedulerQueueFull,
+			status: http.StatusServiceUnavailable,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store := health.NewInMemoryStore()
+			store.EnsureProvider("p1", 3, 1)
+			p1 := &mockAdapter{id: "p1"}
+			registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+			router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+			svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), nil, nil)
+			svc.SetSchedulerRunner(newQueuedSchedulerRunner(t, tt.guard, tt.queued))
+
+			_, err := svc.HandleChatCompletion(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1"})
+			var gwErr *errors.GatewayError
+			if !stdlib_errors.As(err, &gwErr) {
+				t.Fatalf("expected GatewayError, got %v", err)
+			}
+			if gwErr.Code != tt.code || gwErr.HTTPStatus != tt.status {
+				t.Fatalf("expected %s/%d, got %s/%d", tt.code, tt.status, gwErr.Code, gwErr.HTTPStatus)
+			}
+			if failures := store.Snapshot("p1").ConsecutiveFailures; failures != 0 {
+				t.Fatalf("scheduler admission error affected provider health: failures=%d", failures)
+			}
+		})
+	}
+}
+
 func TestService_HandleChatCompletionStream_WithSchedulerRunner(t *testing.T) {
 	store := health.NewInMemoryStore()
 	store.EnsureProvider("p1", 3, 1)
@@ -417,6 +466,25 @@ func newTestSchedulerRunner() *scheduler.SynchronousRunner {
 		Priority: scheduler.NewPriorityResolver(nil),
 		Policy:   scheduler.PriorityPolicy{Default: scheduler.PriorityNormal, Max: scheduler.PriorityHigh},
 		Backend:  "memory",
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+	return scheduler.NewSynchronousRunner(intake, executor, registry)
+}
+
+func newQueuedSchedulerRunner(t *testing.T, guard scheduler.QueueGuard, queued int) *scheduler.SynchronousRunner {
+	t.Helper()
+	registry := scheduler.NewResultRegistry()
+	queue := scheduler.NewMemoryQueue()
+	for i := 0; i < queued; i++ {
+		if err := queue.Push(context.Background(), scheduler.QueueItem{TaskID: "queued-" + string(rune('a'+i)), Score: 1}); err != nil {
+			t.Fatalf("Push: %v", err)
+		}
+	}
+	intake := &scheduler.TaskIntake{
+		Queue: queue, Guard: guard, Scorer: scheduler.FIFOScorer{Reason: "disabled"}, Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{Default: scheduler.PriorityNormal, Max: scheduler.PriorityHigh},
+		Backend:  "memory", ThrottleWait: time.Millisecond,
 	}
 	executor := &scheduler.Executor{Queue: queue, Registry: registry}
 	return scheduler.NewSynchronousRunner(intake, executor, registry)
