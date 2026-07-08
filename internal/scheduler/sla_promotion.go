@@ -102,7 +102,7 @@ func (p *SLAPromoter) PromoteBeforePop(ctx context.Context, now time.Time) (SLAP
 
 func (p *SLAPromoter) selectCandidate(items []QueueItem, now time.Time) (SLAPromotionResult, float64, bool) {
 	firstScore := map[PriorityClass]float64{}
-	highestEarlierRank := 0
+	earlierScoreByRank := map[int]float64{}
 	for _, item := range items {
 		task, ok := p.Registry.Task(item.TaskID)
 		if !ok {
@@ -114,20 +114,40 @@ func (p *SLAPromoter) selectCandidate(items []QueueItem, now time.Time) (SLAProm
 		}
 		rule, matched := p.matchRule(task)
 		if matched && waitedLongEnough(task, rule, now) {
-			return p.candidateResult(task, rule, highestEarlierRank, firstScore[priority])
+			boundary, hasBoundary := higherPriorityBoundary(earlierScoreByRank, priorityRank(priority))
+			return p.candidateResult(task, rule, firstScore[priority], item.Score, boundary, hasBoundary)
 		}
-		highestEarlierRank = max(highestEarlierRank, priorityRank(priority))
+		rank := priorityRank(priority)
+		if score, ok := earlierScoreByRank[rank]; !ok || item.Score > score {
+			earlierScoreByRank[rank] = item.Score
+		}
 	}
 	return SLAPromotionResult{Outcome: SLAPromotionOutcomeNotEligible}, 0, false
 }
 
-func (p *SLAPromoter) candidateResult(task Task, rule config.SLAPromotionRule, highestEarlierRank int, firstScore float64) (SLAPromotionResult, float64, bool) {
+func higherPriorityBoundary(scores map[int]float64, rank int) (float64, bool) {
+	boundary := 0.0
+	found := false
+	for earlierRank, score := range scores {
+		if earlierRank > rank && (!found || score > boundary) {
+			boundary = score
+			found = true
+		}
+	}
+	return boundary, found
+}
+
+func (p *SLAPromoter) candidateResult(task Task, rule config.SLAPromotionRule, firstScore float64, currentScore float64, higherBoundary float64, hasHigherBoundary bool) (SLAPromotionResult, float64, bool) {
 	result := promotionResult(task, rule, SLAPromotionOutcomePromoted)
-	if highestEarlierRank > priorityRank(task.Feature.Priority) {
+	target := math.Nextafter(firstScore, math.Inf(-1))
+	if hasHigherBoundary && target <= higherBoundary {
+		target = math.Nextafter(higherBoundary, math.Inf(1))
+	}
+	if !(target < currentScore) {
 		result.Outcome = SLAPromotionOutcomeBlockedByPriorityOrQuota
 		return result, 0, true
 	}
-	return result, math.Nextafter(firstScore, math.Inf(-1)), true
+	return result, target, true
 }
 
 func (p *SLAPromoter) matchRule(task Task) (config.SLAPromotionRule, bool) {

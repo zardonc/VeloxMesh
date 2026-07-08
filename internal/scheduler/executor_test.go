@@ -3,6 +3,7 @@ package scheduler_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -101,5 +102,31 @@ func TestExecutorRaceCondition(t *testing.T) {
 
 	if successCount != int32(numRequests) {
 		t.Fatalf("Expected %d successes, got %d", numRequests, successCount)
+	}
+}
+
+func TestExecutorRunOneDeliversPanicToTaskOwner(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	queue := scheduler.NewMemoryQueue()
+	registry := scheduler.NewResultRegistry()
+	task := scheduler.Task{ID: "panic-task", Feature: scheduler.TaskFeature{TaskID: "panic-task"}}
+	registry.RegisterTask(task, func(context.Context) scheduler.TaskResult {
+		panic("boom")
+	})
+	if err := queue.Push(ctx, scheduler.QueueItem{TaskID: task.ID, Score: 1}); err != nil {
+		t.Fatalf("Push: %v", err)
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+
+	if err := executor.RunOne(ctx); err != nil {
+		t.Fatalf("RunOne should deliver panic to owner, got %v", err)
+	}
+	result, err := registry.Wait(ctx, task.ID)
+	if err != nil {
+		t.Fatalf("Wait: %v", err)
+	}
+	if result.Error == nil || !strings.Contains(result.Error.Error(), "boom") {
+		t.Fatalf("panic was not delivered to owner: %#v", result)
 	}
 }

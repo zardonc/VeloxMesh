@@ -57,6 +57,34 @@ func TestSynchronousRunnerDoesNotRecordAtEnqueue(t *testing.T) {
 	}
 }
 
+func TestSynchronousRunnerRecordsStreamSampleAfterClose(t *testing.T) {
+	repo := &memoryTrainingSampleRepo{}
+	runner := testTrainingRunner(repo)
+	upstream := make(chan llm.StreamEvent, 1)
+	events, _, err := runner.RunStream(context.Background(), testTrainingRequest(), func(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+		return upstream, &llm.LLMResponse{Provider: "openai-primary"}, nil
+	})
+	if err != nil {
+		t.Fatalf("RunStream: %v", err)
+	}
+	if len(repo.samples) != 0 {
+		t.Fatalf("stream sample written before stream close: %#v", repo.samples)
+	}
+
+	upstream <- llm.StreamEvent{Usage: &llm.Usage{PromptTokens: 3, CompletionTokens: 7, TotalTokens: 10}}
+	close(upstream)
+	for range events {
+	}
+
+	if len(repo.samples) != 1 {
+		t.Fatalf("expected one stream sample after close, got %#v", repo.samples)
+	}
+	sample := repo.samples[0]
+	if sample.Outcome != TrainingOutcomeSuccess || sample.OutputTokens != 7 || sample.ProviderClass != "openai-primary" {
+		t.Fatalf("unexpected stream sample: %#v", sample)
+	}
+}
+
 func TestRecorderErrorDoesNotChangeResponse(t *testing.T) {
 	repo := &memoryTrainingSampleRepo{err: errors.New("store unavailable")}
 	runner := testTrainingRunner(repo)

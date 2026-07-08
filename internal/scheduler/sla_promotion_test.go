@@ -47,7 +47,7 @@ func TestSLAPromoterPromotesEligibleSamePriorityTask(t *testing.T) {
 	}
 }
 
-func TestSLAPromoterBlocksPriorityBoundaryCrossing(t *testing.T) {
+func TestSLAPromoterPromotesBehindHigherPriorityBoundary(t *testing.T) {
 	ctx := context.Background()
 	queue := NewMemoryQueue()
 	registry := NewResultRegistry()
@@ -57,8 +57,12 @@ func TestSLAPromoterBlocksPriorityBoundaryCrossing(t *testing.T) {
 		priority: PriorityHigh, score: 1, enqueue: now.Add(-time.Second),
 	})
 	registerPromotionTask(t, registry, queue, promotionTask{
+		id: "first-normal", tenantID: "tenant-b", modelClass: "large", requestKind: RequestKindCodeGen,
+		priority: PriorityNormal, score: 2, enqueue: now.Add(-time.Second),
+	})
+	registerPromotionTask(t, registry, queue, promotionTask{
 		id: "eligible-normal", tenantID: "tenant-a", modelClass: "large", requestKind: RequestKindCodeGen,
-		priority: PriorityNormal, score: 2, enqueue: now.Add(-3 * time.Second),
+		priority: PriorityNormal, score: 3, enqueue: now.Add(-3 * time.Second),
 	})
 	promoter := testSLAPromoter(queue, registry)
 
@@ -66,8 +70,8 @@ func TestSLAPromoterBlocksPriorityBoundaryCrossing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("PromoteBeforePop: %v", err)
 	}
-	if result.Outcome != SLAPromotionOutcomeBlockedByPriorityOrQuota {
-		t.Fatalf("expected blocked outcome, got %#v", result)
+	if result.Outcome != SLAPromotionOutcomePromoted {
+		t.Fatalf("expected promoted outcome, got %#v", result)
 	}
 	got, err := queue.PopMin(ctx)
 	if err != nil {
@@ -75,6 +79,13 @@ func TestSLAPromoterBlocksPriorityBoundaryCrossing(t *testing.T) {
 	}
 	if got.TaskID != "high" {
 		t.Fatalf("promotion crossed priority boundary: %#v", got)
+	}
+	got, err = queue.PopMin(ctx)
+	if err != nil {
+		t.Fatalf("PopMin second: %v", err)
+	}
+	if got.TaskID != "eligible-normal" {
+		t.Fatalf("eligible task was not promoted within its priority: %#v", got)
 	}
 }
 
@@ -193,7 +204,7 @@ func TestSLAPromoterBlockedWritesSanitizedAuditAndLog(t *testing.T) {
 	now := time.Now()
 	registerPromotionTask(t, registry, queue, promotionTask{
 		id: "high", tenantID: "tenant-a", modelClass: "large", requestKind: RequestKindCodeGen,
-		priority: PriorityHigh, score: 1, enqueue: now.Add(-time.Second),
+		priority: PriorityHigh, score: math.Nextafter(2, math.Inf(-1)), enqueue: now.Add(-time.Second),
 	})
 	registerPromotionTask(t, registry, queue, promotionTask{
 		id: "blocked", tenantID: "tenant-a", tenantClass: "gold", modelClass: "large", requestKind: RequestKindCodeGen,

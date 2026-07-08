@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"veloxmesh/internal/llm"
@@ -27,14 +28,20 @@ func (e *Executor) RunOne(ctx context.Context) error {
 	e.Registry.MarkRunning(item.TaskID)
 	handler, ok := e.Registry.Handler(item.TaskID)
 	if !ok {
-		return ErrTaskNotFound
+		return nil
 	}
-	result := handler(ctx)
-	returned := e.Registry.Deliver(item.TaskID, result)
-	if !returned && result.Error != nil {
-		return result.Error
-	}
+	result := runTaskHandler(ctx, handler)
+	e.Registry.Deliver(item.TaskID, result)
 	return nil
+}
+
+func runTaskHandler(ctx context.Context, handler TaskHandler) (result TaskResult) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			result = TaskResult{Error: fmt.Errorf("scheduler task panic: %v", recovered)}
+		}
+	}()
+	return handler(ctx)
 }
 
 func (e *Executor) Cancel(ctx context.Context, taskID string) {
@@ -141,8 +148,34 @@ func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, 
 		stream.Response.QueueWaitMs = time.Since(start).Milliseconds()
 	}
 	r.recordWait(task, start)
-	r.recordCompletionEvidence(ctx, req, task, start, stream.Response, TrainingOutcomeSuccess)
-	return stream.Events, stream.Response, nil
+	return r.recordStreamCompletion(ctx, req, task, start, stream.Events, stream.Response), stream.Response, nil
+}
+
+func (r *SynchronousRunner) recordStreamCompletion(ctx context.Context, req *llm.LLMRequest, task Task, start time.Time, events <-chan llm.StreamEvent, resp *llm.LLMResponse) <-chan llm.StreamEvent {
+	if events == nil {
+		r.recordCompletionEvidence(context.WithoutCancel(ctx), req, task, start, resp, TrainingOutcomeSuccess)
+		return nil
+	}
+	out := make(chan llm.StreamEvent)
+	go func() {
+		defer close(out)
+		finalResp := *resp
+		outcome := TrainingOutcomeSuccess
+		for event := range events {
+			if event.Usage != nil {
+				finalResp.Usage = event.Usage
+			}
+			if event.Provider != "" {
+				finalResp.Provider = event.Provider
+			}
+			if event.Error != nil {
+				outcome = TrainingOutcomeFailure
+			}
+			out <- event
+		}
+		r.recordCompletionEvidence(context.WithoutCancel(ctx), req, task, start, &finalResp, outcome)
+	}()
+	return out
 }
 
 func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (TaskResult, error) {
