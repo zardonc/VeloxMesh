@@ -67,6 +67,9 @@ func (c *SchedulerRolloutController) RecordAlert(reason string, message string) 
 	defer c.mu.Unlock()
 	next := cloneRolloutStatus(c.status)
 	next.Alerts = append(next.Alerts, SchedulerRolloutAlert{Reason: reason, Message: message, CreatedAt: time.Now().UTC()})
+	if len(next.Alerts) > 100 {
+		next.Alerts = next.Alerts[len(next.Alerts)-100:]
+	}
 	c.status = next
 	return cloneRolloutStatus(c.status)
 }

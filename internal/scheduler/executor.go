@@ -164,9 +164,6 @@ func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (Tas
 		<-r.slots
 		if err != nil {
 			if errors.Is(err, ErrQueueEmpty) {
-				if !r.Registry.IsRunning(taskID) {
-					return TaskResult{}, err
-				}
 				return waitForRegistryResult(ctx, waitDone)
 			}
 			return TaskResult{}, err
