@@ -4,6 +4,7 @@
 
 | Milestone | Shipped | Phases |
 |-----------|---------|--------|
+| v7.7      | 2026-07-08 | 3      |
 | v7.6      | 2026-07-06 | 3      |
 | v7.5      | 2026-07-05 | 3      |
 | v7.4      | 2026-07-04 | 3      |
@@ -14,6 +15,37 @@
 | v4        | 2026-06-23 | 4      |
 
 ---
+
+## Milestone: v7.7 - Scheduler Hardening + Plan 3 Vector Compatibility
+
+**Shipped:** 2026-07-08
+**Phases:** 3 | **Plans:** 3
+
+### What Was Built
+- Default in-memory Scheduler queueing for unset, `auto`, and `memory` backend values.
+- Explicit Redis Scheduler queueing scoped to the gateway node ID.
+- FallbackQueue recovery reads so memory fallback entries are not stranded after Redis recovery.
+- Plan 3 deployment guidance for single-node `App + SQLite + LanceDB/Qdrant`.
+- Runbook, README, `.env.example`, phase verification, validation, and audit evidence for the shipped behavior.
+
+### What Worked
+- Keeping Redis queueing explicit avoided accidental cross-node Scheduler semantics.
+- Fixing fallback recovery in the shared queue implementation covered all queue readers with a small change.
+- Backfilling phase artifacts before final closeout made the milestone audit reflect the actual shipped state.
+
+### What Was Inefficient
+- The first milestone audit ran before Phase 23-25 artifacts existed, so the audit initially reported orphaned requirements.
+- `milestone.complete` over-counted historical active phase directories and required manual correction to v7.7 scope.
+
+### Patterns Established
+- Scheduler queue backend selection should default to the simplest single-node path.
+- Plan 3 docs should state vector-store exclusivity and known runtime limits directly.
+- Milestone closeout should verify phase artifacts exist before running archive automation.
+
+### Key Lessons
+- Completion artifacts are part of the release, not a later cleanup chore.
+- GSD archive automation needs a narrow milestone scope when old phase directories remain active.
+- Documented runtime limits are acceptable when build compatibility and degradation behavior are tested.
 
 ## Milestone: v7.6 - Scheduler 1.0 + Config System Unification
 

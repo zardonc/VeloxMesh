@@ -12,7 +12,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
-**v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** is active. The milestone hardens Scheduler queue recovery, makes in-memory queueing the default, keeps Redis as a node-scoped optional queue, and clarifies the Plan 3 single-node LanceDB/Qdrant vector-store boundary.
+**v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** has shipped and is archived. The milestone hardened Scheduler queue recovery, made in-memory queueing the default, kept Redis as a node-scoped optional queue, and clarified the Plan 3 single-node LanceDB/Qdrant vector-store boundary.
 
 **v7.6 Scheduler 1.0 + Config System Unification** has shipped and is archived. The milestone delivered Scheduler 1.0 docs, safe structured config examples, scheduler admin/observability APIs, and real-component UAT evidence.
 
@@ -97,14 +97,14 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Phase 20: Config System Unification + Scheduler Core Hardening - v7.6 (CFG-01..04, SCH-05..07, QDR-05..06).
 - Phase 21: Observability, Admin APIs & Tooling - v7.6 (SCH-08, QDR-07..08, OBS-03..06).
 - Phase 22: Documentation, .env.example & UAT - v7.6.
+- Phase 23: Scheduler Queue Hardening - v7.7 (SCHQ-01..04).
+- Phase 24: Plan 3 Vector Compatibility - v7.7 (PLAN3-01..04).
+- Phase 25: Runbooks and Verification - v7.7 (DOC-01..02).
 
 
 ### Active
 
-- [ ] v7.7: Scheduler defaults to in-memory queueing while retaining an explicit node-scoped Redis queue option.
-- [ ] v7.7: FallbackQueue drains memory fallback entries after Redis recovery and does not strand tasks.
-- [ ] v7.7: Plan 3 remains single-node and supports LanceDB by default with explicit Qdrant compatibility when configured.
-- [ ] v7.7: Operator docs and runbooks explain queue selection, fallback behavior, Plan 1/Plan 3 deployment, and known limits.
+(None currently defined. Start the next milestone with `$gsd-new-milestone`.)
 
 ### Deferred to Future Milestones
 
@@ -121,7 +121,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Scheduler implementation reference: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\Gateway-Scheduler-Implementation.md`.
 - Operational resource lookup: test-environment components are configured in `.env`, including the test environment address; provider credentials and model resources for real-provider UAT are configured in `.env.local`. Prefer non-Gemini provider resources for routine real-provider checks because Gemini entries may carry usage-limit notes and should be reserved for Gemini-specific scenarios.
 - The original gateway design is Go-first. TypeScript/Node gateway plans were superseded.
-- Current code includes Phase 1 through Phase 22: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission, Redis VSS fallback for Qdrant degradation, multi-node coordination, PostgreSQL/pgvector compatibility, optional Gateway Scheduler queueing/scoring/rollout controls, semantic-neighbor aggregate scheduler features, anomaly/OOD conservative scoring with a production-shape ONNX predictor artifact served through the Python worker, gateway-owned SLA waiting-time promotion with bounded priority-safe queue reordering, unified nested config blocks, scheduler execution hardening, semantic-neighbor input/Qdrant startup safeguards, scheduler admin/observability APIs, safe training export, and Scheduler 1.0 operator documentation. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL is available as the Plan 4 extension path; LanceDB is retained only for edge builds.
+- Current code includes Phase 1 through Phase 25: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission, Redis VSS fallback for Qdrant degradation, multi-node coordination, PostgreSQL/pgvector compatibility, optional Gateway Scheduler queueing/scoring/rollout controls, semantic-neighbor aggregate scheduler features, anomaly/OOD conservative scoring with a production-shape ONNX predictor artifact served through the Python worker, gateway-owned SLA waiting-time promotion with bounded priority-safe queue reordering, unified nested config blocks, scheduler execution hardening, semantic-neighbor input/Qdrant startup safeguards, scheduler admin/observability APIs, safe training export, Scheduler 1.0 operator documentation, default in-memory Scheduler queueing, explicit node-scoped Redis Scheduler queueing, FallbackQueue recovery reads, and Plan 3 LanceDB/Qdrant vector compatibility. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL is available as the Plan 4 extension path; LanceDB is retained for edge builds and remains runtime-deferred in the current local environment.
 - Downstream clients should continue to see OpenAI-compatible responses.
 
 ## Constraints
@@ -169,9 +169,9 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | ONNX anomaly/OOD scoring is conservative and optional | Missing or invalid anomaly metadata degrades anomaly behavior only; OOD severity lowers confidence and increases uncertainty without changing Scheduler RPC | Good |
 | Runtime ONNX prediction uses Python worker by default | Keeps the default Go build free of ONNX Runtime CGO/native shared-library coupling while still testing the production-shape ONNX artifact and Scheduler call chain | Good |
 | Config grouped into named nested structs | All optional subsystems (ControlState, Redis, Cache, Scheduler) follow the same nested struct pattern in v7.6; ENV variables remain backward-compatible, and component-scoped config file references are introduced alongside the unified structure | Good |
-| Scheduler in-memory queue is the default in v7.7 | Single-node Scheduler semantics are equivalent without Redis, avoid hidden fallback islands, and keep Plan 3 simple | Pending |
-| Redis Scheduler queue is node-scoped when explicitly enabled | Redis remains useful for high-concurrency local queue operations, but the gateway still owns task execution and must not steal cross-node in-memory task state | Pending |
-| Plan 3 vector store is LanceDB or Qdrant, not both | LanceDB remains the embedded default; Qdrant is an explicit substitute when configured, with no data migration or interop in v7.7 | Pending |
+| Scheduler in-memory queue is the default in v7.7 | Single-node Scheduler semantics are equivalent without Redis, avoid hidden fallback islands, and keep Plan 3 simple | Good |
+| Redis Scheduler queue is node-scoped when explicitly enabled | Redis remains useful for high-concurrency local queue operations, but the gateway still owns task execution and must not steal cross-node in-memory task state | Good |
+| Plan 3 vector store is LanceDB or Qdrant, not both | LanceDB remains the embedded default; Qdrant is an explicit substitute when configured, with no data migration or interop in v7.7 | Good |
 
 ---
-*Last updated: 2026-07-08 - v7.7 milestone started*
+*Last updated: 2026-07-08 after v7.7 milestone*

@@ -1,5 +1,43 @@
 # Milestones
 
+## v7.7 Scheduler Hardening + Plan 3 Vector Compatibility (Shipped: 2026-07-08)
+
+**Delivered:** Scheduler queue hardening and Plan 3 vector compatibility, with memory queueing as the default, explicit node-scoped Redis queueing, fallback recovery reads, and Plan 3 LanceDB/Qdrant guidance.
+
+**Phases completed:** 23-25 (3 phases, 3 plans total)
+
+**Key accomplishments:**
+
+- Made in-memory Scheduler queueing the default for unset, `auto`, and `memory` backend values.
+- Kept Redis Scheduler queueing explicit and scoped queue keys to the gateway node ID.
+- Updated `FallbackQueue` behavior so Redis recovery does not strand memory fallback tasks.
+- Documented Plan 3 as single-node `App + SQLite + LanceDB/Qdrant`, with LanceDB default and explicit Qdrant selection.
+- Preserved Qdrant semantic-cache and semantic-neighbor compatibility while keeping LanceDB runtime validation documented as a known local-environment limit.
+- Updated runbooks, README, `.env.example`, phase verification, Nyquist validation, and milestone audit evidence.
+
+**Validation:**
+
+- Phase 23, Phase 24, and Phase 25 verification passed.
+- v7.7 milestone audit passed.
+- `go test -timeout 60s ./...` passed.
+- `go build ./...` passed.
+
+**Known deferred work:**
+
+- LanceDB runtime validation remains deferred until a local environment can run LanceDB.
+- LanceDB/Qdrant data migration remains future scope.
+- Distributed Scheduler queue execution across gateway nodes remains future scope.
+
+**Archived:**
+
+- `.planning/milestones/v7.7-ROADMAP.md`
+- `.planning/milestones/v7.7-REQUIREMENTS.md`
+- `.planning/milestones/v7.7-MILESTONE-AUDIT.md`
+
+**What's next:** Start the next milestone around BFF/Admin Console, scheduler automation, or another gateway priority.
+
+---
+
 ## v7.6 Scheduler 1.0 + Config System Unification (Shipped: 2026-07-06)
 
 **Phases completed:** 3 phases, 7 plans, 22 tasks

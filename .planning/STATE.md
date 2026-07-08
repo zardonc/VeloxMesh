@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v7.7
 milestone_name: Scheduler Hardening + Plan 3 Vector Compatibility
-status: verified
-last_updated: "2026-07-08T05:47:26.922Z"
-last_activity: 2026-07-08
+status: Awaiting next milestone
+last_updated: "2026-07-08T15:53:53.231Z"
+last_activity: 2026-07-08 — Milestone v7.7 completed and archived
 progress:
   total_phases: 3
   completed_phases: 3
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-08)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** v7.7 Scheduler Hardening + Plan 3 Vector Compatibility verified
+**Current focus:** Planning next milestone
 
 ## Current Implementation State
 
@@ -35,6 +35,9 @@ See: `.planning/PROJECT.md` (updated 2026-07-08)
 - Phase 20 Config Unification + Scheduler Core Hardening (v7.6) is implemented and verified.
 - Phase 21 Observability, Admin APIs & Tooling (v7.6) is implemented and verified.
 - Phase 22 Documentation, .env.example & UAT (v7.6) is implemented and verified.
+- Phase 23 Scheduler Queue Hardening (v7.7) is implemented, verified, and shipped.
+- Phase 24 Plan 3 Vector Compatibility (v7.7) is implemented, verified, and shipped.
+- Phase 25 Runbooks and Verification (v7.7) is implemented, verified, and shipped.
 
 ## Completed
 
@@ -50,10 +53,13 @@ See: `.planning/PROJECT.md` (updated 2026-07-08)
 - Phase 20: Config Unification + Scheduler Core Hardening
 - Phase 21: Observability, Admin APIs & Tooling
 - Phase 22: Documentation, .env.example & UAT
+- Phase 23: Scheduler Queue Hardening
+- Phase 24: Plan 3 Vector Compatibility
+- Phase 25: Runbooks and Verification
 
 ## Planned Next
 
-1. Review and ship v7.7 changes.
+1. Define the next milestone.
 
 ## Useful Commands
 
@@ -63,14 +69,14 @@ See: `.planning/PROJECT.md` (updated 2026-07-08)
 
 ## Current Position
 
-Phase: 23-25 complete
+Phase: Milestone v7.7 complete
 Plan: —
-Status: Verified
-Last activity: 2026-07-08 — v7.7 implementation passed go test -timeout 60s ./... and go build ./...
+Status: Awaiting next milestone
+Last activity: 2026-07-08 — Milestone v7.7 completed and archived
 
 ## Operator Next Steps
 
-- Review and ship v7.7 changes.
+- Start the next milestone with `$gsd-new-milestone`.
 
 ## Deferred Items
 
