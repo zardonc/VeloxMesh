@@ -79,8 +79,13 @@ func (q *FallbackQueue) PopMin(ctx context.Context) (QueueItem, error) {
 		return q.fallback.PopMin(ctx)
 	}
 	item, err := q.primary.PopMin(ctx)
-	if err == ErrQueueEmpty && len(fallbackItems) > 0 {
-		return q.fallback.PopMin(ctx)
+	if err != nil {
+		if err != ErrQueueEmpty {
+			q.primaryAvailable = false
+		}
+		if len(fallbackItems) > 0 {
+			return q.fallback.PopMin(ctx)
+		}
 	}
 	return item, err
 }

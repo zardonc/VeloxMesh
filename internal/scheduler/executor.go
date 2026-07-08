@@ -28,6 +28,7 @@ func (e *Executor) RunOne(ctx context.Context) error {
 	if !ok {
 		return ErrTaskNotFound
 	}
+	e.Registry.MarkRunning(item.TaskID)
 	result := handler(ctx)
 	returned := e.Registry.Deliver(item.TaskID, result)
 	if !returned && result.Error != nil {
@@ -105,6 +106,11 @@ type StreamResult struct {
 	Response *llm.LLMResponse
 }
 
+type taskWaitResult struct {
+	result TaskResult
+	err    error
+}
+
 func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error)) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
 	start := time.Now()
 	task, err := r.Intake.Submit(ctx, req, func(context.Context) TaskResult {
@@ -140,16 +146,10 @@ func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, 
 }
 
 func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (TaskResult, error) {
-	waitDone := make(chan struct {
-		result TaskResult
-		err    error
-	}, 1)
+	waitDone := make(chan taskWaitResult, 1)
 	go func() {
 		result, err := r.Registry.Wait(ctx, taskID)
-		waitDone <- struct {
-			result TaskResult
-			err    error
-		}{result: result, err: err}
+		waitDone <- taskWaitResult{result: result, err: err}
 	}()
 
 	for {
@@ -163,6 +163,12 @@ func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (Tas
 		err := r.Executor.RunOne(ctx)
 		<-r.slots
 		if err != nil {
+			if errors.Is(err, ErrQueueEmpty) {
+				if !r.Registry.IsRunning(taskID) {
+					return TaskResult{}, err
+				}
+				return waitForRegistryResult(ctx, waitDone)
+			}
 			return TaskResult{}, err
 		}
 		select {
@@ -175,13 +181,17 @@ func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (Tas
 			return TaskResult{}, err
 		}
 		if depth == 0 {
-			select {
-			case waited := <-waitDone:
-				return waited.result, waited.err
-			case <-ctx.Done():
-				return TaskResult{}, ctx.Err()
-			}
+			return waitForRegistryResult(ctx, waitDone)
 		}
+	}
+}
+
+func waitForRegistryResult(ctx context.Context, waitDone <-chan taskWaitResult) (TaskResult, error) {
+	select {
+	case waited := <-waitDone:
+		return waited.result, waited.err
+	case <-ctx.Done():
+		return TaskResult{}, ctx.Err()
 	}
 }
 

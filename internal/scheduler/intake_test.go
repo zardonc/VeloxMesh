@@ -118,6 +118,57 @@ func TestSynchronousRunnerDrainsUntilSubmittedTaskCompletes(t *testing.T) {
 	}
 }
 
+func TestSynchronousRunnerWaitsWhenTaskAlreadyRunningAndQueueEmpty(t *testing.T) {
+	registry := NewResultRegistry()
+	queue := NewMemoryQueue()
+	executor := &Executor{Queue: queue, Registry: registry}
+	runner := NewSynchronousRunner(&TaskIntake{Queue: queue, Registry: registry}, executor, registry)
+	started := make(chan struct{})
+	release := make(chan struct{})
+	registry.RegisterTask(Task{ID: "running"}, func(context.Context) TaskResult {
+		close(started)
+		<-release
+		return TaskResult{Response: "done"}
+	})
+	if err := queue.Push(context.Background(), QueueItem{TaskID: "running", Score: 1}); err != nil {
+		t.Fatalf("Push: %v", err)
+	}
+	go func() {
+		if err := executor.RunOne(context.Background()); err != nil {
+			t.Errorf("RunOne: %v", err)
+		}
+	}()
+	<-started
+
+	waitDone := make(chan struct {
+		result TaskResult
+		err    error
+	}, 1)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	go func() {
+		result, err := runner.waitForTask(ctx, "running")
+		waitDone <- struct {
+			result TaskResult
+			err    error
+		}{result: result, err: err}
+	}()
+
+	select {
+	case waited := <-waitDone:
+		t.Fatalf("waitForTask returned before running task completed: result=%#v err=%v", waited.result, waited.err)
+	case <-time.After(20 * time.Millisecond):
+	}
+	close(release)
+	waited := <-waitDone
+	if waited.err != nil {
+		t.Fatalf("waitForTask: %v", waited.err)
+	}
+	if waited.result.Response != "done" {
+		t.Fatalf("unexpected result: %#v", waited.result)
+	}
+}
+
 func TestSynchronousRunnerExecutesHandlerWithSubmittedRequestContext(t *testing.T) {
 	registry := NewResultRegistry()
 	queue := NewMemoryQueue()

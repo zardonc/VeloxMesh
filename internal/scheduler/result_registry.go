@@ -10,6 +10,7 @@ type ResultRegistry struct {
 	channels map[string]chan TaskResult
 	handlers map[string]TaskHandler
 	tasks    map[string]Task
+	running  map[string]struct{}
 }
 
 func NewResultRegistry() *ResultRegistry {
@@ -17,6 +18,7 @@ func NewResultRegistry() *ResultRegistry {
 		channels: map[string]chan TaskResult{},
 		handlers: map[string]TaskHandler{},
 		tasks:    map[string]Task{},
+		running:  map[string]struct{}{},
 	}
 }
 
@@ -59,6 +61,19 @@ func (r *ResultRegistry) Handler(taskID string) (TaskHandler, bool) {
 	return handler, ok
 }
 
+func (r *ResultRegistry) MarkRunning(taskID string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.running[taskID] = struct{}{}
+}
+
+func (r *ResultRegistry) IsRunning(taskID string) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	_, ok := r.running[taskID]
+	return ok
+}
+
 func (r *ResultRegistry) Deliver(taskID string, result TaskResult) bool {
 	r.mu.RLock()
 	ch, ok := r.channels[taskID]
@@ -95,6 +110,7 @@ func (r *ResultRegistry) Unregister(taskID string) {
 	delete(r.channels, taskID)
 	delete(r.handlers, taskID)
 	delete(r.tasks, taskID)
+	delete(r.running, taskID)
 }
 
 func cloneTask(task Task) Task {

@@ -123,6 +123,36 @@ func TestExecutorRunsRealRedisQueuedTask(t *testing.T) {
 	}
 }
 
+func TestFallbackQueueUsesMemoryWhenRealRedisPopFailsAfterPeek(t *testing.T) {
+	ctx := context.Background()
+	client, redisQueue := newRealRedisQueue(t)
+	opts := *client.Options()
+	cleanup := redis.NewClient(&opts)
+	defer cleanup.Close()
+	defer cleanup.Del(ctx, redisQueue.keyForTest())
+
+	if err := redisQueue.Push(ctx, QueueItem{TaskID: "primary", Score: 1}); err != nil {
+		t.Fatalf("Push primary: %v", err)
+	}
+	fallback := NewMemoryQueue()
+	if err := fallback.Push(ctx, QueueItem{TaskID: "fallback", Score: 2}); err != nil {
+		t.Fatalf("Push fallback: %v", err)
+	}
+	primary := &closeAfterPeekQueue{QueueBackend: redisQueue, close: client.Close}
+	queue := NewFallbackQueue(primary, fallback)
+
+	got, err := queue.PopMin(ctx)
+	if err != nil {
+		t.Fatalf("PopMin: %v", err)
+	}
+	if got.TaskID != "fallback" {
+		t.Fatalf("expected fallback item after Redis pop failure, got %#v", got)
+	}
+	if queue.primaryAvailable {
+		t.Fatalf("expected primary to be marked unavailable after Redis pop failure")
+	}
+}
+
 func TestFallbackQueueUsesMemoryAfterPrimaryError(t *testing.T) {
 	ctx := context.Background()
 	badRedis := redis.NewClient(&redis.Options{Addr: "127.0.0.1:1", DialTimeout: 50 * time.Millisecond})
@@ -198,4 +228,19 @@ func newRealRedisQueue(t *testing.T) (*redis.Client, *RedisQueue) {
 	}
 	queue := NewRedisQueue(client, "veloxmesh-test", fmt.Sprintf("queue-%d", time.Now().UnixNano()))
 	return client, queue
+}
+
+type closeAfterPeekQueue struct {
+	QueueBackend
+	close  func() error
+	closed bool
+}
+
+func (q *closeAfterPeekQueue) PeekMin(ctx context.Context, limit int) ([]QueueItem, error) {
+	items, err := q.QueueBackend.PeekMin(ctx, limit)
+	if err == nil && !q.closed {
+		q.closed = true
+		_ = q.close()
+	}
+	return items, err
 }
