@@ -31,9 +31,11 @@ func (s FIFOScorer) Score(_ context.Context, tasks []TaskFeature) ([]ScoreResult
 type GRPCScorer struct {
 	enabled       bool
 	timeout       time.Duration
+	slowThreshold time.Duration
 	client        schedulerv1.TaskSchedulerClient
 	conn          *grpc.ClientConn
 	breaker       *breaker
+	slots         chan struct{}
 	schedulerType SchedulerType
 }
 
@@ -90,13 +92,23 @@ func newGRPCScorer(ctx context.Context, cfg config.SchedulerConfig, schedulerTyp
 	if recovery <= 0 {
 		recovery = time.Minute
 	}
+	slowThreshold, _ := time.ParseDuration(cfg.ScorerSlowThreshold)
+	if slowThreshold <= 0 || slowThreshold > timeout {
+		slowThreshold = timeout
+	}
+	maxConcurrency := cfg.ScorerMaxConcurrency
+	if maxConcurrency < 1 {
+		maxConcurrency = 4
+	}
 
 	return &GRPCScorer{
 		enabled:       cfg.Enabled,
 		timeout:       timeout,
+		slowThreshold: slowThreshold,
 		client:        schedulerv1.NewTaskSchedulerClient(conn),
 		conn:          conn,
-		breaker:       &breaker{threshold: threshold, recovery: recovery},
+		breaker:       newBreaker(threshold, recovery),
+		slots:         make(chan struct{}, maxConcurrency),
 		schedulerType: schedulerType,
 	}, nil
 }
@@ -125,6 +137,11 @@ func (s *GRPCScorer) Score(ctx context.Context, tasks []TaskFeature) ([]ScoreRes
 	if !s.breaker.Allow() {
 		return fallback(tasks, "breaker_open"), nil
 	}
+	if !s.claimSlot() {
+		s.breaker.Record(false)
+		return fallback(tasks, "scorer_busy"), nil
+	}
+	defer s.releaseSlot()
 
 	callCtx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
@@ -134,7 +151,9 @@ func (s *GRPCScorer) Score(ctx context.Context, tasks []TaskFeature) ([]ScoreRes
 		req.Tasks = append(req.Tasks, task.proto())
 	}
 
+	start := time.Now()
 	resp, err := s.client.BatchScoreTasks(callCtx, req)
+	elapsed := time.Since(start)
 	if err != nil {
 		s.breaker.Record(false)
 		return fallback(tasks, fallbackReason(err)), nil
@@ -148,8 +167,25 @@ func (s *GRPCScorer) Score(ctx context.Context, tasks []TaskFeature) ([]ScoreRes
 			success = false
 		}
 	}
+	if elapsed > s.slowThreshold {
+		s.breaker.Record(false)
+		return fallback(tasks, "scorer_slow"), nil
+	}
 	s.breaker.Record(success)
 	return results, nil
+}
+
+func (s *GRPCScorer) claimSlot() bool {
+	select {
+	case s.slots <- struct{}{}:
+		return true
+	default:
+		return false
+	}
+}
+
+func (s *GRPCScorer) releaseSlot() {
+	<-s.slots
 }
 
 type WeightedScorer struct {
@@ -284,7 +320,7 @@ func rolloutBucket(task TaskFeature, index int) uint32 {
 
 func unusableScore(result ScoreResult) bool {
 	switch result.FallbackReason {
-	case "breaker_open", "disabled", "heuristic_failed", "missing_score", "onnx_failed", "scheduler_error", "timeout":
+	case "breaker_open", "disabled", "heuristic_failed", "missing_score", "onnx_failed", "scheduler_error", "scorer_busy", "scorer_slow", "timeout":
 		return true
 	default:
 		return result.SchedulerVersion == "" && result.SchedulerType != SchedulerTypeFIFO
@@ -302,10 +338,23 @@ func fallbackReason(err error) string {
 }
 
 type breaker struct {
+	events    []bool
+	next      int
+	count     int
 	failures  int
 	openedAt  time.Time
 	threshold int
 	recovery  time.Duration
+}
+
+func newBreaker(threshold int, recovery time.Duration) *breaker {
+	if threshold < 1 {
+		threshold = 3
+	}
+	if recovery <= 0 {
+		recovery = time.Minute
+	}
+	return &breaker{events: make([]bool, threshold), threshold: threshold, recovery: recovery}
 }
 
 func (b *breaker) Allow() bool {
@@ -329,15 +378,22 @@ func (b *breaker) State() string {
 }
 
 func (b *breaker) Record(success bool) {
-	if success {
-		b.failures = 0
-		b.openedAt = time.Time{}
+	if b.count == b.threshold && !b.events[b.next] {
+		b.failures--
+	}
+	b.events[b.next] = success
+	b.next = (b.next + 1) % b.threshold
+	if b.count < b.threshold {
+		b.count++
+	}
+	if !success {
+		b.failures++
+	}
+	if b.count >= b.threshold && b.failures*2 >= b.count {
+		b.openedAt = time.Now()
 		return
 	}
-	b.failures++
-	if b.failures >= b.threshold {
-		b.openedAt = time.Now()
-	}
+	b.openedAt = time.Time{}
 }
 
 func scorerBreakerState(scorer Scorer) string {

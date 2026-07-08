@@ -61,6 +61,8 @@ func LoadConfig() (*Config, error) {
 			Strict:                          getEnv("SCHEDULER_STRICT", "false") == "true",
 			BreakerFailureThreshold:         getEnvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 3),
 			BreakerRecoveryTimeout:          getEnv("SCHEDULER_BREAKER_RECOVERY_TIMEOUT", "1m"),
+			ScorerMaxConcurrency:            getEnvInt("SCHEDULER_SCORER_MAX_CONCURRENCY", 4),
+			ScorerSlowThreshold:             getEnv("SCHEDULER_SCORER_SLOW_THRESHOLD", ""),
 			QueueBackend:                    getEnv("SCHEDULER_QUEUE_BACKEND", "auto"),
 			QueueSoftLimit:                  getEnvInt("SCHEDULER_QUEUE_SOFT_LIMIT", 0),
 			QueueHardLimit:                  getEnvInt("SCHEDULER_QUEUE_HARD_LIMIT", 0),
@@ -239,6 +241,12 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
 	if src.BreakerRecoveryTimeout != "" {
 		dst.BreakerRecoveryTimeout = src.BreakerRecoveryTimeout
 	}
+	if src.ScorerMaxConcurrency != 0 {
+		dst.ScorerMaxConcurrency = src.ScorerMaxConcurrency
+	}
+	if src.ScorerSlowThreshold != "" {
+		dst.ScorerSlowThreshold = src.ScorerSlowThreshold
+	}
 	if src.QueueBackend != "" {
 		dst.QueueBackend = src.QueueBackend
 	}
@@ -328,6 +336,12 @@ func applySchedulerDefaults(s *SchedulerConfig) {
 	}
 	if s.BreakerRecoveryTimeout == "" {
 		s.BreakerRecoveryTimeout = "1m"
+	}
+	if s.ScorerMaxConcurrency == 0 {
+		s.ScorerMaxConcurrency = 4
+	}
+	if s.ScorerSlowThreshold == "" {
+		s.ScorerSlowThreshold = s.Timeout
 	}
 	if s.QueueBackend == "" {
 		s.QueueBackend = "auto"

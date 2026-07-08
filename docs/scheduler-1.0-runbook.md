@@ -58,6 +58,8 @@ Use environment variables for local development and JSON files for structured de
 | Scheduler component file | `SCHEDULER_CONFIG_FILE` / `scheduler_config_file` | unset |
 | Cache component file | `CACHE_CONFIG_FILE` / `cache_config_file` | unset |
 | Heuristic overrides | `SCHEDULER_HEURISTIC_CONFIG_FILE` / `scheduler.heuristic_config_file` | unset |
+| Scorer max concurrency | `SCHEDULER_SCORER_MAX_CONCURRENCY` / `scheduler.scorer_max_concurrency` | `4` |
+| Scorer slow threshold | `SCHEDULER_SCORER_SLOW_THRESHOLD` / `scheduler.scorer_slow_threshold` | `scheduler.timeout` |
 | Queue backend | `SCHEDULER_QUEUE_BACKEND` / `scheduler.queue_backend` | `auto` |
 | Queue soft limit | `SCHEDULER_QUEUE_SOFT_LIMIT` / `scheduler.queue_soft_limit` | `0` |
 | Queue hard limit | `SCHEDULER_QUEUE_HARD_LIMIT` / `scheduler.queue_hard_limit` | `0` |
@@ -70,7 +72,16 @@ SCHEDULER_ENABLED=true
 SCHEDULER_MODE=heuristic
 SCHEDULER_QUEUE_BACKEND=memory
 SCHEDULER_EXECUTOR_CONCURRENCY=1
+SCHEDULER_SCORER_MAX_CONCURRENCY=4
+SCHEDULER_SCORER_SLOW_THRESHOLD=15ms
 ```
+
+Scorer backpressure rules:
+
+- Scheduler scoring is an optimization path. Gateway intake must prefer quick fallback to heuristic/FIFO over waiting for an unhealthy predictor.
+- `SCHEDULER_SCORER_MAX_CONCURRENCY` caps external scheduler/predictor calls. Requests above the cap return local fallback immediately.
+- `SCHEDULER_SCORER_SLOW_THRESHOLD` treats slow successes as degraded and records them against the circuit breaker. Keep it at or below `SCHEDULER_TIMEOUT`.
+- Keep `SCHEDULER_TIMEOUT=15ms` unless local evidence says otherwise. Treat 50-100ms as an absolute upper bound for unusual deployments, not as a default.
 
 Queue backend behavior:
 

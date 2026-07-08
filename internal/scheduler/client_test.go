@@ -115,6 +115,105 @@ func TestGRPCScorerBreakerOpenSkipsSecondNetworkCall(t *testing.T) {
 	}
 }
 
+func TestGRPCScorerBreakerUsesWindowInsteadOfSingleSuccessReset(t *testing.T) {
+	breaker := newBreaker(3, time.Minute)
+	breaker.Record(false)
+	breaker.Record(true)
+	breaker.Record(false)
+
+	if breaker.State() != "open" {
+		t.Fatalf("expected error-rate window to open breaker, got %s", breaker.State())
+	}
+}
+
+func TestGRPCScorerSlowSuccessFallsBackAndOpensBreaker(t *testing.T) {
+	var calls int32
+	endpoint, stop := startSchedulerServer(t, schedulerServer{
+		score: func(_ context.Context, req *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
+			atomic.AddInt32(&calls, 1)
+			time.Sleep(20 * time.Millisecond)
+			return schedulerResponse(req, "slow-v1"), nil
+		},
+	})
+	defer stop()
+
+	scorer := newTCPScorerWithConfig(t, endpoint, config.SchedulerConfig{
+		Enabled:                 true,
+		Endpoint:                endpoint,
+		Timeout:                 "100ms",
+		ScorerSlowThreshold:     "5ms",
+		BreakerFailureThreshold: 1,
+		BreakerRecoveryTimeout:  "1m",
+	})
+	defer scorer.Close()
+
+	task := []TaskFeature{{TaskID: "t1", EnqueueTimeMs: 11, Priority: PriorityNormal}}
+	first, err := scorer.Score(context.Background(), task)
+	if err != nil {
+		t.Fatalf("first Score: %v", err)
+	}
+	second, err := scorer.Score(context.Background(), task)
+	if err != nil {
+		t.Fatalf("second Score: %v", err)
+	}
+	if first[0].FallbackReason != "scorer_slow" || second[0].FallbackReason != "breaker_open" {
+		t.Fatalf("expected slow then breaker fallback, got %#v %#v", first[0], second[0])
+	}
+	if atomic.LoadInt32(&calls) != 1 {
+		t.Fatalf("expected breaker to skip second TCP call, got %d calls", calls)
+	}
+}
+
+func TestGRPCScorerConcurrencyLimitFallsBackWithoutWaiting(t *testing.T) {
+	release := make(chan struct{})
+	entered := make(chan struct{})
+	var calls int32
+	endpoint, stop := startSchedulerServer(t, schedulerServer{
+		score: func(_ context.Context, req *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
+			atomic.AddInt32(&calls, 1)
+			closeOnce(entered)
+			<-release
+			return schedulerResponse(req, "v1"), nil
+		},
+	})
+	defer stop()
+
+	scorer := newTCPScorerWithConfig(t, endpoint, config.SchedulerConfig{
+		Enabled:                 true,
+		Endpoint:                endpoint,
+		Timeout:                 "200ms",
+		ScorerMaxConcurrency:    1,
+		ScorerSlowThreshold:     "200ms",
+		BreakerFailureThreshold: 3,
+		BreakerRecoveryTimeout:  "1m",
+	})
+	defer scorer.Close()
+
+	firstDone := make(chan struct{})
+	go func() {
+		_, _ = scorer.Score(context.Background(), []TaskFeature{{TaskID: "held", Priority: PriorityNormal}})
+		close(firstDone)
+	}()
+	<-entered
+
+	start := time.Now()
+	results, err := scorer.Score(context.Background(), []TaskFeature{{TaskID: "busy", Priority: PriorityNormal}})
+	if err != nil {
+		t.Fatalf("Score: %v", err)
+	}
+	if elapsed := time.Since(start); elapsed > 50*time.Millisecond {
+		t.Fatalf("expected busy fallback without waiting, took %s", elapsed)
+	}
+	if results[0].FallbackReason != "scorer_busy" {
+		t.Fatalf("expected scorer_busy fallback, got %#v", results[0])
+	}
+	close(release)
+	<-firstDone
+	if atomic.LoadInt32(&calls) != 1 {
+		t.Fatalf("expected only held call to reach server, got %d", calls)
+	}
+}
+
 func TestGRPCScorerMissingTaskIDsFallBackPerTask(t *testing.T) {
 	endpoint, stop := startSchedulerServer(t, schedulerServer{
 		score: func(context.Context, *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
@@ -138,6 +237,14 @@ func TestGRPCScorerMissingTaskIDsFallBackPerTask(t *testing.T) {
 	}
 	if results[1].Score != 20 || results[1].FallbackReason != "missing_score" {
 		t.Fatalf("expected per-task FIFO fallback for t2, got %#v", results[1])
+	}
+}
+
+func closeOnce(ch chan struct{}) {
+	select {
+	case <-ch:
+	default:
+		close(ch)
 	}
 }
 

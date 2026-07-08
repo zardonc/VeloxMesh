@@ -54,6 +54,8 @@
     "strict": false,
     "breaker_failure_threshold": 3,
     "breaker_recovery_timeout": "1m",
+    "scorer_max_concurrency": 4,
+    "scorer_slow_threshold": "15ms",
     "queue_backend": "auto",
     "queue_soft_limit": 0,
     "queue_hard_limit": 0,

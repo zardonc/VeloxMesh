@@ -13,20 +13,28 @@ import (
 	"veloxmesh/internal/scheduler/predictorv1"
 )
 
-var ErrBreakerOpen = errors.New("predictor breaker open")
+var (
+	ErrBreakerOpen   = errors.New("predictor breaker open")
+	ErrPredictorBusy = errors.New("predictor busy")
+	ErrPredictorSlow = errors.New("predictor slow")
+)
 
 type PythonClientConfig struct {
 	Endpoint                string
 	Timeout                 time.Duration
+	MaxConcurrency          int
+	SlowThreshold           time.Duration
 	BreakerFailureThreshold int
 	BreakerRecoveryTimeout  time.Duration
 }
 
 type PythonONNXPredictorClient struct {
-	timeout time.Duration
-	conn    *grpc.ClientConn
-	client  predictorv1.OutputTokenPredictorClient
-	breaker *clientBreaker
+	timeout       time.Duration
+	slowThreshold time.Duration
+	conn          *grpc.ClientConn
+	client        predictorv1.OutputTokenPredictorClient
+	breaker       *clientBreaker
+	slots         chan struct{}
 }
 
 func NewPythonONNXPredictor(ctx context.Context, cfg PythonClientConfig) (OutputTokenPredictor, error) {
@@ -50,7 +58,15 @@ func NewPythonONNXPredictorClient(ctx context.Context, cfg PythonClientConfig) (
 		_ = conn.Close()
 		return nil, err
 	}
-	return &PythonONNXPredictorClient{timeout: timeoutOrDefault(cfg.Timeout), conn: conn, client: client, breaker: newClientBreaker(cfg)}, nil
+	timeout := timeoutOrDefault(cfg.Timeout)
+	return &PythonONNXPredictorClient{
+		timeout:       timeout,
+		slowThreshold: slowThresholdOrDefault(cfg.SlowThreshold, timeout),
+		conn:          conn,
+		client:        client,
+		breaker:       newClientBreaker(cfg),
+		slots:         make(chan struct{}, concurrencyOrDefault(cfg.MaxConcurrency)),
+	}, nil
 }
 
 func (c *PythonONNXPredictorClient) Close() error {
@@ -67,17 +83,42 @@ func (c *PythonONNXPredictorClient) Predict(ctx context.Context, tasks []schedul
 	if !c.breaker.Allow() {
 		return NoopPredictor{Reason: ErrBreakerOpen}.Predict(ctx, tasks)
 	}
+	if !c.claimSlot() {
+		c.breaker.Record(false)
+		return NoopPredictor{Reason: ErrPredictorBusy}.Predict(ctx, tasks)
+	}
+	defer c.releaseSlot()
+	start := time.Now()
 	resp, err := c.batchPredict(ctx, tasks)
+	elapsed := time.Since(start)
 	if err != nil {
 		c.breaker.Record(false)
 		return NoopPredictor{Reason: err}.Predict(ctx, tasks)
 	}
 	predictions, err := predictionsFromProto(resp, len(tasks))
-	c.breaker.Record(err == nil)
 	if err != nil {
+		c.breaker.Record(false)
 		return NoopPredictor{Reason: err}.Predict(ctx, tasks)
 	}
+	if elapsed > c.slowThreshold {
+		c.breaker.Record(false)
+		return NoopPredictor{Reason: ErrPredictorSlow}.Predict(ctx, tasks)
+	}
+	c.breaker.Record(true)
 	return predictions, nil
+}
+
+func (c *PythonONNXPredictorClient) claimSlot() bool {
+	select {
+	case c.slots <- struct{}{}:
+		return true
+	default:
+		return false
+	}
+}
+
+func (c *PythonONNXPredictorClient) releaseSlot() {
+	<-c.slots
 }
 
 func (c *PythonONNXPredictorClient) batchPredict(ctx context.Context, tasks []scheduler.TaskFeature) (*predictorv1.BatchPredictResponse, error) {

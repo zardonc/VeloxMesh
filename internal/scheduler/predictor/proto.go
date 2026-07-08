@@ -64,3 +64,17 @@ func timeoutOrDefault(value time.Duration) time.Duration {
 	}
 	return 15 * time.Millisecond
 }
+
+func slowThresholdOrDefault(value, timeout time.Duration) time.Duration {
+	if value > 0 && value <= timeout {
+		return value
+	}
+	return timeout
+}
+
+func concurrencyOrDefault(value int) int {
+	if value > 0 {
+		return value
+	}
+	return 4
+}

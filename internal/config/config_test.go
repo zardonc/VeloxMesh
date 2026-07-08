@@ -547,6 +547,9 @@ func TestSchedulerConfigDefaults(t *testing.T) {
 	if cfg.Scheduler.Timeout != "15ms" {
 		t.Fatalf("expected 15ms scheduler timeout, got %s", cfg.Scheduler.Timeout)
 	}
+	if cfg.Scheduler.ScorerMaxConcurrency != 4 || cfg.Scheduler.ScorerSlowThreshold != "15ms" {
+		t.Fatalf("unexpected scorer backpressure defaults: %#v", cfg.Scheduler)
+	}
 	if cfg.Scheduler.DefaultPriority != "normal" || cfg.Scheduler.MaxPriority != "high" {
 		t.Fatalf("unexpected scheduler priorities: %#v", cfg.Scheduler)
 	}
@@ -605,6 +608,23 @@ func TestSchedulerSLAPromotionConfigEnv(t *testing.T) {
 	}
 }
 
+func TestSchedulerScorerBackpressureConfigEnv(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+	t.Setenv("SCHEDULER_SCORER_MAX_CONCURRENCY", "2")
+	t.Setenv("SCHEDULER_SCORER_SLOW_THRESHOLD", "7ms")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Scheduler.ScorerMaxConcurrency != 2 || cfg.Scheduler.ScorerSlowThreshold != "7ms" {
+		t.Fatalf("scorer backpressure env overrides not loaded: %#v", cfg.Scheduler)
+	}
+}
+
 func TestSchedulerFeedbackConfigIsIndependent(t *testing.T) {
 	t.Setenv("CONFIG_FILE", "")
 	t.Setenv("DEFAULT_PROVIDER", "p1")
@@ -629,6 +649,8 @@ func TestSchedulerConfigFileLoadsWithoutMainConfigFile(t *testing.T) {
 	data := `{
 		"enabled": true,
 		"timeout": "25ms",
+		"scorer_max_concurrency": 2,
+		"scorer_slow_threshold": "8ms",
 		"queue_backend": "memory",
 		"semantic_neighbors_input_max_chars": 2048
 	}`
@@ -650,6 +672,9 @@ func TestSchedulerConfigFileLoadsWithoutMainConfigFile(t *testing.T) {
 	}
 	if cfg.Scheduler.QueueBackend != "memory" || cfg.Scheduler.SemanticNeighborsInputMaxChars != 2048 {
 		t.Fatalf("scheduler config file overrides missing: %#v", cfg.Scheduler)
+	}
+	if cfg.Scheduler.ScorerMaxConcurrency != 2 || cfg.Scheduler.ScorerSlowThreshold != "8ms" {
+		t.Fatalf("scheduler scorer backpressure overrides missing: %#v", cfg.Scheduler)
 	}
 }
 
@@ -708,6 +733,8 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 			"enabled": true,
 			"endpoint": "127.0.0.1:50051",
 			"timeout": "12ms",
+			"scorer_max_concurrency": 3,
+			"scorer_slow_threshold": "10ms",
 			"default_priority": "low",
 			"max_priority": "normal",
 			"queue_backend": "memory",
@@ -743,6 +770,9 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 	}
 	if cfg.Scheduler.Timeout != "12ms" || cfg.Scheduler.DefaultPriority != "low" || cfg.Scheduler.MaxPriority != "normal" {
 		t.Fatalf("scheduler override not applied: %#v", cfg.Scheduler)
+	}
+	if cfg.Scheduler.ScorerMaxConcurrency != 3 || cfg.Scheduler.ScorerSlowThreshold != "10ms" {
+		t.Fatalf("scheduler scorer backpressure override not applied: %#v", cfg.Scheduler)
 	}
 	if !cfg.Scheduler.FeedbackEnabled {
 		t.Fatalf("scheduler feedback override not applied")
@@ -852,6 +882,20 @@ func TestSchedulerConfigValidation(t *testing.T) {
 				c.Scheduler.ErrorSpikeAlertRate = -1
 			},
 			expectedErr: "scheduler.error_spike_alert_rate",
+		},
+		{
+			name: "invalid scorer max concurrency",
+			modify: func(c *Config) {
+				c.Scheduler.ScorerMaxConcurrency = -1
+			},
+			expectedErr: "scheduler.scorer_max_concurrency",
+		},
+		{
+			name: "invalid scorer slow threshold",
+			modify: func(c *Config) {
+				c.Scheduler.ScorerSlowThreshold = "soon"
+			},
+			expectedErr: "scheduler.scorer_slow_threshold",
 		},
 		{
 			name: "invalid semantic min count",
@@ -1083,7 +1127,7 @@ func TestEnvExampleSchedulerDisabledAndSecretSafe(t *testing.T) {
 		t.Fatalf("read .env.example: %v", err)
 	}
 	content := string(data)
-	for _, required := range []string{"# SCHEDULER_CONFIG_FILE=config.scheduler.example.json", "# CACHE_CONFIG_FILE=config.cache.example.json", "# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high", "# SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=false", "# SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL=text-embedding-3-small", "# SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT=20", "# SCHEDULER_SEMANTIC_NEIGHBORS_INPUT_MAX_CHARS=16000", "# SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT=5ms", "# SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT=15ms", "# SCHEDULER_SLA_PROMOTION_ENABLED=false", "# SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW=32"} {
+	for _, required := range []string{"# SCHEDULER_CONFIG_FILE=config.scheduler.example.json", "# CACHE_CONFIG_FILE=config.cache.example.json", "# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_SCORER_MAX_CONCURRENCY=4", "# SCHEDULER_SCORER_SLOW_THRESHOLD=15ms", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high", "# SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=false", "# SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL=text-embedding-3-small", "# SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT=20", "# SCHEDULER_SEMANTIC_NEIGHBORS_INPUT_MAX_CHARS=16000", "# SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT=5ms", "# SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT=15ms", "# SCHEDULER_SLA_PROMOTION_ENABLED=false", "# SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW=32"} {
 		if !strings.Contains(content, required) {
 			t.Fatalf(".env.example missing %q", required)
 		}

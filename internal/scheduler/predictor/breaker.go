@@ -3,6 +3,9 @@ package predictor
 import "time"
 
 type clientBreaker struct {
+	events    []bool
+	next      int
+	count     int
 	failures  int
 	openedAt  time.Time
 	threshold int
@@ -18,7 +21,7 @@ func newClientBreaker(cfg PythonClientConfig) *clientBreaker {
 	if recovery <= 0 {
 		recovery = time.Minute
 	}
-	return &clientBreaker{threshold: threshold, recovery: recovery}
+	return &clientBreaker{events: make([]bool, threshold), threshold: threshold, recovery: recovery}
 }
 
 func (b *clientBreaker) Allow() bool {
@@ -29,13 +32,20 @@ func (b *clientBreaker) Allow() bool {
 }
 
 func (b *clientBreaker) Record(success bool) {
-	if success {
-		b.failures = 0
-		b.openedAt = time.Time{}
+	if b.count == b.threshold && !b.events[b.next] {
+		b.failures--
+	}
+	b.events[b.next] = success
+	b.next = (b.next + 1) % b.threshold
+	if b.count < b.threshold {
+		b.count++
+	}
+	if !success {
+		b.failures++
+	}
+	if b.count >= b.threshold && b.failures*2 >= b.count {
+		b.openedAt = time.Now()
 		return
 	}
-	b.failures++
-	if b.failures >= b.threshold {
-		b.openedAt = time.Now()
-	}
+	b.openedAt = time.Time{}
 }

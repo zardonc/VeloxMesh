@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -95,7 +96,10 @@ func newPredictiveScorer(ctx context.Context, artifactDir string, _ *heuristic.M
 		return predictive.NewScorer(p, predictive.Config{}), schedulerStatus{AnomalyStatus: predictorStatusDegraded, AnomalyReason: predictorReasonManifestInvalid}
 	}
 	p, _ := predictor.NewPythonONNXPredictor(ctx, predictor.PythonClientConfig{
-		Endpoint: getenv("SCHEDULER_PREDICTOR_ENDPOINT", ""), Timeout: defaultPredictorTimeout,
+		Endpoint:       getenv("SCHEDULER_PREDICTOR_ENDPOINT", ""),
+		Timeout:        defaultPredictorTimeout,
+		MaxConcurrency: getenvInt("SCHEDULER_SCORER_MAX_CONCURRENCY", 4),
+		SlowThreshold:  getenvDuration("SCHEDULER_SCORER_SLOW_THRESHOLD", defaultPredictorTimeout),
 	})
 	return predictive.NewScorer(p, predictive.Config{Version: manifest.ModelVersion}), schedulerStatus{AnomalyStatus: predictorStatusUnavailable, AnomalyReason: predictorReasonSignal}
 }
@@ -123,4 +127,28 @@ func getenv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func getenvInt(key string, fallback int) int {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return fallback
+	}
+	return parsed
+}
+
+func getenvDuration(key string, fallback time.Duration) time.Duration {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+	parsed, err := time.ParseDuration(value)
+	if err != nil {
+		return fallback
+	}
+	return parsed
 }

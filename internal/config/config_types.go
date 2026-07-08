@@ -160,6 +160,8 @@ type SchedulerConfig struct {
 	Strict                          bool               `json:"strict"`
 	BreakerFailureThreshold         int                `json:"breaker_failure_threshold"`
 	BreakerRecoveryTimeout          string             `json:"breaker_recovery_timeout"`
+	ScorerMaxConcurrency            int                `json:"scorer_max_concurrency"`
+	ScorerSlowThreshold             string             `json:"scorer_slow_threshold"`
 	QueueBackend                    string             `json:"queue_backend"`
 	QueueSoftLimit                  int                `json:"queue_soft_limit"`
 	QueueHardLimit                  int                `json:"queue_hard_limit"`

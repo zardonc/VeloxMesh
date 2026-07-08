@@ -121,6 +121,9 @@ func validateSchedulerDurations(s SchedulerConfig) error {
 	if err := validateDurationField(s.BreakerRecoveryTimeout, "scheduler.breaker_recovery_timeout"); err != nil {
 		return err
 	}
+	if err := validateDurationField(s.ScorerSlowThreshold, "scheduler.scorer_slow_threshold"); err != nil {
+		return err
+	}
 	if err := validateDurationField(s.QueuePopTimeout, "scheduler.queue_pop_timeout"); err != nil {
 		return err
 	}
@@ -141,6 +144,9 @@ func validateSchedulerDurations(s SchedulerConfig) error {
 func validateSchedulerLimits(s SchedulerConfig) error {
 	if s.BreakerFailureThreshold < 1 {
 		return fmt.Errorf("scheduler.breaker_failure_threshold must be >= 1")
+	}
+	if s.ScorerMaxConcurrency < 1 {
+		return fmt.Errorf("scheduler.scorer_max_concurrency must be >= 1")
 	}
 	if s.SemanticNeighborsMinCount < 1 {
 		return fmt.Errorf("scheduler.semantic_neighbors_min_count must be >= 1")
