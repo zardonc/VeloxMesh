@@ -12,7 +12,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 
 ## Milestones
 
-- [ ] **v7.8 Scheduler Scoring Backpressure Hardening** - Phase 26 (planned)
+- [x] **v7.8 Scheduler Scoring Backpressure Hardening** - Phase 26 (planned) (completed 2026-07-08)
 - [x] **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** - Phases 23-25 (shipped 2026-07-08; archive: `.planning/milestones/v7.7-ROADMAP.md`)
 - [x] **v7.6 Scheduler 1.0 + Config** - Phases 20-22 (shipped 2026-07-06; archive: `.planning/milestones/v7.6-ROADMAP.md`)
 - [x] **v7.5 Scheduler Enhancements** - Phases 17-19 (shipped 2026-07-05; archive: `.planning/milestones/v7.5-ROADMAP.md`)
@@ -29,7 +29,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 
 | Phase | Name | Goal | Requirements | Status |
 |-------|------|------|--------------|--------|
-| 26 | Scheduler Scoring Backpressure Hardening | Protect Gateway intake from slow or unhealthy external Scheduler/Python predictor scoring while preserving synchronous enqueue semantics and fast heuristic/FIFO fallback. | SSBH-01..04 | Planned |
+| 26 | Scheduler Scoring Backpressure Hardening | 2/2 | Complete   | 2026-07-08 |
 
 ## Recently Shipped v7.7 Phases
 
