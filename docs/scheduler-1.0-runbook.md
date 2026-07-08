@@ -93,6 +93,13 @@ Queue backend behavior:
 - Explicit Redis queueing is for high-concurrency single-node bursts or future extension work. It is not a cross-node task-stealing queue.
 - `FallbackQueue` now retries primary writes after a primary failure, merges primary and memory fallback reads, and falls back to memory when primary returns empty.
 
+Fallback queue concurrency notes:
+
+- `FallbackQueue` does not hold one global mutex across Redis or memory queue I/O. Redis and memory queues keep their own concurrency protection.
+- Cross-queue operations such as `primary.Push` followed by `fallback.Remove`, or `PeekMin` followed by `PopMin`, are not globally atomic.
+- This can allow small ordering differences between primary and fallback queues under concurrency. That is acceptable for scheduler fallback behavior.
+- If future code re-pushes the same `TaskID` during retry, migration, or score refresh, add task-level de-duplication or a per-task move lock before enabling that path.
+
 Queue limit behavior:
 
 - `queue_soft_limit=0` disables soft-limit backpressure.
