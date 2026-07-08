@@ -2,14 +2,11 @@ package scheduler
 
 import (
 	"context"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 
 	"veloxmesh/internal/hotstate"
 )
-
-const redisTaskLockTTL = 30 * time.Second
 
 type RedisQueue struct {
 	cmd redis.Cmdable
@@ -78,26 +75,4 @@ func (q *RedisQueue) Len(ctx context.Context) (int64, error) {
 
 func (q *RedisQueue) keyForTest() string {
 	return q.key
-}
-
-type RedisTaskLocker struct {
-	cmd       redis.Cmdable
-	namespace string
-	ttl       time.Duration
-}
-
-func NewRedisTaskLocker(cmd redis.Cmdable, namespace string) *RedisTaskLocker {
-	return &RedisTaskLocker{cmd: cmd, namespace: namespace, ttl: redisTaskLockTTL}
-}
-
-func (l *RedisTaskLocker) Claim(ctx context.Context, taskID string) (bool, error) {
-	return l.cmd.SetNX(ctx, l.key(taskID), "1", l.ttl).Result()
-}
-
-func (l *RedisTaskLocker) Release(ctx context.Context, taskID string) error {
-	return l.cmd.Del(ctx, l.key(taskID)).Err()
-}
-
-func (l *RedisTaskLocker) key(taskID string) string {
-	return hotstate.NamespacedKey(l.namespace, "scheduler_task_lock", taskID)
 }

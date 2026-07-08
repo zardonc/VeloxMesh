@@ -14,12 +14,6 @@ type Executor struct {
 	Registry *ResultRegistry
 	Metrics  observability.Metrics
 	Promoter *SLAPromoter
-	Locker   TaskLocker
-}
-
-type TaskLocker interface {
-	Claim(ctx context.Context, taskID string) (bool, error)
-	Release(ctx context.Context, taskID string) error
 }
 
 func (e *Executor) RunOne(ctx context.Context) error {
@@ -29,19 +23,6 @@ func (e *Executor) RunOne(ctx context.Context) error {
 	item, err := e.Queue.PopMin(ctx)
 	if err != nil {
 		return err
-	}
-	if e.Locker != nil {
-		claimed, err := e.Locker.Claim(ctx, item.TaskID)
-		if err != nil {
-			return err
-		}
-		if !claimed {
-			if e.Metrics != nil {
-				e.Metrics.IncSchedulerTaskLockSkip("redis", "lock_exists")
-			}
-			return nil
-		}
-		defer func() { _ = e.Locker.Release(context.Background(), item.TaskID) }()
 	}
 	handler, ok := e.Registry.Handler(item.TaskID)
 	if !ok {
@@ -90,8 +71,8 @@ func (r *SynchronousRunner) SlotUsage() (used int, total int, ok bool) {
 
 func (r *SynchronousRunner) RunChat(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error)) (*llm.LLMResponse, error) {
 	start := time.Now()
-	task, err := r.Intake.Submit(ctx, req, func(runCtx context.Context) TaskResult {
-		resp, err := execute(runCtx, req)
+	task, err := r.Intake.Submit(ctx, req, func(context.Context) TaskResult {
+		resp, err := execute(ctx, req)
 		return TaskResult{Response: resp, Error: err}
 	})
 	if err != nil {
@@ -126,8 +107,8 @@ type StreamResult struct {
 
 func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error)) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
 	start := time.Now()
-	task, err := r.Intake.Submit(ctx, req, func(runCtx context.Context) TaskResult {
-		events, resp, err := execute(runCtx, req)
+	task, err := r.Intake.Submit(ctx, req, func(context.Context) TaskResult {
+		events, resp, err := execute(ctx, req)
 		return TaskResult{Response: StreamResult{Events: events, Response: resp}, Error: err}
 	})
 	if err != nil {
@@ -159,16 +140,10 @@ func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, 
 }
 
 func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (TaskResult, error) {
-	execDone := make(chan error, 1)
 	waitDone := make(chan struct {
 		result TaskResult
 		err    error
 	}, 1)
-	go func() {
-		r.slots <- struct{}{}
-		defer func() { <-r.slots }()
-		execDone <- r.Executor.RunOne(ctx)
-	}()
 	go func() {
 		result, err := r.Registry.Wait(ctx, taskID)
 		waitDone <- struct {
@@ -176,17 +151,37 @@ func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (Tas
 			err    error
 		}{result: result, err: err}
 	}()
-	select {
-	case waited := <-waitDone:
-		return waited.result, waited.err
-	case err := <-execDone:
+
+	for {
+		select {
+		case waited := <-waitDone:
+			return waited.result, waited.err
+		case r.slots <- struct{}{}:
+		case <-ctx.Done():
+			return TaskResult{}, ctx.Err()
+		}
+		err := r.Executor.RunOne(ctx)
+		<-r.slots
 		if err != nil {
 			return TaskResult{}, err
 		}
-		waited := <-waitDone
-		return waited.result, waited.err
-	case <-ctx.Done():
-		return TaskResult{}, ctx.Err()
+		select {
+		case waited := <-waitDone:
+			return waited.result, waited.err
+		default:
+		}
+		depth, err := r.Executor.Queue.Len(ctx)
+		if err != nil {
+			return TaskResult{}, err
+		}
+		if depth == 0 {
+			select {
+			case waited := <-waitDone:
+				return waited.result, waited.err
+			case <-ctx.Done():
+				return TaskResult{}, ctx.Err()
+			}
+		}
 	}
 }
 

@@ -157,9 +157,9 @@ func TestNewSchedulerQueueDefaultsToMemoryWhenRedisIsEnabled(t *testing.T) {
 		RedisNamespace: "scheduler-test",
 		Scheduler:      config.SchedulerConfig{QueueBackend: "auto"},
 	}
-	queue, backend, locker := newSchedulerQueue(context.Background(), cfg, discardLogger())
-	if backend != "memory" || locker != nil {
-		t.Fatalf("expected memory backend without locker, got backend=%s locker=%T", backend, locker)
+	queue, backend := newSchedulerQueue(context.Background(), cfg, discardLogger())
+	if backend != "memory" {
+		t.Fatalf("expected memory backend, got backend=%s", backend)
 	}
 	if _, ok := queue.(*scheduler.MemoryQueue); !ok {
 		t.Fatalf("expected memory queue, got %T", queue)
@@ -175,9 +175,9 @@ func TestNewSchedulerQueueExplicitRedisIsNodeScoped(t *testing.T) {
 		NodeID:         "node-a",
 		Scheduler:      config.SchedulerConfig{QueueBackend: "redis"},
 	}
-	queue, backend, locker := newSchedulerQueue(context.Background(), cfg, discardLogger())
-	if backend != "redis" || locker == nil {
-		t.Fatalf("expected redis backend with locker, got backend=%s locker=%T", backend, locker)
+	queue, backend := newSchedulerQueue(context.Background(), cfg, discardLogger())
+	if backend != "redis" {
+		t.Fatalf("expected redis backend, got backend=%s", backend)
 	}
 	if _, ok := queue.(*scheduler.RedisQueue); !ok {
 		t.Fatalf("expected redis queue, got %T", queue)

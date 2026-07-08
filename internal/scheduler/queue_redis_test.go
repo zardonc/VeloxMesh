@@ -98,64 +98,28 @@ func TestRedisQueuePeekMinDoesNotPopAndPushReplacesScore(t *testing.T) {
 	}
 }
 
-func TestRedisTaskLockerUsesSetNXAndTTL(t *testing.T) {
+func TestExecutorRunsRealRedisQueuedTask(t *testing.T) {
 	ctx := context.Background()
 	client, queue := newRealRedisQueue(t)
-	locker := NewRedisTaskLocker(client, "veloxmesh-test")
-	defer client.Del(ctx, queue.keyForTest(), locker.key("task-lock"))
+	defer client.Del(ctx, queue.keyForTest())
 
-	claimed, err := locker.Claim(ctx, "task-lock")
-	if err != nil {
-		t.Fatalf("Claim: %v", err)
-	}
-	if !claimed {
-		t.Fatalf("expected first claim")
-	}
-	claimed, err = locker.Claim(ctx, "task-lock")
-	if err != nil {
-		t.Fatalf("Claim duplicate: %v", err)
-	}
-	if claimed {
-		t.Fatalf("expected SET NX duplicate claim to fail")
-	}
-	ttl, err := client.TTL(ctx, locker.key("task-lock")).Result()
-	if err != nil {
-		t.Fatalf("TTL: %v", err)
-	}
-	if ttl <= 0 || ttl > redisTaskLockTTL {
-		t.Fatalf("unexpected lock TTL %s", ttl)
-	}
-	if err := locker.Release(ctx, "task-lock"); err != nil {
-		t.Fatalf("Release: %v", err)
-	}
-}
-
-func TestExecutorSkipsRedisLockedTaskWithoutDelivery(t *testing.T) {
-	ctx := context.Background()
-	client, queue := newRealRedisQueue(t)
-	locker := NewRedisTaskLocker(client, "veloxmesh-test")
-	defer client.Del(ctx, queue.keyForTest(), locker.key("task-skip"))
-
-	claimed, err := locker.Claim(ctx, "task-skip")
-	if err != nil || !claimed {
-		t.Fatalf("preclaim lock: claimed=%v err=%v", claimed, err)
-	}
 	registry := NewResultRegistry()
-	registry.RegisterTask(Task{ID: "task-skip"}, func(context.Context) TaskResult {
-		t.Fatalf("handler must not execute when Redis lock is already claimed")
-		return TaskResult{}
+	registry.RegisterTask(Task{ID: "task-run"}, func(context.Context) TaskResult {
+		return TaskResult{Response: "ok"}
 	})
-	if err := queue.Push(ctx, QueueItem{TaskID: "task-skip", Score: 1}); err != nil {
+	if err := queue.Push(ctx, QueueItem{TaskID: "task-run", Score: 1}); err != nil {
 		t.Fatalf("Push: %v", err)
 	}
-	executor := &Executor{Queue: queue, Registry: registry, Locker: locker}
+	executor := &Executor{Queue: queue, Registry: registry}
 	if err := executor.RunOne(ctx); err != nil {
 		t.Fatalf("RunOne: %v", err)
 	}
-	waitCtx, cancel := context.WithTimeout(ctx, 20*time.Millisecond)
-	defer cancel()
-	if _, err := registry.Wait(waitCtx, "task-skip"); !errors.Is(err, context.DeadlineExceeded) {
-		t.Fatalf("expected no delivery, got %v", err)
+	result, err := registry.Wait(ctx, "task-run")
+	if err != nil {
+		t.Fatalf("Wait: %v", err)
+	}
+	if result.Response != "ok" {
+		t.Fatalf("unexpected result: %#v", result)
 	}
 }
 

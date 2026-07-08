@@ -89,6 +89,56 @@ func TestSynchronousRunnerHonorsExecutorConcurrency(t *testing.T) {
 	}
 }
 
+func TestSynchronousRunnerDrainsUntilSubmittedTaskCompletes(t *testing.T) {
+	registry := NewResultRegistry()
+	queue := NewMemoryQueue()
+	intake := &TaskIntake{Queue: queue, Registry: registry}
+	runner := NewSynchronousRunnerWithConcurrency(intake, &Executor{Queue: queue, Registry: registry}, registry, 1)
+	registry.RegisterTask(Task{ID: "first"}, func(context.Context) TaskResult {
+		return TaskResult{Response: "first"}
+	})
+	registry.RegisterTask(Task{ID: "target"}, func(context.Context) TaskResult {
+		return TaskResult{Response: "target"}
+	})
+	if err := queue.Push(context.Background(), QueueItem{TaskID: "first", Score: 1}); err != nil {
+		t.Fatalf("Push first: %v", err)
+	}
+	if err := queue.Push(context.Background(), QueueItem{TaskID: "target", Score: 2}); err != nil {
+		t.Fatalf("Push target: %v", err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	result, err := runner.waitForTask(ctx, "target")
+	if err != nil {
+		t.Fatalf("waitForTask: %v", err)
+	}
+	if result.Response != "target" {
+		t.Fatalf("unexpected result: %#v", result)
+	}
+}
+
+func TestSynchronousRunnerExecutesHandlerWithSubmittedRequestContext(t *testing.T) {
+	registry := NewResultRegistry()
+	queue := NewMemoryQueue()
+	intake := &TaskIntake{
+		Queue: queue, Scorer: FIFOScorer{Reason: "disabled"}, Registry: registry,
+		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh}, Backend: "memory",
+	}
+	runner := NewSynchronousRunner(intake, &Executor{Queue: queue, Registry: registry}, registry)
+	ctx := context.WithValue(context.Background(), testContextKey{}, "request-context")
+
+	_, err := runner.RunChat(ctx, &llm.LLMRequest{RequestID: "ctx-task"}, func(runCtx context.Context, _ *llm.LLMRequest) (*llm.LLMResponse, error) {
+		if runCtx.Value(testContextKey{}) != "request-context" {
+			return nil, errors.New("handler received wrong context")
+		}
+		return &llm.LLMResponse{GatewayID: "ctx-task"}, nil
+	})
+	if err != nil {
+		t.Fatalf("RunChat: %v", err)
+	}
+}
+
 func TestExecutorCancelRemovesAndUnregisters(t *testing.T) {
 	registry := NewResultRegistry()
 	queue := NewMemoryQueue()
@@ -373,6 +423,8 @@ type errorScorer struct{}
 func (errorScorer) Score(context.Context, []TaskFeature) ([]ScoreResult, error) {
 	return nil, errors.New("scheduler unavailable")
 }
+
+type testContextKey struct{}
 
 func semanticNeighborIntake(scorer Scorer, enricher SemanticNeighborEnricher) *TaskIntake {
 	return &TaskIntake{
