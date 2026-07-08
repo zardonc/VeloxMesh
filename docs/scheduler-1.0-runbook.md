@@ -58,6 +58,7 @@ Use environment variables for local development and JSON files for structured de
 | Scheduler component file | `SCHEDULER_CONFIG_FILE` / `scheduler_config_file` | unset |
 | Cache component file | `CACHE_CONFIG_FILE` / `cache_config_file` | unset |
 | Heuristic overrides | `SCHEDULER_HEURISTIC_CONFIG_FILE` / `scheduler.heuristic_config_file` | unset |
+| Queue backend | `SCHEDULER_QUEUE_BACKEND` / `scheduler.queue_backend` | `auto` |
 | Queue soft limit | `SCHEDULER_QUEUE_SOFT_LIMIT` / `scheduler.queue_soft_limit` | `0` |
 | Queue hard limit | `SCHEDULER_QUEUE_HARD_LIMIT` / `scheduler.queue_hard_limit` | `0` |
 | Soft-limit wait | `SCHEDULER_QUEUE_POP_TIMEOUT` / `scheduler.queue_pop_timeout` | `100ms` |
@@ -67,9 +68,16 @@ Local scheduler-enabled example:
 ```env
 SCHEDULER_ENABLED=true
 SCHEDULER_MODE=heuristic
-SCHEDULER_QUEUE_BACKEND=auto
+SCHEDULER_QUEUE_BACKEND=memory
 SCHEDULER_EXECUTOR_CONCURRENCY=1
 ```
+
+Queue backend behavior:
+
+- `auto`, empty, or `memory` uses the in-memory queue. This is the default and is the preferred single-node path.
+- `redis` uses Redis only when Redis is enabled and reachable. The queue key is node-scoped as `scheduler_queue:gateway-<node_id>` under the configured Redis namespace.
+- Explicit Redis queueing is for high-concurrency single-node bursts or future extension work. It is not a cross-node task-stealing queue.
+- `FallbackQueue` now retries primary writes after a primary failure, merges primary and memory fallback reads, and falls back to memory when primary returns empty.
 
 Queue limit behavior:
 
@@ -93,7 +101,8 @@ CACHE_CONFIG_FILE=config.cache.example.json
 | Scenario | Expected behavior | Proof command |
 | --- | --- | --- |
 | Scheduler down | Gateway falls back instead of blocking forwarding. | `go test -timeout 60s ./internal/scheduler -run TestSchedulerClient` |
-| Redis unavailable | Queue path degrades to memory where configured. Redis-queued tasks from before the failure are not recovered from memory fallback. | `go test -timeout 60s ./internal/scheduler -run TestFallbackQueue` |
+| Redis unavailable | Default queueing stays in memory. Explicit Redis queueing falls back to memory at startup if Redis is unreachable. | `go test -timeout 60s ./internal/app -run TestNewSchedulerQueue` |
+| Redis recovers after fallback writes | `FallbackQueue` retries primary writes and reads memory fallback entries when primary is empty, avoiding stranded fallback tasks. | `go test -timeout 60s ./internal/scheduler -run TestFallbackQueue` |
 | Memory queue node crash | In-memory pending tasks are non-durable; use Redis queueing when pending work must survive a node restart. | `go test -timeout 60s ./internal/gateway -run TestService_HandleChatCompletionSchedulerQueueUnavailable` |
 | Qdrant unavailable | Semantic neighbors fail open and keep default feature values. | `go test -timeout 60s ./internal/scheduler -run TestSemanticNeighbor` |
 | ONNX predictor unhealthy | Predictive path falls back to heuristic scoring. | `go test -timeout 60s ./internal/scheduler/onnx ./internal/scheduler/predictive` |
@@ -105,8 +114,13 @@ Semantic-neighbor lookup is gateway-owned for both backends; scheduler receives 
 
 | Backend | Best fit | Config location | UAT command |
 | --- | --- | --- | --- |
-| Qdrant | Default vector service for local and multi-node deployments. | `cache.vector_store="qdrant"` and `cache.qdrant.addr`. | `go test -timeout 60s ./tests/integration -run TestSemanticCache -count=1` |
+| LanceDB | Plan 3 embedded single-node deployments. It is the default when no vector store is configured, but this build may degrade to noop unless compiled with LanceDB support. | unset `cache.vector_store`, or set `cache.vector_store="lancedb"` for an explicit degraded warning when unavailable. | LanceDB runtime validation is deferred until the development environment supports it. |
+| Qdrant | Plan 1/2 service-backed vector store and Plan 3 substitute when explicitly configured. | `cache.vector_store="qdrant"` and `cache.qdrant.addr`. | `go test -timeout 60s ./tests/integration -run TestSemanticCache -count=1` |
 | pgvector | Plan 4 PostgreSQL deployments that want relational and vector data together. | `cache.vector_store="pgvector"` with the Plan 4 PostgreSQL DSN in control-state config. | `go test -timeout 60s ./tests/integration -run TestPlan4PostgresSmoke -count=1` |
+
+Plan 1 stays `App + SQLite + Redis Stack + Qdrant`. Redis remains part of Plan 1 for hot state, rate/config coordination, aggregation paths, and high-concurrency extension room.
+
+Plan 3 is single-node `App + SQLite + LanceDB/Qdrant`. It defaults to LanceDB when vector-store config is absent. Set Qdrant explicitly when LanceDB is not available or when service-backed vector operations are preferred. LanceDB and Qdrant data are mutually exclusive in v7.7; no migration or shared-read path is provided.
 
 Qdrant example:
 
@@ -117,6 +131,27 @@ Qdrant example:
     "vector_store": "qdrant",
     "vector_dimension": 1536,
     "qdrant": { "addr": "localhost:6334" }
+  }
+}
+```
+
+Plan 3 Qdrant substitute example:
+
+```json
+{
+  "control_state": {
+    "backend": "sqlite",
+    "dsn": "file:veloxmesh.db?cache=shared"
+  },
+  "cache": {
+    "enabled": true,
+    "vector_store": "qdrant",
+    "vector_dimension": 1536,
+    "qdrant": { "addr": "localhost:6334" }
+  },
+  "scheduler": {
+    "enabled": true,
+    "queue_backend": "memory"
   }
 }
 ```
@@ -173,7 +208,14 @@ Run local automated evidence first:
 
 ```bash
 go test -timeout 60s ./internal/config
-go test -timeout 60s ./internal/http/handlers ./internal/scheduler
+go test -timeout 60s ./internal/app ./internal/http/handlers ./internal/scheduler
+```
+
+Current v7.7 verification:
+
+```bash
+go test -timeout 60s ./...
+go build ./...
 ```
 
 Privacy contract checks for scheduler DTO/protobuf field names are included in `go test -timeout 60s ./internal/scheduler -run TestSchedulerPrivacyContractFieldNames`.

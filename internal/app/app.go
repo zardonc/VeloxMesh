@@ -52,6 +52,7 @@ const (
 	controlRedisMaxRetries      = 1
 	controlRedisMinRetryBackoff = 50 * time.Millisecond
 	controlRedisMaxRetryBackoff = 100 * time.Millisecond
+	localSchedulerQueueNode     = "local"
 )
 
 func newControlRedisClient(cfg *config.Config, logger *slog.Logger) (*redis.Client, error) {
@@ -176,7 +177,7 @@ func schedulerAudit(repo controlstate.Repository) controlstate.AuditRepository {
 func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Logger) (scheduler.QueueBackend, string, scheduler.TaskLocker) {
 	memoryQueue := scheduler.NewMemoryQueue()
 	backend := strings.ToLower(cfg.Scheduler.QueueBackend)
-	if backend == "memory" || !cfg.RedisEnabled {
+	if backend != "redis" || !cfg.RedisEnabled {
 		return memoryQueue, "memory", nil
 	}
 	redisClient, err := newControlRedisClient(cfg, logger)
@@ -189,8 +190,16 @@ func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Log
 		_ = redisClient.Close()
 		return memoryQueue, "memory", nil
 	}
-	redisQueue := scheduler.NewRedisQueue(redisClient, cfg.RedisNamespace, "gateway")
-	return scheduler.NewFallbackQueue(redisQueue, memoryQueue), "redis", scheduler.NewRedisTaskLocker(redisClient, cfg.RedisNamespace)
+	redisQueue := scheduler.NewRedisQueue(redisClient, cfg.RedisNamespace, schedulerRedisQueueName(cfg))
+	return redisQueue, "redis", scheduler.NewRedisTaskLocker(redisClient, cfg.RedisNamespace)
+}
+
+func schedulerRedisQueueName(cfg *config.Config) string {
+	nodeID := strings.TrimSpace(cfg.NodeID)
+	if nodeID == "" {
+		nodeID = localSchedulerQueueNode
+	}
+	return "gateway-" + nodeID
 }
 
 func New() (*App, error) {

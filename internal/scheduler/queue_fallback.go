@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"sort"
 	"sync"
 )
 
@@ -28,48 +29,77 @@ func (q *FallbackQueue) MarkPrimaryAvailable() {
 func (q *FallbackQueue) Push(ctx context.Context, item QueueItem) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if q.primaryAvailable && q.primary != nil {
-		if err := q.primary.Push(ctx, item); err == nil {
-			return nil
-		}
-		q.primaryAvailable = false
+	if q.primary == nil {
+		return q.fallback.Push(ctx, item)
 	}
+	if err := q.primary.Push(ctx, item); err == nil {
+		q.primaryAvailable = true
+		if err := q.fallback.Remove(ctx, item.TaskID); err != nil && err != ErrTaskNotFound {
+			return err
+		}
+		return nil
+	}
+	q.primaryAvailable = false
 	return q.fallback.Push(ctx, item)
 }
 
 func (q *FallbackQueue) PeekMin(ctx context.Context, limit int) ([]QueueItem, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if q.primaryAvailable && q.primary != nil {
-		items, err := q.primary.PeekMin(ctx, limit)
-		if err == nil {
-			return items, nil
-		}
-		q.primaryAvailable = false
+	fallbackItems, err := q.fallback.PeekMin(ctx, limit)
+	if err != nil || q.primary == nil {
+		return fallbackItems, err
 	}
-	return q.fallback.PeekMin(ctx, limit)
+	primaryItems, err := q.primary.PeekMin(ctx, limit)
+	if err != nil {
+		q.primaryAvailable = false
+		return fallbackItems, nil
+	}
+	q.primaryAvailable = true
+	return mergeQueueItems(primaryItems, fallbackItems, limit), nil
 }
 
 func (q *FallbackQueue) PopMin(ctx context.Context) (QueueItem, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if q.primaryAvailable && q.primary != nil {
-		item, err := q.primary.PopMin(ctx)
-		if err == nil || err == ErrQueueEmpty {
-			return item, err
-		}
-		q.primaryAvailable = false
+	fallbackItems, err := q.fallback.PeekMin(ctx, 1)
+	if err != nil || q.primary == nil {
+		return q.fallback.PopMin(ctx)
 	}
-	return q.fallback.PopMin(ctx)
+	primaryItems, err := q.primary.PeekMin(ctx, 1)
+	if err != nil {
+		q.primaryAvailable = false
+		return q.fallback.PopMin(ctx)
+	}
+	q.primaryAvailable = true
+	if len(primaryItems) == 0 {
+		return q.fallback.PopMin(ctx)
+	}
+	if len(fallbackItems) > 0 && fallbackItems[0].Score <= primaryItems[0].Score {
+		return q.fallback.PopMin(ctx)
+	}
+	item, err := q.primary.PopMin(ctx)
+	if err == ErrQueueEmpty && len(fallbackItems) > 0 {
+		return q.fallback.PopMin(ctx)
+	}
+	return item, err
 }
 
 func (q *FallbackQueue) Remove(ctx context.Context, taskID string) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if q.primaryAvailable && q.primary != nil {
-		if err := q.primary.Remove(ctx, taskID); err == nil || err == ErrTaskNotFound {
-			return err
+	if q.primary == nil {
+		return q.fallback.Remove(ctx, taskID)
+	}
+	err := q.primary.Remove(ctx, taskID)
+	if err == nil {
+		q.primaryAvailable = true
+		if fallbackErr := q.fallback.Remove(ctx, taskID); fallbackErr != nil && fallbackErr != ErrTaskNotFound {
+			return fallbackErr
 		}
+		return nil
+	}
+	if err != ErrTaskNotFound {
 		q.primaryAvailable = false
 	}
 	return q.fallback.Remove(ctx, taskID)
@@ -78,12 +108,29 @@ func (q *FallbackQueue) Remove(ctx context.Context, taskID string) error {
 func (q *FallbackQueue) Len(ctx context.Context) (int64, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if q.primaryAvailable && q.primary != nil {
-		length, err := q.primary.Len(ctx)
-		if err == nil {
-			return length, nil
-		}
-		q.primaryAvailable = false
+	fallbackLen, err := q.fallback.Len(ctx)
+	if err != nil || q.primary == nil {
+		return fallbackLen, err
 	}
-	return q.fallback.Len(ctx)
+	primaryLen, err := q.primary.Len(ctx)
+	if err != nil {
+		q.primaryAvailable = false
+		return fallbackLen, nil
+	}
+	q.primaryAvailable = true
+	return primaryLen + fallbackLen, nil
+}
+
+func mergeQueueItems(primary []QueueItem, fallback []QueueItem, limit int) []QueueItem {
+	if limit < 1 {
+		return []QueueItem{}
+	}
+	items := append(append([]QueueItem{}, primary...), fallback...)
+	sort.SliceStable(items, func(i, j int) bool {
+		return items[i].Score < items[j].Score
+	})
+	if len(items) > limit {
+		return items[:limit]
+	}
+	return items
 }

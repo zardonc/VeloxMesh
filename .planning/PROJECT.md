@@ -12,6 +12,8 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
+**v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** is active. The milestone hardens Scheduler queue recovery, makes in-memory queueing the default, keeps Redis as a node-scoped optional queue, and clarifies the Plan 3 single-node LanceDB/Qdrant vector-store boundary.
+
 **v7.6 Scheduler 1.0 + Config System Unification** has shipped and is archived. The milestone delivered Scheduler 1.0 docs, safe structured config examples, scheduler admin/observability APIs, and real-component UAT evidence.
 
 **v7.5 Scheduler Enhancements** has shipped and is archived. It completed semantic-neighbor aggregate features, anomaly/OOD conservative scoring, and gateway-owned tenant SLA waiting-time promotion with sanitized metrics, logs, and durable audit evidence.
@@ -99,7 +101,10 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ### Active
 
-- No active phase. v7.6 is archived; the next milestone is not selected yet.
+- [ ] v7.7: Scheduler defaults to in-memory queueing while retaining an explicit node-scoped Redis queue option.
+- [ ] v7.7: FallbackQueue drains memory fallback entries after Redis recovery and does not strand tasks.
+- [ ] v7.7: Plan 3 remains single-node and supports LanceDB by default with explicit Qdrant compatibility when configured.
+- [ ] v7.7: Operator docs and runbooks explain queue selection, fallback behavior, Plan 1/Plan 3 deployment, and known limits.
 
 ### Deferred to Future Milestones
 
@@ -164,6 +169,9 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | ONNX anomaly/OOD scoring is conservative and optional | Missing or invalid anomaly metadata degrades anomaly behavior only; OOD severity lowers confidence and increases uncertainty without changing Scheduler RPC | Good |
 | Runtime ONNX prediction uses Python worker by default | Keeps the default Go build free of ONNX Runtime CGO/native shared-library coupling while still testing the production-shape ONNX artifact and Scheduler call chain | Good |
 | Config grouped into named nested structs | All optional subsystems (ControlState, Redis, Cache, Scheduler) follow the same nested struct pattern in v7.6; ENV variables remain backward-compatible, and component-scoped config file references are introduced alongside the unified structure | Good |
+| Scheduler in-memory queue is the default in v7.7 | Single-node Scheduler semantics are equivalent without Redis, avoid hidden fallback islands, and keep Plan 3 simple | Pending |
+| Redis Scheduler queue is node-scoped when explicitly enabled | Redis remains useful for high-concurrency local queue operations, but the gateway still owns task execution and must not steal cross-node in-memory task state | Pending |
+| Plan 3 vector store is LanceDB or Qdrant, not both | LanceDB remains the embedded default; Qdrant is an explicit substitute when configured, with no data migration or interop in v7.7 | Pending |
 
 ---
-*Last updated: 2026-07-06 - v7.6 archived; awaiting next milestone*
+*Last updated: 2026-07-08 - v7.7 milestone started*

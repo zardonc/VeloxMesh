@@ -87,7 +87,7 @@ VeloxMesh is useful when you want to:
 Optional services:
 
 - Redis Stack for distributed hot state and Redis VSS fallback
-- Qdrant for vector-backed semantic cache
+- Qdrant for vector-backed semantic cache when explicitly configured
 
 ### 2. Configure Environment
 
@@ -179,12 +179,22 @@ Common settings:
 | `REDIS_ADDR` | Redis server address |
 | `QDRANT_ADDR` | Qdrant server address for vector features |
 | `SCHEDULER_ENABLED` | Optional Scheduler scoring path; disabled by default |
+| `SCHEDULER_QUEUE_BACKEND` | Scheduler queue backend; `auto`/empty defaults to memory, `redis` is explicit and node-scoped |
 | `SCHEDULER_CONFIG_FILE` | Optional scheduler component config file |
 | `CACHE_CONFIG_FILE` | Optional cache/vector component config file |
 
 Keep secrets in environment variables or local secret stores. Do not commit real provider keys.
 
 PostgreSQL settings live in `.env.postgres.example` so the default example stays focused on the SQLite-first local path.
+
+### Deployment Plans
+
+| Plan | Components | Notes |
+| --- | --- | --- |
+| Plan 1 | App + SQLite + Redis Stack + Qdrant | Stable enhanced deployment. Redis remains for hot state, rate/config coordination, aggregation paths, and extension room. |
+| Plan 3 | App + SQLite + LanceDB or Qdrant | Single-node only. LanceDB is the default when no vector store is configured; Qdrant is used only when explicitly configured. |
+
+Scheduler queueing defaults to in-memory for Plan 1 and Plan 3. Set `SCHEDULER_QUEUE_BACKEND=redis` only when Redis is enabled and a node-scoped Redis queue is desired.
 
 ### PostgreSQL Migration And Smoke
 
@@ -247,6 +257,7 @@ VeloxMesh is primarily built with:
 - `chi` for HTTP routing
 - SQLite for durable local control state
 - Redis Stack for hot state, coordination, and selected vector fallback paths
-- Qdrant for vector-backed semantic cache workflows
+- LanceDB as the embedded Plan 3 vector default when available
+- Qdrant for explicitly configured vector-backed semantic cache workflows
 
 These dependencies support the gateway experience; most users can start with the basic Go service and add Redis or vector storage only when their deployment needs it.

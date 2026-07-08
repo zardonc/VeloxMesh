@@ -1,14 +1,14 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Updated:** 2026-07-06
-**Current focus:** v7.6 Scheduler 1.0 + Config System Unification archived; awaiting next milestone selection
+**Updated:** 2026-07-08
+**Current focus:** v7.7 Scheduler Hardening + Plan 3 Vector Compatibility
 
 ## Overview
 
 VeloxMesh is being built as vertical gateway slices. The current gateway includes the Go/Chi OpenAI-compatible data plane, provider adapters, durable control state, streaming, rate limits, semantic caching, Redis/Qdrant Plan 1 infrastructure, advanced routing, observability, multi-node coordination, PostgreSQL compatibility, and the optional Gateway Scheduler path.
 
-The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path, with PostgreSQL + pgvector available as the Plan 4 extension path. v7.6 completed Scheduler 1.0 hardening, nested config unification, scheduler admin/observability APIs, and operator-facing UAT documentation.
+The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path, with PostgreSQL + pgvector available as the Plan 4 extension path. v7.7 hardens Scheduler queue defaults and recovery behavior, and updates Plan 3 to remain single-node while supporting LanceDB by default or Qdrant when explicitly configured.
 
 ## Milestones
 
@@ -21,7 +21,16 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - [x] **v7.0 Plan 1 Foundation** - Phases 7-9 (shipped 2026-06-30; archive: `.planning/milestones/v7.0-ROADMAP.md`)
 - [x] **v5** - Phases 5-6 (shipped 2026-06-29)
 - [x] **v4** - Phases 1-4 (shipped 2026-06-23; archive: `.planning/milestones/v4-ROADMAP.md`)
+- [ ] **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** - Phases 23-25 (active)
 - [ ] **Future milestones** - BFF/Admin Console or another gateway priority
+
+## Active v7.7 Phases
+
+| Phase | Name | Goal | Requirements | Status |
+|-------|------|------|--------------|--------|
+| 23 | Scheduler Queue Hardening | Make memory the default queue, keep Redis node-scoped when explicit, and fix FallbackQueue recovery reads. | SCHQ-01..04 | Complete |
+| 24 | Plan 3 Vector Compatibility | Document and implement Plan 3 LanceDB/Qdrant selection while preserving single-node limits and Qdrant semantic-neighbor compatibility. | PLAN3-01..04 | Complete |
+| 25 | Runbooks and Verification | Update queue/deployment docs and record test coverage and known limits. | DOC-01..02 | Complete |
 
 ## Deployment Tiers
 
@@ -29,7 +38,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 | --- | --- | --- | --- |
 | **Plan 1**: Standalone Enhanced | App + Redis Stack + SQLite + Qdrant | P0 | Shipped in v7.0 |
 | **Plan 2**: Multi-Node | Multi App + Redis Stack + SQLite + Qdrant | P1 | Shipped in v7.2 |
-| **Plan 3**: Edge | App + SQLite + LanceDB (`-tags lancedb`, Linux/macOS only) | P3 | Future |
+| **Plan 3**: Edge | App + SQLite + LanceDB by default, or Qdrant when configured | P3 | Active in v7.7 |
 | **Plan 4**: Extension | App + Redis Stack + PostgreSQL + pgvector | P3 | Shipped in v7.3 |
 
 ## Future Milestones
@@ -40,6 +49,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 ## Notes
 
 - Scheduler is optional and disabled by default.
+- Scheduler queueing defaults to in-memory in v7.7; Redis queueing is explicit and node-scoped.
 - Gateway remains the source of truth for queue ownership, task state, execution, promotion, and fallback behavior.
 - Scheduler must not receive raw prompts, embeddings, semantic-cache payloads, provider secrets, API keys, or authorization headers.
 - Static virtual deadline scoring remains the default; v7.5 only adds bounded, policy-driven SLA promotion.
@@ -47,4 +57,4 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - Config unification in v7.6 is backward-compatible: existing ENV variables remain valid; nested struct grouping is the new preferred form.
 
 ---
-*Roadmap refreshed: 2026-07-06 - v7.6 archived*
+*Roadmap refreshed: 2026-07-08 - v7.7 started*

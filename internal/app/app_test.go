@@ -2,14 +2,19 @@ package app
 
 import (
 	"context"
+	"io"
+	"log/slog"
 	"net/url"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/controlstate/postgres"
+	"veloxmesh/internal/scheduler"
 	"veloxmesh/internal/testenv"
 )
 
@@ -143,6 +148,47 @@ func TestApp_SchedulerRedisQueueFailureUsesMemory(t *testing.T) {
 	if application.SchedulerQueueBackend != "memory" {
 		t.Fatalf("expected memory scheduler queue, got %s", application.SchedulerQueueBackend)
 	}
+}
+
+func TestNewSchedulerQueueDefaultsToMemoryWhenRedisIsEnabled(t *testing.T) {
+	cfg := &config.Config{
+		RedisEnabled:   true,
+		RedisAddr:      "127.0.0.1:1",
+		RedisNamespace: "scheduler-test",
+		Scheduler:      config.SchedulerConfig{QueueBackend: "auto"},
+	}
+	queue, backend, locker := newSchedulerQueue(context.Background(), cfg, discardLogger())
+	if backend != "memory" || locker != nil {
+		t.Fatalf("expected memory backend without locker, got backend=%s locker=%T", backend, locker)
+	}
+	if _, ok := queue.(*scheduler.MemoryQueue); !ok {
+		t.Fatalf("expected memory queue, got %T", queue)
+	}
+}
+
+func TestNewSchedulerQueueExplicitRedisIsNodeScoped(t *testing.T) {
+	redisServer := miniredis.RunT(t)
+	cfg := &config.Config{
+		RedisEnabled:   true,
+		RedisAddr:      redisServer.Addr(),
+		RedisNamespace: "scheduler-test",
+		NodeID:         "node-a",
+		Scheduler:      config.SchedulerConfig{QueueBackend: "redis"},
+	}
+	queue, backend, locker := newSchedulerQueue(context.Background(), cfg, discardLogger())
+	if backend != "redis" || locker == nil {
+		t.Fatalf("expected redis backend with locker, got backend=%s locker=%T", backend, locker)
+	}
+	if _, ok := queue.(*scheduler.RedisQueue); !ok {
+		t.Fatalf("expected redis queue, got %T", queue)
+	}
+	if got := schedulerRedisQueueName(cfg); got != "gateway-node-a" {
+		t.Fatalf("queue name=%q, want gateway-node-a", got)
+	}
+}
+
+func discardLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(io.Discard, nil))
 }
 
 func TestApp_SchedulerFeedbackRequiresDurableControlState(t *testing.T) {

@@ -1,0 +1,64 @@
+# Requirements: VeloxMesh v7.7
+
+**Defined:** 2026-07-08
+**Core Value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
+
+## v7.7 Requirements
+
+### Scheduler Queue
+
+- [x] **SCHQ-01**: Operator can run Scheduler with in-memory queueing as the default backend when `queue_backend` is unset, `auto`, or `memory`.
+- [x] **SCHQ-02**: Operator can explicitly enable a Redis Scheduler queue that is scoped to the current gateway node.
+- [x] **SCHQ-03**: Tasks written to memory fallback during Redis failure are still readable after Redis later becomes available.
+- [x] **SCHQ-04**: Queue tests cover Redis-normal, Redis-failure fallback, Redis-recovery reads, default memory mode, node-scoped Redis keys, and no task loss through fallback.
+
+### Plan 3 Vector Store
+
+- [x] **PLAN3-01**: Plan 3 remains single-node and keeps the existing Plan 1 deployment shape stable.
+- [x] **PLAN3-02**: Plan 3 vector storage is documented as LanceDB by default or Qdrant when explicitly configured, with no data interop between stores.
+- [x] **PLAN3-03**: Qdrant vector adapter compatibility supports semantic cache and semantic-neighbor collection setup when configured.
+- [x] **PLAN3-04**: LanceDB code paths remain build-compatible even when the current development environment cannot run LanceDB.
+
+### Documentation
+
+- [x] **DOC-01**: Scheduler docs describe default in-memory queueing, node-scoped Redis queueing, and fixed FallbackQueue behavior.
+- [x] **DOC-02**: Deployment docs/runbooks describe Plan 1 and Plan 3 queue/vector choices, known limits, failure handling, and verification results.
+
+## Future Requirements
+
+- **PLAN3-F01**: Data migration between LanceDB and Qdrant.
+- **SCHQ-F01**: Distributed Scheduler queue execution across gateway nodes.
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| LanceDB runtime validation | Current development environment cannot configure LanceDB; keep code compatible and document the limitation. |
+| LanceDB/Qdrant data conversion | v7.7 treats the stores as mutually exclusive deployment choices. |
+| Removing Redis from Plan 1 | Plan 1 keeps Redis for high-concurrency and future extension paths. |
+| Redesigning Scheduler ownership | Gateway continues to own queueing, task execution, fallback, and promotion. |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| SCHQ-01 | Phase 23 | Complete |
+| SCHQ-02 | Phase 23 | Complete |
+| SCHQ-03 | Phase 23 | Complete |
+| SCHQ-04 | Phase 23 | Complete |
+| PLAN3-01 | Phase 24 | Complete |
+| PLAN3-02 | Phase 24 | Complete |
+| PLAN3-03 | Phase 24 | Complete |
+| PLAN3-04 | Phase 24 | Complete |
+| DOC-01 | Phase 25 | Complete |
+| DOC-02 | Phase 25 | Complete |
+
+**Coverage:**
+- v7.7 requirements: 10 total
+- Mapped to phases: 10
+- Unmapped: 0
+- Complete: 10
+
+---
+*Requirements defined: 2026-07-08*
+*Last updated: 2026-07-08 after implementation verification*

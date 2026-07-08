@@ -21,16 +21,16 @@ func newSemanticNeighborService(ctx context.Context, cfg *config.Config, logger 
 		return nil
 	}
 	vector := newVectorAdapter(ctx, cfg, logger)
-	if ensurer, ok := vector.(storage.VectorCollectionEnsurer); ok {
-		err := ensurer.EnsureCollection(ctx, scheduler.SemanticNeighborCollection, cfg.Cache.VectorDimension)
-		if err != nil {
-			logger.Warn("semantic neighbors disabled; vector collection ensure failed", "reason", "startup_ensure", "error", err)
-			observability.DefaultMetrics.IncSemanticNeighborError("startup_ensure")
-			observability.DefaultMetrics.IncSemanticNeighborFallback("error")
-			return nil
-		}
-	} else if cfg.SemanticCacheVectorStore == "qdrant" || cfg.SemanticCacheVectorStore == "pgvector" {
+	ensurer, ok := vector.(storage.VectorCollectionEnsurer)
+	if !ok {
 		logger.Warn("semantic neighbors disabled; vector collection ensure unavailable", "reason", "startup_ensure", "store", cfg.SemanticCacheVectorStore)
+		observability.DefaultMetrics.IncSemanticNeighborError("startup_ensure")
+		observability.DefaultMetrics.IncSemanticNeighborFallback("error")
+		return nil
+	}
+	err := ensurer.EnsureCollection(ctx, scheduler.SemanticNeighborCollection, cfg.Cache.VectorDimension)
+	if err != nil {
+		logger.Warn("semantic neighbors disabled; vector collection ensure failed", "reason", "startup_ensure", "error", err)
 		observability.DefaultMetrics.IncSemanticNeighborError("startup_ensure")
 		observability.DefaultMetrics.IncSemanticNeighborFallback("error")
 		return nil
