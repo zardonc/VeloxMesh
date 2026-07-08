@@ -565,6 +565,9 @@ func TestSchedulerConfigDefaults(t *testing.T) {
 	if cfg.Scheduler.QualityMAPEAlertPercent != 25 || cfg.Scheduler.ErrorSpikeAlertRate != 0.05 {
 		t.Fatalf("unexpected scheduler alert defaults: %#v", cfg.Scheduler)
 	}
+	if cfg.Scheduler.QualitySampleWindow != 100 {
+		t.Fatalf("expected quality sample window 100, got %d", cfg.Scheduler.QualitySampleWindow)
+	}
 	if cfg.Scheduler.SemanticNeighborsEnabled {
 		t.Fatalf("expected semantic neighbors disabled by default")
 	}
@@ -615,12 +618,13 @@ func TestSchedulerScorerBackpressureConfigEnv(t *testing.T) {
 	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
 	t.Setenv("SCHEDULER_SCORER_MAX_CONCURRENCY", "2")
 	t.Setenv("SCHEDULER_SCORER_SLOW_THRESHOLD", "7ms")
+	t.Setenv("SCHEDULER_QUALITY_SAMPLE_WINDOW", "77")
 
 	cfg, err := LoadConfig()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if cfg.Scheduler.ScorerMaxConcurrency != 2 || cfg.Scheduler.ScorerSlowThreshold != "7ms" {
+	if cfg.Scheduler.ScorerMaxConcurrency != 2 || cfg.Scheduler.ScorerSlowThreshold != "7ms" || cfg.Scheduler.QualitySampleWindow != 77 {
 		t.Fatalf("scorer backpressure env overrides not loaded: %#v", cfg.Scheduler)
 	}
 }
@@ -651,6 +655,7 @@ func TestSchedulerConfigFileLoadsWithoutMainConfigFile(t *testing.T) {
 		"timeout": "25ms",
 		"scorer_max_concurrency": 2,
 		"scorer_slow_threshold": "8ms",
+		"quality_sample_window": 60,
 		"queue_backend": "memory",
 		"semantic_neighbors_input_max_chars": 2048
 	}`
@@ -673,7 +678,7 @@ func TestSchedulerConfigFileLoadsWithoutMainConfigFile(t *testing.T) {
 	if cfg.Scheduler.QueueBackend != "memory" || cfg.Scheduler.SemanticNeighborsInputMaxChars != 2048 {
 		t.Fatalf("scheduler config file overrides missing: %#v", cfg.Scheduler)
 	}
-	if cfg.Scheduler.ScorerMaxConcurrency != 2 || cfg.Scheduler.ScorerSlowThreshold != "8ms" {
+	if cfg.Scheduler.ScorerMaxConcurrency != 2 || cfg.Scheduler.ScorerSlowThreshold != "8ms" || cfg.Scheduler.QualitySampleWindow != 60 {
 		t.Fatalf("scheduler scorer backpressure overrides missing: %#v", cfg.Scheduler)
 	}
 }
@@ -735,6 +740,7 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 			"timeout": "12ms",
 			"scorer_max_concurrency": 3,
 			"scorer_slow_threshold": "10ms",
+			"quality_sample_window": 88,
 			"default_priority": "low",
 			"max_priority": "normal",
 			"queue_backend": "memory",
@@ -771,7 +777,7 @@ func TestSchedulerConfigJSONOverride(t *testing.T) {
 	if cfg.Scheduler.Timeout != "12ms" || cfg.Scheduler.DefaultPriority != "low" || cfg.Scheduler.MaxPriority != "normal" {
 		t.Fatalf("scheduler override not applied: %#v", cfg.Scheduler)
 	}
-	if cfg.Scheduler.ScorerMaxConcurrency != 3 || cfg.Scheduler.ScorerSlowThreshold != "10ms" {
+	if cfg.Scheduler.ScorerMaxConcurrency != 3 || cfg.Scheduler.ScorerSlowThreshold != "10ms" || cfg.Scheduler.QualitySampleWindow != 88 {
 		t.Fatalf("scheduler scorer backpressure override not applied: %#v", cfg.Scheduler)
 	}
 	if !cfg.Scheduler.FeedbackEnabled {
@@ -882,6 +888,13 @@ func TestSchedulerConfigValidation(t *testing.T) {
 				c.Scheduler.ErrorSpikeAlertRate = -1
 			},
 			expectedErr: "scheduler.error_spike_alert_rate",
+		},
+		{
+			name: "invalid quality sample window",
+			modify: func(c *Config) {
+				c.Scheduler.QualitySampleWindow = -1
+			},
+			expectedErr: "scheduler.quality_sample_window",
 		},
 		{
 			name: "invalid scorer max concurrency",
@@ -1030,6 +1043,7 @@ func TestSchedulerRolloutConfigEnv(t *testing.T) {
 	t.Setenv("SCHEDULER_ENDPOINT", "legacy:50051")
 	t.Setenv("SCHEDULER_ONNX_ENDPOINT", "onnx:50051")
 	t.Setenv("SCHEDULER_ONNX_ROLLOUT_PERCENT", "100")
+	t.Setenv("SCHEDULER_QUALITY_SAMPLE_WINDOW", "50")
 
 	cfg, err := LoadConfig()
 	if err != nil {
@@ -1038,7 +1052,7 @@ func TestSchedulerRolloutConfigEnv(t *testing.T) {
 	if cfg.Scheduler.HeuristicEndpoint != "legacy:50051" {
 		t.Fatalf("expected legacy endpoint alias, got %q", cfg.Scheduler.HeuristicEndpoint)
 	}
-	if cfg.Scheduler.ONNXEndpoint != "onnx:50051" || cfg.Scheduler.ONNXRolloutPercent != 100 {
+	if cfg.Scheduler.ONNXEndpoint != "onnx:50051" || cfg.Scheduler.ONNXRolloutPercent != 100 || cfg.Scheduler.QualitySampleWindow != 50 {
 		t.Fatalf("unexpected ONNX rollout config: %#v", cfg.Scheduler)
 	}
 }
@@ -1127,7 +1141,7 @@ func TestEnvExampleSchedulerDisabledAndSecretSafe(t *testing.T) {
 		t.Fatalf("read .env.example: %v", err)
 	}
 	content := string(data)
-	for _, required := range []string{"# SCHEDULER_CONFIG_FILE=config.scheduler.example.json", "# CACHE_CONFIG_FILE=config.cache.example.json", "# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_SCORER_MAX_CONCURRENCY=4", "# SCHEDULER_SCORER_SLOW_THRESHOLD=15ms", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high", "# SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=false", "# SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL=text-embedding-3-small", "# SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT=20", "# SCHEDULER_SEMANTIC_NEIGHBORS_INPUT_MAX_CHARS=16000", "# SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT=5ms", "# SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT=15ms", "# SCHEDULER_SLA_PROMOTION_ENABLED=false", "# SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW=32"} {
+	for _, required := range []string{"# SCHEDULER_CONFIG_FILE=config.scheduler.example.json", "# CACHE_CONFIG_FILE=config.cache.example.json", "# SCHEDULER_ENABLED=false", "# SCHEDULER_TIMEOUT=15ms", "# SCHEDULER_SCORER_MAX_CONCURRENCY=4", "# SCHEDULER_SCORER_SLOW_THRESHOLD=15ms", "# SCHEDULER_QUALITY_SAMPLE_WINDOW=100", "# SCHEDULER_DEFAULT_PRIORITY=normal", "# SCHEDULER_MAX_PRIORITY=high", "# SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=false", "# SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL=text-embedding-3-small", "# SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT=20", "# SCHEDULER_SEMANTIC_NEIGHBORS_INPUT_MAX_CHARS=16000", "# SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT=5ms", "# SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT=15ms", "# SCHEDULER_SLA_PROMOTION_ENABLED=false", "# SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW=32"} {
 		if !strings.Contains(content, required) {
 			t.Fatalf(".env.example missing %q", required)
 		}

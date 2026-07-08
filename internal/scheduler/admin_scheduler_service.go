@@ -16,7 +16,8 @@ const maxTrainingExportLimit = 10000
 const defaultTrainingExportWindow = 30 * 24 * time.Hour
 
 type RolloutPatchRequest struct {
-	ONNXRolloutPercent *int `json:"onnx_rollout_percent"`
+	ONNXRolloutPercent  *int `json:"onnx_rollout_percent"`
+	QualitySampleWindow *int `json:"quality_sample_window"`
 }
 
 type SLARulesReplaceRequest struct {
@@ -157,22 +158,41 @@ func (s *AdminSchedulerService) ExportTrainingSamples(ctx context.Context, req T
 }
 
 func (s *AdminSchedulerService) Update(ctx context.Context, req *RolloutPatchRequest) (_ *RolloutResponse, err error) {
-	if req.ONNXRolloutPercent == nil {
-		return nil, gwErr.NewGatewayError("invalid_request", "onnx_rollout_percent is required", 400)
+	if req.ONNXRolloutPercent == nil && req.QualitySampleWindow == nil {
+		return nil, gwErr.NewGatewayError("invalid_request", "rollout update field is required", 400)
 	}
-	oldPercent := s.controller.Snapshot().ONNXRolloutPercent
-	newPercent := *req.ONNXRolloutPercent
+	oldStatus := s.controller.Snapshot()
 	outcome := "success"
 	defer func() {
 		if err != nil {
 			outcome = "validation_failed"
 		}
-		s.recordAudit(ctx, outcome, map[string]interface{}{"old_percent": oldPercent, "new_percent": newPercent})
+		s.recordAudit(ctx, outcome, rolloutAuditMetadata(oldStatus, req))
 	}()
-	if _, err := s.controller.SetONNXRolloutPercent(newPercent); err != nil {
-		return nil, gwErr.NewGatewayError("invalid_request", err.Error(), 400)
+	if req.ONNXRolloutPercent != nil {
+		if _, err := s.controller.SetONNXRolloutPercent(*req.ONNXRolloutPercent); err != nil {
+			return nil, gwErr.NewGatewayError("invalid_request", err.Error(), 400)
+		}
+	}
+	if req.QualitySampleWindow != nil {
+		if _, err := s.controller.SetQualitySampleWindow(*req.QualitySampleWindow); err != nil {
+			return nil, gwErr.NewGatewayError("invalid_request", err.Error(), 400)
+		}
 	}
 	return s.Status(ctx)
+}
+
+func rolloutAuditMetadata(oldStatus SchedulerRolloutStatus, req *RolloutPatchRequest) map[string]interface{} {
+	metadata := map[string]interface{}{}
+	if req.ONNXRolloutPercent != nil {
+		metadata["old_percent"] = oldStatus.ONNXRolloutPercent
+		metadata["new_percent"] = *req.ONNXRolloutPercent
+	}
+	if req.QualitySampleWindow != nil {
+		metadata["old_quality_sample_window"] = oldStatus.QualitySampleWindow
+		metadata["new_quality_sample_window"] = *req.QualitySampleWindow
+	}
+	return metadata
 }
 
 func (s *AdminSchedulerService) addQueueStatus(ctx context.Context, resp *SchedulerRuntimeStatus) {

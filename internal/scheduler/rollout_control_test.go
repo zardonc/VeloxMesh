@@ -32,13 +32,22 @@ func TestRolloutControllerUpdateChangesWeightedScorerWithoutRebuild(t *testing.T
 }
 
 func TestPredictionQualityAlertsDoNotChangeRolloutPercent(t *testing.T) {
-	controller := NewSchedulerRolloutController(config.SchedulerConfig{Enabled: true, HeuristicEndpoint: "h", ONNXEndpoint: "o", ONNXRolloutPercent: 50, QualityMAPEAlertPercent: 10})
+	controller := NewSchedulerRolloutController(config.SchedulerConfig{Enabled: true, HeuristicEndpoint: "h", ONNXEndpoint: "o", ONNXRolloutPercent: 50, QualityMAPEAlertPercent: 10, QualitySampleWindow: 3})
 	recorder := &PredictionQualityRecorder{Controller: controller}
 	task := qualityTask(time.Now())
 
-	err := recorder.Record(context.Background(), task, TrainingLabels{ActualLatencyMs: 100, CompletedAt: time.Now()}, "sample")
-	if err != nil {
-		t.Fatalf("record quality: %v", err)
+	for i := 0; i < 2; i++ {
+		if err := recorder.Record(context.Background(), task, TrainingLabels{ActualLatencyMs: 100, CompletedAt: time.Now()}, "sample"); err != nil {
+			t.Fatalf("record quality: %v", err)
+		}
+	}
+	if alerts := controller.Snapshot().Alerts; len(alerts) != 0 {
+		t.Fatalf("expected no alert before sample window fills, got %#v", alerts)
+	}
+	for i := 0; i < 2; i++ {
+		if err := recorder.Record(context.Background(), task, TrainingLabels{ActualLatencyMs: 100, CompletedAt: time.Now()}, "sample"); err != nil {
+			t.Fatalf("record quality: %v", err)
+		}
 	}
 	status := controller.Snapshot()
 	if status.ONNXRolloutPercent != 50 {
@@ -50,14 +59,17 @@ func TestPredictionQualityAlertsDoNotChangeRolloutPercent(t *testing.T) {
 }
 
 func TestPredictionQualityErrorSpikeAlertDoesNotChangeRolloutPercent(t *testing.T) {
-	controller := NewSchedulerRolloutController(config.SchedulerConfig{Enabled: true, HeuristicEndpoint: "h", ONNXEndpoint: "o", ONNXRolloutPercent: 50, ErrorSpikeAlertRate: 0.05})
+	controller := NewSchedulerRolloutController(config.SchedulerConfig{Enabled: true, HeuristicEndpoint: "h", ONNXEndpoint: "o", ONNXRolloutPercent: 50, ErrorSpikeAlertRate: 0.5, QualitySampleWindow: 3})
 	recorder := &PredictionQualityRecorder{Controller: controller}
-	task := qualityTask(time.Now())
-	task.Metadata[schedulerPredictedLatencyMeta] = "0"
+	errorTask := qualityTask(time.Now())
+	errorTask.Metadata[schedulerPredictedLatencyMeta] = "0"
+	validTask := qualityTask(time.Now())
+	validTask.Metadata[schedulerPredictedLatencyMeta] = "100"
 
-	err := recorder.Record(context.Background(), task, TrainingLabels{ActualLatencyMs: 100, CompletedAt: time.Now()}, "sample")
-	if err != nil {
-		t.Fatalf("record quality: %v", err)
+	for _, task := range []Task{errorTask, validTask, errorTask, errorTask} {
+		if err := recorder.Record(context.Background(), task, TrainingLabels{ActualLatencyMs: 100, CompletedAt: time.Now()}, "sample"); err != nil {
+			t.Fatalf("record quality: %v", err)
+		}
 	}
 	status := controller.Snapshot()
 	if status.ONNXRolloutPercent != 50 {
@@ -65,5 +77,16 @@ func TestPredictionQualityErrorSpikeAlertDoesNotChangeRolloutPercent(t *testing.
 	}
 	if len(status.Alerts) != 1 || status.Alerts[0].Reason != RolloutAlertSchedulerErrorSpike {
 		t.Fatalf("expected error spike alert, got %#v", status.Alerts)
+	}
+}
+
+func TestRolloutControllerKeepsLatestHundredAlerts(t *testing.T) {
+	controller := NewSchedulerRolloutController(config.SchedulerConfig{QualitySampleWindow: 100})
+	for i := 0; i < 105; i++ {
+		controller.RecordAlert(RolloutAlertMAPEDegradation, string(rune('a'+i%26)))
+	}
+	alerts := controller.Snapshot().Alerts
+	if len(alerts) != 100 {
+		t.Fatalf("expected latest 100 alerts, got %d", len(alerts))
 	}
 }

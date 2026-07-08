@@ -17,6 +17,7 @@
   "scorer_slow_threshold": "15ms",
   "quality_mape_alert_percent": 25,
   "error_spike_alert_rate": 0.05,
+  "quality_sample_window": 100,
   "heuristic_config_file": "config.heuristic.example.json",
   "feedback_enabled": false,
   "semantic_neighbors_enabled": false,

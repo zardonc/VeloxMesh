@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/llm"
 )
@@ -76,6 +77,47 @@ func TestPredictionQualityRecorderSkipsInvalidMAPE(t *testing.T) {
 	}
 	if repo.rollup != nil {
 		t.Fatalf("expected no rollup for invalid MAPE, got %#v", repo.rollup)
+	}
+}
+
+func TestPredictionQualityRecorderIgnoresNonONNXAlertSamples(t *testing.T) {
+	controller := NewSchedulerRolloutController(config.SchedulerConfig{QualityMAPEAlertPercent: 10, ErrorSpikeAlertRate: 0.1, QualitySampleWindow: 1})
+	recorder := &PredictionQualityRecorder{Controller: controller}
+	task := qualityTask(time.Now())
+	task.Metadata[schedulerTypeMetadata] = string(SchedulerTypeHeuristic)
+
+	if err := recorder.Record(context.Background(), task, TrainingLabels{ActualLatencyMs: 100, CompletedAt: time.Now()}, "sample"); err != nil {
+		t.Fatalf("record quality: %v", err)
+	}
+	if alerts := controller.Snapshot().Alerts; len(alerts) != 0 {
+		t.Fatalf("expected non-ONNX sample to skip alert window, got %#v", alerts)
+	}
+}
+
+func TestPredictionQualityRecorderHonorsRuntimeWindowChange(t *testing.T) {
+	controller := NewSchedulerRolloutController(config.SchedulerConfig{ErrorSpikeAlertRate: 0.5, QualitySampleWindow: 5})
+	recorder := &PredictionQualityRecorder{Controller: controller}
+	validTask := qualityTask(time.Now())
+	validTask.Metadata[schedulerPredictedLatencyMeta] = "100"
+	errorTask := qualityTask(time.Now())
+	errorTask.Metadata[schedulerPredictedLatencyMeta] = "0"
+
+	for _, task := range []Task{validTask, validTask, validTask, validTask, errorTask} {
+		if err := recorder.Record(context.Background(), task, TrainingLabels{ActualLatencyMs: 100, CompletedAt: time.Now()}, "sample"); err != nil {
+			t.Fatalf("record quality: %v", err)
+		}
+	}
+	if alerts := controller.Snapshot().Alerts; len(alerts) != 0 {
+		t.Fatalf("expected no alert before shrinking window, got %#v", alerts)
+	}
+	if _, err := controller.SetQualitySampleWindow(2); err != nil {
+		t.Fatalf("set quality window: %v", err)
+	}
+	if err := recorder.Record(context.Background(), errorTask, TrainingLabels{ActualLatencyMs: 100, CompletedAt: time.Now()}, "sample"); err != nil {
+		t.Fatalf("record quality: %v", err)
+	}
+	if alerts := controller.Snapshot().Alerts; len(alerts) != 1 || alerts[0].Reason != RolloutAlertSchedulerErrorSpike {
+		t.Fatalf("expected shrink-aware error spike alert, got %#v", alerts)
 	}
 }
 

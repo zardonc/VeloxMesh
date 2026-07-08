@@ -57,6 +57,7 @@ func LoadConfig() (*Config, error) {
 			ONNXRolloutPercent:              getEnvInt("SCHEDULER_ONNX_ROLLOUT_PERCENT", 0),
 			QualityMAPEAlertPercent:         getEnvFloat("SCHEDULER_QUALITY_MAPE_ALERT_PERCENT", 25),
 			ErrorSpikeAlertRate:             getEnvFloat("SCHEDULER_ERROR_SPIKE_ALERT_RATE", 0.05),
+			QualitySampleWindow:             getEnvInt("SCHEDULER_QUALITY_SAMPLE_WINDOW", 100),
 			Timeout:                         getEnv("SCHEDULER_TIMEOUT", "15ms"),
 			Strict:                          getEnv("SCHEDULER_STRICT", "false") == "true",
 			BreakerFailureThreshold:         getEnvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 3),
@@ -229,6 +230,9 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src SchedulerConfig) {
 	if src.ErrorSpikeAlertRate != 0 {
 		dst.ErrorSpikeAlertRate = src.ErrorSpikeAlertRate
 	}
+	if src.QualitySampleWindow != 0 {
+		dst.QualitySampleWindow = src.QualitySampleWindow
+	}
 	if src.Timeout != "" {
 		dst.Timeout = src.Timeout
 	}
@@ -327,6 +331,9 @@ func applySchedulerDefaults(s *SchedulerConfig) {
 	}
 	if s.ErrorSpikeAlertRate == 0 {
 		s.ErrorSpikeAlertRate = 0.05
+	}
+	if s.QualitySampleWindow == 0 {
+		s.QualitySampleWindow = 100
 	}
 	if s.Timeout == "" {
 		s.Timeout = "15ms"

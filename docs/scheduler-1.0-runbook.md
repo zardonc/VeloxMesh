@@ -60,6 +60,7 @@ Use environment variables for local development and JSON files for structured de
 | Heuristic overrides | `SCHEDULER_HEURISTIC_CONFIG_FILE` / `scheduler.heuristic_config_file` | unset |
 | Scorer max concurrency | `SCHEDULER_SCORER_MAX_CONCURRENCY` / `scheduler.scorer_max_concurrency` | `4` |
 | Scorer slow threshold | `SCHEDULER_SCORER_SLOW_THRESHOLD` / `scheduler.scorer_slow_threshold` | `scheduler.timeout` |
+| Quality sample window | `SCHEDULER_QUALITY_SAMPLE_WINDOW` / `scheduler.quality_sample_window` | `100` |
 | Queue backend | `SCHEDULER_QUEUE_BACKEND` / `scheduler.queue_backend` | `auto` |
 | Queue soft limit | `SCHEDULER_QUEUE_SOFT_LIMIT` / `scheduler.queue_soft_limit` | `0` |
 | Queue hard limit | `SCHEDULER_QUEUE_HARD_LIMIT` / `scheduler.queue_hard_limit` | `0` |
@@ -74,6 +75,7 @@ SCHEDULER_QUEUE_BACKEND=memory
 SCHEDULER_EXECUTOR_CONCURRENCY=1
 SCHEDULER_SCORER_MAX_CONCURRENCY=4
 SCHEDULER_SCORER_SLOW_THRESHOLD=15ms
+SCHEDULER_QUALITY_SAMPLE_WINDOW=100
 ```
 
 Scorer backpressure rules:
@@ -82,6 +84,7 @@ Scorer backpressure rules:
 - `SCHEDULER_SCORER_MAX_CONCURRENCY` caps external scheduler/predictor calls. Requests above the cap return local fallback immediately.
 - `SCHEDULER_SCORER_SLOW_THRESHOLD` treats slow successes as degraded and records them against the circuit breaker. Keep it at or below `SCHEDULER_TIMEOUT`.
 - Keep `SCHEDULER_TIMEOUT=15ms` unless local evidence says otherwise. Treat 50-100ms as an absolute upper bound for unusual deployments, not as a default.
+- ONNX MAPE and error-spike alerts use `SCHEDULER_QUALITY_SAMPLE_WINDOW`; one bad prediction no longer trips rollout alerts by itself.
 
 Queue backend behavior:
 
@@ -193,9 +196,9 @@ Use the existing admin protections for these routes. Send `Authorization: Bearer
 | `GET /admin/v1/scheduler/sla-rules` | Read active runtime SLA promotion rules. |
 | `PUT /admin/v1/scheduler/sla-rules` | Replace the in-memory rule set after validation. |
 | `GET /admin/v1/scheduler/training-samples/export` | Export safe training features and labels as JSON or NDJSON. |
-| `PATCH /admin/scheduler/rollout` | Roll ONNX traffic back to heuristic by setting rollout to `0`. |
+| `PATCH /admin/scheduler/rollout` | Roll ONNX traffic back to heuristic by setting rollout to `0`, or update `quality_sample_window`. |
 
-Admin changes to ONNX rollout and SLA promotion rules affect the running process only. Put durable values back into `config.scheduler.example.json`, the deployment config file, or environment management before restart.
+Admin changes to ONNX rollout, quality sample window, and SLA promotion rules affect the running process only. Put durable values back into `config.scheduler.example.json`, the deployment config file, or environment management before restart.
 
 SLA rule replacement body:
 

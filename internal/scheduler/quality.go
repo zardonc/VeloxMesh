@@ -4,6 +4,7 @@ import (
 	"context"
 	"math"
 	"strconv"
+	"sync"
 	"time"
 
 	"veloxmesh/internal/controlstate"
@@ -11,11 +12,29 @@ import (
 )
 
 const qualityBucketDuration = 5 * time.Minute
+const qualityWarmupMaxSamples = 20
 
 type PredictionQualityRecorder struct {
-	Repo       controlstate.SchedulerQualityRollupRepository
-	Metrics    observability.Metrics
-	Controller *SchedulerRolloutController
+	Repo        controlstate.SchedulerQualityRollupRepository
+	Metrics     observability.Metrics
+	Controller  *SchedulerRolloutController
+	mu          sync.Mutex
+	samples     []onnxQualitySample
+	mapeActive  bool
+	errorActive bool
+}
+
+type onnxQualitySample struct {
+	validMAPE bool
+	mape      float64
+	err       bool
+}
+
+type qualityWindowStats struct {
+	total   int
+	errors  int
+	valid   int
+	mapeSum float64
 }
 
 func CalculateMAPE(predictedMs, actualMs int64) (float64, bool) {
@@ -99,23 +118,76 @@ func (r *PredictionQualityRecorder) incError(score qualityScoreEvidence) {
 }
 
 func (r *PredictionQualityRecorder) recordMAPEAlert(score qualityScoreEvidence, mape float64) {
-	status := SchedulerRolloutStatus{}
-	if r.Controller != nil {
-		status = r.Controller.Snapshot()
-	}
-	if score.SchedulerType == string(SchedulerTypeONNX) && status.QualityMAPEAlertPercent > 0 && mape > status.QualityMAPEAlertPercent {
-		r.recordAlert(RolloutAlertMAPEDegradation, "ONNX scheduler MAPE exceeded configured threshold")
-	}
+	r.recordONNXQualitySample(score, onnxQualitySample{validMAPE: true, mape: mape})
 }
 
 func (r *PredictionQualityRecorder) recordErrorSpikeAlert(score qualityScoreEvidence) {
+	r.recordONNXQualitySample(score, onnxQualitySample{err: true})
+}
+
+func (r *PredictionQualityRecorder) recordONNXQualitySample(score qualityScoreEvidence, sample onnxQualitySample) {
+	if score.SchedulerType != string(SchedulerTypeONNX) {
+		return
+	}
 	status := SchedulerRolloutStatus{}
 	if r.Controller != nil {
 		status = r.Controller.Snapshot()
 	}
-	if score.SchedulerType == string(SchedulerTypeONNX) && status.ErrorSpikeAlertRate > 0 && 1 > status.ErrorSpikeAlertRate {
-		r.recordAlert(RolloutAlertSchedulerErrorSpike, "ONNX scheduler error rate exceeded configured threshold")
+	window := qualitySampleWindowOrDefault(status.QualitySampleWindow)
+	alerts := r.recordQualitySampleLocked(sample, status, window)
+	for _, alert := range alerts {
+		r.recordAlert(alert.reason, alert.message)
 	}
+}
+
+type qualityAlert struct {
+	reason  string
+	message string
+}
+
+func (r *PredictionQualityRecorder) recordQualitySampleLocked(sample onnxQualitySample, status SchedulerRolloutStatus, window int) []qualityAlert {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.samples = append(r.samples, sample)
+	if len(r.samples) > window {
+		r.samples = r.samples[len(r.samples)-window:]
+	}
+	stats := qualityStats(r.samples)
+	minSamples := min(qualityWarmupMaxSamples, window)
+	alerts := []qualityAlert{}
+	if stats.valid >= minSamples && status.QualityMAPEAlertPercent > 0 {
+		above := stats.mapeSum/float64(stats.valid) > status.QualityMAPEAlertPercent
+		if above && !r.mapeActive {
+			alerts = append(alerts, qualityAlert{reason: RolloutAlertMAPEDegradation, message: "ONNX scheduler MAPE exceeded configured threshold"})
+		}
+		r.mapeActive = above
+	} else {
+		r.mapeActive = false
+	}
+	if stats.total >= minSamples && status.ErrorSpikeAlertRate > 0 {
+		above := float64(stats.errors)/float64(stats.total) > status.ErrorSpikeAlertRate
+		if above && !r.errorActive {
+			alerts = append(alerts, qualityAlert{reason: RolloutAlertSchedulerErrorSpike, message: "ONNX scheduler error rate exceeded configured threshold"})
+		}
+		r.errorActive = above
+	} else {
+		r.errorActive = false
+	}
+	return alerts
+}
+
+func qualityStats(samples []onnxQualitySample) qualityWindowStats {
+	stats := qualityWindowStats{total: len(samples)}
+	for _, sample := range samples {
+		if sample.err {
+			stats.errors++
+		}
+		if sample.validMAPE {
+			stats.valid++
+			stats.mapeSum += sample.mape
+		}
+	}
+	return stats
 }
 
 func (r *PredictionQualityRecorder) recordAlert(reason string, message string) {

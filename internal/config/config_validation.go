@@ -166,6 +166,9 @@ func validateSchedulerLimits(s SchedulerConfig) error {
 	if math.IsNaN(s.ErrorSpikeAlertRate) || math.IsInf(s.ErrorSpikeAlertRate, 0) || s.ErrorSpikeAlertRate < 0 {
 		return fmt.Errorf("scheduler.error_spike_alert_rate must be a non-negative finite value")
 	}
+	if s.QualitySampleWindow < 1 || s.QualitySampleWindow > 10000 {
+		return fmt.Errorf("scheduler.quality_sample_window must be between 1 and 10000")
+	}
 	if s.QueueSoftLimit < 0 || s.QueueHardLimit < 0 {
 		return fmt.Errorf("scheduler queue limits must be >= 0")
 	}

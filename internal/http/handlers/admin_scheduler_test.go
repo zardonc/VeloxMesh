@@ -37,7 +37,7 @@ func TestAdminSchedulerRolloutPatchUpdatesPercent(t *testing.T) {
 	r := chi.NewRouter()
 	r.Patch("/admin/scheduler/rollout", handler.PatchRollout)
 
-	req := httptest.NewRequest("PATCH", "/admin/scheduler/rollout", bytes.NewBufferString(`{"onnx_rollout_percent":0}`))
+	req := httptest.NewRequest("PATCH", "/admin/scheduler/rollout", bytes.NewBufferString(`{"onnx_rollout_percent":0,"quality_sample_window":25}`))
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 
@@ -48,8 +48,27 @@ func TestAdminSchedulerRolloutPatchUpdatesPercent(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("decode response: %v", err)
 	}
-	if resp.Status.ONNXRolloutPercent != 0 {
-		t.Fatalf("expected rollout percent 0, got %#v", resp.Status)
+	if resp.Status.ONNXRolloutPercent != 0 || resp.Status.QualitySampleWindow != 25 {
+		t.Fatalf("expected rollout percent 0 and window 25, got %#v", resp.Status)
+	}
+}
+
+func TestAdminSchedulerRolloutPatchUpdatesQualitySampleWindowOnly(t *testing.T) {
+	handler := testAdminSchedulerHandler(t)
+	r := chi.NewRouter()
+	r.Patch("/admin/scheduler/rollout", handler.PatchRollout)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, httptest.NewRequest("PATCH", "/admin/scheduler/rollout", bytes.NewBufferString(`{"quality_sample_window":33}`)))
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", rr.Code, rr.Body.String())
+	}
+	var resp scheduler.RolloutResponse
+	if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if resp.Status.ONNXRolloutPercent != 10 || resp.Status.QualitySampleWindow != 33 {
+		t.Fatalf("unexpected rollout response: %#v", resp.Status)
 	}
 }
 
@@ -58,7 +77,7 @@ func TestAdminSchedulerRolloutPatchValidatesPercentAndBody(t *testing.T) {
 	r := chi.NewRouter()
 	r.Patch("/admin/scheduler/rollout", handler.PatchRollout)
 
-	for _, body := range []string{`{"onnx_rollout_percent":-1}`, `{"onnx_rollout_percent":101}`, `{"onnx_rollout_percent":1,"extra":true}`} {
+	for _, body := range []string{`{}`, `{"onnx_rollout_percent":-1}`, `{"onnx_rollout_percent":101}`, `{"quality_sample_window":0}`, `{"quality_sample_window":10001}`, `{"onnx_rollout_percent":1,"extra":true}`} {
 		rr := httptest.NewRecorder()
 		r.ServeHTTP(rr, httptest.NewRequest("PATCH", "/admin/scheduler/rollout", strings.NewReader(body)))
 		if rr.Code != http.StatusBadRequest {

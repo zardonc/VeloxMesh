@@ -69,6 +69,7 @@
     "onnx_rollout_percent": 0,
     "quality_mape_alert_percent": 25,
     "error_spike_alert_rate": 0.05,
+    "quality_sample_window": 100,
     "feedback_enabled": false,
     "semantic_neighbors_enabled": false,
     "semantic_neighbors_embedding_model": "text-embedding-3-small",

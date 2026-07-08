@@ -156,6 +156,7 @@ type SchedulerConfig struct {
 	ONNXRolloutPercent              int                `json:"onnx_rollout_percent"`
 	QualityMAPEAlertPercent         float64            `json:"quality_mape_alert_percent"`
 	ErrorSpikeAlertRate             float64            `json:"error_spike_alert_rate"`
+	QualitySampleWindow             int                `json:"quality_sample_window"`
 	Timeout                         string             `json:"timeout"`
 	Strict                          bool               `json:"strict"`
 	BreakerFailureThreshold         int                `json:"breaker_failure_threshold"`

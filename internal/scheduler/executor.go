@@ -24,11 +24,11 @@ func (e *Executor) RunOne(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	e.Registry.MarkRunning(item.TaskID)
 	handler, ok := e.Registry.Handler(item.TaskID)
 	if !ok {
 		return ErrTaskNotFound
 	}
-	e.Registry.MarkRunning(item.TaskID)
 	result := handler(ctx)
 	returned := e.Registry.Deliver(item.TaskID, result)
 	if !returned && result.Error != nil {
@@ -164,6 +164,14 @@ func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (Tas
 		<-r.slots
 		if err != nil {
 			if errors.Is(err, ErrQueueEmpty) {
+				select {
+				case waited := <-waitDone:
+					return waited.result, waited.err
+				default:
+				}
+				if !r.Registry.IsRunning(taskID) {
+					return TaskResult{}, err
+				}
 				return waitForRegistryResult(ctx, waitDone)
 			}
 			return TaskResult{}, err
@@ -178,6 +186,9 @@ func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (Tas
 			return TaskResult{}, err
 		}
 		if depth == 0 {
+			if !r.Registry.IsRunning(taskID) {
+				return TaskResult{}, ErrQueueEmpty
+			}
 			return waitForRegistryResult(ctx, waitDone)
 		}
 	}
