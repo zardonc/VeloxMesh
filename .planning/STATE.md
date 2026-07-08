@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.7
-milestone_name: Scheduler Hardening + Plan 3 Vector Compatibility
-status: Awaiting next milestone
-last_updated: "2026-07-08T15:53:53.231Z"
-last_activity: 2026-07-08 — Milestone v7.7 completed and archived
+milestone: v7.8
+milestone_name: Scheduler Scoring Backpressure Hardening
+status: Planning
+last_updated: "2026-07-08T16:30:00.000Z"
+last_activity: 2026-07-08 — Phase 26 planning files created
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 1
+  completed_plans: 0
+  percent: 0
 ---
 
 ## Project Reference
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-08)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Planning next milestone
+**Current focus:** Phase 26 Scheduler Scoring Backpressure Hardening
 
 ## Current Implementation State
 
@@ -38,6 +38,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-08)
 - Phase 23 Scheduler Queue Hardening (v7.7) is implemented, verified, and shipped.
 - Phase 24 Plan 3 Vector Compatibility (v7.7) is implemented, verified, and shipped.
 - Phase 25 Runbooks and Verification (v7.7) is implemented, verified, and shipped.
+- Phase 26 Scheduler Scoring Backpressure Hardening (v7.8) is planned.
 
 ## Completed
 
@@ -59,24 +60,24 @@ See: `.planning/PROJECT.md` (updated 2026-07-08)
 
 ## Planned Next
 
-1. Define the next milestone.
+1. Execute Phase 26: Scheduler Scoring Backpressure Hardening.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-new-milestone` - define the next milestone.
+- `$gsd-execute-phase 26` - execute Scheduler scoring backpressure hardening.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: Milestone v7.7 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-08 — Milestone v7.7 completed and archived
+Phase: 26 - Scheduler Scoring Backpressure Hardening
+Plan: 26-01
+Status: Planned
+Last activity: 2026-07-08 — Phase 26 planning files created
 
 ## Operator Next Steps
 
-- Start the next milestone with `$gsd-new-milestone`.
+- Run `$gsd-execute-phase 26` when ready.
 
 ## Deferred Items
 

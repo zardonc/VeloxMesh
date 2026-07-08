@@ -2,16 +2,17 @@
 
 **Created:** 2026-06-15
 **Updated:** 2026-07-08
-**Current focus:** Planning next milestone
+**Current focus:** Phase 26 - Scheduler Scoring Backpressure Hardening
 
 ## Overview
 
 VeloxMesh is being built as vertical gateway slices. The current gateway includes the Go/Chi OpenAI-compatible data plane, provider adapters, durable control state, streaming, rate limits, semantic caching, Redis/Qdrant Plan 1 infrastructure, advanced routing, observability, multi-node coordination, PostgreSQL compatibility, and the optional Gateway Scheduler path.
 
-The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path, with PostgreSQL + pgvector available as the Plan 4 extension path. v7.7 shipped Scheduler queue default hardening, Redis node-scoped queueing, FallbackQueue recovery reads, and Plan 3 single-node LanceDB/Qdrant vector compatibility.
+The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path, with PostgreSQL + pgvector available as the Plan 4 extension path. v7.7 shipped Scheduler queue default hardening, Redis node-scoped queueing, FallbackQueue recovery reads, and Plan 3 single-node LanceDB/Qdrant vector compatibility. Phase 26 hardens synchronous Scheduler scoring against external predictor backpressure.
 
 ## Milestones
 
+- [ ] **v7.8 Scheduler Scoring Backpressure Hardening** - Phase 26 (planned)
 - [x] **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** - Phases 23-25 (shipped 2026-07-08; archive: `.planning/milestones/v7.7-ROADMAP.md`)
 - [x] **v7.6 Scheduler 1.0 + Config** - Phases 20-22 (shipped 2026-07-06; archive: `.planning/milestones/v7.6-ROADMAP.md`)
 - [x] **v7.5 Scheduler Enhancements** - Phases 17-19 (shipped 2026-07-05; archive: `.planning/milestones/v7.5-ROADMAP.md`)
@@ -23,6 +24,12 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - [x] **v5** - Phases 5-6 (shipped 2026-06-29)
 - [x] **v4** - Phases 1-4 (shipped 2026-06-23; archive: `.planning/milestones/v4-ROADMAP.md`)
 - [ ] **Future milestones** - BFF/Admin Console or another gateway priority
+
+## Planned v7.8 Phase
+
+| Phase | Name | Goal | Requirements | Status |
+|-------|------|------|--------------|--------|
+| 26 | Scheduler Scoring Backpressure Hardening | Protect Gateway intake from slow or unhealthy external Scheduler/Python predictor scoring while preserving synchronous enqueue semantics and fast heuristic/FIFO fallback. | SSBH-01..04 | Planned |
 
 ## Recently Shipped v7.7 Phases
 
@@ -50,6 +57,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 
 - Scheduler is optional and disabled by default.
 - Scheduler queueing defaults to in-memory in v7.7; Redis queueing is explicit and node-scoped.
+- Scheduler scoring is an optimization path; slow or overloaded external scorer calls must degrade quickly to heuristic/FIFO instead of blocking Gateway ingress.
 - Gateway remains the source of truth for queue ownership, task state, execution, promotion, and fallback behavior.
 - Scheduler must not receive raw prompts, embeddings, semantic-cache payloads, provider secrets, API keys, or authorization headers.
 - Static virtual deadline scoring remains the default; v7.5 only adds bounded, policy-driven SLA promotion.
@@ -57,4 +65,4 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - Config unification in v7.6 is backward-compatible: existing ENV variables remain valid; nested struct grouping is the new preferred form.
 
 ---
-*Roadmap refreshed: 2026-07-08 - v7.7 shipped*
+*Roadmap refreshed: 2026-07-08 - Phase 26 planned*
