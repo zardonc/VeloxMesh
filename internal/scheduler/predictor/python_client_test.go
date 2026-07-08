@@ -84,6 +84,29 @@ func TestClientBreakerUsesWindowInsteadOfSingleSuccessReset(t *testing.T) {
 	}
 }
 
+func TestClientBreakerHalfOpenSuccessResetsWindow(t *testing.T) {
+	breaker := newClientBreaker(PythonClientConfig{
+		BreakerFailureThreshold: 3,
+		BreakerRecoveryTimeout:  time.Millisecond,
+	})
+	breaker.Record(false)
+	breaker.Record(true)
+	breaker.Record(false)
+	breaker.openedAt = time.Now().Add(-time.Second)
+
+	if !breaker.Allow() {
+		t.Fatalf("expected half-open probe to be allowed")
+	}
+	breaker.Record(true)
+	if !breaker.Allow() || !breaker.openedAt.IsZero() {
+		t.Fatalf("expected successful half-open probe to close breaker")
+	}
+	breaker.Record(false)
+	if !breaker.Allow() {
+		t.Fatalf("expected reset window to require more failures")
+	}
+}
+
 func TestPythonPredictorSlowSuccessFallsBackAndOpensBreaker(t *testing.T) {
 	var calls atomic.Int32
 	server := startPredictorServer(t, func(context.Context, *predictorv1.BatchPredictRequest) (*predictorv1.BatchPredictResponse, error) {
@@ -151,6 +174,47 @@ func TestPythonPredictorConcurrencyLimitFallsBackWithoutWaiting(t *testing.T) {
 	<-firstDone
 	if calls.Load() != 1 {
 		t.Fatalf("expected only held call to reach server, got %d", calls.Load())
+	}
+}
+
+func TestPythonPredictorBusyDoesNotOpenBreaker(t *testing.T) {
+	release := make(chan struct{})
+	entered := make(chan struct{})
+	var calls atomic.Int32
+	server := startPredictorServer(t, func(context.Context, *predictorv1.BatchPredictRequest) (*predictorv1.BatchPredictResponse, error) {
+		calls.Add(1)
+		closeOnce(entered)
+		<-release
+		return &predictorv1.BatchPredictResponse{Predictions: []*predictorv1.Prediction{{ModelVersion: "v1", Quantiles: map[int32]float64{70: 20}}}}, nil
+	})
+	client := newTestClientWithConfig(t, PythonClientConfig{
+		Endpoint:                server.Endpoint,
+		Timeout:                 200 * time.Millisecond,
+		SlowThreshold:           200 * time.Millisecond,
+		MaxConcurrency:          1,
+		BreakerFailureThreshold: 1,
+		BreakerRecoveryTimeout:  time.Minute,
+	})
+
+	firstDone := make(chan struct{})
+	go func() {
+		_, _ = client.Predict(context.Background(), []scheduler.TaskFeature{{TaskID: "held"}})
+		close(firstDone)
+	}()
+	<-entered
+
+	busy, err := client.Predict(context.Background(), []scheduler.TaskFeature{{TaskID: "busy"}})
+	if err != nil {
+		t.Fatalf("busy Predict: %v", err)
+	}
+	close(release)
+	<-firstDone
+	next, err := client.Predict(context.Background(), []scheduler.TaskFeature{{TaskID: "next"}})
+	if err != nil {
+		t.Fatalf("next Predict: %v", err)
+	}
+	if !errors.Is(busy[0].Err, ErrPredictorBusy) || next[0].Err != nil {
+		t.Fatalf("expected busy fallback then healthy prediction, got %#v %#v", busy, next)
 	}
 }
 

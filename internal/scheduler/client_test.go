@@ -126,6 +126,26 @@ func TestGRPCScorerBreakerUsesWindowInsteadOfSingleSuccessReset(t *testing.T) {
 	}
 }
 
+func TestGRPCScorerBreakerHalfOpenSuccessResetsWindow(t *testing.T) {
+	breaker := newBreaker(3, time.Millisecond)
+	breaker.Record(false)
+	breaker.Record(true)
+	breaker.Record(false)
+	breaker.openedAt = time.Now().Add(-time.Second)
+
+	if !breaker.Allow() {
+		t.Fatalf("expected half-open probe to be allowed")
+	}
+	breaker.Record(true)
+	if breaker.State() != "closed" {
+		t.Fatalf("expected successful half-open probe to close breaker, got %s", breaker.State())
+	}
+	breaker.Record(false)
+	if breaker.State() != "closed" {
+		t.Fatalf("expected reset window to require more failures, got %s", breaker.State())
+	}
+}
+
 func TestGRPCScorerSlowSuccessFallsBackAndOpensBreaker(t *testing.T) {
 	var calls int32
 	endpoint, stop := startSchedulerServer(t, schedulerServer{
@@ -211,6 +231,53 @@ func TestGRPCScorerConcurrencyLimitFallsBackWithoutWaiting(t *testing.T) {
 	<-firstDone
 	if atomic.LoadInt32(&calls) != 1 {
 		t.Fatalf("expected only held call to reach server, got %d", calls)
+	}
+}
+
+func TestGRPCScorerBusyDoesNotOpenBreaker(t *testing.T) {
+	release := make(chan struct{})
+	entered := make(chan struct{})
+	var calls int32
+	endpoint, stop := startSchedulerServer(t, schedulerServer{
+		score: func(_ context.Context, req *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
+			atomic.AddInt32(&calls, 1)
+			closeOnce(entered)
+			<-release
+			return schedulerResponse(req, "v1"), nil
+		},
+	})
+	defer stop()
+
+	scorer := newTCPScorerWithConfig(t, endpoint, config.SchedulerConfig{
+		Enabled:                 true,
+		Endpoint:                endpoint,
+		Timeout:                 "200ms",
+		ScorerMaxConcurrency:    1,
+		ScorerSlowThreshold:     "200ms",
+		BreakerFailureThreshold: 1,
+		BreakerRecoveryTimeout:  "1m",
+	})
+	defer scorer.Close()
+
+	firstDone := make(chan struct{})
+	go func() {
+		_, _ = scorer.Score(context.Background(), []TaskFeature{{TaskID: "held", Priority: PriorityNormal}})
+		close(firstDone)
+	}()
+	<-entered
+
+	busy, err := scorer.Score(context.Background(), []TaskFeature{{TaskID: "busy", Priority: PriorityNormal}})
+	if err != nil {
+		t.Fatalf("busy Score: %v", err)
+	}
+	close(release)
+	<-firstDone
+	next, err := scorer.Score(context.Background(), []TaskFeature{{TaskID: "next", Priority: PriorityNormal}})
+	if err != nil {
+		t.Fatalf("next Score: %v", err)
+	}
+	if busy[0].FallbackReason != "scorer_busy" || next[0].FallbackReason != "" {
+		t.Fatalf("expected busy fallback then healthy score, got %#v %#v", busy[0], next[0])
 	}
 }
 

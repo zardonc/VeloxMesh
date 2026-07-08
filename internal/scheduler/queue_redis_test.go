@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -148,7 +149,7 @@ func TestFallbackQueueUsesMemoryWhenRealRedisPopFailsAfterPeek(t *testing.T) {
 	if got.TaskID != "fallback" {
 		t.Fatalf("expected fallback item after Redis pop failure, got %#v", got)
 	}
-	if queue.primaryAvailable {
+	if queue.primaryAvailable.Load() {
 		t.Fatalf("expected primary to be marked unavailable after Redis pop failure")
 	}
 }
@@ -207,6 +208,32 @@ func TestFallbackQueueUsesMemoryAfterRuntimeRedisFailure(t *testing.T) {
 	}
 }
 
+func TestFallbackQueueDoesNotSerializePrimaryPushIO(t *testing.T) {
+	primary := &blockingQueue{entered: make(chan struct{}, 2), release: make(chan struct{})}
+	queue := NewFallbackQueue(primary, NewMemoryQueue())
+	done := make(chan error, 2)
+
+	for _, id := range []string{"a", "b"} {
+		go func(taskID string) {
+			done <- queue.Push(context.Background(), QueueItem{TaskID: taskID, Score: 1})
+		}(id)
+	}
+	for i := 0; i < 2; i++ {
+		select {
+		case <-primary.entered:
+		case <-time.After(50 * time.Millisecond):
+			close(primary.release)
+			t.Fatalf("primary Push calls were serialized before entering the primary queue")
+		}
+	}
+	close(primary.release)
+	for i := 0; i < 2; i++ {
+		if err := <-done; err != nil {
+			t.Fatalf("Push: %v", err)
+		}
+	}
+}
+
 func newRealRedisQueue(t *testing.T) (*redis.Client, *RedisQueue) {
 	t.Helper()
 	_ = godotenv.Load("../../.env")
@@ -228,6 +255,35 @@ func newRealRedisQueue(t *testing.T) (*redis.Client, *RedisQueue) {
 	}
 	queue := NewRedisQueue(client, "veloxmesh-test", fmt.Sprintf("queue-%d", time.Now().UnixNano()))
 	return client, queue
+}
+
+type blockingQueue struct {
+	entered chan struct{}
+	release chan struct{}
+	count   atomic.Int32
+}
+
+func (q *blockingQueue) Push(context.Context, QueueItem) error {
+	q.count.Add(1)
+	q.entered <- struct{}{}
+	<-q.release
+	return nil
+}
+
+func (q *blockingQueue) PeekMin(context.Context, int) ([]QueueItem, error) {
+	return nil, ErrQueueEmpty
+}
+
+func (q *blockingQueue) PopMin(context.Context) (QueueItem, error) {
+	return QueueItem{}, ErrQueueEmpty
+}
+
+func (q *blockingQueue) Remove(context.Context, string) error {
+	return ErrTaskNotFound
+}
+
+func (q *blockingQueue) Len(context.Context) (int64, error) {
+	return int64(q.count.Load()), nil
 }
 
 type closeAfterPeekQueue struct {

@@ -84,7 +84,6 @@ func (c *PythonONNXPredictorClient) Predict(ctx context.Context, tasks []schedul
 		return NoopPredictor{Reason: ErrBreakerOpen}.Predict(ctx, tasks)
 	}
 	if !c.claimSlot() {
-		c.breaker.Record(false)
 		return NoopPredictor{Reason: ErrPredictorBusy}.Predict(ctx, tasks)
 	}
 	defer c.releaseSlot()

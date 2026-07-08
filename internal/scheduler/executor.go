@@ -164,15 +164,7 @@ func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (Tas
 		<-r.slots
 		if err != nil {
 			if errors.Is(err, ErrQueueEmpty) {
-				select {
-				case waited := <-waitDone:
-					return waited.result, waited.err
-				default:
-				}
-				if !r.Registry.IsRunning(taskID) {
-					return TaskResult{}, err
-				}
-				return waitForRegistryResult(ctx, waitDone)
+				return r.waitForRegistryOrEmpty(ctx, taskID, waitDone)
 			}
 			return TaskResult{}, err
 		}
@@ -186,20 +178,26 @@ func (r *SynchronousRunner) waitForTask(ctx context.Context, taskID string) (Tas
 			return TaskResult{}, err
 		}
 		if depth == 0 {
-			if !r.Registry.IsRunning(taskID) {
-				return TaskResult{}, ErrQueueEmpty
-			}
-			return waitForRegistryResult(ctx, waitDone)
+			return r.waitForRegistryOrEmpty(ctx, taskID, waitDone)
 		}
 	}
 }
 
-func waitForRegistryResult(ctx context.Context, waitDone <-chan taskWaitResult) (TaskResult, error) {
-	select {
-	case waited := <-waitDone:
-		return waited.result, waited.err
-	case <-ctx.Done():
-		return TaskResult{}, ctx.Err()
+func (r *SynchronousRunner) waitForRegistryOrEmpty(ctx context.Context, taskID string, waitDone <-chan taskWaitResult) (TaskResult, error) {
+	ticker := time.NewTicker(time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case waited := <-waitDone:
+			return waited.result, waited.err
+		case <-ctx.Done():
+			return TaskResult{}, ctx.Err()
+		case <-ticker.C:
+			if r.Registry.IsRunning(taskID) || len(r.slots) > 0 {
+				continue
+			}
+			return TaskResult{}, ErrQueueEmpty
+		}
 	}
 }
 

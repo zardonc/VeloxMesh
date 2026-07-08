@@ -138,7 +138,6 @@ func (s *GRPCScorer) Score(ctx context.Context, tasks []TaskFeature) ([]ScoreRes
 		return fallback(tasks, "breaker_open"), nil
 	}
 	if !s.claimSlot() {
-		s.breaker.Record(false)
 		return fallback(tasks, "scorer_busy"), nil
 	}
 	defer s.releaseSlot()
@@ -378,6 +377,14 @@ func (b *breaker) State() string {
 }
 
 func (b *breaker) Record(success bool) {
+	if !b.openedAt.IsZero() {
+		if success {
+			b.reset()
+			return
+		}
+		b.openedAt = time.Now()
+		return
+	}
 	if b.count == b.threshold && !b.events[b.next] {
 		b.failures--
 	}
@@ -393,6 +400,16 @@ func (b *breaker) Record(success bool) {
 		b.openedAt = time.Now()
 		return
 	}
+	b.openedAt = time.Time{}
+}
+
+func (b *breaker) reset() {
+	for i := range b.events {
+		b.events[i] = false
+	}
+	b.next = 0
+	b.count = 0
+	b.failures = 0
 	b.openedAt = time.Time{}
 }
 
