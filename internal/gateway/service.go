@@ -720,6 +720,8 @@ func schedulerGatewayError(err error) error {
 		return errors.NewGatewayError(errors.SchedulerBackpressure, "Scheduler queue is under pressure; retry later", http.StatusTooManyRequests)
 	case stdlib_errors.Is(err, scheduler.ErrQueueFull):
 		return errors.NewGatewayError(errors.SchedulerQueueFull, "Scheduler queue is full; retry later", http.StatusServiceUnavailable)
+	case stdlib_errors.Is(err, scheduler.ErrQueueEmpty), stdlib_errors.Is(err, scheduler.ErrTaskNotFound):
+		return errors.NewGatewayError(errors.SchedulerQueueUnavailable, "Scheduler queue task is unavailable; retry later", http.StatusServiceUnavailable)
 	default:
 		return err
 	}

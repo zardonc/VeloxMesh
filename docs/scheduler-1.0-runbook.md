@@ -39,6 +39,13 @@ go test -timeout 60s ./internal/scheduler
 go test -timeout 60s ./cmd/scheduler ./internal/scheduler/onnx
 ```
 
+## Monitoring
+
+Prometheus scrape configuration lives in `docker/observability/prometheus.yml`.
+Scheduler alert rules live in `docker/observability/scheduler-alerts.yml` and cover queue hard-limit rejection, soft-limit backpressure, ONNX MAPE/error rollout alerts, and an open scheduler circuit breaker.
+
+No Grafana dashboard template is shipped for 1.0. Build dashboards from the shipped Prometheus metrics and alert rules when a deployment needs a visual console.
+
 ## Configuration
 
 Use environment variables for local development and JSON files for structured deployments.
@@ -86,7 +93,8 @@ CACHE_CONFIG_FILE=config.cache.example.json
 | Scenario | Expected behavior | Proof command |
 | --- | --- | --- |
 | Scheduler down | Gateway falls back instead of blocking forwarding. | `go test -timeout 60s ./internal/scheduler -run TestSchedulerClient` |
-| Redis unavailable | Queue path degrades to memory where configured. | `go test -timeout 60s ./internal/scheduler -run TestRedisQueueFallback` |
+| Redis unavailable | Queue path degrades to memory where configured. Redis-queued tasks from before the failure are not recovered from memory fallback. | `go test -timeout 60s ./internal/scheduler -run TestFallbackQueue` |
+| Memory queue node crash | In-memory pending tasks are non-durable; use Redis queueing when pending work must survive a node restart. | `go test -timeout 60s ./internal/gateway -run TestService_HandleChatCompletionSchedulerQueueUnavailable` |
 | Qdrant unavailable | Semantic neighbors fail open and keep default feature values. | `go test -timeout 60s ./internal/scheduler -run TestSemanticNeighbor` |
 | ONNX predictor unhealthy | Predictive path falls back to heuristic scoring. | `go test -timeout 60s ./internal/scheduler/onnx ./internal/scheduler/predictive` |
 | Admin API validation failure | Invalid admin writes return 400 and preserve current runtime state. | `go test -timeout 60s ./internal/http/handlers -run TestAdminScheduler` |
@@ -141,6 +149,8 @@ Use the existing admin protections for these routes. Send `Authorization: Bearer
 | `GET /admin/v1/scheduler/training-samples/export` | Export safe training features and labels as JSON or NDJSON. |
 | `PATCH /admin/scheduler/rollout` | Roll ONNX traffic back to heuristic by setting rollout to `0`. |
 
+Admin changes to ONNX rollout and SLA promotion rules affect the running process only. Put durable values back into `config.scheduler.example.json`, the deployment config file, or environment management before restart.
+
 SLA rule replacement body:
 
 ```json
@@ -165,5 +175,7 @@ Run local automated evidence first:
 go test -timeout 60s ./internal/config
 go test -timeout 60s ./internal/http/handlers ./internal/scheduler
 ```
+
+Privacy contract checks for scheduler DTO/protobuf field names are included in `go test -timeout 60s ./internal/scheduler -run TestSchedulerPrivacyContractFieldNames`.
 
 Run gated service checks only when their required environment variables are present. Real-provider UAT uses `.env.local`; prefer non-Gemini provider resources for routine checks and reserve Gemini resources for Gemini-specific scenarios.

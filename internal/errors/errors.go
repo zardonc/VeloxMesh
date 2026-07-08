@@ -41,16 +41,17 @@ var (
 
 // Shared Provider Error Categories
 const (
-	ProviderAuthError      = "provider_auth_error"
-	ProviderRateLimit      = "provider_rate_limit"
-	ProviderInvalidRequest = "provider_invalid_request"
-	ProviderInvalidModel   = "provider_invalid_model"
-	ProviderTimeout        = "provider_timeout"
-	ProviderUnavailable    = "provider_unavailable"
-	ProviderBadResponse    = "provider_bad_response"
-	ProviderError          = "provider_error"
-	SchedulerBackpressure  = "scheduler_backpressure"
-	SchedulerQueueFull     = "scheduler_queue_full"
+	ProviderAuthError         = "provider_auth_error"
+	ProviderRateLimit         = "provider_rate_limit"
+	ProviderInvalidRequest    = "provider_invalid_request"
+	ProviderInvalidModel      = "provider_invalid_model"
+	ProviderTimeout           = "provider_timeout"
+	ProviderUnavailable       = "provider_unavailable"
+	ProviderBadResponse       = "provider_bad_response"
+	ProviderError             = "provider_error"
+	SchedulerBackpressure     = "scheduler_backpressure"
+	SchedulerQueueFull        = "scheduler_queue_full"
+	SchedulerQueueUnavailable = "scheduler_queue_unavailable"
 )
 
 // AffectsProviderHealth determines whether a given error should count as a provider failure
@@ -70,7 +71,7 @@ func AffectsProviderHealth(err error) bool {
 	case ProviderInvalidRequest:
 		// Invalid requests caused by client input should not poison provider health
 		return false
-	case SchedulerBackpressure, SchedulerQueueFull:
+	case SchedulerBackpressure, SchedulerQueueFull, SchedulerQueueUnavailable:
 		return false
 	case ProviderInvalidModel:
 		// Invalid model implies misconfiguration in provider setup, so it should degrade health

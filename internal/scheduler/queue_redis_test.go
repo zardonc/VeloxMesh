@@ -183,6 +183,36 @@ func TestFallbackQueueUsesMemoryAfterPrimaryError(t *testing.T) {
 	}
 }
 
+func TestFallbackQueueUsesMemoryAfterRuntimeRedisFailure(t *testing.T) {
+	ctx := context.Background()
+	client, redisQueue := newRealRedisQueue(t)
+	opts := *client.Options()
+	cleanup := redis.NewClient(&opts)
+	defer cleanup.Close()
+	defer cleanup.Del(ctx, redisQueue.keyForTest())
+
+	q := NewFallbackQueue(redisQueue, NewMemoryQueue())
+	if err := q.Push(ctx, QueueItem{TaskID: "before-failure", Score: 1}); err != nil {
+		t.Fatalf("Push before failure: %v", err)
+	}
+	if err := client.Close(); err != nil {
+		t.Fatalf("Close Redis client: %v", err)
+	}
+	if _, err := q.PopMin(ctx); !errors.Is(err, ErrQueueEmpty) {
+		t.Fatalf("expected empty fallback after Redis pop failure, got %v", err)
+	}
+	if err := q.Push(ctx, QueueItem{TaskID: "after-failure", Score: 1}); err != nil {
+		t.Fatalf("Push after failure: %v", err)
+	}
+	item, err := q.PopMin(ctx)
+	if err != nil {
+		t.Fatalf("PopMin fallback item: %v", err)
+	}
+	if item.TaskID != "after-failure" {
+		t.Fatalf("unexpected fallback item after runtime failure: %#v", item)
+	}
+}
+
 func newRealRedisQueue(t *testing.T) (*redis.Client, *RedisQueue) {
 	t.Helper()
 	_ = godotenv.Load("../../.env")

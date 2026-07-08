@@ -418,6 +418,28 @@ func TestService_HandleChatCompletionSchedulerAdmissionErrors(t *testing.T) {
 	}
 }
 
+func TestService_HandleChatCompletionSchedulerQueueUnavailable(t *testing.T) {
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	p1 := &mockAdapter{id: "p1"}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), nil, nil)
+	svc.SetSchedulerRunner(newLostTaskSchedulerRunner())
+
+	_, err := svc.HandleChatCompletion(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1"})
+	var gwErr *errors.GatewayError
+	if !stdlib_errors.As(err, &gwErr) {
+		t.Fatalf("expected GatewayError, got %v", err)
+	}
+	if gwErr.Code != errors.SchedulerQueueUnavailable || gwErr.HTTPStatus != http.StatusServiceUnavailable {
+		t.Fatalf("expected scheduler queue unavailable 503, got %s/%d", gwErr.Code, gwErr.HTTPStatus)
+	}
+	if failures := store.Snapshot("p1").ConsecutiveFailures; failures != 0 {
+		t.Fatalf("scheduler queue error affected provider health: failures=%d", failures)
+	}
+}
+
 func TestService_HandleChatCompletionStream_WithSchedulerRunner(t *testing.T) {
 	store := health.NewInMemoryStore()
 	store.EnsureProvider("p1", 3, 1)
@@ -487,5 +509,19 @@ func newQueuedSchedulerRunner(t *testing.T, guard scheduler.QueueGuard, queued i
 		Backend:  "memory", ThrottleWait: time.Millisecond,
 	}
 	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+	return scheduler.NewSynchronousRunner(intake, executor, registry)
+}
+
+func newLostTaskSchedulerRunner() *scheduler.SynchronousRunner {
+	registry := scheduler.NewResultRegistry()
+	intakeQueue := scheduler.NewMemoryQueue()
+	executorQueue := scheduler.NewMemoryQueue()
+	intake := &scheduler.TaskIntake{
+		Queue: intakeQueue, Scorer: scheduler.FIFOScorer{Reason: "disabled"}, Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{Default: scheduler.PriorityNormal, Max: scheduler.PriorityHigh},
+		Backend:  "memory",
+	}
+	executor := &scheduler.Executor{Queue: executorQueue, Registry: registry}
 	return scheduler.NewSynchronousRunner(intake, executor, registry)
 }
