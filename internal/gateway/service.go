@@ -262,15 +262,17 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		}
 
 		if decision.IsFusion {
-			release, _, err := s.admission.Admit(ctx, req, decision)
+			resp, latency, err := s.executeFusion(ctx, req, decision)
 			if err != nil {
 				return nil, err
 			}
-			resp, err := s.executeFusion(ctx, req, decision)
-			release()
-			if err != nil {
+			if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
+				if err == replication.ErrWriteNotWritable {
+					return nil, errors.ErrServiceNotWritable
+				}
 				return nil, err
 			}
+			s.settle(ctx, req, decision, resp.Usage, latency)
 			return resp, nil
 		}
 
@@ -473,16 +475,21 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		}
 
 		if decision.IsFusion {
-			release, _, err := s.admission.Admit(ctx, req, decision)
+			result, err := s.executeFusionStream(ctx, req, decision, rt)
 			if err != nil {
 				return nil, nil, err
 			}
-			streamCh, respMeta, err := s.executeFusionStream(ctx, req, decision)
-			release()
-			if err != nil {
+			if p.HasResponseRulesEnabled() {
+				return s.bufferFusionStreamWithResponseRules(result, p, scope, state, rt)
+			}
+			if err := p.ProcessResponse(ctx, scope, state, result.respMeta); err != nil {
+				result.finishError(err)
+				if err == replication.ErrWriteNotWritable {
+					return nil, nil, errors.ErrServiceNotWritable
+				}
 				return nil, nil, err
 			}
-			return streamCh, respMeta, nil
+			return result.forward(), result.respMeta, nil
 		}
 
 		streamAdapter, ok := adapter.(providers.StreamAdapter)

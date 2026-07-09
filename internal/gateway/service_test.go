@@ -23,6 +23,7 @@ import (
 
 type mockAdapter struct {
 	id        string
+	models    []string
 	err       error
 	lastModel string
 	resp      *llm.LLMResponse
@@ -32,6 +33,9 @@ func (m *mockAdapter) ID() string {
 	return m.id
 }
 func (m *mockAdapter) Models() []string {
+	if len(m.models) > 0 {
+		return append([]string(nil), m.models...)
+	}
 	return []string{"gpt-4o"}
 }
 func (m *mockAdapter) Capabilities() providers.CapabilitySet {
@@ -122,6 +126,38 @@ func TestService_HandleChatCompletion_UsesComboUpstreamModel(t *testing.T) {
 	}
 	if resp.Model != "fast-combo" {
 		t.Fatalf("expected client-facing combo model to stay fast-combo, got %q", resp.Model)
+	}
+}
+
+func TestService_HandleChatCompletion_FusionUsesGatewayControlsAndResponseRules(t *testing.T) {
+	cfg := pipeline.DefaultSemanticPipelineConfig()
+	cfg.Rules[pipeline.RulePII] = pipeline.RuleConfig{Enabled: true}
+	store := health.NewInMemoryStore()
+	for _, providerID := range []string{"p1", "p2", "judge"} {
+		store.EnsureProvider(providerID, 3, 1)
+	}
+
+	p1 := &mockAdapter{id: "p1", models: []string{"member-a"}, err: errors.NewGatewayError(errors.ProviderUnavailable, "offline", 503)}
+	p2 := &mockAdapter{id: "p2", models: []string{"member-b"}, resp: textResponse("member ok")}
+	judge := &mockAdapter{id: "judge", models: []string{"judge-model"}, resp: textResponse("Final {{PII_EMAIL_0}}")}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2, judge}, []providers.Combo{
+		{ID: "fusion-combo", Name: "fusion-combo", Strategy: "fusion", Members: []string{"member-a", "member-b"}, Judge: "judge-model"},
+	})
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), staticRuleResolver{cfg: cfg}, nil)
+
+	resp, err := svc.HandleChatCompletion(context.Background(), &llm.LLMRequest{
+		Model: "fusion-combo", RequestID: "req-1",
+		Messages: []llm.Message{{Role: llm.RoleUser, Content: "email me at test@example.com"}},
+	})
+	if err != nil {
+		t.Fatalf("HandleChatCompletion: %v", err)
+	}
+	if got := resp.Choices[0].Message.Content; got != "Final test@example.com" {
+		t.Fatalf("expected restored fusion response, got %q", got)
+	}
+	if failures := store.Snapshot("p1").ConsecutiveFailures; failures != 1 {
+		t.Fatalf("expected failed fusion member health update, got %d", failures)
 	}
 }
 
@@ -536,6 +572,41 @@ func TestService_HandleChatCompletionStream_ResponseRuleBlockDoesNotAffectProvid
 	}
 }
 
+func TestService_HandleChatCompletionStream_FusionBuffersResponseRules(t *testing.T) {
+	cfg := pipeline.DefaultSemanticPipelineConfig()
+	cfg.Rules[pipeline.RulePII] = pipeline.RuleConfig{Enabled: true}
+	store := health.NewInMemoryStore()
+	for _, providerID := range []string{"p1", "p2", "judge"} {
+		store.EnsureProvider(providerID, 3, 1)
+	}
+
+	p1 := &mockAdapter{id: "p1", models: []string{"member-a"}, resp: textResponse("member a")}
+	p2 := &mockAdapter{id: "p2", models: []string{"member-b"}, resp: textResponse("member b")}
+	judge := &mockStreamAdapter{
+		mockAdapter: mockAdapter{id: "judge", models: []string{"judge-model"}},
+		events: []llm.StreamEvent{
+			{DeltaContent: "Stream {{PII_EMAIL_0}}", Usage: &llm.Usage{CompletionTokens: 2}},
+			{Done: true},
+		},
+	}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2, judge}, []providers.Combo{
+		{ID: "fusion-combo", Name: "fusion-combo", Strategy: "fusion", Members: []string{"member-a", "member-b"}, Judge: "judge-model"},
+	})
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), staticRuleResolver{cfg: cfg}, nil)
+
+	ch, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{
+		Model: "fusion-combo", RequestID: "req-1", Stream: true,
+		Messages: []llm.Message{{Role: llm.RoleUser, Content: "email me at test@example.com"}},
+	})
+	if err != nil {
+		t.Fatalf("HandleChatCompletionStream: %v", err)
+	}
+	if got := collectStreamText(ch); got != "Stream test@example.com" {
+		t.Fatalf("expected restored fusion stream, got %q", got)
+	}
+}
+
 type mockStreamAdapter struct {
 	mockAdapter
 	events []llm.StreamEvent
@@ -581,6 +652,13 @@ func collectStreamText(ch <-chan llm.StreamEvent) string {
 		text += event.DeltaContent
 	}
 	return text
+}
+
+func textResponse(content string) *llm.LLMResponse {
+	return &llm.LLMResponse{
+		Choices: []llm.Choice{{Message: llm.Message{Role: llm.RoleAssistant, Content: content}}},
+		Usage:   &llm.Usage{PromptTokens: 1, CompletionTokens: 1, TotalTokens: 2},
+	}
 }
 
 func newTestSchedulerRunner() *scheduler.SynchronousRunner {
