@@ -28,6 +28,9 @@ func (e *Executor) RunOne(ctx context.Context) error {
 	e.Registry.MarkRunning(item.TaskID)
 	handler, ok := e.Registry.Handler(item.TaskID)
 	if !ok {
+		if e.Metrics != nil {
+			e.Metrics.IncSchedulerError("missing_handler")
+		}
 		return nil
 	}
 	result := runTaskHandler(ctx, handler)

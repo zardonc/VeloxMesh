@@ -124,7 +124,7 @@ CACHE_CONFIG_FILE=config.cache.example.json
 | Scheduler down | Gateway falls back instead of blocking forwarding. | `go test -timeout 60s ./internal/scheduler -run TestSchedulerClient` |
 | Redis unavailable | Default queueing stays in memory. Explicit Redis queueing falls back to memory at startup if Redis is unreachable. | `go test -timeout 60s ./internal/app -run TestNewSchedulerQueue` |
 | Redis recovers after fallback writes | `FallbackQueue` retries primary writes and reads memory fallback entries when primary is empty, avoiding stranded fallback tasks. | `go test -timeout 60s ./internal/scheduler -run TestFallbackQueue` |
-| Memory queue node crash | In-memory pending tasks are non-durable; use Redis queueing when pending work must survive a node restart. | `go test -timeout 60s ./internal/gateway -run TestService_HandleChatCompletionSchedulerQueueUnavailable` |
+| Node crash | In-memory pending tasks and handler functions are non-durable. Redis queueing is for high-concurrency only and does NOT provide task recovery across node restarts. | `go test -timeout 60s ./internal/gateway -run TestService_HandleChatCompletionSchedulerQueueUnavailable` |
 | Qdrant unavailable | Semantic neighbors fail open and keep default feature values. | `go test -timeout 60s ./internal/scheduler -run TestSemanticNeighbor` |
 | ONNX predictor unhealthy | Predictive path falls back to heuristic scoring. | `go test -timeout 60s ./internal/scheduler/onnx ./internal/scheduler/predictive` |
 | Admin API validation failure | Invalid admin writes return 400 and preserve current runtime state. | `go test -timeout 60s ./internal/http/handlers -run TestAdminScheduler` |
