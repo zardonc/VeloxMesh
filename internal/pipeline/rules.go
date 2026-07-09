@@ -6,13 +6,11 @@ import (
 	"regexp"
 	"strings"
 
-	"veloxmesh/internal/llm"
 	verrors "veloxmesh/internal/errors"
+	"veloxmesh/internal/llm"
 )
 
-//
 // 1. Filter Handler
-//
 type FilterHandler struct{}
 
 func (h *FilterHandler) Name() RuleName { return RuleFilter }
@@ -39,9 +37,7 @@ func (h *FilterHandler) ProcessResponse(ctx context.Context, scope RequestScope,
 	return nil
 }
 
-//
 // 2. PII Handler
-//
 type PIIHandler struct{}
 
 func (h *PIIHandler) Name() RuleName { return RulePII }
@@ -53,22 +49,26 @@ func (h *PIIHandler) ProcessRequest(ctx context.Context, scope RequestScope, sta
 	if state.PIIMappings == nil {
 		state.PIIMappings = make(map[string]string)
 	}
+	emailIdx := 0
+	phoneIdx := 0
 
 	for i, msg := range req.Messages {
 		if msg.Role == "user" {
 			text := msg.Content
 			// Replace emails
 			emails := emailRegex.FindAllString(text, -1)
-			for j, email := range emails {
-				placeholder := fmt.Sprintf("{{PII_EMAIL_%d}}", j)
+			for _, email := range emails {
+				placeholder := fmt.Sprintf("{{PII_EMAIL_%d}}", emailIdx)
+				emailIdx++
 				state.PIIMappings[placeholder] = email
 				text = strings.ReplaceAll(text, email, placeholder)
 			}
-			
+
 			// Replace phones
 			phones := phoneRegex.FindAllString(text, -1)
-			for j, phone := range phones {
-				placeholder := fmt.Sprintf("{{PII_PHONE_%d}}", j)
+			for _, phone := range phones {
+				placeholder := fmt.Sprintf("{{PII_PHONE_%d}}", phoneIdx)
+				phoneIdx++
 				state.PIIMappings[placeholder] = phone
 				text = strings.ReplaceAll(text, phone, placeholder)
 			}
@@ -86,16 +86,14 @@ func (h *PIIHandler) ProcessResponse(ctx context.Context, scope RequestScope, st
 	return nil
 }
 
-//
 // 3. Rewrite Handler
-//
 type RewriteHandler struct{}
 
 func (h *RewriteHandler) Name() RuleName { return RuleRewrite }
 func (h *RewriteHandler) ProcessRequest(ctx context.Context, scope RequestScope, state *RunState, req *llm.LLMRequest, config RuleConfig) error {
 	prefix, _ := config.Options["prefix"].(string)
 	suffix, _ := config.Options["suffix"].(string)
-	
+
 	var replacements map[string]string
 	if reps, ok := config.Options["replacements"].(map[string]interface{}); ok {
 		replacements = make(map[string]string)
@@ -127,9 +125,7 @@ func (h *RewriteHandler) ProcessResponse(ctx context.Context, scope RequestScope
 	return nil
 }
 
-//
 // 4. RTK Handler
-//
 type RTKHandler struct{}
 
 func (h *RTKHandler) Name() RuleName { return RuleRTK }
@@ -166,7 +162,7 @@ func (h *RTKHandler) ProcessRequest(ctx context.Context, scope RequestScope, sta
 	// Needs truncation. Preserve system/tool messages and newest user message.
 	// Truncate older user/assistant messages.
 	// This is a naive implementation for the test.
-	
+
 	// Find the last user message
 	lastUserIdx := -1
 	for i := len(req.Messages) - 1; i >= 0; i-- {
@@ -181,13 +177,13 @@ func (h *RTKHandler) ProcessRequest(ctx context.Context, scope RequestScope, sta
 		if msg.Role == "system" || msg.Role == "tool" || i == lastUserIdx {
 			continue // preserve
 		}
-		
+
 		// If it's an older message, we just truncate it for simplicity if we are still over limit
 		currentTotal := 0
 		for _, m := range req.Messages {
 			currentTotal += estimateTokens(m.Content)
 		}
-		
+
 		if currentTotal > maxPromptTokens {
 			req.Messages[i].Content = "[TRUNCATED BY RTK]"
 		}
@@ -199,9 +195,7 @@ func (h *RTKHandler) ProcessResponse(ctx context.Context, scope RequestScope, st
 	return nil
 }
 
-//
 // 5. Headroom Handler
-//
 type HeadroomHandler struct{}
 
 func (h *HeadroomHandler) Name() RuleName { return RuleHeadroom }
@@ -211,27 +205,33 @@ func (h *HeadroomHandler) ProcessRequest(ctx context.Context, scope RequestScope
 	if hrTokensRaw == nil || cwTokensRaw == nil {
 		return nil
 	}
-	
+
 	var hrTokens, cwTokens int
-	if v, ok := hrTokensRaw.(float64); ok { hrTokens = int(v) }
-	if v, ok := hrTokensRaw.(int); ok { hrTokens = v }
-	if v, ok := cwTokensRaw.(float64); ok { cwTokens = int(v) }
-	if v, ok := cwTokensRaw.(int); ok { cwTokens = v }
+	if v, ok := hrTokensRaw.(float64); ok {
+		hrTokens = int(v)
+	}
+	if v, ok := hrTokensRaw.(int); ok {
+		hrTokens = v
+	}
+	if v, ok := cwTokensRaw.(float64); ok {
+		cwTokens = int(v)
+	}
+	if v, ok := cwTokensRaw.(int); ok {
+		cwTokens = v
+	}
 
 	if hrTokens > 0 && cwTokens > hrTokens {
 		val := cwTokens - hrTokens
 		req.MaxTokens = &val
 	}
-	
+
 	return nil
 }
 func (h *HeadroomHandler) ProcessResponse(ctx context.Context, scope RequestScope, state *RunState, resp *llm.LLMResponse, config RuleConfig) error {
 	return nil
 }
 
-//
 // 6. Caveman Handler
-//
 type CavemanHandler struct{}
 
 func (h *CavemanHandler) Name() RuleName { return RuleCaveman }
@@ -257,9 +257,7 @@ func (h *CavemanHandler) ProcessResponse(ctx context.Context, scope RequestScope
 	return nil
 }
 
-//
 // 7. Ponytail Handler
-//
 type PonytailHandler struct{}
 
 func (h *PonytailHandler) Name() RuleName { return RulePonytail }

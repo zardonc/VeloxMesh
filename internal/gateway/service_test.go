@@ -468,16 +468,119 @@ func TestService_HandleChatCompletionStream_WithSchedulerRunner(t *testing.T) {
 	}
 }
 
+func TestService_HandleChatCompletionStream_BuffersResponseRules(t *testing.T) {
+	cfg := pipeline.DefaultSemanticPipelineConfig()
+	cfg.Rules[pipeline.RulePII] = pipeline.RuleConfig{Enabled: true}
+	p1 := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}, events: []llm.StreamEvent{
+		{DeltaContent: "Stored {{PII_EMAIL_0}}", Usage: &llm.Usage{CompletionTokens: 2}},
+		{Done: true},
+	}}
+	svc := newStreamRuleTestService(t, p1, cfg)
+
+	ch, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{
+		Model: "gpt-4o", RequestID: "req-1", Stream: true,
+		Messages: []llm.Message{{Role: llm.RoleUser, Content: "email me at test@example.com"}},
+	})
+	if err != nil {
+		t.Fatalf("HandleChatCompletionStream: %v", err)
+	}
+	if got := collectStreamText(ch); got != "Stored test@example.com" {
+		t.Fatalf("expected restored stream text, got %q", got)
+	}
+}
+
+func TestService_HandleChatCompletionStream_SkipsResponseRulesForToolCalls(t *testing.T) {
+	cfg := pipeline.DefaultSemanticPipelineConfig()
+	cfg.Rules[pipeline.RulePII] = pipeline.RuleConfig{Enabled: true}
+	p1 := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}, events: []llm.StreamEvent{
+		{DeltaContent: "{{PII_EMAIL_0}}", ToolCalls: []llm.ToolCallChunk{{}}},
+		{Done: true},
+	}}
+	svc := newStreamRuleTestService(t, p1, cfg)
+
+	ch, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{
+		Model: "gpt-4o", RequestID: "req-1", Stream: true,
+		Messages: []llm.Message{{Role: llm.RoleUser, Content: "email me at test@example.com"}},
+	})
+	if err != nil {
+		t.Fatalf("HandleChatCompletionStream: %v", err)
+	}
+	text := ""
+	toolCalls := 0
+	for event := range ch {
+		text += event.DeltaContent
+		toolCalls += len(event.ToolCalls)
+	}
+	if text != "{{PII_EMAIL_0}}" || toolCalls != 1 {
+		t.Fatalf("expected original tool-call stream, text=%q toolCalls=%d", text, toolCalls)
+	}
+}
+
+func TestService_HandleChatCompletionStream_ResponseRuleBlockDoesNotAffectProviderHealth(t *testing.T) {
+	cfg := pipeline.DefaultSemanticPipelineConfig()
+	cfg.Rules[pipeline.RuleFilter] = pipeline.RuleConfig{Enabled: true, Options: map[string]interface{}{"response_action": "block"}}
+	p1 := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}}
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), staticRuleResolver{cfg: cfg}, nil)
+
+	_, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1", Stream: true})
+	var gwErr *errors.GatewayError
+	if !stdlib_errors.As(err, &gwErr) || gwErr.Code != "policy_blocked" {
+		t.Fatalf("expected policy_blocked, got %v", err)
+	}
+	if failures := store.Snapshot("p1").ConsecutiveFailures; failures != 0 {
+		t.Fatalf("policy block affected provider health: failures=%d", failures)
+	}
+}
+
 type mockStreamAdapter struct {
 	mockAdapter
+	events []llm.StreamEvent
 }
 
 func (m *mockStreamAdapter) Stream(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, error) {
-	ch := make(chan llm.StreamEvent, 2)
-	ch <- llm.StreamEvent{DeltaContent: "ok"}
-	ch <- llm.StreamEvent{Done: true}
+	events := m.events
+	if events == nil {
+		events = []llm.StreamEvent{{DeltaContent: "ok"}, {Done: true}}
+	}
+	ch := make(chan llm.StreamEvent, len(events))
+	for _, event := range events {
+		ch <- event
+	}
 	close(ch)
 	return ch, nil
+}
+
+type staticRuleResolver struct {
+	cfg *pipeline.SemanticPipelineConfig
+}
+
+func (r staticRuleResolver) GetGlobalDefaults(context.Context) (*pipeline.SemanticPipelineConfig, error) {
+	return r.cfg, nil
+}
+
+func (r staticRuleResolver) GetUserConfig(context.Context, string) (*pipeline.SemanticPipelineConfig, error) {
+	return nil, nil
+}
+
+func newStreamRuleTestService(t *testing.T, adapter *mockStreamAdapter, cfg *pipeline.SemanticPipelineConfig) *gateway.Service {
+	t.Helper()
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{adapter}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	return gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), staticRuleResolver{cfg: cfg}, nil)
+}
+
+func collectStreamText(ch <-chan llm.StreamEvent) string {
+	text := ""
+	for event := range ch {
+		text += event.DeltaContent
+	}
+	return text
 }
 
 func newTestSchedulerRunner() *scheduler.SynchronousRunner {

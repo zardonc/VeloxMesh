@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 	"testing"
-	"veloxmesh/internal/llm"
 	verrors "veloxmesh/internal/errors"
+	"veloxmesh/internal/llm"
 )
 
 func TestPIIHandler(t *testing.T) {
@@ -57,6 +57,34 @@ func TestPIIHandler(t *testing.T) {
 	}
 }
 
+func TestPIIHandlerUsesRequestScopedCounters(t *testing.T) {
+	registry := NewRegistry()
+	RegisterAll(registry)
+	cfg := DefaultSemanticPipelineConfig()
+	cfg.Rules[RulePII] = RuleConfig{Enabled: true}
+	p := New(registry, cfg)
+	state := &RunState{}
+	req := &llm.LLMRequest{Messages: []llm.Message{
+		{Role: "user", Content: "First: first@example.com"},
+		{Role: "user", Content: "Second: second@example.com"},
+	}}
+
+	if err := p.ProcessRequest(context.Background(), RequestScope{}, state, req); err != nil {
+		t.Fatalf("ProcessRequest: %v", err)
+	}
+	if !strings.Contains(req.Messages[0].Content, "{{PII_EMAIL_0}}") || !strings.Contains(req.Messages[1].Content, "{{PII_EMAIL_1}}") {
+		t.Fatalf("expected unique email placeholders, got %#v", req.Messages)
+	}
+
+	resp := &llm.LLMResponse{Choices: []llm.Choice{{Message: llm.Message{Content: "{{PII_EMAIL_0}} / {{PII_EMAIL_1}}"}}}}
+	if err := p.ProcessResponse(context.Background(), RequestScope{}, state, resp); err != nil {
+		t.Fatalf("ProcessResponse: %v", err)
+	}
+	if resp.Choices[0].Message.Content != "first@example.com / second@example.com" {
+		t.Fatalf("unexpected restore: %q", resp.Choices[0].Message.Content)
+	}
+}
+
 func TestRTKAndHeadroom(t *testing.T) {
 	registry := NewRegistry()
 	RegisterAll(registry)
@@ -97,7 +125,7 @@ func TestRTKAndHeadroom(t *testing.T) {
 		},
 	}
 	p = New(registry, cfg)
-	
+
 	// Need multiple messages to test truncation logic (it preserves the newest user message)
 	req = &llm.LLMRequest{
 		Messages: []llm.Message{
@@ -107,7 +135,7 @@ func TestRTKAndHeadroom(t *testing.T) {
 		},
 	}
 	_ = p.ProcessRequest(ctx, scope, state, req)
-	
+
 	if req.MaxTokens == nil || *req.MaxTokens != 3000 {
 		t.Errorf("expected MaxTokens 3000, got %v", req.MaxTokens)
 	}
@@ -142,7 +170,7 @@ func TestFilter(t *testing.T) {
 		Enabled: true,
 		Options: map[string]interface{}{
 			"response_action": "replace",
-			"replacement": "blocked content",
+			"replacement":     "blocked content",
 		},
 	}
 	resp := &llm.LLMResponse{
