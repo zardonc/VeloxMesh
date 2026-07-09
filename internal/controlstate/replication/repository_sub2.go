@@ -129,6 +129,9 @@ func (s *semanticCacheRepo) Store(ctx context.Context, entry *controlstate.Seman
 func (s *semanticCacheRepo) ListCandidates(ctx context.Context, scope, model string) ([]*controlstate.SemanticCacheEntry, error) {
 	return s.underlying.ListCandidates(ctx, scope, model)
 }
+func (s *semanticCacheRepo) GetCandidate(ctx context.Context, id, scope, model string) (*controlstate.SemanticCacheEntry, error) {
+	return s.underlying.GetCandidate(ctx, id, scope, model)
+}
 func (s *semanticCacheRepo) RecordHit(ctx context.Context, id string) error {
 	if !s.r.coord.IsWritable() {
 		return ErrWriteNotWritable

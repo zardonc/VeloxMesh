@@ -917,6 +917,26 @@ func (s *semanticCacheRepo) ListCandidates(ctx context.Context, scope, model str
 	return results, rows.Err()
 }
 
+func (s *semanticCacheRepo) GetCandidate(ctx context.Context, id, scope, model string) (*controlstate.SemanticCacheEntry, error) {
+	row := s.db.QueryRowContext(ctx, `
+		SELECT id, scope, model, vector, response, usage_id, hit_count, enabled, created_at, expires_at
+		FROM semantic_cache_entries
+		WHERE id = ? AND scope = ? AND model = ? AND enabled = 1 AND expires_at > ?`,
+		id, scope, model, time.Now().UTC())
+	entry := &controlstate.SemanticCacheEntry{}
+	var usageID sql.NullString
+	if err := row.Scan(&entry.ID, &entry.Scope, &entry.Model, &entry.Vector, &entry.Response, &usageID, &entry.HitCount, &entry.Enabled, &entry.CreatedAt, &entry.ExpiresAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if usageID.Valid {
+		entry.UsageID = &usageID.String
+	}
+	return entry, nil
+}
+
 func (s *semanticCacheRepo) RecordHit(ctx context.Context, id string) error {
 	_, err := s.db.ExecContext(ctx, `UPDATE semantic_cache_entries SET hit_count = hit_count + 1 WHERE id = ?`, id)
 	return err

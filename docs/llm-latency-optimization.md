@@ -167,6 +167,8 @@ When fallback is enabled and no explicit route override is used, retryable provi
 
 Streaming requests bypass semantic cache but still use routing, admission, scheduler wrapping, provider health updates, and response metadata. Stream handling records time to first token and total latency when stream events complete.
 
+When response-side semantic rules are enabled for a streaming request, VeloxMesh buffers the stream before applying those rules. This preserves output filtering, replacement, and PII restoration semantics, but it means the client receives the processed result after buffering instead of receiving provider tokens immediately. For lowest time-to-first-token behavior, keep response-side rules disabled on latency-sensitive streaming routes.
+
 ## Latency Reduction Features
 
 The implemented latency-oriented features are:

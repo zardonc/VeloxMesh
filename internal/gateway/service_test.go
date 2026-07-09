@@ -314,6 +314,7 @@ type mockRepoWithUsage struct {
 	controlstate.Repository
 	logCalled    bool
 	settleCalled bool
+	lastRecord   *controlstate.UsageRecord
 }
 
 func (m *mockRepoWithUsage) Usage() controlstate.UsageRepository {
@@ -322,6 +323,8 @@ func (m *mockRepoWithUsage) Usage() controlstate.UsageRepository {
 
 func (m *mockRepoWithUsage) Settle(ctx context.Context, usage *controlstate.UsageRecord) error {
 	m.settleCalled = true
+	record := *usage
+	m.lastRecord = &record
 	usage.CreditsConsumed = new(int64)
 	*usage.CreditsConsumed = 10
 	return nil
@@ -501,6 +504,30 @@ func TestService_HandleChatCompletionStream_WithSchedulerRunner(t *testing.T) {
 	}
 	if !seenDone {
 		t.Fatalf("expected stream done event")
+	}
+}
+
+func TestService_HandleChatCompletionStream_UsesLastUsageChunk(t *testing.T) {
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	repo := &mockRepoWithUsage{}
+	p1 := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}, events: []llm.StreamEvent{
+		{DeltaContent: "a", Usage: &llm.Usage{PromptTokens: 1, CompletionTokens: 1, TotalTokens: 2}},
+		{DeltaContent: "b", Usage: &llm.Usage{PromptTokens: 2, CompletionTokens: 3, TotalTokens: 5}},
+		{Done: true},
+	}}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, repo, nil, pipeline.DefaultRegistry(), nil, nil)
+
+	ch, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1", Stream: true})
+	if err != nil {
+		t.Fatalf("HandleChatCompletionStream: %v", err)
+	}
+	for range ch {
+	}
+	if repo.lastRecord == nil || repo.lastRecord.TotalTokens != 5 {
+		t.Fatalf("expected final usage chunk to settle, got %#v", repo.lastRecord)
 	}
 }
 

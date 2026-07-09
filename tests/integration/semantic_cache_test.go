@@ -66,6 +66,14 @@ func (m *memorySemanticCacheRepo) Store(ctx context.Context, entry *controlstate
 func (m *memorySemanticCacheRepo) ListCandidates(ctx context.Context, scope, model string) ([]*controlstate.SemanticCacheEntry, error) {
 	return m.entries, nil
 }
+func (m *memorySemanticCacheRepo) GetCandidate(ctx context.Context, id, scope, model string) (*controlstate.SemanticCacheEntry, error) {
+	for _, entry := range m.entries {
+		if entry.ID == id && entry.Scope == scope && entry.Model == model && entry.Enabled && entry.ExpiresAt.After(time.Now().UTC()) {
+			return entry, nil
+		}
+	}
+	return nil, nil
+}
 func (m *memorySemanticCacheRepo) RecordHit(ctx context.Context, id string) error { return nil }
 func (m *memorySemanticCacheRepo) Disable(ctx context.Context, id string) error   { return nil }
 

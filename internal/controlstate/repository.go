@@ -93,6 +93,7 @@ type Migrator interface {
 type SemanticCacheRepository interface {
 	Store(ctx context.Context, entry *SemanticCacheEntry) error
 	ListCandidates(ctx context.Context, scope, model string) ([]*SemanticCacheEntry, error)
+	GetCandidate(ctx context.Context, id, scope, model string) (*SemanticCacheEntry, error)
 	RecordHit(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }

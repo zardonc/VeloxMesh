@@ -635,7 +635,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 					ttft = time.Since(start)
 					firstChunk = false
 				}
-				if event.Usage != nil && finalUsage == nil {
+				if event.Usage != nil {
 					finalUsage = event.Usage
 				}
 				if event.Error != nil {
