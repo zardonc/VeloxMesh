@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 	"veloxmesh/internal/llm"
+	verrors "veloxmesh/internal/errors"
 )
 
 func TestPIIHandler(t *testing.T) {
@@ -133,7 +134,7 @@ func TestFilter(t *testing.T) {
 
 	ctx := context.Background()
 	err := p.ProcessRequest(ctx, RequestScope{}, &RunState{}, &llm.LLMRequest{})
-	if err != ErrFilterBlock {
+	if err != verrors.ErrPolicyBlocked {
 		t.Errorf("expected filter block on request, got %v", err)
 	}
 

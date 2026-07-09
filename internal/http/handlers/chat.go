@@ -97,11 +97,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	if req.Stream {
 		ch, respMeta, err := h.service.HandleChatCompletionStream(r.Context(), llmReq)
 		if err != nil {
-			if gwErr, ok := err.(*errors.GatewayError); ok {
-				sendGatewayError(w, gwErr)
-			} else {
-				sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
-			}
+			sendGatewayError(w, errors.TranslateError(err))
 			return
 		}
 
@@ -192,11 +188,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.service.HandleChatCompletion(r.Context(), llmReq)
 	if err != nil {
-		if gwErr, ok := err.(*errors.GatewayError); ok {
-			sendGatewayError(w, gwErr)
-		} else {
-			sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
-		}
+		sendGatewayError(w, errors.TranslateError(err))
 		return
 	}
 

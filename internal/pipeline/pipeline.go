@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"veloxmesh/internal/llm"
+	verrors "veloxmesh/internal/errors"
 )
 
 // Pipeline executes a chain of semantic rules using a registry and resolved configuration.
@@ -66,7 +67,7 @@ func (p *Pipeline) ProcessRequest(ctx context.Context, scope RequestScope, state
 
 		err := handler.ProcessRequest(ctx, scope, state, req, ruleCfg)
 		if err != nil {
-			if errors.Is(err, ErrFilterBlock) {
+			if errors.Is(err, verrors.ErrPolicyBlocked) {
 				return err // Intentional block decision
 			}
 			// Safe failure per D-13, D-14
@@ -96,7 +97,7 @@ func (p *Pipeline) ProcessResponse(ctx context.Context, scope RequestScope, stat
 
 		err := handler.ProcessResponse(ctx, scope, state, resp, ruleCfg)
 		if err != nil {
-			if errors.Is(err, ErrFilterBlock) {
+			if errors.Is(err, verrors.ErrPolicyBlocked) {
 				return err
 			}
 			slog.Error("semantic handler failed",

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"veloxmesh/internal/llm"
+	verrors "veloxmesh/internal/errors"
 )
 
 //
@@ -18,14 +19,14 @@ func (h *FilterHandler) Name() RuleName { return RuleFilter }
 func (h *FilterHandler) ProcessRequest(ctx context.Context, scope RequestScope, state *RunState, req *llm.LLMRequest, config RuleConfig) error {
 	action, _ := config.Options["request_action"].(string)
 	if action == "reject" {
-		return ErrFilterBlock
+		return verrors.ErrPolicyBlocked
 	}
 	return nil
 }
 func (h *FilterHandler) ProcessResponse(ctx context.Context, scope RequestScope, state *RunState, resp *llm.LLMResponse, config RuleConfig) error {
 	action, _ := config.Options["response_action"].(string)
 	if action == "block" {
-		return ErrFilterBlock
+		return verrors.ErrPolicyBlocked
 	}
 	if action == "replace" {
 		replacement, _ := config.Options["replacement"].(string)

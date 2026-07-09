@@ -1,6 +1,10 @@
 package errors
 
-import "fmt"
+import (
+	"context"
+	"errors"
+	"fmt"
+)
 
 // GatewayError represents a structured error returned by the gateway.
 type GatewayError struct {
@@ -37,6 +41,9 @@ var (
 	ErrMissingProviderModelConfig = NewGatewayError("missing_provider_model_config", "missing provider model config", 400)
 	ErrProviderActivationFailed   = NewGatewayError("provider_activation_failed", "provider activation failed", 500)
 	ErrServiceNotWritable         = NewGatewayError("service_unavailable", "service temporarily unavailable for writes", 503)
+
+	// Pipeline errors
+	ErrPolicyBlocked = NewGatewayError("policy_blocked", "request blocked by semantic policy", 403)
 )
 
 // Shared Provider Error Categories
@@ -102,4 +109,26 @@ func IsRetryableProviderError(err error) bool {
 
 	// Default to false for unrecognized or non-transient errors like InvalidRequest, InvalidModel, AuthError
 	return false
+}
+
+// TranslateError converts any standard error into a *GatewayError.
+// If it's already a GatewayError, it is returned as-is.
+func TranslateError(err error) *GatewayError {
+	if err == nil {
+		return nil
+	}
+	
+	var gwErr *GatewayError
+	if errors.As(err, &gwErr) {
+		return gwErr
+	}
+
+	if errors.Is(err, context.Canceled) {
+		return NewGatewayError("client_disconnected", "client disconnected", 499)
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return NewGatewayError("gateway_timeout", "gateway processing timeout", 504)
+	}
+
+	return NewGatewayError(ProviderError, fmt.Sprintf("Upstream error: %v", err), 502)
 }
