@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"sync"
 	"time"
 
 	"veloxmesh/internal/http/middleware"
@@ -24,6 +25,7 @@ type TaskIntake struct {
 	SemanticNeighbors           SemanticNeighborEnricher
 	SemanticNeighborTaskTimeout time.Duration
 	ThrottleWait                time.Duration
+	admissionMu                 sync.Mutex
 }
 
 var ErrTaskIntakeNotConfigured = errors.New("task intake not configured")
@@ -66,13 +68,10 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 	if err := i.Registry.RegisterTask(task, handler); err != nil {
 		return Task{}, err
 	}
-	if err := i.checkAdmission(ctx, priority.Resolved); err != nil {
+	pushed, err := i.pushAdmitted(ctx, task, priority.Resolved)
+	if err != nil {
 		i.Registry.Unregister(task.ID)
-		return Task{}, err
-	}
-	if err := i.Queue.Push(ctx, QueueItem{TaskID: task.ID, Score: task.Score}); err != nil {
-		i.Registry.Unregister(task.ID)
-		if i.Metrics != nil {
+		if pushed && i.Metrics != nil {
 			i.Metrics.IncSchedulerError("queue")
 		}
 		return Task{}, err
@@ -85,6 +84,58 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 	return task, nil
 }
 
+func (i *TaskIntake) pushAdmitted(ctx context.Context, task Task, priority PriorityClass) (bool, error) {
+	// ponytail: process-local lock; add Redis Lua/per-backend atomic push if cross-process queue limits matter.
+	waited := false
+	for {
+		pushed, retry, err := i.tryPushAdmittedLocked(ctx, task, priority, waited)
+		if err != nil || !retry {
+			return pushed, err
+		}
+		if err := i.waitForSoftLimit(ctx); err != nil {
+			i.recordGuardError(priority, err)
+			return false, err
+		}
+		waited = true
+	}
+}
+
+func (i *TaskIntake) tryPushAdmittedLocked(ctx context.Context, task Task, priority PriorityClass, waited bool) (bool, bool, error) {
+	i.admissionMu.Lock()
+	defer i.admissionMu.Unlock()
+	guard := i.Guard.Check(ctx, i.Queue, priority)
+	if guard.Err != nil {
+		i.recordGuardError(priority, guard.Err)
+		return false, false, guard.Err
+	}
+	reason := "none"
+	if guard.Throttled && priority != PriorityHigh {
+		if waited {
+			i.recordGuardError(priority, ErrQueueBackpressure)
+			return false, false, ErrQueueBackpressure
+		}
+		return false, true, nil
+	}
+	if guard.Throttled {
+		reason = "priority_bypass"
+	} else if waited {
+		reason = "soft_limit"
+	}
+	i.recordAdmission(priority, "accepted", reason)
+	return true, false, i.Queue.Push(ctx, QueueItem{TaskID: task.ID, Score: task.Score})
+}
+
+func (i *TaskIntake) waitForSoftLimit(ctx context.Context) error {
+	timer := time.NewTimer(i.throttleWait())
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
+}
+
 func (i *TaskIntake) scoreFeature(ctx context.Context, feature TaskFeature) (ScoreResult, time.Duration) {
 	scoreStart := time.Now()
 	scores, err := i.Scorer.Score(ctx, []TaskFeature{feature})
@@ -95,45 +146,6 @@ func (i *TaskIntake) scoreFeature(ctx context.Context, feature TaskFeature) (Sco
 		scores, _ = FIFOScorer{Reason: "missing_score"}.Score(ctx, []TaskFeature{feature})
 	}
 	return scoreWithDefaultType(scores[0]), time.Since(scoreStart)
-}
-
-func (i *TaskIntake) checkAdmission(ctx context.Context, priority PriorityClass) error {
-	guard := i.Guard.Check(ctx, i.Queue, priority)
-	if guard.Err != nil {
-		i.recordGuardError(priority, guard.Err)
-		return guard.Err
-	}
-	reason := "none"
-	if guard.Throttled {
-		guard, reason = i.softThrottleWait(ctx, priority)
-		if guard.Err != nil {
-			i.recordGuardError(priority, guard.Err)
-			return guard.Err
-		}
-	}
-	i.recordAdmission(priority, "accepted", reason)
-	return nil
-}
-
-func (i *TaskIntake) softThrottleWait(ctx context.Context, priority PriorityClass) (QueueGuardResult, string) {
-	if priority == PriorityHigh {
-		return QueueGuardResult{Allowed: true}, "priority_bypass"
-	}
-	timer := time.NewTimer(i.throttleWait())
-	defer timer.Stop()
-	select {
-	case <-ctx.Done():
-		return QueueGuardResult{Err: ctx.Err()}, ""
-	case <-timer.C:
-	}
-	result := i.Guard.Check(ctx, i.Queue, priority)
-	if result.Err != nil {
-		return result, ""
-	}
-	if result.Throttled {
-		return QueueGuardResult{Err: ErrQueueBackpressure}, ""
-	}
-	return result, "soft_limit"
 }
 
 func (i *TaskIntake) throttleWait() time.Duration {

@@ -4,7 +4,6 @@ import (
 	"math"
 	"strings"
 	"time"
-	"unicode"
 
 	"veloxmesh/internal/llm"
 )
@@ -108,7 +107,7 @@ func maxSentenceLength(words []string) int {
 	for _, word := range words {
 		cur++
 		for _, r := range word {
-			if r == '.' || r == '?' || r == '!' || unicode.Is(unicode.Han, r) && (r == '。' || r == '？' || r == '！') {
+			if sentenceDelimiter(r) {
 				maxLen = max(maxLen, cur)
 				cur = 0
 				break
@@ -116,6 +115,10 @@ func maxSentenceLength(words []string) int {
 		}
 	}
 	return max(maxLen, cur)
+}
+
+func sentenceDelimiter(r rune) bool {
+	return r == '.' || r == '?' || r == '!' || r == '。' || r == '？' || r == '！'
 }
 
 func vocabularyRichness(words []string) int {

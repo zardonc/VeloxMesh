@@ -33,7 +33,9 @@ func (e *Executor) RunOne(ctx context.Context) error {
 		}
 		return nil
 	}
-	result := runTaskHandler(ctx, handler)
+	taskCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	result := runTaskHandler(taskCtx, handler)
 	e.Registry.Deliver(item.TaskID, result)
 	return nil
 }
@@ -82,8 +84,8 @@ func (r *SynchronousRunner) SlotUsage() (used int, total int, ok bool) {
 
 func (r *SynchronousRunner) RunChat(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error)) (*llm.LLMResponse, error) {
 	start := time.Now()
-	task, err := r.Intake.Submit(ctx, req, func(context.Context) TaskResult {
-		resp, err := execute(ctx, req)
+	task, err := r.Intake.Submit(ctx, req, func(runCtx context.Context) TaskResult {
+		resp, err := execute(runCtx, req)
 		return TaskResult{Response: resp, Error: err}
 	})
 	if err != nil {
@@ -123,8 +125,8 @@ type taskWaitResult struct {
 
 func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error)) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
 	start := time.Now()
-	task, err := r.Intake.Submit(ctx, req, func(context.Context) TaskResult {
-		events, resp, err := execute(ctx, req)
+	task, err := r.Intake.Submit(ctx, req, func(runCtx context.Context) TaskResult {
+		events, resp, err := execute(runCtx, req)
 		return TaskResult{Response: StreamResult{Events: events, Response: resp}, Error: err}
 	})
 	if err != nil {

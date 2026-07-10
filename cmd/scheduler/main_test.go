@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -182,6 +183,42 @@ func TestSchedulerServiceUsesPythonONNXWorkerSmoke(t *testing.T) {
 	}
 }
 
+func TestSchedulerServicePredictorBreakerEnvUsesRealTCP(t *testing.T) {
+	dir := writeSchedulerMainTestArtifact(t)
+	endpoint, stop, calls := startSlowPredictorServer(t)
+	defer stop()
+	t.Setenv("SCHEDULER_PREDICTOR_ENDPOINT", endpoint)
+	t.Setenv("SCHEDULER_SCORER_SLOW_THRESHOLD", "1ms")
+	t.Setenv("SCHEDULER_BREAKER_FAILURE_THRESHOLD", "1")
+	t.Setenv("SCHEDULER_BREAKER_RECOVERY_TIMEOUT", "1m")
+
+	service, status, err := newSchedulerServiceWithStatus("onnx", dir, nil, nil)
+	if err != nil {
+		t.Fatalf("newSchedulerService: %v", err)
+	}
+	if status.AnomalyStatus != predictorStatusReady {
+		t.Fatalf("expected ready predictor, got %#v", status)
+	}
+	req := &schedulerv1.BatchScoreRequest{Tasks: []*schedulerv1.TaskFeature{{
+		TaskId: "slow", ModelClass: "standard", EstimatedInputTokens: 10,
+		EstimatedOutputTokens: 1, Priority: string(scheduler.PriorityNormal), RequestKind: string(scheduler.RequestKindSimpleQA),
+	}}}
+	first, err := service.BatchScoreTasks(context.Background(), req)
+	if err != nil {
+		t.Fatalf("first BatchScoreTasks: %v", err)
+	}
+	second, err := service.BatchScoreTasks(context.Background(), req)
+	if err != nil {
+		t.Fatalf("second BatchScoreTasks: %v", err)
+	}
+	if first.GetResults()[0].GetReason() == "" || second.GetResults()[0].GetReason() == "" {
+		t.Fatalf("expected fallback reasons, got %#v %#v", first.GetResults(), second.GetResults())
+	}
+	if calls.Load() != 1 {
+		t.Fatalf("expected breaker env threshold to skip second predictor call, calls=%d", calls.Load())
+	}
+}
+
 func TestRunReturnsHTTPServeError(t *testing.T) {
 	occupied, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -205,6 +242,36 @@ func TestRunReturnsHTTPServeError(t *testing.T) {
 	if !strings.Contains(err.Error(), "http serve") {
 		t.Fatalf("expected http serve error, got %v", err)
 	}
+}
+
+type slowPredictorServer struct {
+	predictorv1.UnimplementedOutputTokenPredictorServer
+	calls *atomic.Int32
+}
+
+func (s slowPredictorServer) Health(context.Context, *predictorv1.HealthRequest) (*predictorv1.HealthResponse, error) {
+	return &predictorv1.HealthResponse{Ready: true, ModelVersion: "v1"}, nil
+}
+
+func (s slowPredictorServer) BatchPredict(context.Context, *predictorv1.BatchPredictRequest) (*predictorv1.BatchPredictResponse, error) {
+	s.calls.Add(1)
+	time.Sleep(5 * time.Millisecond)
+	return &predictorv1.BatchPredictResponse{Predictions: []*predictorv1.Prediction{{
+		ModelVersion: "v1", Quantiles: map[int32]float64{70: 20},
+	}}}, nil
+}
+
+func startSlowPredictorServer(t *testing.T) (string, func(), *atomic.Int32) {
+	t.Helper()
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	calls := &atomic.Int32{}
+	server := grpc.NewServer()
+	predictorv1.RegisterOutputTokenPredictorServer(server, slowPredictorServer{calls: calls})
+	go func() { _ = server.Serve(listener) }()
+	return listener.Addr().String(), server.Stop, calls
 }
 
 func writeSchedulerMainTestArtifact(t *testing.T) string {

@@ -53,3 +53,11 @@ func TestExtractSafeFeaturesSemanticDefaults(t *testing.T) {
 		t.Fatalf("unexpected coverage defaults: %#v", got)
 	}
 }
+
+func TestExtractSafeFeaturesChineseSentenceLengthBucket(t *testing.T) {
+	req := &llm.LLMRequest{Messages: []llm.Message{{Role: llm.RoleUser, Content: "一 二 三。四 五 六 七 八 九 十 十一 十二 十三 十四 十五 十六 十七 十八 十九 二十 二十一。"}}}
+	got := ExtractSafeFeatures(req, PriorityNormal, "", time.Now())
+	if got.MaxSentenceLengthBucket != 2 {
+		t.Fatalf("expected Chinese punctuation to split sentence bucket to 2, got %#v", got)
+	}
+}

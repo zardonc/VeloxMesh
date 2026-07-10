@@ -168,6 +168,40 @@ func TestAdminSchedulerRolloutUsesRealSQLiteRepository(t *testing.T) {
 	}
 }
 
+func TestAdminSchedulerRolloutPatchWarnsWhenRollupsFailAfterMutation(t *testing.T) {
+	ctx := context.Background()
+	repo := testAdminSchedulerRepo(t)
+	if _, err := repo.DBForTest().ExecContext(ctx, `DROP TABLE scheduler_quality_rollups`); err != nil {
+		t.Fatalf("drop rollups table: %v", err)
+	}
+	controller := scheduler.NewSchedulerRolloutController(config.SchedulerConfig{
+		Enabled: true, HeuristicEndpoint: "heuristic:9000", ONNXEndpoint: "onnx:9000", ONNXRolloutPercent: 10,
+	})
+	handler := NewAdminSchedulerHandler(scheduler.NewAdminSchedulerService(repo, controller, testSchedulerRunner(nil)))
+	r := chi.NewRouter()
+	r.Patch("/admin/scheduler/rollout", handler.PatchRollout)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, httptest.NewRequest("PATCH", "/admin/scheduler/rollout", bytes.NewBufferString(`{"onnx_rollout_percent":0}`)))
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200 with warning, got %d body=%s", rr.Code, rr.Body.String())
+	}
+	var resp scheduler.RolloutResponse
+	if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if resp.Status.ONNXRolloutPercent != 0 || !contains(resp.Warnings, "quality_rollup_query_failed") {
+		t.Fatalf("expected updated status with warning, got %#v", resp)
+	}
+	events, err := repo.Audit().List(ctx, "scheduler-rollout")
+	if err != nil {
+		t.Fatalf("list audit events: %v", err)
+	}
+	if len(events) != 1 || events[0].Outcome != "success_with_warning" {
+		t.Fatalf("expected success_with_warning audit, got %#v", events)
+	}
+}
+
 func gatewayErrorCode(err error) string {
 	gwErr, ok := err.(*gatewayErrors.GatewayError)
 	if !ok {

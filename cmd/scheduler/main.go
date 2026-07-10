@@ -113,10 +113,12 @@ func newPredictiveScorer(ctx context.Context, artifactDir string, metrics observ
 		return predictive.NewScorer(p, predictive.Config{Metrics: metrics}), schedulerStatus{AnomalyStatus: predictorStatusDegraded, AnomalyReason: predictorReasonManifestInvalid}
 	}
 	p, _ := predictor.NewPythonONNXPredictor(ctx, predictor.PythonClientConfig{
-		Endpoint:       getenv("SCHEDULER_PREDICTOR_ENDPOINT", ""),
-		Timeout:        defaultPredictorTimeout,
-		MaxConcurrency: getenvInt("SCHEDULER_SCORER_MAX_CONCURRENCY", 4),
-		SlowThreshold:  getenvDuration("SCHEDULER_SCORER_SLOW_THRESHOLD", defaultPredictorTimeout),
+		Endpoint:                getenv("SCHEDULER_PREDICTOR_ENDPOINT", ""),
+		Timeout:                 defaultPredictorTimeout,
+		MaxConcurrency:          getenvInt("SCHEDULER_SCORER_MAX_CONCURRENCY", 4),
+		SlowThreshold:           getenvDuration("SCHEDULER_SCORER_SLOW_THRESHOLD", defaultPredictorTimeout),
+		BreakerFailureThreshold: getenvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 0),
+		BreakerRecoveryTimeout:  getenvDuration("SCHEDULER_BREAKER_RECOVERY_TIMEOUT", 0),
 	})
 	if isNoopPredictor(p) {
 		return predictive.NewScorer(p, predictive.Config{Version: manifest.ModelVersion, Metrics: metrics}), schedulerStatus{AnomalyStatus: predictorStatusUnavailable, AnomalyReason: predictorReasonSignal}

@@ -25,8 +25,9 @@ type SLARulesReplaceRequest struct {
 }
 
 type RolloutResponse struct {
-	Status  SchedulerRolloutStatus                 `json:"status"`
-	Rollups []*controlstate.SchedulerQualityRollup `json:"quality_rollups"`
+	Status   SchedulerRolloutStatus                 `json:"status"`
+	Rollups  []*controlstate.SchedulerQualityRollup `json:"quality_rollups"`
+	Warnings []string                               `json:"warnings,omitempty"`
 }
 
 type SchedulerRuntimeStatus struct {
@@ -102,7 +103,7 @@ func (s *AdminSchedulerService) Status(ctx context.Context) (*RolloutResponse, e
 		return nil, gwErr.NewGatewayError("scheduler_unavailable", "scheduler rollout status is unavailable", 503)
 	}
 	status := s.controller.Snapshot()
-	rollups, err := s.repo.SchedulerQualityRollups().ListByWindow(ctx, time.Now().Add(-time.Hour), time.Now().Add(time.Minute), "", "", "", 100)
+	rollups, err := s.statusRollups(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -172,23 +173,35 @@ func (s *AdminSchedulerService) Update(ctx context.Context, req *RolloutPatchReq
 	}
 	oldStatus := s.controller.Snapshot()
 	outcome := "success"
-	defer func() {
-		if err != nil {
-			outcome = "validation_failed"
-		}
-		s.recordAudit(ctx, outcome, rolloutAuditMetadata(oldStatus, req))
-	}()
+	defer func() { s.recordAudit(ctx, outcome, rolloutAuditMetadata(oldStatus, req)) }()
 	if req.ONNXRolloutPercent != nil {
 		if _, err := s.controller.SetONNXRolloutPercent(*req.ONNXRolloutPercent); err != nil {
+			outcome = "validation_failed"
 			return nil, gwErr.NewGatewayError("invalid_request", err.Error(), 400)
 		}
 	}
 	if req.QualitySampleWindow != nil {
 		if _, err := s.controller.SetQualitySampleWindow(*req.QualitySampleWindow); err != nil {
+			outcome = "validation_failed"
 			return nil, gwErr.NewGatewayError("invalid_request", err.Error(), 400)
 		}
 	}
-	return s.Status(ctx)
+	resp := &RolloutResponse{Status: s.controller.Snapshot()}
+	rollups, rollupErr := s.statusRollups(ctx)
+	if rollupErr != nil {
+		outcome = "success_with_warning"
+		resp.Warnings = []string{"quality_rollup_query_failed"}
+		return resp, nil
+	}
+	resp.Rollups = rollups
+	return resp, nil
+}
+
+func (s *AdminSchedulerService) statusRollups(ctx context.Context) ([]*controlstate.SchedulerQualityRollup, error) {
+	if s.repo == nil || s.repo.SchedulerQualityRollups() == nil {
+		return nil, gwErr.NewGatewayError("scheduler_unavailable", "scheduler rollout status is unavailable", 503)
+	}
+	return s.repo.SchedulerQualityRollups().ListByWindow(ctx, time.Now().Add(-time.Hour), time.Now().Add(time.Minute), "", "", "", 100)
 }
 
 func rolloutAuditMetadata(oldStatus SchedulerRolloutStatus, req *RolloutPatchRequest) map[string]interface{} {

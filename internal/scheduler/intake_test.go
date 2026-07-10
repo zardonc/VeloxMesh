@@ -3,6 +3,9 @@ package scheduler
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -58,6 +61,43 @@ func TestTaskIntakeRejectsDuplicateRequestIDBeforeQueuePush(t *testing.T) {
 	}
 	if length, err := queue.Len(context.Background()); err != nil || length != 1 {
 		t.Fatalf("expected only first task queued, len=%d err=%v", length, err)
+	}
+}
+
+func TestTaskIntakeConcurrentSubmitHonorsHardLimit(t *testing.T) {
+	queue := &slowLenQueue{MemoryQueue: NewMemoryQueue(), delay: 5 * time.Millisecond}
+	intake := &TaskIntake{
+		Queue: queue, Guard: QueueGuard{HardLimit: 1}, Scorer: FIFOScorer{Reason: "disabled"}, Registry: NewResultRegistry(),
+		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh}, Backend: "memory",
+	}
+	var successes atomic.Int32
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	for id := 0; id < 32; id++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			<-start
+			_, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: fmt.Sprintf("task-%d", id)}, func(context.Context) TaskResult {
+				return TaskResult{}
+			})
+			if err == nil {
+				successes.Add(1)
+				return
+			}
+			if !errors.Is(err, ErrQueueFull) {
+				t.Errorf("Submit %d: %v", id, err)
+			}
+		}(id)
+	}
+	close(start)
+	wg.Wait()
+	length, err := queue.Len(context.Background())
+	if err != nil {
+		t.Fatalf("Len: %v", err)
+	}
+	if length != 1 || successes.Load() != 1 {
+		t.Fatalf("hard limit exceeded: len=%d successes=%d", length, successes.Load())
 	}
 }
 
@@ -214,6 +254,9 @@ func TestSynchronousRunnerExecutesHandlerWithSubmittedRequestContext(t *testing.
 	ctx := context.WithValue(context.Background(), testContextKey{}, "request-context")
 
 	_, err := runner.RunChat(ctx, &llm.LLMRequest{RequestID: "ctx-task"}, func(runCtx context.Context, _ *llm.LLMRequest) (*llm.LLMResponse, error) {
+		if runCtx == ctx {
+			return nil, errors.New("handler received outer context instead of task context")
+		}
 		if runCtx.Value(testContextKey{}) != "request-context" {
 			return nil, errors.New("handler received wrong context")
 		}
@@ -221,6 +264,35 @@ func TestSynchronousRunnerExecutesHandlerWithSubmittedRequestContext(t *testing.
 	})
 	if err != nil {
 		t.Fatalf("RunChat: %v", err)
+	}
+}
+
+func TestSynchronousRunnerExecutesStreamHandlerWithSubmittedRequestContext(t *testing.T) {
+	registry := NewResultRegistry()
+	queue := NewMemoryQueue()
+	intake := &TaskIntake{
+		Queue: queue, Scorer: FIFOScorer{Reason: "disabled"}, Registry: registry,
+		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh}, Backend: "memory",
+	}
+	runner := NewSynchronousRunner(intake, &Executor{Queue: queue, Registry: registry}, registry)
+	ctx := context.WithValue(context.Background(), testContextKey{}, "stream-context")
+
+	events, _, err := runner.RunStream(ctx, &llm.LLMRequest{RequestID: "stream-task"}, func(runCtx context.Context, _ *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+		if runCtx == ctx {
+			return nil, nil, errors.New("stream handler received outer context instead of task context")
+		}
+		if runCtx.Value(testContextKey{}) != "stream-context" {
+			return nil, nil, errors.New("stream handler received wrong context")
+		}
+		out := make(chan llm.StreamEvent, 1)
+		out <- llm.StreamEvent{Done: true}
+		close(out)
+		return out, &llm.LLMResponse{GatewayID: "stream-task"}, nil
+	})
+	if err != nil {
+		t.Fatalf("RunStream: %v", err)
+	}
+	for range events {
 	}
 }
 
@@ -354,6 +426,32 @@ func TestTaskIntakeHighPriorityBypassesSoftLimit(t *testing.T) {
 	}
 	if length, err := queue.Len(context.Background()); err != nil || length != 2 {
 		t.Fatalf("expected high priority enqueue at soft limit, len=%d err=%v", length, err)
+	}
+}
+
+func TestTaskIntakeHighPriorityBypassNotBlockedBySoftLimitWait(t *testing.T) {
+	queue := NewMemoryQueue()
+	seedQueue(t, queue, "queued")
+	intake := softLimitIntake(queue, 100*time.Millisecond)
+	normalDone := make(chan error, 1)
+	go func() {
+		_, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "normal", PriorityClass: "normal"}, func(context.Context) TaskResult {
+			return TaskResult{}
+		})
+		normalDone <- err
+	}()
+	time.Sleep(5 * time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+
+	_, err := intake.Submit(ctx, &llm.LLMRequest{RequestID: "high", PriorityClass: "high"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if err != nil {
+		t.Fatalf("high priority Submit: %v", err)
+	}
+	if err := <-normalDone; !errors.Is(err, ErrQueueFull) {
+		t.Fatalf("expected normal submit to hit hard limit after wait, got %v", err)
 	}
 }
 
@@ -680,4 +778,14 @@ type recordingQueue struct {
 func (q *recordingQueue) Remove(ctx context.Context, taskID string) error {
 	q.removed = taskID
 	return q.QueueBackend.Remove(ctx, taskID)
+}
+
+type slowLenQueue struct {
+	*MemoryQueue
+	delay time.Duration
+}
+
+func (q *slowLenQueue) Len(ctx context.Context) (int64, error) {
+	time.Sleep(q.delay)
+	return q.MemoryQueue.Len(ctx)
 }
