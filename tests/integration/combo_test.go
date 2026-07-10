@@ -96,7 +96,7 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(m, admissionCtrl, healthStore, false, 0, repo, nil, pipeline.DefaultRegistry(), nil, nil)
-	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, nil, hotStateClient, repo, nil, nil)
+	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, nil, nil, hotStateClient, repo, nil, nil)
 
 	server := httptest.NewServer(r)
 	defer server.Close()
@@ -141,7 +141,10 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 
 		req, _ := http.NewRequest(http.MethodPost, server.URL+"/admin/v1/combos", bytes.NewBuffer(b))
 		req.Header.Set("Authorization", "Bearer test-admin-key")
-		resp, _ := http.DefaultClient.Do(req)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("create round-robin combo request failed: %v", err)
+		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusCreated {
@@ -155,7 +158,10 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 
 		req1, _ := http.NewRequest(http.MethodPost, server.URL+"/v1/chat/completions", bytes.NewBufferString(reqBody))
 		req1.Header.Set("Authorization", "Bearer test-dev-key")
-		resp1, _ := http.DefaultClient.Do(req1)
+		resp1, err := http.DefaultClient.Do(req1)
+		if err != nil {
+			t.Fatalf("round-robin combo request failed: %v", err)
+		}
 		defer resp1.Body.Close()
 
 		if resp1.StatusCode != http.StatusOK {
@@ -178,7 +184,10 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 
 		req, _ := http.NewRequest(http.MethodPost, server.URL+"/admin/v1/combos", bytes.NewBuffer(b))
 		req.Header.Set("Authorization", "Bearer test-admin-key")
-		resp, _ := http.DefaultClient.Do(req)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("create fusion combo request failed: %v", err)
+		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusCreated {
@@ -190,7 +199,10 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 		reqBody := `{"model": "smart-fusion", "messages": [{"role": "user", "content": "Hello"}]}`
 		req, _ := http.NewRequest(http.MethodPost, server.URL+"/v1/chat/completions", bytes.NewBufferString(reqBody))
 		req.Header.Set("Authorization", "Bearer test-dev-key")
-		resp, _ := http.DefaultClient.Do(req)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("fusion combo request failed: %v", err)
+		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
@@ -210,7 +222,10 @@ func TestComboRoutingAndAdmin(t *testing.T) {
 		b, _ := json.Marshal(reqBody)
 		req, _ := http.NewRequest(http.MethodPost, server.URL+"/admin/v1/combos", bytes.NewBuffer(b))
 		req.Header.Set("Authorization", "Bearer test-admin-key")
-		resp, _ := http.DefaultClient.Do(req)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("create capacity combo request failed: %v", err)
+		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusCreated {

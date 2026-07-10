@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package predictor.v1;
+
+option go_package = "veloxmesh/internal/scheduler/predictorv1;predictorv1";
+
+service OutputTokenPredictor {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc BatchPredict(BatchPredictRequest) returns (BatchPredictResponse);
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool ready = 1;
+  string model_version = 2;
+  string reason = 3;
+}
+
+message BatchPredictRequest {
+  repeated TaskFeature tasks = 1;
+}
+
+message TaskFeature {
+  string task_id = 1;
+  string model_class = 2;
+  int64 estimated_input_tokens = 3;
+  int64 estimated_output_tokens = 4;
+  bool stream = 5;
+  string priority = 6;
+  string timeout_class = 7;
+  int64 enqueue_time_ms = 8;
+  string request_kind = 9;
+  string route_hint = 10;
+  bool has_tool_calls = 11;
+  int32 tool_call_depth = 12;
+  int32 turn_count = 13;
+  bool multimodal = 14;
+  int32 question_count = 15;
+  int32 code_block_count = 16;
+  bool enumeration_hint = 17;
+  int32 instruction_verb_count = 18;
+  int32 max_sentence_length_bucket = 19;
+  int32 vocabulary_richness_bucket = 20;
+  double confidence_hint = 21;
+  double uncertainty_hint = 22;
+  int64 neighbor_count = 23;
+  int64 latency_p50_ms = 24;
+  int64 latency_p90_ms = 25;
+  double latency_stddev_ms = 26;
+  int64 output_tokens_p70 = 27;
+  double success_rate = 28;
+  double timeout_rate = 29;
+  string coverage_level = 30;
+  double coverage_ratio = 31;
+}
+
+message BatchPredictResponse {
+  repeated Prediction predictions = 1;
+}
+
+message Prediction {
+  map<int32, double> quantiles = 1;
+  string model_version = 2;
+  map<string, double> signals = 3;
+  string error = 4;
+}
+

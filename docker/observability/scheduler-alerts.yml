@@ -1,0 +1,45 @@
+groups:
+  - name: veloxmesh-scheduler
+    rules:
+      - alert: VeloxMeshSchedulerQueueHardLimitRejected
+        expr: sum(rate(gateway_queue_admission_total{outcome="rejected",reason="hard_limit"}[5m])) > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: Scheduler queue hard limit is rejecting work
+          description: Hard-limit queue rejections have continued for 10 minutes. Increase capacity, drain workers, or raise the limit after confirming memory headroom.
+
+      - alert: VeloxMeshSchedulerQueueBackpressure
+        expr: sum(rate(gateway_queue_admission_total{outcome="rejected",reason="soft_limit"}[5m])) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Scheduler queue soft-limit backpressure is active
+          description: Normal or low-priority requests are receiving scheduler_backpressure responses after the bounded soft-limit wait.
+
+      - alert: VeloxMeshSchedulerMAPEDegradation
+        expr: increase(gateway_scheduler_rollout_alerts_total{reason="mape_degradation"}[10m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: Scheduler prediction MAPE exceeded the configured threshold
+          description: ONNX scheduler quality crossed quality_mape_alert_percent. Consider reducing ONNX rollout until quality stabilizes.
+
+      - alert: VeloxMeshSchedulerErrorSpike
+        expr: increase(gateway_scheduler_rollout_alerts_total{reason="scheduler_error_spike"}[10m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: Scheduler prediction errors spiked
+          description: ONNX scheduler error alerts increased in the last 10 minutes. Check predictor health and fallback behavior.
+
+      - alert: VeloxMeshSchedulerBreakerOpen
+        expr: gateway_circuit_breaker_state{state="open"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Scheduler circuit breaker is open
+          description: Scheduler scoring is falling back because the circuit breaker has remained open for 5 minutes.

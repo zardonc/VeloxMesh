@@ -45,8 +45,9 @@ func (m *mockEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest)
 }
 
 type mockRepo struct {
-	entries []*controlstate.SemanticCacheEntry
-	hits    map[string]int
+	entries   []*controlstate.SemanticCacheEntry
+	hits      map[string]int
+	listCalls int
 }
 
 func (m *mockRepo) Store(ctx context.Context, entry *controlstate.SemanticCacheEntry) error {
@@ -55,6 +56,7 @@ func (m *mockRepo) Store(ctx context.Context, entry *controlstate.SemanticCacheE
 }
 
 func (m *mockRepo) ListCandidates(ctx context.Context, scope, model string) ([]*controlstate.SemanticCacheEntry, error) {
+	m.listCalls++
 	var res []*controlstate.SemanticCacheEntry
 	now := time.Now().UTC()
 	for _, e := range m.entries {
@@ -68,6 +70,16 @@ func (m *mockRepo) ListCandidates(ctx context.Context, scope, model string) ([]*
 		res[i], res[j] = res[j], res[i]
 	}
 	return res, nil
+}
+
+func (m *mockRepo) GetCandidate(ctx context.Context, id, scope, model string) (*controlstate.SemanticCacheEntry, error) {
+	now := time.Now().UTC()
+	for _, e := range m.entries {
+		if e.ID == id && e.Scope == scope && e.Model == model && e.Enabled && e.ExpiresAt.After(now) {
+			return e, nil
+		}
+	}
+	return nil, nil
 }
 
 func (m *mockRepo) RecordHit(ctx context.Context, id string) error {
@@ -253,6 +265,9 @@ func TestSemanticCacheVectorMapsThroughRepository(t *testing.T) {
 	}
 	if entry == nil || entry.ID != "id-1" {
 		t.Fatalf("expected repository-backed vector hit, got %+v", entry)
+	}
+	if repo.listCalls != 0 {
+		t.Fatalf("vector lookup loaded all candidates %d times", repo.listCalls)
 	}
 	if repo.hits["id-1"] != 1 {
 		t.Fatalf("expected hit count recorded")

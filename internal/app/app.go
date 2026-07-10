@@ -25,18 +25,24 @@ import (
 	"veloxmesh/internal/providers/anthropic"
 	"veloxmesh/internal/providers/gemini"
 	"veloxmesh/internal/providers/openai"
+	"veloxmesh/internal/redisconn"
+	"veloxmesh/internal/scheduler"
 
 	"github.com/redis/go-redis/v9"
 )
 
 type App struct {
-	Config                 *config.Config
-	Logger                 *slog.Logger
-	Router                 http.Handler
-	RuntimeProviderManager *controlstate.RuntimeProviderManager
-	HotState               hotstate.Client
-	Coordinator            coordination.Coordinator
-	ShutdownTracing        func(context.Context) error
+	Config                       *config.Config
+	Logger                       *slog.Logger
+	Router                       http.Handler
+	RuntimeProviderManager       *controlstate.RuntimeProviderManager
+	HotState                     hotstate.Client
+	Coordinator                  coordination.Coordinator
+	ShutdownTracing              func(context.Context) error
+	SchedulerRunner              *scheduler.SynchronousRunner
+	SchedulerQueueBackend        string
+	SchedulerFeedbackOn          bool
+	SchedulerSemanticNeighborsOn bool
 }
 
 const (
@@ -46,25 +52,160 @@ const (
 	controlRedisMaxRetries      = 1
 	controlRedisMinRetryBackoff = 50 * time.Millisecond
 	controlRedisMaxRetryBackoff = 100 * time.Millisecond
+	localSchedulerQueueNode     = "local"
 )
 
-func newControlRedisClient(cfg *config.Config) *redis.Client {
-	return redis.NewClient(&redis.Options{
-		Addr:                  cfg.RedisAddr,
-		Password:              cfg.RedisPassword,
-		DB:                    cfg.RedisDB,
-		DialTimeout:           controlRedisDialTimeout,
-		ReadTimeout:           controlRedisReadTimeout,
-		WriteTimeout:          controlRedisWriteTimeout,
-		MaxRetries:            controlRedisMaxRetries,
-		MinRetryBackoff:       controlRedisMinRetryBackoff,
-		MaxRetryBackoff:       controlRedisMaxRetryBackoff,
-		ContextTimeoutEnabled: true,
-	})
+func newControlRedisClient(cfg *config.Config, logger *slog.Logger) (*redis.Client, error) {
+	opts, err := redisconn.Options(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
+	if err != nil {
+		return nil, err
+	}
+	redisconn.WarnPlaintextCredentials(logger, "control", opts)
+	opts.DialTimeout = controlRedisDialTimeout
+	opts.ReadTimeout = controlRedisReadTimeout
+	opts.WriteTimeout = controlRedisWriteTimeout
+	opts.MaxRetries = controlRedisMaxRetries
+	opts.MinRetryBackoff = controlRedisMinRetryBackoff
+	opts.MaxRetryBackoff = controlRedisMaxRetryBackoff
+	opts.ContextTimeoutEnabled = true
+	return redis.NewClient(opts), nil
 }
 
 func (a *App) HealthStore() health.Store {
 	return a.RuntimeProviderManager.HealthStore()
+}
+
+type schedulerRunnerDeps struct {
+	ctx               context.Context
+	cfg               *config.Config
+	hotState          hotstate.Client
+	logger            *slog.Logger
+	repo              controlstate.Repository
+	recorder          *scheduler.TrainingRecorder
+	quality           *scheduler.PredictionQualityRecorder
+	rollout           *scheduler.SchedulerRolloutController
+	semanticNeighbors scheduler.SemanticNeighborEnricher
+}
+
+type slaPromoterDeps struct {
+	cfg      config.SchedulerConfig
+	queue    scheduler.QueueBackend
+	registry *scheduler.ResultRegistry
+	audit    controlstate.AuditRepository
+	logger   *slog.Logger
+	metrics  observability.Metrics
+}
+
+func newSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner, string) {
+	ctx, cfg, logger := deps.ctx, deps.cfg, deps.logger
+	queue, backend := newSchedulerQueue(ctx, cfg, logger)
+	scorer, err := scheduler.NewScorerWithController(ctx, cfg.Scheduler, deps.rollout)
+	if err != nil {
+		logger.Warn("scheduler scorer unavailable; using FIFO fallback", "error", err)
+		scorer = scheduler.FIFOScorer{Reason: "disabled"}
+	}
+	observability.DefaultMetrics.RecordSchedulerBreakerState("closed")
+	registry := scheduler.NewResultRegistry()
+	intake := &scheduler.TaskIntake{
+		Queue:    queue,
+		Guard:    scheduler.QueueGuard{SoftLimit: int64(cfg.Scheduler.QueueSoftLimit), HardLimit: int64(cfg.Scheduler.QueueHardLimit)},
+		Scorer:   scorer,
+		Registry: registry,
+		Priority: scheduler.NewPriorityResolver(deps.hotState),
+		Policy: scheduler.PriorityPolicy{
+			Default:            scheduler.NormalizePriority(cfg.Scheduler.DefaultPriority),
+			Max:                scheduler.NormalizePriority(cfg.Scheduler.MaxPriority),
+			HighQuotaPerMinute: int64(cfg.Scheduler.HighQuotaPerMinute),
+			Strict:             cfg.Scheduler.Strict,
+		},
+		Metrics:           observability.DefaultMetrics,
+		Backend:           backend,
+		SemanticNeighbors: deps.semanticNeighbors,
+	}
+	if timeout, err := time.ParseDuration(cfg.Scheduler.SemanticNeighborsTaskTimeout); err == nil {
+		intake.SemanticNeighborTaskTimeout = timeout
+	}
+	if timeout, err := time.ParseDuration(cfg.Scheduler.QueuePopTimeout); err == nil {
+		intake.ThrottleWait = timeout
+	}
+	executor := &scheduler.Executor{
+		Queue:    queue,
+		Registry: registry,
+		Metrics:  observability.DefaultMetrics,
+		Promoter: newSLAPromoter(slaPromoterDeps{
+			cfg:      cfg.Scheduler,
+			queue:    queue,
+			registry: registry,
+			audit:    schedulerAudit(deps.repo),
+			logger:   logger,
+			metrics:  observability.DefaultMetrics,
+		}),
+	}
+	runner := scheduler.NewSynchronousRunnerWithConcurrency(intake, executor, registry, cfg.Scheduler.ExecutorConcurrency)
+	runner.Recorder = deps.recorder
+	runner.Quality = deps.quality
+	if indexer, ok := deps.semanticNeighbors.(scheduler.SemanticNeighborIndexer); ok {
+		runner.Indexer = indexer
+	}
+	return runner, backend
+}
+
+func newOptionalSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner, string) {
+	if !deps.cfg.Scheduler.Enabled {
+		return nil, "disabled"
+	}
+	return newSchedulerRunner(deps)
+}
+
+func newSLAPromoter(deps slaPromoterDeps) *scheduler.SLAPromoter {
+	if !deps.cfg.SLAPromotionEnabled {
+		return nil
+	}
+	return &scheduler.SLAPromoter{
+		Enabled:         true,
+		CandidateWindow: deps.cfg.SLAPromotionCandidateWindow,
+		Rules:           deps.cfg.SLAPromotionRules,
+		Queue:           deps.queue,
+		Registry:        deps.registry,
+		Audit:           deps.audit,
+		Logger:          deps.logger,
+		Metrics:         deps.metrics,
+	}
+}
+
+func schedulerAudit(repo controlstate.Repository) controlstate.AuditRepository {
+	if repo == nil {
+		return nil
+	}
+	return repo.Audit()
+}
+
+func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Logger) (scheduler.QueueBackend, string) {
+	memoryQueue := scheduler.NewMemoryQueue()
+	backend := strings.ToLower(cfg.Scheduler.QueueBackend)
+	if backend != "redis" || !cfg.RedisEnabled {
+		return memoryQueue, "memory"
+	}
+	redisClient, err := newControlRedisClient(cfg, logger)
+	if err != nil {
+		logger.Warn("scheduler redis queue unavailable; using memory queue", "error", err)
+		return memoryQueue, "memory"
+	}
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		logger.Warn("scheduler redis queue unavailable; using memory queue", "error", err)
+		_ = redisClient.Close()
+		return memoryQueue, "memory"
+	}
+	redisQueue := scheduler.NewRedisQueue(redisClient, cfg.RedisNamespace, schedulerRedisQueueName(cfg))
+	return redisQueue, "redis"
+}
+
+func schedulerRedisQueueName(cfg *config.Config) string {
+	nodeID := strings.TrimSpace(cfg.NodeID)
+	if nodeID == "" {
+		nodeID = localSchedulerQueueNode
+	}
+	return "gateway-" + nodeID
 }
 
 func New() (*App, error) {
@@ -109,7 +250,10 @@ func New() (*App, error) {
 
 	var coord coordination.Coordinator
 	if cfg.MultiNodeEnabled && cfg.RedisEnabled {
-		rdb := newControlRedisClient(cfg)
+		rdb, err := newControlRedisClient(cfg, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize redis coordination: %w", err)
+		}
 		coord = coordination.NewRedisCoordinator(rdb, cfg.RedisNamespace, cfg.NodeID)
 	} else {
 		coord = coordination.NewNoopCoordinator()
@@ -186,7 +330,10 @@ func New() (*App, error) {
 	var lagReporter handlers.LagReporter
 	var consumer *replication.Consumer
 	if cfg.MultiNodeEnabled && cfg.RedisEnabled && repo != nil {
-		rdb := newControlRedisClient(cfg)
+		rdb, err := newControlRedisClient(cfg, logger)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize redis replication: %w", err)
+		}
 
 		producer := replication.NewRedisStreamProducer(rdb, replication.ControlStreamName)
 		wrappedRepo := replication.NewRepository(repo, coord, producer)
@@ -205,6 +352,8 @@ func New() (*App, error) {
 	var adminProvHandler *handlers.AdminProvidersHandler
 	var adminCombosHandler *handlers.AdminCombosHandler
 	var adminSemanticRulesHandler *handlers.AdminSemanticRulesHandler
+	var adminSchedulerHandler *handlers.AdminSchedulerHandler
+	rolloutController := scheduler.NewSchedulerRolloutController(cfg.Scheduler)
 	if repo != nil {
 		adminSvc := controlstate.NewAdminProviderService(repo, cipher, m, hotStateClient)
 		adminProvHandler = handlers.NewAdminProvidersHandler(adminSvc)
@@ -216,18 +365,51 @@ func New() (*App, error) {
 		adminSemanticRulesHandler = handlers.NewAdminSemanticRulesHandler(adminSemanticRulesSvc)
 	}
 
+	schedulerFeedbackOn := cfg.Scheduler.FeedbackEnabled && repo != nil
+	if cfg.Scheduler.FeedbackEnabled && repo == nil {
+		logger.Warn("scheduler feedback disabled; durable control state is unavailable")
+	}
+	var trainingRecorder *scheduler.TrainingRecorder
+	if schedulerFeedbackOn {
+		trainingRecorder = &scheduler.TrainingRecorder{Repo: repo.SchedulerTrainingSamples()}
+	}
+	var qualityRecorder *scheduler.PredictionQualityRecorder
+	if repo != nil {
+		qualityRecorder = &scheduler.PredictionQualityRecorder{Repo: repo.SchedulerQualityRollups(), Metrics: observability.DefaultMetrics, Controller: rolloutController}
+	}
+	semanticNeighbors := newSemanticNeighborService(ctx, cfg, logger, m, repo)
+	schedulerRunner, schedulerBackend := newOptionalSchedulerRunner(schedulerRunnerDeps{
+		ctx:               ctx,
+		cfg:               cfg,
+		hotState:          hotStateClient,
+		logger:            logger,
+		repo:              repo,
+		recorder:          trainingRecorder,
+		quality:           qualityRecorder,
+		rollout:           rolloutController,
+		semanticNeighbors: semanticNeighbors,
+	})
+	if repo != nil {
+		adminSchedulerSvc := scheduler.NewAdminSchedulerService(repo, rolloutController, schedulerRunner)
+		adminSchedulerHandler = handlers.NewAdminSchedulerHandler(adminSchedulerSvc)
+	}
 	gatewaySvc := gateway.NewService(m, admissionCtrl, m.HealthStore(), cfg.FallbackEnabled, cfg.MaxAttempts, repo, semanticCache, pipeline.DefaultRegistry(), m, hotStateClient)
+	gatewaySvc.SetSchedulerRunner(schedulerRunner)
 
-	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, hotStateClient, repo, coord, lagReporter)
+	r := router.NewRouter(cfg, gatewaySvc, adminProvHandler, adminCombosHandler, adminSemanticRulesHandler, adminSchedulerHandler, hotStateClient, repo, coord, lagReporter)
 
 	application := &App{
-		Config:                 cfg,
-		Logger:                 logger,
-		Router:                 r,
-		RuntimeProviderManager: m,
-		HotState:               hotStateClient,
-		Coordinator:            coord,
-		ShutdownTracing:        shutdownTracing,
+		Config:                       cfg,
+		Logger:                       logger,
+		Router:                       r,
+		RuntimeProviderManager:       m,
+		HotState:                     hotStateClient,
+		Coordinator:                  coord,
+		ShutdownTracing:              shutdownTracing,
+		SchedulerRunner:              schedulerRunner,
+		SchedulerQueueBackend:        schedulerBackend,
+		SchedulerFeedbackOn:          schedulerFeedbackOn,
+		SchedulerSemanticNeighborsOn: semanticNeighbors != nil,
 	}
 
 	if cfg.ControlStateBackend != "disabled" {

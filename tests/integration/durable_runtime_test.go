@@ -43,8 +43,6 @@ type memoryRepository struct {
 	usageRepo controlstate.UsageRepository
 }
 
-
-
 type memoryUsageRepo struct {
 	records []*controlstate.UsageRecord
 }
@@ -261,7 +259,7 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 
 	admissionCtrl := admission.NewPassThroughController()
 	gatewaySvc := gateway.NewService(a.RuntimeProviderManager, admissionCtrl, a.HealthStore(), a.Config.FallbackEnabled, a.Config.MaxAttempts, repo, nil, pipeline.DefaultRegistry(), nil, nil)
-	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, nil, nil, repo, nil, nil)
+	a.Router = router.NewRouter(a.Config, gatewaySvc, nil, nil, nil, nil, nil, repo, nil, nil)
 
 	// 1. Initial reload with empty repo
 	err = a.ReloadProviders(context.Background(), repo, cipher)
@@ -312,7 +310,10 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	// Models should now have gpt-4o
 	req, _ = http.NewRequest(http.MethodGet, server.URL+"/v1/models", nil)
 	req.Header.Set("Authorization", "Bearer test-dev-key")
-	resp, _ = http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("models request after reload failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	var modelsResp map[string]interface{}
@@ -329,7 +330,10 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, server.URL+"/v1/chat/completions", bytes.NewBufferString(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer test-dev-key")
-	resp, _ = http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("chat request after reload failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -347,7 +351,10 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, server.URL+"/v1/chat/completions", bytes.NewBufferString(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer test-dev-key")
-	resp, _ = http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("chat request after disabling provider failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusServiceUnavailable {

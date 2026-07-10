@@ -97,11 +97,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	if req.Stream {
 		ch, respMeta, err := h.service.HandleChatCompletionStream(r.Context(), llmReq)
 		if err != nil {
-			if gwErr, ok := err.(*errors.GatewayError); ok {
-				sendGatewayError(w, gwErr)
-			} else {
-				sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
-			}
+			sendGatewayError(w, errors.TranslateError(err))
 			return
 		}
 
@@ -113,7 +109,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cache-Hit", "false")
 		w.Header().Set("X-Cache-Level", "none")
 		w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
-		w.Header().Set("X-Queue-Wait-Ms", "0")
+		w.Header().Set("X-Queue-Wait-Ms", fmt.Sprintf("%d", respMeta.QueueWaitMs))
 		if respMeta.Strategy != "" {
 			w.Header().Set("X-Routing-Strategy", respMeta.Strategy)
 		}
@@ -192,11 +188,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.service.HandleChatCompletion(r.Context(), llmReq)
 	if err != nil {
-		if gwErr, ok := err.(*errors.GatewayError); ok {
-			sendGatewayError(w, gwErr)
-		} else {
-			sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
-		}
+		sendGatewayError(w, errors.TranslateError(err))
 		return
 	}
 
@@ -213,7 +205,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cache-Level", "none")
 	}
 	w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
-	w.Header().Set("X-Queue-Wait-Ms", "0")
+	w.Header().Set("X-Queue-Wait-Ms", fmt.Sprintf("%d", resp.QueueWaitMs))
 	if resp.Strategy != "" {
 		w.Header().Set("X-Routing-Strategy", resp.Strategy)
 	}

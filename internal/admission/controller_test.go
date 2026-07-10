@@ -113,3 +113,15 @@ func TestLimitAdmissionController_CreditBalance(t *testing.T) {
 		t.Fatalf("expected insufficient credits error, got nil")
 	}
 }
+
+func TestLimitAdmissionController_HighPriorityDoesNotBypassCredit(t *testing.T) {
+	ctrl := admission.NewLimitAdmissionController(&mockRepo{limitRepo: &mockLimitRuleRepo{}}, hotstate.NewLocalHotState())
+	req := &llm.LLMRequest{PriorityClass: "high"}
+	identity := &middleware.AuthIdentity{ID: "key-1", Role: "user", CreditBalance: 0}
+	ctx := context.WithValue(context.Background(), middleware.AuthIdentityKey, identity)
+
+	_, _, err := ctrl.Admit(ctx, req, routing.RoutingDecision{})
+	if err == nil {
+		t.Fatalf("expected insufficient credits for high priority")
+	}
+}

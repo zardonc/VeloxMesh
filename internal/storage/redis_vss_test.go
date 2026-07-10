@@ -5,14 +5,15 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"veloxmesh/internal/testenv"
 )
 
 func TestRedisVSSVectorAdapter_Integration(t *testing.T) {
-	// Simple test that just checks initialization without needing real Redis
-	// Real integration would need a Redis instance with RediSearch loaded.
+	testenv.Load()
 	redisAddr := os.Getenv("REDIS_ADDR")
 	if redisAddr == "" {
-		redisAddr = "localhost:6379"
+		t.Skip("Skipping Redis VSS test because REDIS_ADDR is not set")
 	}
 
 	adapter, err := NewRedisVSSVectorAdapter(context.Background(), redisAddr, "", 0, "test")

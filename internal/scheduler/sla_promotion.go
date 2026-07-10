@@ -1,0 +1,266 @@
+package scheduler
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"math"
+	"sync"
+	"time"
+
+	"veloxmesh/internal/config"
+	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/observability"
+)
+
+type SLAPromotionOutcome string
+
+const (
+	SLAPromotionOutcomePromoted                 SLAPromotionOutcome = "promoted"
+	SLAPromotionOutcomeNotEligible              SLAPromotionOutcome = "not_eligible"
+	SLAPromotionOutcomeBlockedByPriorityOrQuota SLAPromotionOutcome = "blocked_by_priority_or_quota"
+	SLAPromotionOutcomeDisabled                 SLAPromotionOutcome = "disabled"
+	SLAPromotionOutcomeError                    SLAPromotionOutcome = "error"
+)
+
+const (
+	slaMetricDefaultPolicyID    = "none"
+	slaMetricDefaultTenantClass = "anonymous"
+	slaMetricDefaultModelClass  = "unknown"
+	slaMetricDefaultRequestKind = "simple_qa"
+)
+
+type SLAPromotionResult struct {
+	Outcome     SLAPromotionOutcome
+	TaskID      string
+	PolicyID    string
+	TenantID    string
+	TenantClass string
+	ModelClass  string
+	RequestKind string
+	Priority    PriorityClass
+}
+
+type SLAPromoter struct {
+	mu              sync.RWMutex
+	Enabled         bool
+	CandidateWindow int
+	Rules           []config.SLAPromotionRule
+	Queue           QueueBackend
+	Registry        *ResultRegistry
+	Audit           controlstate.AuditRepository
+	Logger          *slog.Logger
+	Metrics         observability.Metrics
+}
+
+func (p *SLAPromoter) SnapshotRules() []config.SLAPromotionRule {
+	if p == nil {
+		return nil
+	}
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return append([]config.SLAPromotionRule(nil), p.Rules...)
+}
+
+func (p *SLAPromoter) ReplaceRules(rules []config.SLAPromotionRule) []config.SLAPromotionRule {
+	if p == nil {
+		return nil
+	}
+	next := append([]config.SLAPromotionRule(nil), rules...)
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	old := append([]config.SLAPromotionRule(nil), p.Rules...)
+	p.Rules = next
+	return old
+}
+
+func (p *SLAPromoter) PromoteBeforePop(ctx context.Context, now time.Time) (SLAPromotionResult, error) {
+	if p == nil {
+		return SLAPromotionResult{Outcome: SLAPromotionOutcomeDisabled}, nil
+	}
+	if !p.Enabled {
+		return p.completePromotion(ctx, SLAPromotionResult{Outcome: SLAPromotionOutcomeDisabled}, nil)
+	}
+	if p.Queue == nil || p.Registry == nil || p.CandidateWindow < 1 {
+		return p.completePromotion(ctx, SLAPromotionResult{Outcome: SLAPromotionOutcomeNotEligible}, nil)
+	}
+	items, err := p.Queue.PeekMin(ctx, p.CandidateWindow)
+	if err != nil {
+		result := SLAPromotionResult{Outcome: SLAPromotionOutcomeError}
+		return p.completePromotion(ctx, result, err)
+	}
+	result, score, ok := p.selectCandidate(items, now)
+	if !ok || result.Outcome != SLAPromotionOutcomePromoted {
+		return p.completePromotion(ctx, result, nil)
+	}
+	if err := p.Queue.Push(ctx, QueueItem{TaskID: result.TaskID, Score: score}); err != nil {
+		result.Outcome = SLAPromotionOutcomeError
+		return p.completePromotion(ctx, result, err)
+	}
+	return p.completePromotion(ctx, result, nil)
+}
+
+func (p *SLAPromoter) selectCandidate(items []QueueItem, now time.Time) (SLAPromotionResult, float64, bool) {
+	firstScore := map[PriorityClass]float64{}
+	earlierScoreByRank := map[int]float64{}
+	for _, item := range items {
+		task, ok := p.Registry.Task(item.TaskID)
+		if !ok {
+			continue
+		}
+		priority := task.Feature.Priority
+		if _, ok := firstScore[priority]; !ok {
+			firstScore[priority] = item.Score
+		}
+		rule, matched := p.matchRule(task)
+		if matched && waitedLongEnough(task, rule, now) {
+			boundary, hasBoundary := higherPriorityBoundary(earlierScoreByRank, priorityRank(priority))
+			return p.candidateResult(task, rule, firstScore[priority], item.Score, boundary, hasBoundary)
+		}
+		rank := priorityRank(priority)
+		if score, ok := earlierScoreByRank[rank]; !ok || item.Score > score {
+			earlierScoreByRank[rank] = item.Score
+		}
+	}
+	return SLAPromotionResult{Outcome: SLAPromotionOutcomeNotEligible}, 0, false
+}
+
+func higherPriorityBoundary(scores map[int]float64, rank int) (float64, bool) {
+	boundary := 0.0
+	found := false
+	for earlierRank, score := range scores {
+		if earlierRank > rank && (!found || score > boundary) {
+			boundary = score
+			found = true
+		}
+	}
+	return boundary, found
+}
+
+func (p *SLAPromoter) candidateResult(task Task, rule config.SLAPromotionRule, firstScore float64, currentScore float64, higherBoundary float64, hasHigherBoundary bool) (SLAPromotionResult, float64, bool) {
+	result := promotionResult(task, rule, SLAPromotionOutcomePromoted)
+	target := math.Nextafter(firstScore, math.Inf(-1))
+	if hasHigherBoundary && target <= higherBoundary {
+		target = math.Nextafter(higherBoundary, math.Inf(1))
+	}
+	if !(target < currentScore) {
+		result.Outcome = SLAPromotionOutcomeBlockedByPriorityOrQuota
+		return result, 0, true
+	}
+	return result, target, true
+}
+
+func (p *SLAPromoter) matchRule(task Task) (config.SLAPromotionRule, bool) {
+	for _, rule := range p.SnapshotRules() {
+		tenantMatch := rule.TenantID != "" && rule.TenantID == task.TenantID
+		classMatch := rule.TenantClass != "" && rule.TenantClass == task.TenantClass
+		if !tenantMatch && !classMatch {
+			continue
+		}
+		if rule.ModelClass == task.Feature.ModelClass && rule.RequestKind == string(task.Feature.RequestKind) {
+			return rule, true
+		}
+	}
+	return config.SLAPromotionRule{}, false
+}
+
+func waitedLongEnough(task Task, rule config.SLAPromotionRule, now time.Time) bool {
+	threshold, err := time.ParseDuration(rule.WaitThreshold)
+	return err == nil && now.Sub(task.EnqueueTime) >= threshold
+}
+
+func promotionResult(task Task, rule config.SLAPromotionRule, outcome SLAPromotionOutcome) SLAPromotionResult {
+	return SLAPromotionResult{
+		Outcome:     outcome,
+		TaskID:      task.ID,
+		PolicyID:    rule.PolicyID,
+		TenantID:    task.TenantID,
+		TenantClass: task.TenantClass,
+		ModelClass:  task.Feature.ModelClass,
+		RequestKind: string(task.Feature.RequestKind),
+		Priority:    task.Feature.Priority,
+	}
+}
+
+func (p *SLAPromoter) completePromotion(ctx context.Context, result SLAPromotionResult, err error) (SLAPromotionResult, error) {
+	p.recordMetric(result)
+	p.emitEvidence(ctx, result)
+	return result, err
+}
+
+func (p *SLAPromoter) recordMetric(result SLAPromotionResult) {
+	if p.Metrics == nil {
+		return
+	}
+	p.Metrics.IncSchedulerSLAPromotion(
+		defaultMetricLabel(result.PolicyID, slaMetricDefaultPolicyID),
+		defaultMetricLabel(result.TenantClass, slaMetricDefaultTenantClass),
+		defaultMetricLabel(result.ModelClass, slaMetricDefaultModelClass),
+		defaultMetricLabel(result.RequestKind, slaMetricDefaultRequestKind),
+		defaultMetricLabel(string(result.Priority), string(PriorityNormal)),
+		defaultMetricLabel(string(result.Outcome), string(SLAPromotionOutcomeError)),
+	)
+}
+
+func defaultMetricLabel(value string, fallback string) string {
+	if value == "" {
+		return fallback
+	}
+	return value
+}
+
+func (p *SLAPromoter) emitEvidence(ctx context.Context, result SLAPromotionResult) {
+	switch result.Outcome {
+	case SLAPromotionOutcomePromoted:
+		p.writeAudit(ctx, result)
+		p.writeLog(slog.LevelInfo, result)
+	case SLAPromotionOutcomeBlockedByPriorityOrQuota:
+		p.writeAudit(ctx, result)
+		p.writeLog(slog.LevelWarn, result)
+	case SLAPromotionOutcomeError:
+		p.writeLog(slog.LevelWarn, result)
+	}
+}
+
+func (p *SLAPromoter) writeAudit(ctx context.Context, result SLAPromotionResult) {
+	if p.Audit == nil {
+		return
+	}
+	now := time.Now().UTC()
+	_ = p.Audit.Log(ctx, &controlstate.AuditEvent{
+		ID:        fmt.Sprintf("scheduler.sla_promotion-%d", now.UnixNano()),
+		Actor:     "system",
+		Action:    "scheduler.sla_promotion",
+		TargetID:  result.PolicyID,
+		Outcome:   string(result.Outcome),
+		Metadata:  controlstate.SafeAuditMetadata(slaEvidence(result)),
+		Timestamp: now,
+	})
+}
+
+func (p *SLAPromoter) writeLog(level slog.Level, result SLAPromotionResult) {
+	if p.Logger == nil {
+		return
+	}
+	p.Logger.Log(context.Background(), level, "scheduler SLA promotion",
+		"policy_id", result.PolicyID,
+		"tenant_id", result.TenantID,
+		"tenant_class", result.TenantClass,
+		"model_class", result.ModelClass,
+		"request_kind", result.RequestKind,
+		"priority", string(result.Priority),
+		"outcome", string(result.Outcome),
+	)
+}
+
+func slaEvidence(result SLAPromotionResult) map[string]interface{} {
+	return map[string]interface{}{
+		"policy_id":    result.PolicyID,
+		"tenant_id":    result.TenantID,
+		"tenant_class": result.TenantClass,
+		"model_class":  result.ModelClass,
+		"request_kind": result.RequestKind,
+		"priority":     string(result.Priority),
+		"outcome":      string(result.Outcome),
+	}
+}

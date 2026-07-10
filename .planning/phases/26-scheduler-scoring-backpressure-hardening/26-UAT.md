@@ -1,0 +1,50 @@
+---
+status: complete
+phase: 26-scheduler-scoring-backpressure-hardening
+source: .planning/phases/26-scheduler-scoring-backpressure-hardening/26-01-PLAN.md
+started: 2026-07-08T19:51:19Z
+updated: 2026-07-08T19:51:19Z
+---
+
+## Current Test
+
+[testing complete]
+
+## Tests
+
+### 1. External scorer backpressure quick-fails
+expected: Gateway-side Scheduler scoring and scheduler-side Python predictor scoring cap external calls with non-blocking concurrency slots. Requests above the cap return fallback immediately instead of waiting behind slow scorer work.
+result: pass
+
+### 2. Slow successful scorer calls degrade
+expected: Slow but successful external scorer and predictor responses are treated as degraded, recorded against breaker state, and return fallback results rather than blocking intake.
+result: pass
+
+### 3. Breaker uses a small failure-rate window
+expected: Alternating failure and success still opens the breaker when recent failures exceed the configured small window; one success does not erase recent failures.
+result: pass
+
+### 4. Operator docs and config expose fallback policy
+expected: Operators can configure scorer max concurrency and slow threshold through env and JSON examples, and the runbook states predictive scoring is an optimization path that should quick-fail to heuristic/FIFO.
+result: pass
+
+## Summary
+
+total: 4
+passed: 4
+issues: 0
+pending: 0
+skipped: 0
+blocked: 0
+
+## Evidence
+
+- `go test -timeout 60s ./internal/config ./internal/scheduler ./internal/scheduler/predictor ./internal/scheduler/onnx ./cmd/scheduler -count=1` passed.
+- `go test -timeout 60s ./...` passed.
+- `go build ./...` passed.
+- `git diff --check` passed with only existing CRLF conversion warnings for `.planning/ROADMAP.md` and `.planning/STATE.md`.
+- Real component coverage included local TCP gRPC Scheduler and Python predictor test servers plus ONNX artifact/model scorer tests.
+
+## Gaps
+
+[none]

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 	"veloxmesh/internal/llm"
+	verrors "veloxmesh/internal/errors"
 )
 
 type mockOrderHandler struct {
@@ -130,7 +131,7 @@ func TestPipelineFilterBlock(t *testing.T) {
 	registry.Register(&mockOrderHandler{
 		name:       RuleFilter,
 		orderLog:   &orderLog,
-		errToThrow: ErrFilterBlock,
+		errToThrow: verrors.ErrPolicyBlocked,
 	})
 	registry.Register(&mockOrderHandler{
 		name:     RulePII,
@@ -147,8 +148,8 @@ func TestPipelineFilterBlock(t *testing.T) {
 	state := &RunState{PIIMappings: make(map[string]string)}
 
 	err := p.ProcessRequest(ctx, scope, state, &llm.LLMRequest{})
-	if err == nil || !errors.Is(err, ErrFilterBlock) {
-		t.Fatalf("expected ErrFilterBlock, got %v", err)
+	if err == nil || !errors.Is(err, verrors.ErrPolicyBlocked) {
+		t.Fatalf("expected ErrPolicyBlocked, got %v", err)
 	}
 
 	if len(orderLog) != 1 || orderLog[0] != RuleFilter {

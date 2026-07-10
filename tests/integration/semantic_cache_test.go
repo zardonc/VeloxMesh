@@ -17,9 +17,9 @@ import (
 	"veloxmesh/internal/health"
 	router "veloxmesh/internal/http"
 	"veloxmesh/internal/llm"
+	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
-	"veloxmesh/internal/pipeline"
 )
 
 type mockEmbedAdapter struct {
@@ -66,6 +66,14 @@ func (m *memorySemanticCacheRepo) Store(ctx context.Context, entry *controlstate
 func (m *memorySemanticCacheRepo) ListCandidates(ctx context.Context, scope, model string) ([]*controlstate.SemanticCacheEntry, error) {
 	return m.entries, nil
 }
+func (m *memorySemanticCacheRepo) GetCandidate(ctx context.Context, id, scope, model string) (*controlstate.SemanticCacheEntry, error) {
+	for _, entry := range m.entries {
+		if entry.ID == id && entry.Scope == scope && entry.Model == model && entry.Enabled && entry.ExpiresAt.After(time.Now().UTC()) {
+			return entry, nil
+		}
+	}
+	return nil, nil
+}
 func (m *memorySemanticCacheRepo) RecordHit(ctx context.Context, id string) error { return nil }
 func (m *memorySemanticCacheRepo) Disable(ctx context.Context, id string) error   { return nil }
 
@@ -93,7 +101,7 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 
 	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc, pipeline.DefaultRegistry(), nil, nil)
 
-	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil, nil, nil)
+	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil, nil, nil, nil)
 
 	reqBody, _ := json.Marshal(llm.ChatCompletionRequest{
 		Model:    "emb",

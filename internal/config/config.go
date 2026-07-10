@@ -1,114 +1,11 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/google/uuid"
 )
-
-type ProviderAuthConfig struct {
-	APIKeyEnv string `json:"api_key_env"`
-}
-
-type ProviderHealthCheckConfig struct {
-	Enabled          *bool  `json:"enabled"`
-	Interval         string `json:"interval"`
-	Timeout          string `json:"timeout"`
-	InitialDelay     string `json:"initial_delay"`
-	FailureThreshold int    `json:"failure_threshold"`
-	SuccessThreshold int    `json:"success_threshold"`
-}
-
-type HealthCheckConfig struct {
-	Enabled          *bool  `json:"enabled"`
-	Interval         string `json:"interval"`
-	Timeout          string `json:"timeout"`
-	InitialDelay     string `json:"initial_delay"`
-	FailureThreshold int    `json:"failure_threshold"`
-	SuccessThreshold int    `json:"success_threshold"`
-	StaleAfter       string `json:"stale_after"`
-	MaxConcurrency   int    `json:"max_concurrency"`
-}
-
-type ProviderConfig struct {
-	ID           string                     `json:"id"`
-	Type         string                     `json:"type"` // e.g. "openai-compatible"
-	BaseURL      string                     `json:"base_url"`
-	APIKey       string                     `json:"api_key"`
-	Auth         *ProviderAuthConfig        `json:"auth"`
-	Models       []string                   `json:"models"`
-	DefaultModel string                     `json:"default_model"`
-	Timeout      string                     `json:"timeout"`
-	Weight       int                        `json:"weight"`
-	HealthCheck  *ProviderHealthCheckConfig `json:"health_check"`
-}
-
-func (p *ProviderConfig) ResolveAPIKey() string {
-	if p.Auth != nil && p.Auth.APIKeyEnv != "" {
-		if val, exists := os.LookupEnv(p.Auth.APIKeyEnv); exists {
-			return val
-		}
-	}
-	return p.APIKey
-}
-
-type Config struct {
-	GatewayDataAddr    string
-	GatewayAdminAddr   string
-	GatewayMetricsAddr string
-	LogLevel           string
-	DevAPIKey          string
-
-	MultiNodeEnabled bool   `json:"multi_node_enabled"`
-	NodeID           string `json:"node_id"`
-
-	RoutingStrategy string // e.g. "round-robin", "least-latency"
-	DefaultProvider string
-
-	FallbackEnabled bool
-	MaxAttempts     int
-
-	HealthCheck HealthCheckConfig
-
-	Providers []ProviderConfig
-
-	// Phase 3 Control State Fields
-	ControlStateBackend          string `json:"control_state_backend"`
-	ControlStateDSN              string `json:"control_state_dsn"`
-	ControlStateMigrateOnStartup bool   `json:"control_state_migrate_on_startup"`
-	ControlStateLocalSeedEnabled bool   `json:"control_state_local_seed_enabled"`
-	ControlStateEncryptionKey    string `json:"control_state_encryption_key"`
-	AdminAPIKey                  string `json:"admin_api_key"`
-	AuditRetention               string `json:"audit_retention"`
-
-	// Phase 3 Hot State Fields
-	RedisEnabled        bool   `json:"redis_enabled"`
-	RedisAddr           string `json:"redis_addr"`
-	RedisPassword       string `json:"redis_password"`
-	RedisDB             int    `json:"redis_db"`
-	RedisNamespace      string `json:"redis_namespace"`
-	RedisHealthTTL      string `json:"redis_health_ttl"`
-	RedisAuthCacheTTL   string `json:"redis_auth_cache_ttl"`
-	RedisDegradeToLocal bool   `json:"redis_degrade_to_local"`
-
-	// Phase 4 Semantic Cache Fields
-	SemanticCacheEnabled         bool   `json:"semantic_cache_enabled"`
-	SemanticCacheProvider        string `json:"semantic_cache_provider"`
-	SemanticCacheVectorStore     string `json:"semantic_cache_vector_store"`
-	SemanticCacheVectorDimension int    `json:"semantic_cache_vector_dimension"`
-	PGVectorIndexType            string `json:"pgvector_index_type"`
-	PGVectorHNSWM                int    `json:"pgvector_hnsw_m"`
-	PGVectorHNSWEFConstruction   int    `json:"pgvector_hnsw_ef_construction"`
-	PGVectorSearchEF             int    `json:"pgvector_search_ef"`
-	QdrantAddr                   string `json:"qdrant_addr"`
-	QdrantAPIKey                 string `json:"qdrant_api_key"`
-
-	// Phase 8 Semantic Pipeline
-	SemanticPipelineConfigFile string `json:"semantic_pipeline_config_file"`
-}
 
 func LoadConfig() (*Config, error) {
 	cfg := &Config{
@@ -150,167 +47,59 @@ func LoadConfig() (*Config, error) {
 		QdrantAPIKey:                 getEnv("QDRANT_API_KEY", ""),
 
 		SemanticPipelineConfigFile: getEnv("SEMANTIC_PIPELINE_CONFIG_FILE", ""),
+		SchedulerConfigFile:        getEnv("SCHEDULER_CONFIG_FILE", ""),
+		CacheConfigFile:            getEnv("CACHE_CONFIG_FILE", ""),
+		Scheduler: SchedulerConfig{
+			Enabled:                         getEnv("SCHEDULER_ENABLED", "false") == "true",
+			Endpoint:                        getEnv("SCHEDULER_ENDPOINT", ""),
+			HeuristicEndpoint:               getEnv("SCHEDULER_HEURISTIC_ENDPOINT", ""),
+			ONNXEndpoint:                    getEnv("SCHEDULER_ONNX_ENDPOINT", ""),
+			ONNXRolloutPercent:              getEnvInt("SCHEDULER_ONNX_ROLLOUT_PERCENT", 0),
+			QualityMAPEAlertPercent:         getEnvFloat("SCHEDULER_QUALITY_MAPE_ALERT_PERCENT", 25),
+			ErrorSpikeAlertRate:             getEnvFloat("SCHEDULER_ERROR_SPIKE_ALERT_RATE", 0.05),
+			QualitySampleWindow:             getEnvInt("SCHEDULER_QUALITY_SAMPLE_WINDOW", 100),
+			Timeout:                         getEnv("SCHEDULER_TIMEOUT", "15ms"),
+			Strict:                          getEnv("SCHEDULER_STRICT", "false") == "true",
+			BreakerFailureThreshold:         getEnvInt("SCHEDULER_BREAKER_FAILURE_THRESHOLD", 3),
+			BreakerRecoveryTimeout:          getEnv("SCHEDULER_BREAKER_RECOVERY_TIMEOUT", "1m"),
+			ScorerMaxConcurrency:            getEnvInt("SCHEDULER_SCORER_MAX_CONCURRENCY", 4),
+			ScorerSlowThreshold:             getEnv("SCHEDULER_SCORER_SLOW_THRESHOLD", ""),
+			QueueBackend:                    getEnv("SCHEDULER_QUEUE_BACKEND", "auto"),
+			QueueSoftLimit:                  getEnvInt("SCHEDULER_QUEUE_SOFT_LIMIT", 0),
+			QueueHardLimit:                  getEnvInt("SCHEDULER_QUEUE_HARD_LIMIT", 0),
+			QueuePopTimeout:                 getEnv("SCHEDULER_QUEUE_POP_TIMEOUT", "100ms"),
+			ExecutorConcurrency:             getEnvInt("SCHEDULER_EXECUTOR_CONCURRENCY", 1),
+			DefaultPriority:                 getEnv("SCHEDULER_DEFAULT_PRIORITY", "normal"),
+			MaxPriority:                     getEnv("SCHEDULER_MAX_PRIORITY", "high"),
+			HighQuotaPerMinute:              getEnvInt("SCHEDULER_HIGH_QUOTA_PER_MINUTE", 0),
+			ScoreUncertaintyPenaltyK:        getEnvFloat("SCHEDULER_SCORE_UNCERTAINTY_PENALTY_K", 0.2),
+			HeuristicConfigFile:             getEnv("SCHEDULER_HEURISTIC_CONFIG_FILE", ""),
+			FeedbackEnabled:                 getEnv("SCHEDULER_FEEDBACK_ENABLED", "false") == "true",
+			Mode:                            getEnv("SCHEDULER_MODE", "heuristic"),
+			ONNXArtifactDir:                 getEnv("SCHEDULER_ONNX_ARTIFACT_DIR", ""),
+			SemanticNeighborsEnabled:        getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED", "false") == "true",
+			SemanticNeighborsEmbeddingModel: getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL", defaultSemanticNeighborEmbeddingModel),
+			SemanticNeighborsMinCount:       getEnvInt("SCHEDULER_SEMANTIC_NEIGHBORS_MIN_COUNT", 20),
+			SemanticNeighborsInputMaxChars:  getEnvInt("SCHEDULER_SEMANTIC_NEIGHBORS_INPUT_MAX_CHARS", defaultSemanticNeighborInputMaxChars),
+			SemanticNeighborsTaskTimeout:    getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_TASK_TIMEOUT", "5ms"),
+			SemanticNeighborsBatchTimeout:   getEnv("SCHEDULER_SEMANTIC_NEIGHBORS_BATCH_TIMEOUT", "15ms"),
+			SLAPromotionEnabled:             getEnv("SCHEDULER_SLA_PROMOTION_ENABLED", "false") == "true",
+			SLAPromotionCandidateWindow:     getEnvInt("SCHEDULER_SLA_PROMOTION_CANDIDATE_WINDOW", defaultSLAPromotionCandidateWindow),
+		},
 	}
+	cfg.ControlState = controlStateConfigFromEnv()
+	cfg.Redis = redisConfigFromEnv()
+	cfg.Cache = cacheConfigFromEnv()
+	syncLegacyConfigFields(cfg)
 
 	configFile := getEnv("CONFIG_FILE", "")
 	if configFile != "" {
-		data, err := os.ReadFile(configFile)
+		fileCfg, err := readFileConfig(configFile)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read config file: %v", err)
+			return nil, err
 		}
-
-		var fileCfg struct {
-			MultiNodeEnabled *bool             `json:"multi_node_enabled"`
-			NodeID           string            `json:"node_id"`
-			RoutingStrategy  string            `json:"routing_strategy"`
-			DefaultProvider  string            `json:"default_provider"`
-			FallbackEnabled  *bool             `json:"fallback_enabled"`
-			MaxAttempts      *int              `json:"max_attempts"`
-			HealthCheck      HealthCheckConfig `json:"health_check"`
-			Providers        []ProviderConfig  `json:"providers"`
-
-			ControlStateBackend          string `json:"control_state_backend"`
-			ControlStateDSN              string `json:"control_state_dsn"`
-			ControlStateMigrateOnStartup *bool  `json:"control_state_migrate_on_startup"`
-			ControlStateLocalSeedEnabled *bool  `json:"control_state_local_seed_enabled"`
-			ControlStateEncryptionKey    string `json:"control_state_encryption_key"`
-			AdminAPIKey                  string `json:"admin_api_key"`
-			AuditRetention               string `json:"audit_retention"`
-
-			RedisEnabled        *bool  `json:"redis_enabled"`
-			RedisAddr           string `json:"redis_addr"`
-			RedisPassword       string `json:"redis_password"`
-			RedisDB             *int   `json:"redis_db"`
-			RedisNamespace      string `json:"redis_namespace"`
-			RedisHealthTTL      string `json:"redis_health_ttl"`
-			RedisAuthCacheTTL   string `json:"redis_auth_cache_ttl"`
-			RedisDegradeToLocal *bool  `json:"redis_degrade_to_local"`
-
-			SemanticCacheEnabled         *bool  `json:"semantic_cache_enabled"`
-			SemanticCacheProvider        string `json:"semantic_cache_provider"`
-			SemanticCacheVectorStore     string `json:"semantic_cache_vector_store"`
-			SemanticCacheVectorDimension *int   `json:"semantic_cache_vector_dimension"`
-			PGVectorIndexType            string `json:"pgvector_index_type"`
-			PGVectorHNSWM                *int   `json:"pgvector_hnsw_m"`
-			PGVectorHNSWEFConstruction   *int   `json:"pgvector_hnsw_ef_construction"`
-			PGVectorSearchEF             *int   `json:"pgvector_search_ef"`
-			QdrantAddr                   string `json:"qdrant_addr"`
-			QdrantAPIKey                 string `json:"qdrant_api_key"`
-
-			SemanticPipelineConfigFile string `json:"semantic_pipeline_config_file"`
-		}
-		if err := json.Unmarshal(data, &fileCfg); err != nil {
-			return nil, fmt.Errorf("failed to parse config file: %v", err)
-		}
-
-		fallbackEnabledSet := false
-		if fileCfg.FallbackEnabled != nil {
-			cfg.FallbackEnabled = *fileCfg.FallbackEnabled
-			fallbackEnabledSet = true
-		}
-		if fileCfg.MaxAttempts != nil {
-			cfg.MaxAttempts = *fileCfg.MaxAttempts
-		}
-
-		if fileCfg.MultiNodeEnabled != nil {
-			cfg.MultiNodeEnabled = *fileCfg.MultiNodeEnabled
-		}
-		if fileCfg.NodeID != "" {
-			cfg.NodeID = fileCfg.NodeID
-		}
-
-		if fileCfg.RoutingStrategy != "" {
-			cfg.RoutingStrategy = fileCfg.RoutingStrategy
-		}
-		if fileCfg.DefaultProvider != "" {
-			cfg.DefaultProvider = fileCfg.DefaultProvider
-		}
-		cfg.HealthCheck = fileCfg.HealthCheck
-		cfg.Providers = fileCfg.Providers
-
-		if fileCfg.ControlStateBackend != "" {
-			cfg.ControlStateBackend = fileCfg.ControlStateBackend
-		}
-		if fileCfg.ControlStateDSN != "" {
-			cfg.ControlStateDSN = fileCfg.ControlStateDSN
-		}
-		if fileCfg.ControlStateMigrateOnStartup != nil {
-			cfg.ControlStateMigrateOnStartup = *fileCfg.ControlStateMigrateOnStartup
-		}
-		if fileCfg.ControlStateLocalSeedEnabled != nil {
-			cfg.ControlStateLocalSeedEnabled = *fileCfg.ControlStateLocalSeedEnabled
-		}
-		if fileCfg.ControlStateEncryptionKey != "" {
-			cfg.ControlStateEncryptionKey = fileCfg.ControlStateEncryptionKey
-		}
-		if fileCfg.AdminAPIKey != "" {
-			cfg.AdminAPIKey = fileCfg.AdminAPIKey
-		}
-		if fileCfg.AuditRetention != "" {
-			cfg.AuditRetention = fileCfg.AuditRetention
-		}
-
-		if fileCfg.RedisEnabled != nil {
-			cfg.RedisEnabled = *fileCfg.RedisEnabled
-		}
-		if fileCfg.RedisAddr != "" {
-			cfg.RedisAddr = fileCfg.RedisAddr
-		}
-		if fileCfg.RedisPassword != "" {
-			cfg.RedisPassword = fileCfg.RedisPassword
-		}
-		if fileCfg.RedisDB != nil {
-			cfg.RedisDB = *fileCfg.RedisDB
-		}
-		if fileCfg.RedisNamespace != "" {
-			cfg.RedisNamespace = fileCfg.RedisNamespace
-		}
-		if fileCfg.RedisHealthTTL != "" {
-			cfg.RedisHealthTTL = fileCfg.RedisHealthTTL
-		}
-		if fileCfg.RedisAuthCacheTTL != "" {
-			cfg.RedisAuthCacheTTL = fileCfg.RedisAuthCacheTTL
-		}
-		if fileCfg.RedisDegradeToLocal != nil {
-			cfg.RedisDegradeToLocal = *fileCfg.RedisDegradeToLocal
-		}
-
-		if fileCfg.SemanticCacheEnabled != nil {
-			cfg.SemanticCacheEnabled = *fileCfg.SemanticCacheEnabled
-		}
-		if fileCfg.SemanticCacheProvider != "" {
-			cfg.SemanticCacheProvider = fileCfg.SemanticCacheProvider
-		}
-		if fileCfg.SemanticCacheVectorStore != "" {
-			cfg.SemanticCacheVectorStore = fileCfg.SemanticCacheVectorStore
-		}
-		if fileCfg.SemanticCacheVectorDimension != nil {
-			cfg.SemanticCacheVectorDimension = *fileCfg.SemanticCacheVectorDimension
-		}
-		if fileCfg.PGVectorIndexType != "" {
-			cfg.PGVectorIndexType = fileCfg.PGVectorIndexType
-		}
-		if fileCfg.PGVectorHNSWM != nil {
-			cfg.PGVectorHNSWM = *fileCfg.PGVectorHNSWM
-		}
-		if fileCfg.PGVectorHNSWEFConstruction != nil {
-			cfg.PGVectorHNSWEFConstruction = *fileCfg.PGVectorHNSWEFConstruction
-		}
-		if fileCfg.PGVectorSearchEF != nil {
-			cfg.PGVectorSearchEF = *fileCfg.PGVectorSearchEF
-		}
-		if fileCfg.QdrantAddr != "" {
-			cfg.QdrantAddr = fileCfg.QdrantAddr
-		}
-		if fileCfg.QdrantAPIKey != "" {
-			cfg.QdrantAPIKey = fileCfg.QdrantAPIKey
-		}
-
-		if fileCfg.SemanticPipelineConfigFile != "" {
-			cfg.SemanticPipelineConfigFile = fileCfg.SemanticPipelineConfigFile
-		}
-
-		if !fallbackEnabledSet {
+		applyFileConfig(cfg, fileCfg)
+		if fileCfg.FallbackEnabled == nil {
 			cfg.FallbackEnabled = len(cfg.Providers) > 1
 		}
 	} else {
@@ -338,6 +127,9 @@ func LoadConfig() (*Config, error) {
 				Timeout:      "30s",
 			},
 		}
+	}
+	if err := applyComponentConfigFiles(cfg); err != nil {
+		return nil, err
 	}
 
 	applyDefaults(cfg)
@@ -392,29 +184,221 @@ func applyDefaults(cfg *Config) {
 		}
 	}
 
-	applySemanticDefaults(cfg)
+	normalizeConfigBlocks(cfg)
+	applySemanticDefaults(&cfg.Cache)
+	applySchedulerDefaults(&cfg.Scheduler)
+	syncLegacyConfigFields(cfg)
 }
 
-func applySemanticDefaults(cfg *Config) {
-	if cfg.SemanticCacheVectorDimension == 0 {
-		cfg.SemanticCacheVectorDimension = defaultSemanticCacheVectorDimension
+func applySemanticDefaults(cache *CacheConfig) {
+	if cache.VectorDimension == 0 {
+		cache.VectorDimension = defaultSemanticCacheVectorDimension
 	}
-	if cfg.PGVectorIndexType == "" {
-		cfg.PGVectorIndexType = defaultPGVectorIndexType
+	if cache.PGVector.IndexType == "" {
+		cache.PGVector.IndexType = defaultPGVectorIndexType
 	}
-	if cfg.PGVectorHNSWM == 0 {
-		cfg.PGVectorHNSWM = defaultPGVectorHNSWM
+	if cache.PGVector.HNSWM == 0 {
+		cache.PGVector.HNSWM = defaultPGVectorHNSWM
 	}
-	if cfg.PGVectorHNSWEFConstruction == 0 {
-		cfg.PGVectorHNSWEFConstruction = defaultPGVectorHNSWEFConstruction
+	if cache.PGVector.HNSWEFConstruct == 0 {
+		cache.PGVector.HNSWEFConstruct = defaultPGVectorHNSWEFConstruction
 	}
-	if cfg.PGVectorSearchEF == 0 {
-		cfg.PGVectorSearchEF = defaultPGVectorSearchEF
+	if cache.PGVector.SearchEF == 0 {
+		cache.PGVector.SearchEF = defaultPGVectorSearchEF
+	}
+}
+
+func mergeSchedulerConfig(dst *SchedulerConfig, src *schedulerFileConfig) {
+	if src == nil {
+		return
+	}
+	if src.Enabled != nil {
+		dst.Enabled = *src.Enabled
+	}
+	if src.Endpoint != "" {
+		dst.Endpoint = src.Endpoint
+	}
+	if src.HeuristicEndpoint != "" {
+		dst.HeuristicEndpoint = src.HeuristicEndpoint
+	}
+	if src.ONNXEndpoint != "" {
+		dst.ONNXEndpoint = src.ONNXEndpoint
+	}
+	if src.ONNXRolloutPercent != nil {
+		dst.ONNXRolloutPercent = *src.ONNXRolloutPercent
+	}
+	if src.QualityMAPEAlertPercent != nil {
+		dst.QualityMAPEAlertPercent = *src.QualityMAPEAlertPercent
+	}
+	if src.ErrorSpikeAlertRate != nil {
+		dst.ErrorSpikeAlertRate = *src.ErrorSpikeAlertRate
+	}
+	if src.QualitySampleWindow != nil {
+		dst.QualitySampleWindow = *src.QualitySampleWindow
+	}
+	if src.Timeout != "" {
+		dst.Timeout = src.Timeout
+	}
+	if src.Strict != nil {
+		dst.Strict = *src.Strict
+	}
+	if src.BreakerFailureThreshold != nil {
+		dst.BreakerFailureThreshold = *src.BreakerFailureThreshold
+	}
+	if src.BreakerRecoveryTimeout != "" {
+		dst.BreakerRecoveryTimeout = src.BreakerRecoveryTimeout
+	}
+	if src.ScorerMaxConcurrency != nil {
+		dst.ScorerMaxConcurrency = *src.ScorerMaxConcurrency
+	}
+	if src.ScorerSlowThreshold != "" {
+		dst.ScorerSlowThreshold = src.ScorerSlowThreshold
+	}
+	if src.QueueBackend != "" {
+		dst.QueueBackend = src.QueueBackend
+	}
+	if src.QueueSoftLimit != nil {
+		dst.QueueSoftLimit = *src.QueueSoftLimit
+	}
+	if src.QueueHardLimit != nil {
+		dst.QueueHardLimit = *src.QueueHardLimit
+	}
+	if src.QueuePopTimeout != "" {
+		dst.QueuePopTimeout = src.QueuePopTimeout
+	}
+	if src.ExecutorConcurrency != nil {
+		dst.ExecutorConcurrency = *src.ExecutorConcurrency
+	}
+	if src.DefaultPriority != "" {
+		dst.DefaultPriority = src.DefaultPriority
+	}
+	if src.MaxPriority != "" {
+		dst.MaxPriority = src.MaxPriority
+	}
+	if src.HighQuotaPerMinute != nil {
+		dst.HighQuotaPerMinute = *src.HighQuotaPerMinute
+	}
+	if src.ScoreUncertaintyPenaltyK != nil {
+		dst.ScoreUncertaintyPenaltyK = *src.ScoreUncertaintyPenaltyK
+	}
+	if src.HeuristicConfigFile != "" {
+		dst.HeuristicConfigFile = src.HeuristicConfigFile
+	}
+	if src.FeedbackEnabled != nil {
+		dst.FeedbackEnabled = *src.FeedbackEnabled
+	}
+	if src.Mode != "" {
+		dst.Mode = src.Mode
+	}
+	if src.ONNXArtifactDir != "" {
+		dst.ONNXArtifactDir = src.ONNXArtifactDir
+	}
+	if src.SemanticNeighborsEnabled != nil {
+		dst.SemanticNeighborsEnabled = *src.SemanticNeighborsEnabled
+	}
+	if src.SemanticNeighborsEmbeddingModel != "" {
+		dst.SemanticNeighborsEmbeddingModel = src.SemanticNeighborsEmbeddingModel
+	}
+	if src.SemanticNeighborsMinCount != nil {
+		dst.SemanticNeighborsMinCount = *src.SemanticNeighborsMinCount
+	}
+	if src.SemanticNeighborsInputMaxChars != nil {
+		dst.SemanticNeighborsInputMaxChars = *src.SemanticNeighborsInputMaxChars
+	}
+	if src.SemanticNeighborsTaskTimeout != "" {
+		dst.SemanticNeighborsTaskTimeout = src.SemanticNeighborsTaskTimeout
+	}
+	if src.SemanticNeighborsBatchTimeout != "" {
+		dst.SemanticNeighborsBatchTimeout = src.SemanticNeighborsBatchTimeout
+	}
+	if src.SLAPromotionEnabled != nil {
+		dst.SLAPromotionEnabled = *src.SLAPromotionEnabled
+	}
+	if src.SLAPromotionCandidateWindow != nil {
+		dst.SLAPromotionCandidateWindow = *src.SLAPromotionCandidateWindow
+	}
+	if src.SLAPromotionRules != nil {
+		dst.SLAPromotionRules = *src.SLAPromotionRules
+	}
+}
+
+func applySchedulerDefaults(s *SchedulerConfig) {
+	if s.HeuristicEndpoint == "" {
+		s.HeuristicEndpoint = s.Endpoint
+	}
+	if s.Endpoint == "" {
+		s.Endpoint = s.HeuristicEndpoint
+	}
+	if s.QualityMAPEAlertPercent == 0 {
+		s.QualityMAPEAlertPercent = 25
+	}
+	if s.ErrorSpikeAlertRate == 0 {
+		s.ErrorSpikeAlertRate = 0.05
+	}
+	if s.QualitySampleWindow == 0 {
+		s.QualitySampleWindow = 100
+	}
+	if s.Timeout == "" {
+		s.Timeout = "15ms"
+	}
+	if s.BreakerFailureThreshold == 0 {
+		s.BreakerFailureThreshold = 3
+	}
+	if s.BreakerRecoveryTimeout == "" {
+		s.BreakerRecoveryTimeout = "1m"
+	}
+	if s.ScorerMaxConcurrency == 0 {
+		s.ScorerMaxConcurrency = 4
+	}
+	if s.ScorerSlowThreshold == "" {
+		s.ScorerSlowThreshold = s.Timeout
+	}
+	if s.QueueBackend == "" {
+		s.QueueBackend = "auto"
+	}
+	if s.QueuePopTimeout == "" {
+		s.QueuePopTimeout = "100ms"
+	}
+	if s.ExecutorConcurrency == 0 {
+		s.ExecutorConcurrency = 1
+	}
+	if s.DefaultPriority == "" {
+		s.DefaultPriority = "normal"
+	}
+	if s.MaxPriority == "" {
+		s.MaxPriority = "high"
+	}
+	if s.ScoreUncertaintyPenaltyK == 0 {
+		s.ScoreUncertaintyPenaltyK = 0.2
+	}
+	if s.Mode == "" {
+		s.Mode = "heuristic"
+	}
+	if s.SemanticNeighborsMinCount == 0 {
+		s.SemanticNeighborsMinCount = 20
+	}
+	if s.SemanticNeighborsEmbeddingModel == "" {
+		s.SemanticNeighborsEmbeddingModel = defaultSemanticNeighborEmbeddingModel
+	}
+	if s.SemanticNeighborsInputMaxChars == 0 {
+		s.SemanticNeighborsInputMaxChars = defaultSemanticNeighborInputMaxChars
+	}
+	if s.SemanticNeighborsTaskTimeout == "" {
+		s.SemanticNeighborsTaskTimeout = "5ms"
+	}
+	if s.SemanticNeighborsBatchTimeout == "" {
+		s.SemanticNeighborsBatchTimeout = "15ms"
+	}
+	if s.SLAPromotionCandidateWindow == 0 {
+		s.SLAPromotionCandidateWindow = defaultSLAPromotionCandidateWindow
 	}
 }
 
 func (c *Config) Validate() error {
-	applySemanticDefaults(c)
+	normalizeConfigBlocks(c)
+	applySemanticDefaults(&c.Cache)
+	applySchedulerDefaults(&c.Scheduler)
+	syncLegacyConfigFields(c)
 
 	if c.RoutingStrategy != "round-robin" && c.RoutingStrategy != "least-latency" {
 		return fmt.Errorf("invalid routing strategy")
@@ -424,24 +408,24 @@ func (c *Config) Validate() error {
 		return err
 	}
 
-	if c.ControlStateBackend != "disabled" && c.ControlStateBackend != "sqlite" && c.ControlStateBackend != "postgres" {
-		return fmt.Errorf("invalid control state backend: %s. Must be 'sqlite', 'postgres', or 'disabled'", c.ControlStateBackend)
+	if c.ControlState.Backend != "disabled" && c.ControlState.Backend != "sqlite" && c.ControlState.Backend != "postgres" {
+		return fmt.Errorf("invalid control state backend: %s. Must be 'sqlite', 'postgres', or 'disabled'", c.ControlState.Backend)
 	}
 
-	if c.ControlStateBackend == "sqlite" {
-		if c.ControlStateDSN == "" {
+	if c.ControlState.Backend == "sqlite" {
+		if c.ControlState.DSN == "" {
 			return fmt.Errorf("sqlite control state backend requires a DSN (e.g. file:veloxmesh.db?cache=shared). This is the default Plan 1 deployment")
 		}
 	}
-	if c.ControlStateBackend == "postgres" && c.ControlStateDSN == "" {
+	if c.ControlState.Backend == "postgres" && c.ControlState.DSN == "" {
 		return fmt.Errorf("postgres control state backend requires a DSN")
 	}
-	if c.ControlStateBackend == "sqlite" || c.ControlStateBackend == "postgres" {
-		if c.ControlStateEncryptionKey != "" && len(c.ControlStateEncryptionKey) != 32 {
+	if c.ControlState.Backend == "sqlite" || c.ControlState.Backend == "postgres" {
+		if c.ControlState.EncryptionKey != "" && len(c.ControlState.EncryptionKey) != 32 {
 			return fmt.Errorf("control state encryption key must be exactly 32 bytes (required when durable backend is used)")
 		}
-		if c.ControlStateEncryptionKey == "" {
-			return fmt.Errorf("control state encryption key is required when a durable backend (%s) is used", c.ControlStateBackend)
+		if c.ControlState.EncryptionKey == "" {
+			return fmt.Errorf("control state encryption key is required when a durable backend (%s) is used", c.ControlState.Backend)
 		}
 	}
 
@@ -453,6 +437,9 @@ func (c *Config) Validate() error {
 	defaultFound := false
 
 	if err := validateSemanticCacheConfig(c); err != nil {
+		return err
+	}
+	if err := validateSchedulerConfig(c.Scheduler); err != nil {
 		return err
 	}
 

@@ -3,7 +3,12 @@ package gateway
 import (
 	"context"
 	"encoding/json"
+	stdlib_errors "errors"
+	"log/slog"
+	"net/http"
+	"strings"
 	"time"
+
 	"veloxmesh/internal/admission"
 	"veloxmesh/internal/cache"
 	"veloxmesh/internal/controlstate"
@@ -17,6 +22,7 @@ import (
 	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
+	"veloxmesh/internal/scheduler"
 )
 
 type SemanticRuleResolver interface {
@@ -36,6 +42,7 @@ type Service struct {
 	registry        *pipeline.Registry
 	ruleResolver    SemanticRuleResolver
 	costAggregator  hotstate.CostAggregator
+	schedulerRunner *scheduler.SynchronousRunner
 }
 
 func NewService(r routing.Router, a admission.Controller, hs health.Store, fallbackEnabled bool, maxAttempts int, repo controlstate.Repository, semanticCache *cache.SemanticCacheService, registry *pipeline.Registry, ruleResolver SemanticRuleResolver, costAggregator hotstate.CostAggregator) *Service {
@@ -57,6 +64,10 @@ func NewService(r routing.Router, a admission.Controller, hs health.Store, fallb
 		ruleResolver:    ruleResolver,
 		costAggregator:  costAggregator,
 	}
+}
+
+func (s *Service) SetSchedulerRunner(runner *scheduler.SynchronousRunner) {
+	s.schedulerRunner = runner
 }
 
 func (s *Service) settle(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, usage *llm.Usage, latency time.Duration) {
@@ -182,7 +193,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			// Cache hit
 			rt.RecordRouting("semantic_cache", "hit", "", "")
 			rt.RecordOutcome("cache", 200, "", 0, 0, 0)
-			
+
 			observability.DefaultMetrics.RecordRequestOutcome(
 				req.RequestID,
 				"cache",
@@ -251,15 +262,17 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		}
 
 		if decision.IsFusion {
-			release, _, err := s.admission.Admit(ctx, req, decision)
+			resp, latency, err := s.executeFusion(ctx, req, decision)
 			if err != nil {
 				return nil, err
 			}
-			resp, err := s.executeFusion(ctx, req, decision)
-			release()
-			if err != nil {
+			if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
+				if err == replication.ErrWriteNotWritable {
+					return nil, errors.ErrServiceNotWritable
+				}
 				return nil, err
 			}
+			s.settle(ctx, req, decision, resp.Usage, latency)
 			return resp, nil
 		}
 
@@ -291,7 +304,9 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		if decision.UpstreamModel != "" {
 			upstreamReq.Model = decision.UpstreamModel
 		}
-		resp, err := adapter.Complete(ctx, &upstreamReq)
+		resp, err := s.runScheduledChat(ctx, &upstreamReq, func(runCtx context.Context, scheduledReq *llm.LLMRequest) (*llm.LLMResponse, error) {
+			return adapter.Complete(runCtx, scheduledReq)
+		})
 		latency := time.Since(start)
 
 		healthErr := err
@@ -330,7 +345,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			summaryBytes, _ := json.Marshal(decision.CompositeScoreSummary)
 			scoreSummary = string(summaryBytes)
 		}
-		
+
 		var fallbackReason string
 		if attempts > 1 {
 			fallbackReason = "provider_failure_or_rejected"
@@ -361,7 +376,6 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		resp.Strategy = decision.Strategy
 		resp.AttemptCount = attempts
 		resp.FallbackUsed = attempts > 1
-		resp.Usage = resp.Usage // Usually adapters set Usage directly on resp
 
 		if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
 			if err == replication.ErrWriteNotWritable {
@@ -369,7 +383,6 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			}
 			return nil, err
 		}
-
 
 		// Record success
 		observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, 200)
@@ -461,16 +474,21 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		}
 
 		if decision.IsFusion {
-			release, _, err := s.admission.Admit(ctx, req, decision)
+			result, err := s.executeFusionStream(ctx, req, decision, rt)
 			if err != nil {
 				return nil, nil, err
 			}
-			streamCh, respMeta, err := s.executeFusionStream(ctx, req, decision)
-			release()
-			if err != nil {
+			if p.HasResponseRulesEnabled() {
+				return s.bufferFusionStreamWithResponseRules(result, p, scope, state, rt)
+			}
+			if err := p.ProcessResponse(ctx, scope, state, result.respMeta); err != nil {
+				result.finishError(err)
+				if err == replication.ErrWriteNotWritable {
+					return nil, nil, errors.ErrServiceNotWritable
+				}
 				return nil, nil, err
 			}
-			return streamCh, respMeta, nil
+			return result.forward(), result.respMeta, nil
 		}
 
 		streamAdapter, ok := adapter.(providers.StreamAdapter)
@@ -509,7 +527,10 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		if decision.UpstreamModel != "" {
 			upstreamReq.Model = decision.UpstreamModel
 		}
-		ch, err := streamAdapter.Stream(ctx, &upstreamReq)
+		ch, queuedMeta, err := s.runScheduledStream(ctx, &upstreamReq, func(runCtx context.Context, scheduledReq *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+			events, err := streamAdapter.Stream(runCtx, scheduledReq)
+			return events, nil, err
+		})
 
 		if err != nil {
 			latency := time.Since(start)
@@ -577,6 +598,17 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 			AttemptCount: attempts,
 			FallbackUsed: attempts > 1,
 		}
+		if queuedMeta != nil {
+			respMeta.QueueWaitMs = queuedMeta.QueueWaitMs
+		}
+
+		if p.HasResponseRulesEnabled() {
+			return s.bufferStreamWithResponseRules(streamRuleContext{
+				ctx: ctx, req: req, decision: decision, respMeta: respMeta, pipeline: p,
+				scope: scope, state: state, events: ch, start: start, release: release,
+				attempts: attempts, trace: rt,
+			})
+		}
 
 		if err := p.ProcessResponse(ctx, scope, state, respMeta); err != nil {
 			if err == replication.ErrWriteNotWritable {
@@ -602,7 +634,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 					ttft = time.Since(start)
 					firstChunk = false
 				}
-				if event.Usage != nil && finalUsage == nil {
+				if event.Usage != nil {
 					finalUsage = event.Usage
 				}
 				if event.Error != nil {
@@ -656,7 +688,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 				tokens = finalUsage.CompletionTokens
 			}
 			if tokens > 0 {
-				tpot = float64(latency - ttft) / float64(tokens) / float64(time.Millisecond)
+				tpot = float64(latency-ttft) / float64(tokens) / float64(time.Millisecond)
 			}
 
 			rt.RecordOutcome(decision.ProviderID, status, errCategory, float64(ttft.Milliseconds()), tpot, float64(latency.Milliseconds()))
@@ -674,4 +706,196 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 
 	rt.EndWithError(lastErr)
 	return nil, nil, lastErr
+}
+
+type streamRuleContext struct {
+	ctx      context.Context
+	req      *llm.LLMRequest
+	decision routing.RoutingDecision
+	respMeta *llm.LLMResponse
+	pipeline *pipeline.Pipeline
+	scope    pipeline.RequestScope
+	state    *pipeline.RunState
+	events   <-chan llm.StreamEvent
+	start    time.Time
+	release  admission.ReleaseFunc
+	attempts int
+	trace    *observability.RequestTrace
+}
+
+type bufferedStreamResult struct {
+	content      string
+	events       []llm.StreamEvent
+	streamErr    error
+	finalUsage   *llm.Usage
+	ttft         time.Duration
+	status       int
+	errCategory  string
+	hasToolCalls bool
+}
+
+func (s *Service) bufferStreamWithResponseRules(in streamRuleContext) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+	result := collectBufferedStream(in.events, in.start)
+	if result.streamErr == nil && !result.hasToolCalls {
+		in.respMeta.Choices = []llm.Choice{{Message: llm.Message{Role: llm.RoleAssistant, Content: result.content}}}
+		in.respMeta.Usage = result.finalUsage
+		if err := in.pipeline.ProcessResponse(in.ctx, in.scope, in.state, in.respMeta); err != nil {
+			result.status, result.errCategory = streamErrorStatus(err)
+			s.finishStreamRequest(streamFinish{streamRuleContext: in, usage: result.finalUsage, ttft: result.ttft, status: result.status, errCategory: result.errCategory})
+			if err == replication.ErrWriteNotWritable {
+				return nil, nil, errors.ErrServiceNotWritable
+			}
+			return nil, nil, err
+		}
+	}
+	if result.hasToolCalls {
+		slog.Warn("skipping streaming response rules for tool-call stream", "request_id", in.req.RequestID, "provider", in.decision.ProviderID)
+	}
+	s.finishStreamRequest(streamFinish{streamRuleContext: in, usage: result.finalUsage, ttft: result.ttft, status: result.status, errCategory: result.errCategory, streamErr: result.streamErr})
+	if result.streamErr != nil {
+		return nil, nil, result.streamErr
+	}
+	if result.hasToolCalls {
+		return replayStreamEvents(result.events), in.respMeta, nil
+	}
+	return singleTextStream(in.respMeta.Choices, result.finalUsage), in.respMeta, nil
+}
+
+func collectBufferedStream(ch <-chan llm.StreamEvent, start time.Time) bufferedStreamResult {
+	var content strings.Builder
+	result := bufferedStreamResult{status: 200}
+	firstChunk := true
+
+	for event := range ch {
+		if firstChunk {
+			result.ttft = time.Since(start)
+			firstChunk = false
+		}
+		if len(event.ToolCalls) > 0 {
+			result.hasToolCalls = true
+		}
+		if event.Usage != nil {
+			result.finalUsage = event.Usage
+		}
+		if event.Error != nil {
+			result.streamErr = event.Error
+			result.status, result.errCategory = streamErrorStatus(event.Error)
+		}
+		if !event.Done {
+			content.WriteString(event.DeltaContent)
+		}
+		result.events = append(result.events, event)
+	}
+	result.content = content.String()
+	return result
+}
+
+func streamErrorStatus(err error) (int, string) {
+	if gwErr, ok := err.(*errors.GatewayError); ok {
+		return gwErr.HTTPStatus, gwErr.Code
+	}
+	return 502, "provider_error"
+}
+
+type streamFinish struct {
+	streamRuleContext
+	usage       *llm.Usage
+	ttft        time.Duration
+	status      int
+	errCategory string
+	streamErr   error
+}
+
+func (s *Service) finishStreamRequest(f streamFinish) {
+	latency := time.Since(f.start)
+	healthErr := f.streamErr
+	if f.streamErr != nil && !errors.AffectsProviderHealth(f.streamErr) {
+		healthErr = nil
+	}
+	s.healthStore.EndRequest(f.decision.ProviderID, latency, healthErr)
+	s.cb.RecordResult(f.decision.ProviderID, healthErr == nil)
+	s.healthStore.RecordModelOutcome(f.decision.ProviderID, f.req.Model, healthErr == nil)
+	observability.DefaultMetrics.RecordRequestOutcome(f.req.RequestID, f.decision.ProviderID, f.req.Model, f.decision.Strategy, f.status, f.errCategory, "none", float64(latency.Milliseconds()))
+
+	scoreSummary := ""
+	if f.decision.CompositeScoreSummary != nil {
+		summaryBytes, _ := json.Marshal(f.decision.CompositeScoreSummary)
+		scoreSummary = string(summaryBytes)
+	}
+	fallbackReason := ""
+	if f.attempts > 1 {
+		fallbackReason = "provider_failure_or_rejected"
+	}
+	f.trace.RecordRouting(f.decision.Strategy, "none", fallbackReason, scoreSummary)
+
+	tpot := 0.0
+	if f.usage != nil && f.usage.CompletionTokens > 0 {
+		tpot = float64(latency-f.ttft) / float64(f.usage.CompletionTokens) / float64(time.Millisecond)
+	}
+	f.trace.RecordOutcome(f.decision.ProviderID, f.status, f.errCategory, float64(f.ttft.Milliseconds()), tpot, float64(latency.Milliseconds()))
+
+	f.release()
+	observability.DefaultMetrics.IncRequestCount(f.decision.ProviderID, f.req.Model, f.status)
+	if f.status == 200 {
+		observability.DefaultMetrics.RecordProviderLatency(f.decision.ProviderID, float64(latency.Milliseconds()))
+		s.settle(f.ctx, f.req, f.decision, f.usage, latency)
+	}
+}
+
+func replayStreamEvents(events []llm.StreamEvent) <-chan llm.StreamEvent {
+	out := make(chan llm.StreamEvent)
+	go func() {
+		defer close(out)
+		for _, event := range events {
+			out <- event
+		}
+	}()
+	return out
+}
+
+func singleTextStream(choices []llm.Choice, usage *llm.Usage) <-chan llm.StreamEvent {
+	out := make(chan llm.StreamEvent, 2)
+	if len(choices) > 0 && choices[0].Message.Content != "" {
+		out <- llm.StreamEvent{DeltaContent: choices[0].Message.Content, Usage: usage}
+	}
+	out <- llm.StreamEvent{Done: true}
+	close(out)
+	return out
+}
+
+func (s *Service) runScheduledChat(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error)) (*llm.LLMResponse, error) {
+	if s.schedulerRunner == nil {
+		return execute(ctx, req)
+	}
+	resp, err := s.schedulerRunner.RunChat(ctx, req, execute)
+	if err != nil {
+		return nil, schedulerGatewayError(err)
+	}
+	return resp, nil
+}
+
+func (s *Service) runScheduledStream(ctx context.Context, req *llm.LLMRequest, execute func(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error)) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+	if s.schedulerRunner == nil {
+		return execute(ctx, req)
+	}
+	ch, resp, err := s.schedulerRunner.RunStream(ctx, req, execute)
+	if err != nil {
+		return nil, nil, schedulerGatewayError(err)
+	}
+	return ch, resp, nil
+}
+
+func schedulerGatewayError(err error) error {
+	switch {
+	case stdlib_errors.Is(err, scheduler.ErrQueueBackpressure):
+		return errors.NewGatewayError(errors.SchedulerBackpressure, "Scheduler queue is under pressure; retry later", http.StatusTooManyRequests)
+	case stdlib_errors.Is(err, scheduler.ErrQueueFull):
+		return errors.NewGatewayError(errors.SchedulerQueueFull, "Scheduler queue is full; retry later", http.StatusServiceUnavailable)
+	case stdlib_errors.Is(err, scheduler.ErrQueueEmpty), stdlib_errors.Is(err, scheduler.ErrTaskNotFound):
+		return errors.NewGatewayError(errors.SchedulerQueueUnavailable, "Scheduler queue task is unavailable; retry later", http.StatusServiceUnavailable)
+	case stdlib_errors.Is(err, scheduler.ErrDuplicateTask):
+		return errors.NewGatewayError(errors.SchedulerDuplicateTask, "Scheduler task already exists for request id", http.StatusConflict)
+	default:
+		return err
+	}
 }

@@ -10,7 +10,9 @@
     "verifier": true,
     "nyquist_validation": true,
     "auto_advance": false,
-    "discuss_mode": "discuss"
+    "discuss_mode": "discuss",
+    "_auto_chain_active": false,
+    "use_worktrees": false
   },
   "plan_review": {
     "source_grounding": true

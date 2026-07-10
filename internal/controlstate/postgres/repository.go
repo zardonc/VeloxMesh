@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/postgresconn"
 )
 
 type Repository struct {
@@ -16,7 +17,12 @@ type Repository struct {
 }
 
 func Open(ctx context.Context, dsn string) (*Repository, error) {
-	pool, err := pgxpool.New(ctx, dsn)
+	cfg, err := postgresconn.PoolConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+	postgresconn.WarnPlaintextCredentials(nil, "controlstate", cfg)
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -37,6 +43,14 @@ func (r *Repository) LimitRules() controlstate.LimitRuleRepository {
 
 func (r *Repository) SessionBlacklist() controlstate.SessionBlacklistRepository {
 	return &sessionBlacklistRepo{pool: r.pool}
+}
+
+func (r *Repository) SchedulerTrainingSamples() controlstate.SchedulerTrainingSampleRepository {
+	return &schedulerTrainingSampleRepo{pool: r.pool}
+}
+
+func (r *Repository) SchedulerQualityRollups() controlstate.SchedulerQualityRollupRepository {
+	return &schedulerQualityRollupRepo{pool: r.pool}
 }
 
 func (r *Repository) Close() error {
@@ -859,6 +873,24 @@ func (s *semanticCacheRepo) ListCandidates(ctx context.Context, scope, model str
 		results = append(results, entry)
 	}
 	return results, rows.Err()
+}
+
+func (s *semanticCacheRepo) GetCandidate(ctx context.Context, id, scope, model string) (*controlstate.SemanticCacheEntry, error) {
+	row := s.pool.QueryRow(ctx, `
+		SELECT id, scope, model, vector, response, usage_id, hit_count, enabled, created_at, expires_at
+		FROM semantic_cache_entries
+		WHERE id = $1 AND scope = $2 AND model = $3 AND enabled = true AND expires_at > $4`,
+		id, scope, model, time.Now().UTC())
+	entry := &controlstate.SemanticCacheEntry{}
+	var usageID *string
+	if err := row.Scan(&entry.ID, &entry.Scope, &entry.Model, &entry.Vector, &entry.Response, &usageID, &entry.HitCount, &entry.Enabled, &entry.CreatedAt, &entry.ExpiresAt); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	entry.UsageID = usageID
+	return entry, nil
 }
 
 func (s *semanticCacheRepo) RecordHit(ctx context.Context, id string) error {

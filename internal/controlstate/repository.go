@@ -3,6 +3,7 @@ package controlstate
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 var ErrRoutingConfigNotFound = errors.New("routing config not found")
@@ -21,6 +22,8 @@ type Repository interface {
 	FallbackLog() FallbackLogRepository
 	LimitRules() LimitRuleRepository
 	SessionBlacklist() SessionBlacklistRepository
+	SchedulerTrainingSamples() SchedulerTrainingSampleRepository
+	SchedulerQualityRollups() SchedulerQualityRollupRepository
 	BeginTx(ctx context.Context) (Transaction, error)
 	Settle(ctx context.Context, usage *UsageRecord) error
 	Close() error
@@ -90,6 +93,7 @@ type Migrator interface {
 type SemanticCacheRepository interface {
 	Store(ctx context.Context, entry *SemanticCacheEntry) error
 	ListCandidates(ctx context.Context, scope, model string) ([]*SemanticCacheEntry, error)
+	GetCandidate(ctx context.Context, id, scope, model string) (*SemanticCacheEntry, error)
 	RecordHit(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
@@ -98,4 +102,15 @@ type FallbackLogRepository interface {
 	Insert(ctx context.Context, record *FallbackLogRecord) error
 	ListPending(ctx context.Context, limit int) ([]*FallbackLogRecord, error)
 	UpdateStatus(ctx context.Context, id, status string) error
+}
+
+type SchedulerTrainingSampleRepository interface {
+	Insert(ctx context.Context, sample *SchedulerTrainingSample) error
+	ListByWindow(ctx context.Context, start, end time.Time, limit int) ([]*SchedulerTrainingSample, error)
+	ListByIDs(ctx context.Context, ids []string) ([]*SchedulerTrainingSample, error)
+}
+
+type SchedulerQualityRollupRepository interface {
+	Upsert(ctx context.Context, rollup *SchedulerQualityRollup) error
+	ListByWindow(ctx context.Context, start, end time.Time, schedulerType, schedulerVersion, taskType string, limit int) ([]*SchedulerQualityRollup, error)
 }

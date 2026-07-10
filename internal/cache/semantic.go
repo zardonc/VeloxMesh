@@ -156,21 +156,20 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 }
 
 func (s *SemanticCacheService) lookupVectorResult(ctx context.Context, scope, model string, results []map[string]interface{}) (*controlstate.SemanticCacheEntry, error) {
-	candidates, err := s.repo.ListCandidates(ctx, scope, model)
-	if err != nil {
-		return nil, err
-	}
-	byID := make(map[string]*controlstate.SemanticCacheEntry, len(candidates))
-	for _, candidate := range candidates {
-		byID[candidate.ID] = candidate
-	}
 	for _, result := range results {
 		score, hasScore := result["score"].(float64)
 		if hasScore && float32(score) < s.config.Threshold {
 			continue
 		}
 		id, _ := result["id"].(string)
-		if entry := byID[id]; entry != nil {
+		if id == "" {
+			continue
+		}
+		entry, err := s.repo.GetCandidate(ctx, id, scope, model)
+		if err != nil {
+			return nil, err
+		}
+		if entry != nil {
 			_ = s.repo.RecordHit(ctx, entry.ID)
 			return entry, nil
 		}
