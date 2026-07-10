@@ -89,7 +89,7 @@ flowchart TB
 
     Control --> DB["SQLite or PostgreSQL"]
     Service --> HotState["Redis or local hot state"]
-    CacheLookup --> Vector["LanceDB, Qdrant, or pgvector"]
+    CacheLookup --> Vector["LanceDB, Qdrant, Redis VSS, or pgvector"]
     Service --> Observability["Prometheus and OpenTelemetry"]
 ```
 

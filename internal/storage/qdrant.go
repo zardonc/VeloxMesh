@@ -168,6 +168,9 @@ func (q *QdrantVectorAdapter) EnsureCollection(ctx context.Context, collection s
 }
 
 func (q *QdrantVectorAdapter) Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error) {
+	if limit < 1 {
+		limit = 1
+	}
 	results, err := q.client.Query(ctx, &qdrant.QueryPoints{
 		CollectionName: collection,
 		Query:          qdrant.NewQuery(query...),
@@ -181,6 +184,7 @@ func (q *QdrantVectorAdapter) Search(ctx context.Context, collection string, que
 	var mappedResults []map[string]interface{}
 	for _, result := range results {
 		meta := make(map[string]interface{})
+		meta["score"] = float64(result.Score)
 		for k, v := range result.Payload {
 			switch val := v.Kind.(type) {
 			case *qdrant.Value_StringValue:

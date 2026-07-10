@@ -691,6 +691,11 @@ func TestSchedulerConfigFileOverridesEnvWithFalseAndZero(t *testing.T) {
 		"queue_soft_limit": 0,
 		"queue_hard_limit": 0,
 		"high_quota_per_minute": 0,
+		"endpoint": "",
+		"heuristic_endpoint": "",
+		"onnx_endpoint": "",
+		"heuristic_config_file": "",
+		"onnx_artifact_dir": "",
 		"feedback_enabled": false,
 		"semantic_neighbors_enabled": false,
 		"sla_promotion_enabled": false,
@@ -703,11 +708,15 @@ func TestSchedulerConfigFileOverridesEnvWithFalseAndZero(t *testing.T) {
 	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
 	t.Setenv("SCHEDULER_ENABLED", "true")
 	t.Setenv("SCHEDULER_STRICT", "true")
+	t.Setenv("SCHEDULER_ENDPOINT", "scheduler:50051")
+	t.Setenv("SCHEDULER_HEURISTIC_ENDPOINT", "heuristic:50051")
 	t.Setenv("SCHEDULER_ONNX_ENDPOINT", "onnx:50051")
 	t.Setenv("SCHEDULER_ONNX_ROLLOUT_PERCENT", "50")
 	t.Setenv("SCHEDULER_QUEUE_SOFT_LIMIT", "10")
 	t.Setenv("SCHEDULER_QUEUE_HARD_LIMIT", "20")
 	t.Setenv("SCHEDULER_HIGH_QUOTA_PER_MINUTE", "30")
+	t.Setenv("SCHEDULER_HEURISTIC_CONFIG_FILE", "heuristic.json")
+	t.Setenv("SCHEDULER_ONNX_ARTIFACT_DIR", "artifacts")
 	t.Setenv("SCHEDULER_FEEDBACK_ENABLED", "true")
 	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED", "true")
 	t.Setenv("SCHEDULER_SLA_PROMOTION_ENABLED", "true")
@@ -721,6 +730,9 @@ func TestSchedulerConfigFileOverridesEnvWithFalseAndZero(t *testing.T) {
 	}
 	if cfg.Scheduler.ONNXRolloutPercent != 0 || cfg.Scheduler.QueueSoftLimit != 0 || cfg.Scheduler.QueueHardLimit != 0 || cfg.Scheduler.HighQuotaPerMinute != 0 {
 		t.Fatalf("scheduler component zero overrides missing: %#v", cfg.Scheduler)
+	}
+	if cfg.Scheduler.Endpoint != "" || cfg.Scheduler.HeuristicEndpoint != "" || cfg.Scheduler.ONNXEndpoint != "" || cfg.Scheduler.HeuristicConfigFile != "" || cfg.Scheduler.ONNXArtifactDir != "" {
+		t.Fatalf("scheduler component empty string overrides missing: %#v", cfg.Scheduler)
 	}
 	if len(cfg.Scheduler.SLAPromotionRules) != 0 {
 		t.Fatalf("expected scheduler component to clear SLA rules, got %#v", cfg.Scheduler.SLAPromotionRules)

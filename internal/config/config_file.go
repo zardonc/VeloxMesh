@@ -86,38 +86,38 @@ type cacheFileConfig struct {
 
 type schedulerFileConfig struct {
 	Enabled                         *bool               `json:"enabled"`
-	Endpoint                        string              `json:"endpoint"`
-	HeuristicEndpoint               string              `json:"heuristic_endpoint"`
-	ONNXEndpoint                    string              `json:"onnx_endpoint"`
+	Endpoint                        *string             `json:"endpoint"`
+	HeuristicEndpoint               *string             `json:"heuristic_endpoint"`
+	ONNXEndpoint                    *string             `json:"onnx_endpoint"`
 	ONNXRolloutPercent              *int                `json:"onnx_rollout_percent"`
 	QualityMAPEAlertPercent         *float64            `json:"quality_mape_alert_percent"`
 	ErrorSpikeAlertRate             *float64            `json:"error_spike_alert_rate"`
 	QualitySampleWindow             *int                `json:"quality_sample_window"`
-	Timeout                         string              `json:"timeout"`
+	Timeout                         *string             `json:"timeout"`
 	Strict                          *bool               `json:"strict"`
 	BreakerFailureThreshold         *int                `json:"breaker_failure_threshold"`
-	BreakerRecoveryTimeout          string              `json:"breaker_recovery_timeout"`
+	BreakerRecoveryTimeout          *string             `json:"breaker_recovery_timeout"`
 	ScorerMaxConcurrency            *int                `json:"scorer_max_concurrency"`
-	ScorerSlowThreshold             string              `json:"scorer_slow_threshold"`
-	QueueBackend                    string              `json:"queue_backend"`
+	ScorerSlowThreshold             *string             `json:"scorer_slow_threshold"`
+	QueueBackend                    *string             `json:"queue_backend"`
 	QueueSoftLimit                  *int                `json:"queue_soft_limit"`
 	QueueHardLimit                  *int                `json:"queue_hard_limit"`
-	QueuePopTimeout                 string              `json:"queue_pop_timeout"`
+	QueuePopTimeout                 *string             `json:"queue_pop_timeout"`
 	ExecutorConcurrency             *int                `json:"executor_concurrency"`
-	DefaultPriority                 string              `json:"default_priority"`
-	MaxPriority                     string              `json:"max_priority"`
+	DefaultPriority                 *string             `json:"default_priority"`
+	MaxPriority                     *string             `json:"max_priority"`
 	HighQuotaPerMinute              *int                `json:"high_quota_per_minute"`
 	ScoreUncertaintyPenaltyK        *float64            `json:"score_uncertainty_penalty_k"`
-	HeuristicConfigFile             string              `json:"heuristic_config_file"`
+	HeuristicConfigFile             *string             `json:"heuristic_config_file"`
 	FeedbackEnabled                 *bool               `json:"feedback_enabled"`
-	Mode                            string              `json:"mode"`
-	ONNXArtifactDir                 string              `json:"onnx_artifact_dir"`
+	Mode                            *string             `json:"mode"`
+	ONNXArtifactDir                 *string             `json:"onnx_artifact_dir"`
 	SemanticNeighborsEnabled        *bool               `json:"semantic_neighbors_enabled"`
-	SemanticNeighborsEmbeddingModel string              `json:"semantic_neighbors_embedding_model"`
+	SemanticNeighborsEmbeddingModel *string             `json:"semantic_neighbors_embedding_model"`
 	SemanticNeighborsMinCount       *int                `json:"semantic_neighbors_min_count"`
 	SemanticNeighborsInputMaxChars  *int                `json:"semantic_neighbors_input_max_chars"`
-	SemanticNeighborsTaskTimeout    string              `json:"semantic_neighbors_task_timeout"`
-	SemanticNeighborsBatchTimeout   string              `json:"semantic_neighbors_batch_timeout"`
+	SemanticNeighborsTaskTimeout    *string             `json:"semantic_neighbors_task_timeout"`
+	SemanticNeighborsBatchTimeout   *string             `json:"semantic_neighbors_batch_timeout"`
 	SLAPromotionEnabled             *bool               `json:"sla_promotion_enabled"`
 	SLAPromotionCandidateWindow     *int                `json:"sla_promotion_candidate_window"`
 	SLAPromotionRules               *[]SLAPromotionRule `json:"sla_promotion_rules"`

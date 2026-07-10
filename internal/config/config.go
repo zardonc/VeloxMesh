@@ -215,14 +215,14 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src *schedulerFileConfig) {
 	if src.Enabled != nil {
 		dst.Enabled = *src.Enabled
 	}
-	if src.Endpoint != "" {
-		dst.Endpoint = src.Endpoint
+	if src.Endpoint != nil {
+		dst.Endpoint = *src.Endpoint
 	}
-	if src.HeuristicEndpoint != "" {
-		dst.HeuristicEndpoint = src.HeuristicEndpoint
+	if src.HeuristicEndpoint != nil {
+		dst.HeuristicEndpoint = *src.HeuristicEndpoint
 	}
-	if src.ONNXEndpoint != "" {
-		dst.ONNXEndpoint = src.ONNXEndpoint
+	if src.ONNXEndpoint != nil {
+		dst.ONNXEndpoint = *src.ONNXEndpoint
 	}
 	if src.ONNXRolloutPercent != nil {
 		dst.ONNXRolloutPercent = *src.ONNXRolloutPercent
@@ -236,8 +236,8 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src *schedulerFileConfig) {
 	if src.QualitySampleWindow != nil {
 		dst.QualitySampleWindow = *src.QualitySampleWindow
 	}
-	if src.Timeout != "" {
-		dst.Timeout = src.Timeout
+	if src.Timeout != nil {
+		dst.Timeout = *src.Timeout
 	}
 	if src.Strict != nil {
 		dst.Strict = *src.Strict
@@ -245,17 +245,17 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src *schedulerFileConfig) {
 	if src.BreakerFailureThreshold != nil {
 		dst.BreakerFailureThreshold = *src.BreakerFailureThreshold
 	}
-	if src.BreakerRecoveryTimeout != "" {
-		dst.BreakerRecoveryTimeout = src.BreakerRecoveryTimeout
+	if src.BreakerRecoveryTimeout != nil {
+		dst.BreakerRecoveryTimeout = *src.BreakerRecoveryTimeout
 	}
 	if src.ScorerMaxConcurrency != nil {
 		dst.ScorerMaxConcurrency = *src.ScorerMaxConcurrency
 	}
-	if src.ScorerSlowThreshold != "" {
-		dst.ScorerSlowThreshold = src.ScorerSlowThreshold
+	if src.ScorerSlowThreshold != nil {
+		dst.ScorerSlowThreshold = *src.ScorerSlowThreshold
 	}
-	if src.QueueBackend != "" {
-		dst.QueueBackend = src.QueueBackend
+	if src.QueueBackend != nil {
+		dst.QueueBackend = *src.QueueBackend
 	}
 	if src.QueueSoftLimit != nil {
 		dst.QueueSoftLimit = *src.QueueSoftLimit
@@ -263,17 +263,17 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src *schedulerFileConfig) {
 	if src.QueueHardLimit != nil {
 		dst.QueueHardLimit = *src.QueueHardLimit
 	}
-	if src.QueuePopTimeout != "" {
-		dst.QueuePopTimeout = src.QueuePopTimeout
+	if src.QueuePopTimeout != nil {
+		dst.QueuePopTimeout = *src.QueuePopTimeout
 	}
 	if src.ExecutorConcurrency != nil {
 		dst.ExecutorConcurrency = *src.ExecutorConcurrency
 	}
-	if src.DefaultPriority != "" {
-		dst.DefaultPriority = src.DefaultPriority
+	if src.DefaultPriority != nil {
+		dst.DefaultPriority = *src.DefaultPriority
 	}
-	if src.MaxPriority != "" {
-		dst.MaxPriority = src.MaxPriority
+	if src.MaxPriority != nil {
+		dst.MaxPriority = *src.MaxPriority
 	}
 	if src.HighQuotaPerMinute != nil {
 		dst.HighQuotaPerMinute = *src.HighQuotaPerMinute
@@ -281,23 +281,23 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src *schedulerFileConfig) {
 	if src.ScoreUncertaintyPenaltyK != nil {
 		dst.ScoreUncertaintyPenaltyK = *src.ScoreUncertaintyPenaltyK
 	}
-	if src.HeuristicConfigFile != "" {
-		dst.HeuristicConfigFile = src.HeuristicConfigFile
+	if src.HeuristicConfigFile != nil {
+		dst.HeuristicConfigFile = *src.HeuristicConfigFile
 	}
 	if src.FeedbackEnabled != nil {
 		dst.FeedbackEnabled = *src.FeedbackEnabled
 	}
-	if src.Mode != "" {
-		dst.Mode = src.Mode
+	if src.Mode != nil {
+		dst.Mode = *src.Mode
 	}
-	if src.ONNXArtifactDir != "" {
-		dst.ONNXArtifactDir = src.ONNXArtifactDir
+	if src.ONNXArtifactDir != nil {
+		dst.ONNXArtifactDir = *src.ONNXArtifactDir
 	}
 	if src.SemanticNeighborsEnabled != nil {
 		dst.SemanticNeighborsEnabled = *src.SemanticNeighborsEnabled
 	}
-	if src.SemanticNeighborsEmbeddingModel != "" {
-		dst.SemanticNeighborsEmbeddingModel = src.SemanticNeighborsEmbeddingModel
+	if src.SemanticNeighborsEmbeddingModel != nil {
+		dst.SemanticNeighborsEmbeddingModel = *src.SemanticNeighborsEmbeddingModel
 	}
 	if src.SemanticNeighborsMinCount != nil {
 		dst.SemanticNeighborsMinCount = *src.SemanticNeighborsMinCount
@@ -305,11 +305,11 @@ func mergeSchedulerConfig(dst *SchedulerConfig, src *schedulerFileConfig) {
 	if src.SemanticNeighborsInputMaxChars != nil {
 		dst.SemanticNeighborsInputMaxChars = *src.SemanticNeighborsInputMaxChars
 	}
-	if src.SemanticNeighborsTaskTimeout != "" {
-		dst.SemanticNeighborsTaskTimeout = src.SemanticNeighborsTaskTimeout
+	if src.SemanticNeighborsTaskTimeout != nil {
+		dst.SemanticNeighborsTaskTimeout = *src.SemanticNeighborsTaskTimeout
 	}
-	if src.SemanticNeighborsBatchTimeout != "" {
-		dst.SemanticNeighborsBatchTimeout = src.SemanticNeighborsBatchTimeout
+	if src.SemanticNeighborsBatchTimeout != nil {
+		dst.SemanticNeighborsBatchTimeout = *src.SemanticNeighborsBatchTimeout
 	}
 	if src.SLAPromotionEnabled != nil {
 		dst.SLAPromotionEnabled = *src.SLAPromotionEnabled
