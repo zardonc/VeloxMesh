@@ -203,7 +203,7 @@ Use the existing admin protections for these routes. Send `Authorization: Bearer
 | `GET /admin/v1/scheduler/sla-rules` | Read active runtime SLA promotion rules. |
 | `PUT /admin/v1/scheduler/sla-rules` | Replace the in-memory rule set after validation. |
 | `GET /admin/v1/scheduler/training-samples/export` | Export safe training features and labels as JSON or NDJSON. |
-| `PATCH /admin/scheduler/rollout` | Roll ONNX traffic back to heuristic by setting rollout to `0`, or update `quality_sample_window`. |
+| `PATCH /admin/v1/scheduler/rollout` | Roll ONNX traffic back to heuristic by setting rollout to `0`, or update `quality_sample_window`. |
 
 Admin changes to ONNX rollout, quality sample window, and SLA promotion rules affect the running process only. In multi-node deployments, apply the same runtime change on each node or update durable config before restart; cross-node propagation is not implemented yet. Put durable values back into `config.scheduler.example.json`, the deployment config file, or environment management before restart.
 
