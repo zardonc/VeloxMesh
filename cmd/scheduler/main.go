@@ -16,6 +16,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 
+	"veloxmesh/internal/observability"
 	"veloxmesh/internal/scheduler/heuristic"
 	"veloxmesh/internal/scheduler/predictive"
 	"veloxmesh/internal/scheduler/predictor"
@@ -43,7 +44,8 @@ func run(ctx context.Context) error {
 	httpAddr := getenv("SCHEDULER_HTTP_ADDR", ":9091")
 	reg := prometheus.NewRegistry()
 	metrics := heuristic.NewMetrics(reg)
-	service, status, err := newSchedulerServiceWithStatus(getenv("SCHEDULER_MODE", "heuristic"), getenv("SCHEDULER_ONNX_ARTIFACT_DIR", ""), metrics)
+	observabilityMetrics := observability.NewPrometheusMetrics(reg)
+	service, status, err := newSchedulerServiceWithStatus(getenv("SCHEDULER_MODE", "heuristic"), getenv("SCHEDULER_ONNX_ARTIFACT_DIR", ""), metrics, observabilityMetrics)
 	if err != nil {
 		return err
 	}
@@ -79,7 +81,7 @@ func run(ctx context.Context) error {
 }
 
 func newSchedulerService(mode, artifactDir string, metrics *heuristic.Metrics) (schedulerv1.TaskSchedulerServer, error) {
-	service, _, err := newSchedulerServiceWithStatus(mode, artifactDir, metrics)
+	service, _, err := newSchedulerServiceWithStatus(mode, artifactDir, metrics, nil)
 	return service, err
 }
 
@@ -88,7 +90,7 @@ type schedulerStatus struct {
 	AnomalyReason string `json:"anomaly_reason,omitempty"`
 }
 
-func newSchedulerServiceWithStatus(mode, artifactDir string, metrics *heuristic.Metrics) (schedulerv1.TaskSchedulerServer, schedulerStatus, error) {
+func newSchedulerServiceWithStatus(mode, artifactDir string, metrics *heuristic.Metrics, observabilityMetrics observability.Metrics) (schedulerv1.TaskSchedulerServer, schedulerStatus, error) {
 	if mode == "" || mode == "heuristic" {
 		cfg, err := heuristic.LoadConfigFile(getenv("SCHEDULER_HEURISTIC_CONFIG_FILE", ""), heuristic.DefaultConfig())
 		if err != nil {
@@ -99,16 +101,16 @@ func newSchedulerServiceWithStatus(mode, artifactDir string, metrics *heuristic.
 	if mode != "onnx" && mode != "predictive" {
 		return nil, schedulerStatus{}, fmt.Errorf("unsupported scheduler mode: %s", mode)
 	}
-	scorer, status := newPredictiveScorer(context.Background(), artifactDir, metrics)
+	scorer, status := newPredictiveScorer(context.Background(), artifactDir, observabilityMetrics)
 	fmt.Fprintf(os.Stderr, "predictive anomaly_status=%s anomaly_reason=%s\n", status.AnomalyStatus, status.AnomalyReason)
 	return predictive.NewBatchScoreService(scorer), status, nil
 }
 
-func newPredictiveScorer(ctx context.Context, artifactDir string, _ *heuristic.Metrics) (*predictive.Scorer, schedulerStatus) {
+func newPredictiveScorer(ctx context.Context, artifactDir string, metrics observability.Metrics) (*predictive.Scorer, schedulerStatus) {
 	manifest, err := predictor.LoadManifest(filepath.Join(artifactDir, "manifest.json"))
 	if err != nil {
 		p := predictor.NoopPredictor{Reason: err}
-		return predictive.NewScorer(p, predictive.Config{}), schedulerStatus{AnomalyStatus: predictorStatusDegraded, AnomalyReason: predictorReasonManifestInvalid}
+		return predictive.NewScorer(p, predictive.Config{Metrics: metrics}), schedulerStatus{AnomalyStatus: predictorStatusDegraded, AnomalyReason: predictorReasonManifestInvalid}
 	}
 	p, _ := predictor.NewPythonONNXPredictor(ctx, predictor.PythonClientConfig{
 		Endpoint:       getenv("SCHEDULER_PREDICTOR_ENDPOINT", ""),
@@ -117,9 +119,9 @@ func newPredictiveScorer(ctx context.Context, artifactDir string, _ *heuristic.M
 		SlowThreshold:  getenvDuration("SCHEDULER_SCORER_SLOW_THRESHOLD", defaultPredictorTimeout),
 	})
 	if isNoopPredictor(p) {
-		return predictive.NewScorer(p, predictive.Config{Version: manifest.ModelVersion}), schedulerStatus{AnomalyStatus: predictorStatusUnavailable, AnomalyReason: predictorReasonSignal}
+		return predictive.NewScorer(p, predictive.Config{Version: manifest.ModelVersion, Metrics: metrics}), schedulerStatus{AnomalyStatus: predictorStatusUnavailable, AnomalyReason: predictorReasonSignal}
 	}
-	return predictive.NewScorer(p, predictive.Config{Version: manifest.ModelVersion}), schedulerStatus{AnomalyStatus: predictorStatusReady}
+	return predictive.NewScorer(p, predictive.Config{Version: manifest.ModelVersion, Metrics: metrics}), schedulerStatus{AnomalyStatus: predictorStatusReady}
 }
 
 func isNoopPredictor(p predictor.OutputTokenPredictor) bool {

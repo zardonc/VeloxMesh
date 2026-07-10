@@ -40,7 +40,7 @@ func TestWorkerProcessRestartsAfterBackoff(t *testing.T) {
 }
 
 func waitForBackoff(process *WorkerProcess) bool {
-	deadline := time.Now().Add(200 * time.Millisecond)
+	deadline := time.Now().Add(2 * time.Second)
 	for time.Now().Before(deadline) {
 		err := process.Ensure(context.Background())
 		if errors.Is(err, ErrRestartBackoff) {

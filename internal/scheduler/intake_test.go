@@ -6,9 +6,13 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"veloxmesh/internal/config"
 	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/observability"
+	"veloxmesh/internal/scheduler/schedulerv1"
 )
 
 func TestTaskIntakeFIFOScorerEnqueuesWhenRunnerEnabled(t *testing.T) {
@@ -301,6 +305,37 @@ func TestTaskIntakeHealthyClassificationRecordsOK(t *testing.T) {
 func TestTaskIntakeONNXClassificationSourceIsNotFallback(t *testing.T) {
 	if got := classificationSource("onnx"); got != "onnx" {
 		t.Fatalf("classificationSource(onnx) = %q, want onnx", got)
+	}
+}
+
+func TestTaskIntakeRecordsGRPCBreakerStateMetric(t *testing.T) {
+	endpoint, stop := startSchedulerServer(t, schedulerServer{
+		score: func(context.Context, *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
+			return nil, status.Error(codes.Unavailable, "scheduler down")
+		},
+	})
+	defer stop()
+
+	scorer := newTCPScorerWithConfig(t, endpoint, config.SchedulerConfig{
+		Timeout:                 "15ms",
+		BreakerFailureThreshold: 1,
+		BreakerRecoveryTimeout:  "1m",
+	})
+	defer scorer.Close()
+
+	metrics := &schedulerMetricsSpy{StubMetrics: observability.NewStubMetrics()}
+	intake := &TaskIntake{
+		Queue: NewMemoryQueue(), Scorer: scorer, Registry: NewResultRegistry(), Metrics: metrics,
+		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh}, Backend: "memory",
+	}
+	_, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "t1"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
+	if metrics.breakerState != "open" {
+		t.Fatalf("breaker state metric = %q, want open", metrics.breakerState)
 	}
 }
 
@@ -616,6 +651,7 @@ type schedulerMetricsSpy struct {
 	schedulerErrors      int
 	schedulerErrorReason string
 	classificationSource string
+	breakerState         string
 }
 
 func (m *schedulerMetricsSpy) RecordSchedulerCall(result string, _ float64) {
@@ -630,6 +666,10 @@ func (m *schedulerMetricsSpy) IncSchedulerError(reason string) {
 
 func (m *schedulerMetricsSpy) IncSchedulerClassificationSource(source string) {
 	m.classificationSource = source
+}
+
+func (m *schedulerMetricsSpy) RecordSchedulerBreakerState(state string) {
+	m.breakerState = state
 }
 
 type recordingQueue struct {

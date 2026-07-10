@@ -222,6 +222,9 @@ func (i *TaskIntake) recordSchedulerResult(reason string, latency time.Duration,
 		i.Metrics.IncSchedulerError(result)
 	}
 	i.Metrics.IncSchedulerClassificationSource(classificationSource(source))
+	if state := scorerMetricBreakerState(i.Scorer); state != "unavailable" {
+		i.Metrics.RecordSchedulerBreakerState(state)
+	}
 }
 
 func schedulerCallResult(reason string) string {

@@ -224,6 +224,10 @@ func (s WeightedScorer) BreakerState() string {
 	return "heuristic=" + scorerBreakerState(s.Heuristic) + ",onnx=" + scorerBreakerState(s.ONNX)
 }
 
+func (s WeightedScorer) MetricBreakerState() string {
+	return aggregateBreakerStates(scorerMetricBreakerState(s.Heuristic), scorerMetricBreakerState(s.ONNX))
+}
+
 type indexedTask struct {
 	Index int
 	Task  TaskFeature
@@ -342,4 +346,30 @@ func scorerBreakerState(scorer Scorer) string {
 		return "unavailable"
 	}
 	return reporter.BreakerState()
+}
+
+func scorerMetricBreakerState(scorer Scorer) string {
+	if reporter, ok := scorer.(interface{ MetricBreakerState() string }); ok {
+		return reporter.MetricBreakerState()
+	}
+	state := scorerBreakerState(scorer)
+	switch state {
+	case breakerStateClosed, breakerStateHalfOpen, breakerStateOpen:
+		return state
+	default:
+		return "unavailable"
+	}
+}
+
+func aggregateBreakerStates(states ...string) string {
+	result := breakerStateClosed
+	for _, state := range states {
+		if state == breakerStateOpen {
+			return breakerStateOpen
+		}
+		if state == breakerStateHalfOpen {
+			result = breakerStateHalfOpen
+		}
+	}
+	return result
 }

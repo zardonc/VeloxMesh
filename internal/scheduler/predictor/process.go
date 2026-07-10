@@ -25,7 +25,7 @@ type WorkerProcess struct {
 func (p *WorkerProcess) Ensure(ctx context.Context) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if p.cmd != nil && p.cmd.ProcessState == nil {
+	if p.cmd != nil {
 		return nil
 	}
 	if !p.nextStart.IsZero() && time.Now().Before(p.nextStart) {

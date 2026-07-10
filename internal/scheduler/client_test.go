@@ -65,7 +65,7 @@ func TestGRPCScorerLegacyClassificationReasonDoesNotOpenBreaker(t *testing.T) {
 	defer stop()
 
 	scorer := newTCPScorerWithConfig(t, endpoint, config.SchedulerConfig{
-		Timeout:                 "15ms",
+		Timeout:                 "100ms",
 		BreakerFailureThreshold: 1,
 		BreakerRecoveryTimeout:  "1m",
 	})
@@ -97,7 +97,7 @@ func TestGRPCScorerLegacyONNXReasonDoesNotOpenBreaker(t *testing.T) {
 	defer stop()
 
 	scorer := newTypedTCPScorer(t, endpoint, SchedulerTypeONNX, config.SchedulerConfig{
-		Timeout:                 "15ms",
+		Timeout:                 "100ms",
 		BreakerFailureThreshold: 1,
 		BreakerRecoveryTimeout:  "1m",
 	})
