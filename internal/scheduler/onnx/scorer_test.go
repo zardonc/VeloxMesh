@@ -29,7 +29,7 @@ func TestScorerLoadsArtifactOnceAndScoresRequests(t *testing.T) {
 	if scorer.LoadCount() != 1 {
 		t.Fatalf("expected one startup load, got %d", scorer.LoadCount())
 	}
-	if first[0].SchedulerVersion != "scheduler-p70-v1" || first[0].FallbackReason != "onnx" {
+	if first[0].SchedulerVersion != "scheduler-p70-v1" || first[0].FallbackReason != "" || first[0].ClassificationSource != "onnx" {
 		t.Fatalf("unexpected score: %#v", first[0])
 	}
 	if second[0].PredictedLatencyMs != first[0].PredictedLatencyMs {

@@ -3,6 +3,8 @@ package scheduler
 import (
 	"context"
 	"net"
+	"strconv"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -49,6 +51,70 @@ func TestGRPCScorerCallsRealSchedulerOverTCP(t *testing.T) {
 	}
 	if results[0].Score != 12.5 || results[0].SchedulerVersion != "test-scheduler" || results[0].SchedulerType != SchedulerTypeHeuristic || results[0].FallbackReason != "" {
 		t.Fatalf("expected scheduler score from real TCP call, got %#v", results[0])
+	}
+}
+
+func TestGRPCScorerLegacyClassificationReasonDoesNotOpenBreaker(t *testing.T) {
+	var calls int32
+	endpoint, stop := startSchedulerServer(t, schedulerServer{
+		score: func(_ context.Context, req *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
+			atomic.AddInt32(&calls, 1)
+			return schedulerResponseWithReason(req, "heuristic-v1", "structured"), nil
+		},
+	})
+	defer stop()
+
+	scorer := newTCPScorerWithConfig(t, endpoint, config.SchedulerConfig{
+		Timeout:                 "100ms",
+		BreakerFailureThreshold: 1,
+		BreakerRecoveryTimeout:  "1m",
+	})
+	defer scorer.Close()
+
+	task := []TaskFeature{{TaskID: "t1", Priority: PriorityNormal}}
+	for i := 0; i < 3; i++ {
+		results, err := scorer.Score(context.Background(), task)
+		if err != nil {
+			t.Fatalf("Score %d: %v", i, err)
+		}
+		if results[0].FallbackReason != "" || results[0].ClassificationSource != "structured" {
+			t.Fatalf("expected healthy classification metadata, got %#v", results[0])
+		}
+	}
+	if atomic.LoadInt32(&calls) != 3 || scorer.BreakerState() != "closed" {
+		t.Fatalf("expected closed breaker after healthy scores, calls=%d state=%s", atomic.LoadInt32(&calls), scorer.BreakerState())
+	}
+}
+
+func TestGRPCScorerLegacyONNXReasonDoesNotOpenBreaker(t *testing.T) {
+	var calls int32
+	endpoint, stop := startSchedulerServer(t, schedulerServer{
+		score: func(_ context.Context, req *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
+			atomic.AddInt32(&calls, 1)
+			return schedulerResponseWithReason(req, "onnx-v1", "onnx"), nil
+		},
+	})
+	defer stop()
+
+	scorer := newTypedTCPScorer(t, endpoint, SchedulerTypeONNX, config.SchedulerConfig{
+		Timeout:                 "100ms",
+		BreakerFailureThreshold: 1,
+		BreakerRecoveryTimeout:  "1m",
+	})
+	defer scorer.Close()
+
+	task := []TaskFeature{{TaskID: "t1", Priority: PriorityNormal}}
+	for i := 0; i < 3; i++ {
+		results, err := scorer.Score(context.Background(), task)
+		if err != nil {
+			t.Fatalf("Score %d: %v", i, err)
+		}
+		if results[0].SchedulerType != SchedulerTypeONNX || results[0].FallbackReason != "" || results[0].ClassificationSource != "onnx" {
+			t.Fatalf("expected healthy ONNX metadata, got %#v", results[0])
+		}
+	}
+	if atomic.LoadInt32(&calls) != 3 || scorer.BreakerState() != "closed" {
+		t.Fatalf("expected closed breaker after healthy ONNX scores, calls=%d state=%s", atomic.LoadInt32(&calls), scorer.BreakerState())
 	}
 }
 
@@ -127,22 +193,80 @@ func TestGRPCScorerBreakerUsesWindowInsteadOfSingleSuccessReset(t *testing.T) {
 }
 
 func TestGRPCScorerBreakerHalfOpenSuccessResetsWindow(t *testing.T) {
+	now := time.Now()
 	breaker := newBreaker(3, time.Millisecond)
-	breaker.Record(false)
-	breaker.Record(true)
-	breaker.Record(false)
-	breaker.openedAt = time.Now().Add(-time.Second)
+	breaker.RecordAt(now, false)
+	breaker.RecordAt(now, true)
+	breaker.RecordAt(now, false)
 
-	if !breaker.Allow() {
+	if !breaker.AllowAt(now.Add(time.Second)) {
 		t.Fatalf("expected half-open probe to be allowed")
 	}
-	breaker.Record(true)
+	breaker.RecordAt(now.Add(time.Second), true)
 	if breaker.State() != "closed" {
 		t.Fatalf("expected successful half-open probe to close breaker, got %s", breaker.State())
 	}
-	breaker.Record(false)
+	breaker.RecordAt(now.Add(time.Second), false)
 	if breaker.State() != "closed" {
 		t.Fatalf("expected reset window to require more failures, got %s", breaker.State())
+	}
+}
+
+func TestGRPCScorerBreakerAllowsSingleHalfOpenProbe(t *testing.T) {
+	now := time.Now()
+	breaker := newBreaker(1, time.Millisecond)
+	breaker.RecordAt(now, false)
+
+	recovered := now.Add(time.Second)
+	if !breaker.AllowAt(recovered) {
+		t.Fatalf("expected first half-open probe to be allowed")
+	}
+	if breaker.AllowAt(recovered) {
+		t.Fatalf("expected second half-open probe to be blocked")
+	}
+	breaker.RecordAt(recovered, true)
+	if breaker.State() != "closed" {
+		t.Fatalf("expected successful probe to close breaker, got %s", breaker.State())
+	}
+}
+
+func TestGRPCScorerBreakerConcurrentRealTCP(t *testing.T) {
+	var calls int32
+	endpoint, stop := startSchedulerServer(t, schedulerServer{
+		score: func(_ context.Context, req *schedulerv1.BatchScoreRequest) (*schedulerv1.BatchScoreResponse, error) {
+			atomic.AddInt32(&calls, 1)
+			return schedulerResponseWithReason(req, "heuristic-v1", "structured"), nil
+		},
+	})
+	defer stop()
+
+	scorer := newTCPScorerWithConfig(t, endpoint, config.SchedulerConfig{
+		Timeout:                 "100ms",
+		ScorerMaxConcurrency:    32,
+		BreakerFailureThreshold: 1,
+		BreakerRecoveryTimeout:  "1m",
+	})
+	defer scorer.Close()
+
+	var wg sync.WaitGroup
+	for i := 0; i < 32; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			task := TaskFeature{TaskID: "t" + strconv.Itoa(i), Priority: PriorityNormal}
+			results, err := scorer.Score(context.Background(), []TaskFeature{task})
+			if err != nil {
+				t.Errorf("Score %d: %v", i, err)
+				return
+			}
+			if results[0].FallbackReason != "" || results[0].ClassificationSource != "structured" {
+				t.Errorf("unexpected result %d: %#v", i, results[0])
+			}
+		}(i)
+	}
+	wg.Wait()
+	if atomic.LoadInt32(&calls) != 32 || scorer.BreakerState() != "closed" {
+		t.Fatalf("expected all calls through closed breaker, calls=%d state=%s", atomic.LoadInt32(&calls), scorer.BreakerState())
 	}
 }
 
@@ -442,9 +566,13 @@ func (s schedulerServer) BatchScoreTasks(ctx context.Context, req *schedulerv1.B
 }
 
 func schedulerResponse(req *schedulerv1.BatchScoreRequest, version string) *schedulerv1.BatchScoreResponse {
+	return schedulerResponseWithReason(req, version, "")
+}
+
+func schedulerResponseWithReason(req *schedulerv1.BatchScoreRequest, version string, reason string) *schedulerv1.BatchScoreResponse {
 	results := make([]*schedulerv1.ScoreResult, 0, len(req.GetTasks()))
 	for _, task := range req.GetTasks() {
-		results = append(results, &schedulerv1.ScoreResult{TaskId: task.GetTaskId(), Score: 12.5, Priority: task.GetPriority(), Confidence: 0.9, SchedulerVersion: version})
+		results = append(results, &schedulerv1.ScoreResult{TaskId: task.GetTaskId(), Score: 12.5, Priority: task.GetPriority(), Confidence: 0.9, SchedulerVersion: version, Reason: reason})
 	}
 	return &schedulerv1.BatchScoreResponse{Results: results}
 }
@@ -490,11 +618,16 @@ func newTCPScorer(t *testing.T, endpoint string, timeout time.Duration) *GRPCSco
 
 func newTCPScorerWithConfig(t *testing.T, endpoint string, cfg config.SchedulerConfig) *GRPCScorer {
 	t.Helper()
+	return newTypedTCPScorer(t, endpoint, SchedulerTypeHeuristic, cfg)
+}
+
+func newTypedTCPScorer(t *testing.T, endpoint string, schedulerType SchedulerType, cfg config.SchedulerConfig) *GRPCScorer {
+	t.Helper()
 	cfg.Enabled = true
 	cfg.Endpoint = endpoint
-	scorer, err := NewGRPCScorer(context.Background(), cfg)
+	scorer, err := newGRPCScorer(context.Background(), cfg, schedulerType)
 	if err != nil {
-		t.Fatalf("NewGRPCScorer: %v", err)
+		t.Fatalf("newGRPCScorer: %v", err)
 	}
 	return scorer
 }

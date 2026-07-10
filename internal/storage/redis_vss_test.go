@@ -47,6 +47,9 @@ func TestRedisVSSVectorAdapter_Integration(t *testing.T) {
 	if len(results) == 0 {
 		t.Errorf("expected at least 1 result")
 	}
+	if _, ok := results[0]["score"].(float64); !ok {
+		t.Fatalf("expected Redis VSS search score, got %#v", results[0])
+	}
 
 	err = adapter.Delete(ctx, "test_collection", map[string]interface{}{"id": "test-id"})
 	if err != nil {

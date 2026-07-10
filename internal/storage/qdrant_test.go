@@ -98,6 +98,12 @@ func TestQdrantDeleteRemovesPayloadFilteredPoints(t *testing.T) {
 	if err != nil {
 		t.Fatalf("search qdrant vectors: %v", err)
 	}
+	if len(results) == 0 {
+		t.Fatalf("expected qdrant search results")
+	}
+	if _, ok := results[0]["score"].(float64); !ok {
+		t.Fatalf("expected qdrant search score, got %#v", results[0])
+	}
 	for _, result := range results {
 		if result["sample_id"] == "sample-delete" {
 			t.Fatalf("deleted qdrant payload still returned: %#v", results)

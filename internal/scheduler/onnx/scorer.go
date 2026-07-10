@@ -64,7 +64,7 @@ func (s *Scorer) scoreTask(task scheduler.TaskFeature) scheduler.ScoreResult {
 	score.Confidence = adjustment.confidence
 	score.SchedulerVersion = s.artifact.Manifest.SchedulerVersion
 	score.SchedulerType = scheduler.SchedulerTypeONNX
-	score.FallbackReason = "onnx"
+	score.ClassificationSource = "onnx"
 	score.AnomalyStatus = adjustment.status
 	s.recordAnomaly(task, adjustment.status)
 	return score

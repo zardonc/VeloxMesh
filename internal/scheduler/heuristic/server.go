@@ -35,7 +35,7 @@ func (s *BatchScoreService) BatchScoreTasks(_ context.Context, req *schedulerv1.
 			PredictedLatencyMs: score.Result.PredictedLatencyMs,
 			Confidence:         score.Result.Confidence,
 			SchedulerVersion:   score.Result.SchedulerVersion,
-			Reason:             score.ClassificationSource,
+			Reason:             score.Result.FallbackReason,
 		})
 	}
 	if s.metrics != nil {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"veloxmesh/internal/redisconn"
 
@@ -173,6 +174,9 @@ func (r *RedisVSSVectorAdapter) Insert(ctx context.Context, collection string, v
 }
 
 func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error) {
+	if limit < 1 {
+		limit = 1
+	}
 	idx := r.indexName(collection)
 
 	vecBytes := make([]byte, len(query)*4)
@@ -216,7 +220,9 @@ func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, q
 			if extra, ok := doc["extra_attributes"].(map[interface{}]interface{}); ok {
 				for k, v := range extra {
 					kStr := fmt.Sprintf("%v", k)
-					if kStr != "vec" && kStr != "dist" {
+					if kStr == "dist" {
+						setRedisVSSScore(meta, v)
+					} else if kStr != "vec" {
 						if vBytes, isBytes := v.([]byte); isBytes {
 							meta[kStr] = string(vBytes)
 						} else {
@@ -255,12 +261,16 @@ func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, q
 				if ok1 && ok2 {
 					k := string(kBytes)
 					v := string(vBytes)
-					if k != "vec" && k != "dist" {
+					if k == "dist" {
+						setRedisVSSScore(meta, vBytes)
+					} else if k != "vec" {
 						meta[k] = v
 					}
 				} else if kStr, ok1Str := props[j].(string); ok1Str {
 					if vStr, ok2Str := props[j+1].(string); ok2Str {
-						if kStr != "vec" && kStr != "dist" {
+						if kStr == "dist" {
+							setRedisVSSScore(meta, vStr)
+						} else if kStr != "vec" {
 							meta[kStr] = vStr
 						}
 					}
@@ -271,6 +281,31 @@ func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, q
 	}
 
 	return results, nil
+}
+
+func setRedisVSSScore(meta map[string]interface{}, dist interface{}) {
+	value, ok := redisVSSFloat(dist)
+	if !ok {
+		return
+	}
+	meta["score"] = 1 - value
+}
+
+func redisVSSFloat(value interface{}) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case float32:
+		return float64(typed), true
+	case string:
+		parsed, err := strconv.ParseFloat(typed, 64)
+		return parsed, err == nil
+	case []byte:
+		parsed, err := strconv.ParseFloat(string(typed), 64)
+		return parsed, err == nil
+	default:
+		return 0, false
+	}
 }
 
 func (r *RedisVSSVectorAdapter) Ping(ctx context.Context) error {

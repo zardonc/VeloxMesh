@@ -362,7 +362,7 @@ func (m *PrometheusMetrics) IncPriorityDowngrade(reason string, from string, to 
 }
 
 func (m *PrometheusMetrics) IncSchedulerClassificationSource(source string) {
-	m.classificationSrc.WithLabelValues(allowedLabel(source, "fallback", "structured", "rule")).Inc()
+	m.classificationSrc.WithLabelValues(allowedLabel(source, "fallback", "structured", "rule", "onnx")).Inc()
 }
 
 func (m *PrometheusMetrics) RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, mape float64) {

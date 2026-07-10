@@ -87,15 +87,16 @@ type TaskFeature struct {
 }
 
 type ScoreResult struct {
-	TaskID             string
-	Score              float64
-	Priority           PriorityClass
-	PredictedLatencyMs int64
-	Confidence         float64
-	SchedulerVersion   string
-	SchedulerType      SchedulerType
-	FallbackReason     string
-	AnomalyStatus      string
+	TaskID               string
+	Score                float64
+	Priority             PriorityClass
+	PredictedLatencyMs   int64
+	Confidence           float64
+	SchedulerVersion     string
+	SchedulerType        SchedulerType
+	FallbackReason       string
+	ClassificationSource string
+	AnomalyStatus        string
 }
 
 type Scorer interface {
@@ -139,13 +140,24 @@ func (f TaskFeature) proto() *schedulerv1.TaskFeature {
 }
 
 func scoreFromProto(r *schedulerv1.ScoreResult) ScoreResult {
+	fallbackReason, classificationSource := splitLegacyScoreReason(r.GetReason())
 	return ScoreResult{
-		TaskID:             r.GetTaskId(),
-		Score:              r.GetScore(),
-		Priority:           PriorityClass(r.GetPriority()),
-		PredictedLatencyMs: r.GetPredictedLatencyMs(),
-		Confidence:         r.GetConfidence(),
-		SchedulerVersion:   r.GetSchedulerVersion(),
-		FallbackReason:     r.GetReason(),
+		TaskID:               r.GetTaskId(),
+		Score:                r.GetScore(),
+		Priority:             PriorityClass(r.GetPriority()),
+		PredictedLatencyMs:   r.GetPredictedLatencyMs(),
+		Confidence:           r.GetConfidence(),
+		SchedulerVersion:     r.GetSchedulerVersion(),
+		FallbackReason:       fallbackReason,
+		ClassificationSource: classificationSource,
+	}
+}
+
+func splitLegacyScoreReason(reason string) (string, string) {
+	switch reason {
+	case "", "structured", "rule", "fallback", "onnx":
+		return "", reason
+	default:
+		return reason, ""
 	}
 }

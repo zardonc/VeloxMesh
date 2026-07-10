@@ -34,7 +34,7 @@ type GRPCScorer struct {
 	slowThreshold time.Duration
 	client        schedulerv1.TaskSchedulerClient
 	conn          *grpc.ClientConn
-	breaker       *breaker
+	breaker       *Breaker
 	slots         chan struct{}
 	schedulerType SchedulerType
 }
@@ -224,6 +224,10 @@ func (s WeightedScorer) BreakerState() string {
 	return "heuristic=" + scorerBreakerState(s.Heuristic) + ",onnx=" + scorerBreakerState(s.ONNX)
 }
 
+func (s WeightedScorer) MetricBreakerState() string {
+	return aggregateBreakerStates(scorerMetricBreakerState(s.Heuristic), scorerMetricBreakerState(s.ONNX))
+}
+
 type indexedTask struct {
 	Index int
 	Task  TaskFeature
@@ -336,87 +340,36 @@ func fallbackReason(err error) string {
 	return "scheduler_error"
 }
 
-type breaker struct {
-	events    []bool
-	next      int
-	count     int
-	failures  int
-	openedAt  time.Time
-	threshold int
-	recovery  time.Duration
-}
-
-func newBreaker(threshold int, recovery time.Duration) *breaker {
-	if threshold < 1 {
-		threshold = 3
-	}
-	if recovery <= 0 {
-		recovery = time.Minute
-	}
-	return &breaker{events: make([]bool, threshold), threshold: threshold, recovery: recovery}
-}
-
-func (b *breaker) Allow() bool {
-	if b.openedAt.IsZero() {
-		return true
-	}
-	return time.Since(b.openedAt) >= b.recovery
-}
-
-func (b *breaker) State() string {
-	if b == nil {
-		return "unknown"
-	}
-	if b.openedAt.IsZero() {
-		return "closed"
-	}
-	if time.Since(b.openedAt) >= b.recovery {
-		return "half_open"
-	}
-	return "open"
-}
-
-func (b *breaker) Record(success bool) {
-	if !b.openedAt.IsZero() {
-		if success {
-			b.reset()
-			return
-		}
-		b.openedAt = time.Now()
-		return
-	}
-	if b.count == b.threshold && !b.events[b.next] {
-		b.failures--
-	}
-	b.events[b.next] = success
-	b.next = (b.next + 1) % b.threshold
-	if b.count < b.threshold {
-		b.count++
-	}
-	if !success {
-		b.failures++
-	}
-	if b.count >= b.threshold && b.failures*2 >= b.count {
-		b.openedAt = time.Now()
-		return
-	}
-	b.openedAt = time.Time{}
-}
-
-func (b *breaker) reset() {
-	for i := range b.events {
-		b.events[i] = false
-	}
-	b.next = 0
-	b.count = 0
-	b.failures = 0
-	b.openedAt = time.Time{}
-}
-
 func scorerBreakerState(scorer Scorer) string {
 	reporter, ok := scorer.(interface{ BreakerState() string })
 	if !ok {
 		return "unavailable"
 	}
 	return reporter.BreakerState()
+}
+
+func scorerMetricBreakerState(scorer Scorer) string {
+	if reporter, ok := scorer.(interface{ MetricBreakerState() string }); ok {
+		return reporter.MetricBreakerState()
+	}
+	state := scorerBreakerState(scorer)
+	switch state {
+	case breakerStateClosed, breakerStateHalfOpen, breakerStateOpen:
+		return state
+	default:
+		return "unavailable"
+	}
+}
+
+func aggregateBreakerStates(states ...string) string {
+	result := breakerStateClosed
+	for _, state := range states {
+		if state == breakerStateOpen {
+			return breakerStateOpen
+		}
+		if state == breakerStateHalfOpen {
+			result = breakerStateHalfOpen
+		}
+	}
+	return result
 }

@@ -17,9 +17,11 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"veloxmesh/internal/observability"
 	"veloxmesh/internal/scheduler"
 	"veloxmesh/internal/scheduler/heuristic"
 	"veloxmesh/internal/scheduler/predictive"
@@ -115,7 +117,7 @@ func TestSchedulerServiceLoadsHeuristicConfigFile(t *testing.T) {
 }
 
 func TestSchedulerServiceONNXInvalidArtifactDegrades(t *testing.T) {
-	service, status, err := newSchedulerServiceWithStatus("onnx", t.TempDir(), nil)
+	service, status, err := newSchedulerServiceWithStatus("onnx", t.TempDir(), nil, nil)
 	if err != nil {
 		t.Fatalf("newSchedulerService: %v", err)
 	}
@@ -129,7 +131,7 @@ func TestSchedulerServiceONNXInvalidArtifactDegrades(t *testing.T) {
 
 func TestSchedulerServiceONNXModeUsesPredictiveService(t *testing.T) {
 	dir := writeSchedulerMainTestArtifact(t)
-	service, status, err := newSchedulerServiceWithStatus("onnx", dir, nil)
+	service, status, err := newSchedulerServiceWithStatus("onnx", dir, nil, nil)
 	if err != nil {
 		t.Fatalf("newSchedulerService: %v", err)
 	}
@@ -156,7 +158,9 @@ func TestSchedulerServiceUsesPythonONNXWorkerSmoke(t *testing.T) {
 	waitForPredictorHealth(t, endpoint, &workerLog)
 	t.Setenv("SCHEDULER_PREDICTOR_ENDPOINT", endpoint)
 
-	service, status, err := newSchedulerServiceWithStatus("onnx", dir, nil)
+	reg := prometheus.NewRegistry()
+	metrics := observability.NewPrometheusMetrics(reg)
+	service, status, err := newSchedulerServiceWithStatus("onnx", dir, nil, metrics)
 	if err != nil {
 		t.Fatalf("newSchedulerService: %v", err)
 	}
@@ -172,6 +176,9 @@ func TestSchedulerServiceUsesPythonONNXWorkerSmoke(t *testing.T) {
 	}
 	if len(resp.GetResults()) != 1 || resp.GetResults()[0].GetReason() != "" {
 		t.Fatalf("expected non-fallback predictive score, got reason=%q version=%q latency=%d", resp.GetResults()[0].GetReason(), resp.GetResults()[0].GetSchedulerVersion(), resp.GetResults()[0].GetPredictedLatencyMs())
+	}
+	if count, err := testutil.GatherAndCount(reg, "gateway_scheduler_anomaly_status_total"); err != nil || count == 0 {
+		t.Fatalf("expected predictive anomaly metric, count=%d err=%v", count, err)
 	}
 }
 

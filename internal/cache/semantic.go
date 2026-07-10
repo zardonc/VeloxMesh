@@ -158,7 +158,7 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 func (s *SemanticCacheService) lookupVectorResult(ctx context.Context, scope, model string, results []map[string]interface{}) (*controlstate.SemanticCacheEntry, error) {
 	for _, result := range results {
 		score, hasScore := result["score"].(float64)
-		if hasScore && float32(score) < s.config.Threshold {
+		if !hasScore || float32(score) < s.config.Threshold {
 			continue
 		}
 		id, _ := result["id"].(string)

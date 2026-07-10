@@ -23,13 +23,31 @@ SCHEDULER_MODE=heuristic
 SCHEDULER_CONFIG_FILE=config.scheduler.example.json
 ```
 
-For ONNX scoring, keep rollout at zero until the artifact and worker are healthy:
+For ONNX scoring, keep rollout at zero until both the Scheduler process and Python predictor worker are healthy.
+
+Gateway env points the gateway at the Scheduler gRPC service:
+
+```env
+SCHEDULER_ENABLED=true
+SCHEDULER_MODE=onnx
+SCHEDULER_ONNX_ENDPOINT=localhost:50051
+SCHEDULER_ONNX_ROLLOUT_PERCENT=0
+```
+
+Scheduler process env exposes its own gRPC API and connects to the Python predictor:
 
 ```env
 SCHEDULER_MODE=onnx
-SCHEDULER_ONNX_ENDPOINT=localhost:50051
+SCHEDULER_GRPC_ADDR=:50051
+SCHEDULER_HTTP_ADDR=:9091
 SCHEDULER_ONNX_ARTIFACT_DIR=artifacts/scheduler-p70-v1
-SCHEDULER_ONNX_ROLLOUT_PERCENT=0
+SCHEDULER_PREDICTOR_ENDPOINT=localhost:50052
+```
+
+Python predictor worker env/args must serve the predictor endpoint with the same artifact:
+
+```bash
+uv run python -m scheduler_training.onnx_worker --artifact-dir artifacts/scheduler-p70-v1 --addr localhost:50052
 ```
 
 Local proof commands:
@@ -37,6 +55,7 @@ Local proof commands:
 ```bash
 go test -timeout 60s ./internal/scheduler
 go test -timeout 60s ./cmd/scheduler ./internal/scheduler/onnx
+curl -fsS http://localhost:9091/status
 ```
 
 ## Monitoring
@@ -203,7 +222,7 @@ Use the existing admin protections for these routes. Send `Authorization: Bearer
 | `GET /admin/v1/scheduler/sla-rules` | Read active runtime SLA promotion rules. |
 | `PUT /admin/v1/scheduler/sla-rules` | Replace the in-memory rule set after validation. |
 | `GET /admin/v1/scheduler/training-samples/export` | Export safe training features and labels as JSON or NDJSON. |
-| `PATCH /admin/scheduler/rollout` | Roll ONNX traffic back to heuristic by setting rollout to `0`, or update `quality_sample_window`. |
+| `PATCH /admin/v1/scheduler/rollout` | Roll ONNX traffic back to heuristic by setting rollout to `0`, or update `quality_sample_window`. |
 
 Admin changes to ONNX rollout, quality sample window, and SLA promotion rules affect the running process only. In multi-node deployments, apply the same runtime change on each node or update durable config before restart; cross-node propagation is not implemented yet. Put durable values back into `config.scheduler.example.json`, the deployment config file, or environment management before restart.
 
