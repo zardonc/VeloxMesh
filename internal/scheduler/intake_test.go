@@ -276,6 +276,34 @@ func TestTaskIntakeScorerErrorRecordsOneSchedulerCall(t *testing.T) {
 	}
 }
 
+func TestTaskIntakeHealthyClassificationRecordsOK(t *testing.T) {
+	registry := NewResultRegistry()
+	queue := NewMemoryQueue()
+	metrics := &schedulerMetricsSpy{StubMetrics: observability.NewStubMetrics()}
+	intake := &TaskIntake{
+		Queue: queue, Scorer: staticScorer{result: ScoreResult{Score: 1, ClassificationSource: "structured"}}, Registry: registry, Metrics: metrics,
+		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh}, Backend: "memory",
+	}
+	_, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "t1"}, func(context.Context) TaskResult {
+		return TaskResult{}
+	})
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
+	if metrics.schedulerCalls != 1 || metrics.schedulerCallResult != "ok" {
+		t.Fatalf("scheduler calls = %d/%q, want 1/ok", metrics.schedulerCalls, metrics.schedulerCallResult)
+	}
+	if metrics.classificationSource != "structured" {
+		t.Fatalf("classification source = %q, want structured", metrics.classificationSource)
+	}
+}
+
+func TestTaskIntakeONNXClassificationSourceIsNotFallback(t *testing.T) {
+	if got := classificationSource("onnx"); got != "onnx" {
+		t.Fatalf("classificationSource(onnx) = %q, want onnx", got)
+	}
+}
+
 func TestTaskIntakeHighPriorityBypassesSoftLimit(t *testing.T) {
 	queue := NewMemoryQueue()
 	seedQueue(t, queue, "queued")
@@ -505,6 +533,20 @@ func (errorScorer) Score(context.Context, []TaskFeature) ([]ScoreResult, error) 
 	return nil, errors.New("scheduler unavailable")
 }
 
+type staticScorer struct {
+	result ScoreResult
+}
+
+func (s staticScorer) Score(_ context.Context, tasks []TaskFeature) ([]ScoreResult, error) {
+	results := make([]ScoreResult, len(tasks))
+	for i, task := range tasks {
+		result := s.result
+		result.TaskID = task.TaskID
+		results[i] = result
+	}
+	return results, nil
+}
+
 type testContextKey struct{}
 
 func semanticNeighborIntake(scorer Scorer, enricher SemanticNeighborEnricher) *TaskIntake {
@@ -573,6 +615,7 @@ type schedulerMetricsSpy struct {
 	schedulerCallResult  string
 	schedulerErrors      int
 	schedulerErrorReason string
+	classificationSource string
 }
 
 func (m *schedulerMetricsSpy) RecordSchedulerCall(result string, _ float64) {
@@ -583,6 +626,10 @@ func (m *schedulerMetricsSpy) RecordSchedulerCall(result string, _ float64) {
 func (m *schedulerMetricsSpy) IncSchedulerError(reason string) {
 	m.schedulerErrors++
 	m.schedulerErrorReason = reason
+}
+
+func (m *schedulerMetricsSpy) IncSchedulerClassificationSource(source string) {
+	m.classificationSource = source
 }
 
 type recordingQueue struct {

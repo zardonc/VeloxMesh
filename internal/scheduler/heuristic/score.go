@@ -32,14 +32,14 @@ func (c *ScoreCalculator) Score(feature scheduler.TaskFeature) Score {
 	final := float64(feature.EnqueueTimeMs) + float64(predicted)/priority + float64(uncertainty)
 	return Score{
 		Result: scheduler.ScoreResult{
-			TaskID:             feature.TaskID,
-			Score:              final,
-			Priority:           feature.Priority,
-			PredictedLatencyMs: predicted,
-			Confidence:         classification.Confidence,
-			SchedulerVersion:   c.cfg.Version,
-			SchedulerType:      scheduler.SchedulerTypeHeuristic,
-			FallbackReason:     classification.Source,
+			TaskID:               feature.TaskID,
+			Score:                final,
+			Priority:             feature.Priority,
+			PredictedLatencyMs:   predicted,
+			Confidence:           classification.Confidence,
+			SchedulerVersion:     c.cfg.Version,
+			SchedulerType:        scheduler.SchedulerTypeHeuristic,
+			ClassificationSource: classification.Source,
 		},
 		ClassificationSource: classification.Source,
 		UncertaintyPenaltyMs: uncertainty,

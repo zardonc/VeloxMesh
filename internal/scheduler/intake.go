@@ -52,7 +52,7 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 	feature := ExtractSafeFeatures(req, priority.Resolved, i.RouteHint, now)
 	feature = i.enrichFeatures(ctx, req, feature)
 	score, scoreLatency := i.scoreFeature(ctx, feature)
-	i.recordSchedulerResult(score.FallbackReason, scoreLatency, score.FallbackReason)
+	i.recordSchedulerResult(score.FallbackReason, scoreLatency, score.ClassificationSource)
 	task := Task{
 		ID:          req.RequestID,
 		TenantID:    identityID(ctx),
@@ -239,7 +239,7 @@ func schedulerCallResult(reason string) string {
 
 func classificationSource(source string) string {
 	switch source {
-	case "structured", "rule", "fallback":
+	case "structured", "rule", "fallback", "onnx":
 		return source
 	default:
 		return "fallback"

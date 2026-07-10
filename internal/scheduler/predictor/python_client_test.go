@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"net"
+	"strconv"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -85,25 +87,83 @@ func TestClientBreakerUsesWindowInsteadOfSingleSuccessReset(t *testing.T) {
 }
 
 func TestClientBreakerHalfOpenSuccessResetsWindow(t *testing.T) {
+	now := time.Now()
 	breaker := newClientBreaker(PythonClientConfig{
 		BreakerFailureThreshold: 3,
 		BreakerRecoveryTimeout:  time.Millisecond,
 	})
-	breaker.Record(false)
-	breaker.Record(true)
-	breaker.Record(false)
-	breaker.openedAt = time.Now().Add(-time.Second)
+	breaker.RecordAt(now, false)
+	breaker.RecordAt(now, true)
+	breaker.RecordAt(now, false)
 
-	if !breaker.Allow() {
+	if !breaker.AllowAt(now.Add(time.Second)) {
 		t.Fatalf("expected half-open probe to be allowed")
 	}
-	breaker.Record(true)
-	if !breaker.Allow() || !breaker.openedAt.IsZero() {
+	breaker.RecordAt(now.Add(time.Second), true)
+	if !breaker.Allow() || breaker.State() != "closed" {
 		t.Fatalf("expected successful half-open probe to close breaker")
 	}
 	breaker.Record(false)
 	if !breaker.Allow() {
 		t.Fatalf("expected reset window to require more failures")
+	}
+}
+
+func TestClientBreakerAllowsSingleHalfOpenProbe(t *testing.T) {
+	now := time.Now()
+	breaker := newClientBreaker(PythonClientConfig{
+		BreakerFailureThreshold: 1,
+		BreakerRecoveryTimeout:  time.Millisecond,
+	})
+	breaker.RecordAt(now, false)
+
+	recovered := now.Add(time.Second)
+	if !breaker.AllowAt(recovered) {
+		t.Fatalf("expected first half-open probe to be allowed")
+	}
+	if breaker.AllowAt(recovered) {
+		t.Fatalf("expected second half-open probe to be blocked")
+	}
+	breaker.RecordAt(recovered, true)
+	if breaker.State() != "closed" {
+		t.Fatalf("expected successful probe to close breaker, got %s", breaker.State())
+	}
+}
+
+func TestPythonPredictorClientBreakerConcurrentRealTCP(t *testing.T) {
+	var calls atomic.Int32
+	server := startPredictorServer(t, func(context.Context, *predictorv1.BatchPredictRequest) (*predictorv1.BatchPredictResponse, error) {
+		calls.Add(1)
+		return &predictorv1.BatchPredictResponse{Predictions: []*predictorv1.Prediction{{ModelVersion: "v1", Quantiles: map[int32]float64{70: 20}}}}, nil
+	})
+	client := newTestClientWithConfig(t, PythonClientConfig{
+		Endpoint:                server.Endpoint,
+		Timeout:                 100 * time.Millisecond,
+		SlowThreshold:           100 * time.Millisecond,
+		MaxConcurrency:          32,
+		BreakerFailureThreshold: 1,
+		BreakerRecoveryTimeout:  time.Minute,
+	})
+
+	var wg sync.WaitGroup
+	for i := 0; i < 32; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			task := scheduler.TaskFeature{TaskID: "t" + strconv.Itoa(i)}
+			predictions, err := client.Predict(context.Background(), []scheduler.TaskFeature{task})
+			if err != nil {
+				t.Errorf("Predict %d: %v", i, err)
+				return
+			}
+			if predictions[0].Err != nil || predictions[0].Quantiles[70] != 20 {
+				t.Errorf("unexpected prediction %d: %#v", i, predictions[0])
+			}
+		}(i)
+	}
+	wg.Wait()
+	if calls.Load() != 32 || client.breaker.State() != "closed" {
+		t.Fatalf("expected all calls through closed breaker, calls=%d state=%s", calls.Load(), client.breaker.State())
 	}
 }
 
