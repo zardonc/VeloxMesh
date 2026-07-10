@@ -150,6 +150,13 @@ func newSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner,
 	return runner, backend
 }
 
+func newOptionalSchedulerRunner(deps schedulerRunnerDeps) (*scheduler.SynchronousRunner, string) {
+	if !deps.cfg.Scheduler.Enabled {
+		return nil, "disabled"
+	}
+	return newSchedulerRunner(deps)
+}
+
 func newSLAPromoter(deps slaPromoterDeps) *scheduler.SLAPromoter {
 	if !deps.cfg.SLAPromotionEnabled {
 		return nil
@@ -371,7 +378,7 @@ func New() (*App, error) {
 		qualityRecorder = &scheduler.PredictionQualityRecorder{Repo: repo.SchedulerQualityRollups(), Metrics: observability.DefaultMetrics, Controller: rolloutController}
 	}
 	semanticNeighbors := newSemanticNeighborService(ctx, cfg, logger, m, repo)
-	schedulerRunner, schedulerBackend := newSchedulerRunner(schedulerRunnerDeps{
+	schedulerRunner, schedulerBackend := newOptionalSchedulerRunner(schedulerRunnerDeps{
 		ctx:               ctx,
 		cfg:               cfg,
 		hotState:          hotStateClient,

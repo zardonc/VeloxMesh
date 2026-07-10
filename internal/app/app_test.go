@@ -14,6 +14,9 @@ import (
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/controlstate/postgres"
+	"veloxmesh/internal/llm"
+	"veloxmesh/internal/providers"
+	"veloxmesh/internal/providers/openai"
 	"veloxmesh/internal/scheduler"
 	"veloxmesh/internal/testenv"
 )
@@ -132,6 +135,7 @@ func TestApp_SchedulerRedisQueueFailureUsesMemory(t *testing.T) {
 	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
 	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
 	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+	t.Setenv("SCHEDULER_ENABLED", "true")
 	t.Setenv("REDIS_ENABLED", "true")
 	t.Setenv("REDIS_ADDR", "127.0.0.1:1")
 	t.Setenv("REDIS_NAMESPACE", "scheduler-test")
@@ -147,6 +151,44 @@ func TestApp_SchedulerRedisQueueFailureUsesMemory(t *testing.T) {
 	}
 	if application.SchedulerQueueBackend != "memory" {
 		t.Fatalf("expected memory scheduler queue, got %s", application.SchedulerQueueBackend)
+	}
+}
+
+func TestApp_SchedulerDisabledDoesNotCreateRunner(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+	t.Setenv("SCHEDULER_ENABLED", "false")
+
+	application, err := New()
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	if application.SchedulerRunner != nil {
+		t.Fatalf("expected scheduler runner to be disabled")
+	}
+	if application.SchedulerQueueBackend != "disabled" {
+		t.Fatalf("expected disabled scheduler backend, got %s", application.SchedulerQueueBackend)
+	}
+	models := application.RuntimeProviderManager.GetAvailableModels()
+	if len(models) != 1 || models[0] != "gpt-4o-mini" {
+		t.Fatalf("expected real static provider model catalog, got %v", models)
+	}
+	adapter, decision, err := application.RuntimeProviderManager.Select(context.Background(), &llm.LLMRequest{Model: "gpt-4o-mini"})
+	if err != nil {
+		t.Fatalf("expected real provider selection: %v", err)
+	}
+	if _, ok := adapter.(*openai.Adapter); !ok {
+		t.Fatalf("expected real OpenAI-compatible adapter, got %T", adapter)
+	}
+	if decision.ProviderID != "openai-primary" {
+		t.Fatalf("expected openai-primary routing decision, got %#v", decision)
+	}
+	if !adapter.Capabilities().SupportsOperation(providers.OperationChatCompletions) {
+		t.Fatalf("expected chat completions capability")
 	}
 }
 
@@ -338,6 +380,7 @@ func TestApp_SchedulerSLAPromotionWiring(t *testing.T) {
 			"models": ["gpt-4o-mini"]
 		}],
 		"scheduler": {
+			"enabled": true,
 			"sla_promotion_enabled": true,
 			"sla_promotion_candidate_window": 7,
 			"sla_promotion_rules": [{

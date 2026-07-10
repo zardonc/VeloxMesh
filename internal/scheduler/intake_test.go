@@ -11,7 +11,7 @@ import (
 	"veloxmesh/internal/observability"
 )
 
-func TestTaskIntakeDisabledSchedulerEnqueuesFIFO(t *testing.T) {
+func TestTaskIntakeFIFOScorerEnqueuesWhenRunnerEnabled(t *testing.T) {
 	registry := NewResultRegistry()
 	queue := NewMemoryQueue()
 	intake := &TaskIntake{
