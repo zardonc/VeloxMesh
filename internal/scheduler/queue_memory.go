@@ -3,6 +3,7 @@ package scheduler
 import (
 	"container/heap"
 	"context"
+	"sort"
 	"sync"
 )
 
@@ -40,6 +41,9 @@ func (q *MemoryQueue) PeekMin(_ context.Context, limit int) ([]QueueItem, error)
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
+	if limit < len(q.items) {
+		return q.peekMinBounded(limit), nil
+	}
 	copied := make(memoryHeap, len(q.items))
 	for i, item := range q.items {
 		cloned := *item
@@ -53,6 +57,29 @@ func (q *MemoryQueue) PeekMin(_ context.Context, limit int) ([]QueueItem, error)
 		items = append(items, item.QueueItem)
 	}
 	return items, nil
+}
+
+func (q *MemoryQueue) peekMinBounded(limit int) []QueueItem {
+	best := make([]*memoryItem, 0, limit)
+	for _, item := range q.items {
+		insertAt := sort.Search(len(best), func(i int) bool {
+			return memoryItemLess(item, best[i])
+		})
+		if insertAt >= limit {
+			continue
+		}
+		best = append(best, nil)
+		copy(best[insertAt+1:], best[insertAt:])
+		best[insertAt] = item
+		if len(best) > limit {
+			best = best[:limit]
+		}
+	}
+	items := make([]QueueItem, len(best))
+	for i, item := range best {
+		items[i] = item.QueueItem
+	}
+	return items
 }
 
 func (q *MemoryQueue) PopMin(_ context.Context) (QueueItem, error) {
@@ -95,10 +122,14 @@ type memoryHeap []*memoryItem
 func (h memoryHeap) Len() int { return len(h) }
 
 func (h memoryHeap) Less(i, j int) bool {
-	if h[i].Score == h[j].Score {
-		return h[i].seq < h[j].seq
+	return memoryItemLess(h[i], h[j])
+}
+
+func memoryItemLess(left, right *memoryItem) bool {
+	if left.Score == right.Score {
+		return left.seq < right.seq
 	}
-	return h[i].Score < h[j].Score
+	return left.Score < right.Score
 }
 
 func (h memoryHeap) Swap(i, j int) {

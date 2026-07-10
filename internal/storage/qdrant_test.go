@@ -79,6 +79,32 @@ func TestQdrantInsertReusesEnsureCollection(t *testing.T) {
 	}
 }
 
+func TestQdrantDeleteRemovesPayloadFilteredPoints(t *testing.T) {
+	adapter, ctx := liveQdrantAdapter(t)
+	collection := "scheduler_training_samples_delete_test_" + time.Now().UTC().Format("20060102150405000000000")
+	defer func() { _ = adapter.client.DeleteCollection(context.Background(), collection) }()
+
+	err := adapter.Insert(ctx, collection, [][]float32{{1, 0, 0}, {0, 1, 0}}, []map[string]interface{}{
+		{"sample_id": "sample-delete", "scope": "delete-scope"},
+		{"sample_id": "sample-keep", "scope": "delete-scope"},
+	})
+	if err != nil {
+		t.Fatalf("insert qdrant vectors: %v", err)
+	}
+	if err := adapter.Delete(ctx, collection, map[string]interface{}{"sample_id": "sample-delete"}); err != nil {
+		t.Fatalf("delete qdrant vector: %v", err)
+	}
+	results, err := adapter.Search(ctx, collection, []float32{1, 0, 0}, 5)
+	if err != nil {
+		t.Fatalf("search qdrant vectors: %v", err)
+	}
+	for _, result := range results {
+		if result["sample_id"] == "sample-delete" {
+			t.Fatalf("deleted qdrant payload still returned: %#v", results)
+		}
+	}
+}
+
 func TestQdrantEnsureCollectionRejectsInvalidDimension(t *testing.T) {
 	adapter := &QdrantVectorAdapter{}
 	if err := adapter.EnsureCollection(context.Background(), "scheduler_training_samples", 0); err == nil {

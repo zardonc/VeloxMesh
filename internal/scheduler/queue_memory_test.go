@@ -71,6 +71,33 @@ func TestMemoryQueuePeekMinDoesNotMutateAndPushReplacesScore(t *testing.T) {
 	}
 }
 
+func TestMemoryQueuePeekMinBoundedKeepsScoreAndFIFOOrder(t *testing.T) {
+	ctx := context.Background()
+	q := NewMemoryQueue()
+	for _, item := range []QueueItem{
+		{TaskID: "five", Score: 5},
+		{TaskID: "first-one", Score: 1},
+		{TaskID: "three", Score: 3},
+		{TaskID: "second-one", Score: 1},
+		{TaskID: "two", Score: 2},
+	} {
+		if err := q.Push(ctx, item); err != nil {
+			t.Fatalf("Push: %v", err)
+		}
+	}
+
+	items, err := q.PeekMin(ctx, 3)
+	if err != nil {
+		t.Fatalf("PeekMin: %v", err)
+	}
+	want := []string{"first-one", "second-one", "two"}
+	for i, item := range items {
+		if item.TaskID != want[i] {
+			t.Fatalf("peek[%d] = %s, want %s; all=%#v", i, item.TaskID, want[i], items)
+		}
+	}
+}
+
 func TestMemoryQueueRemove(t *testing.T) {
 	ctx := context.Background()
 	q := NewMemoryQueue()

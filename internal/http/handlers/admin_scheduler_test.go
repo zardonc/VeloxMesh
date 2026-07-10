@@ -15,6 +15,7 @@ import (
 	"veloxmesh/internal/controlstate"
 	controlsqlite "veloxmesh/internal/controlstate/sqlite"
 	"veloxmesh/internal/coordination"
+	gatewayErrors "veloxmesh/internal/errors"
 	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/scheduler"
 )
@@ -111,6 +112,16 @@ func TestAdminSchedulerAuditMetadataIsSanitized(t *testing.T) {
 	}
 }
 
+func TestAdminSchedulerRolloutReturnsUnavailableWhenComponentsMissing(t *testing.T) {
+	service := scheduler.NewAdminSchedulerService(nil, nil, nil)
+	if _, err := service.Status(context.Background()); gatewayErrorCode(err) != "scheduler_unavailable" {
+		t.Fatalf("expected scheduler_unavailable from status, got %v", err)
+	}
+	if _, err := service.Update(context.Background(), &scheduler.RolloutPatchRequest{ONNXRolloutPercent: ptrInt(0)}); gatewayErrorCode(err) != "scheduler_unavailable" {
+		t.Fatalf("expected scheduler_unavailable from update, got %v", err)
+	}
+}
+
 func TestAdminSchedulerRolloutUsesRealSQLiteRepository(t *testing.T) {
 	ctx := context.Background()
 	repo := testAdminSchedulerRepo(t)
@@ -155,6 +166,14 @@ func TestAdminSchedulerRolloutUsesRealSQLiteRepository(t *testing.T) {
 	if len(events) != 1 || !strings.Contains(string(events[0].Metadata), "old_percent") {
 		t.Fatalf("expected sanitized persisted audit event, got %#v", events)
 	}
+}
+
+func gatewayErrorCode(err error) string {
+	gwErr, ok := err.(*gatewayErrors.GatewayError)
+	if !ok {
+		return ""
+	}
+	return gwErr.Code
 }
 
 func TestAdminSchedulerStatusRequiresAdminAuth(t *testing.T) {

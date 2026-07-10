@@ -683,6 +683,50 @@ func TestSchedulerConfigFileLoadsWithoutMainConfigFile(t *testing.T) {
 	}
 }
 
+func TestSchedulerConfigFileOverridesEnvWithFalseAndZero(t *testing.T) {
+	path := writeTempConfig(t, `{
+		"enabled": false,
+		"strict": false,
+		"onnx_rollout_percent": 0,
+		"queue_soft_limit": 0,
+		"queue_hard_limit": 0,
+		"high_quota_per_minute": 0,
+		"feedback_enabled": false,
+		"semantic_neighbors_enabled": false,
+		"sla_promotion_enabled": false,
+		"sla_promotion_rules": []
+	}`)
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("SCHEDULER_CONFIG_FILE", path)
+	t.Setenv("DEFAULT_PROVIDER", "p1")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "m1")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "http://test")
+	t.Setenv("SCHEDULER_ENABLED", "true")
+	t.Setenv("SCHEDULER_STRICT", "true")
+	t.Setenv("SCHEDULER_ONNX_ENDPOINT", "onnx:50051")
+	t.Setenv("SCHEDULER_ONNX_ROLLOUT_PERCENT", "50")
+	t.Setenv("SCHEDULER_QUEUE_SOFT_LIMIT", "10")
+	t.Setenv("SCHEDULER_QUEUE_HARD_LIMIT", "20")
+	t.Setenv("SCHEDULER_HIGH_QUOTA_PER_MINUTE", "30")
+	t.Setenv("SCHEDULER_FEEDBACK_ENABLED", "true")
+	t.Setenv("SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED", "true")
+	t.Setenv("SCHEDULER_SLA_PROMOTION_ENABLED", "true")
+
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Scheduler.Enabled || cfg.Scheduler.Strict || cfg.Scheduler.FeedbackEnabled || cfg.Scheduler.SemanticNeighborsEnabled || cfg.Scheduler.SLAPromotionEnabled {
+		t.Fatalf("scheduler component false overrides missing: %#v", cfg.Scheduler)
+	}
+	if cfg.Scheduler.ONNXRolloutPercent != 0 || cfg.Scheduler.QueueSoftLimit != 0 || cfg.Scheduler.QueueHardLimit != 0 || cfg.Scheduler.HighQuotaPerMinute != 0 {
+		t.Fatalf("scheduler component zero overrides missing: %#v", cfg.Scheduler)
+	}
+	if len(cfg.Scheduler.SLAPromotionRules) != 0 {
+		t.Fatalf("expected scheduler component to clear SLA rules, got %#v", cfg.Scheduler.SLAPromotionRules)
+	}
+}
+
 func TestSchedulerFeedbackConfigEnv(t *testing.T) {
 	t.Setenv("CONFIG_FILE", "")
 	t.Setenv("DEFAULT_PROVIDER", "p1")

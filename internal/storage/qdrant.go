@@ -208,7 +208,55 @@ func (q *QdrantVectorAdapter) Ping(ctx context.Context) error {
 }
 
 func (q *QdrantVectorAdapter) Delete(ctx context.Context, collection string, filter map[string]interface{}) error {
-	// A real implementation would convert the map to a Qdrant filter
-	// For Phase 7, we provide the seam implementation.
-	return errors.New("delete not implemented for qdrant yet")
+	selector, err := qdrantDeleteSelector(filter)
+	if err != nil {
+		return err
+	}
+	result, err := q.client.Delete(ctx, &qdrant.DeletePoints{
+		CollectionName: collection,
+		Wait:           qdrant.PtrOf(true),
+		Points:         selector,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete points from qdrant: %w", err)
+	}
+	if result.Status != qdrant.UpdateStatus_Completed {
+		return fmt.Errorf("qdrant delete did not complete, status: %v", result.Status)
+	}
+	return nil
+}
+
+func qdrantDeleteSelector(filter map[string]interface{}) (*qdrant.PointsSelector, error) {
+	if len(filter) == 0 {
+		return nil, errors.New("qdrant delete requires a filter")
+	}
+	conditions := make([]*qdrant.Condition, 0, len(filter))
+	for field, value := range filter {
+		condition, err := qdrantMatchCondition(field, value)
+		if err != nil {
+			return nil, err
+		}
+		conditions = append(conditions, condition)
+	}
+	return qdrant.NewPointsSelectorFilter(&qdrant.Filter{Must: conditions}), nil
+}
+
+func qdrantMatchCondition(field string, value interface{}) (*qdrant.Condition, error) {
+	switch typed := value.(type) {
+	case string:
+		if typed == "" {
+			return nil, fmt.Errorf("qdrant delete filter %q cannot be empty", field)
+		}
+		return qdrant.NewMatch(field, typed), nil
+	case int:
+		return qdrant.NewMatchInt(field, int64(typed)), nil
+	case int64:
+		return qdrant.NewMatchInt(field, typed), nil
+	case bool:
+		return qdrant.NewMatchBool(field, typed), nil
+	case float64:
+		return qdrant.NewRange(field, &qdrant.Range{Gte: &typed, Lte: &typed}), nil
+	default:
+		return nil, fmt.Errorf("qdrant delete unsupported filter %q type %T", field, value)
+	}
 }

@@ -98,6 +98,9 @@ func NewAdminSchedulerService(repo controlstate.Repository, controller *Schedule
 }
 
 func (s *AdminSchedulerService) Status(ctx context.Context) (*RolloutResponse, error) {
+	if s.controller == nil || s.repo == nil || s.repo.SchedulerQualityRollups() == nil {
+		return nil, gwErr.NewGatewayError("scheduler_unavailable", "scheduler rollout status is unavailable", 503)
+	}
 	status := s.controller.Snapshot()
 	rollups, err := s.repo.SchedulerQualityRollups().ListByWindow(ctx, time.Now().Add(-time.Hour), time.Now().Add(time.Minute), "", "", "", 100)
 	if err != nil {
@@ -158,6 +161,12 @@ func (s *AdminSchedulerService) ExportTrainingSamples(ctx context.Context, req T
 }
 
 func (s *AdminSchedulerService) Update(ctx context.Context, req *RolloutPatchRequest) (_ *RolloutResponse, err error) {
+	if s.controller == nil {
+		return nil, gwErr.NewGatewayError("scheduler_unavailable", "scheduler rollout controller is unavailable", 503)
+	}
+	if req == nil {
+		return nil, gwErr.NewGatewayError("invalid_request", "rollout update field is required", 400)
+	}
 	if req.ONNXRolloutPercent == nil && req.QualitySampleWindow == nil {
 		return nil, gwErr.NewGatewayError("invalid_request", "rollout update field is required", 400)
 	}
