@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -155,9 +156,12 @@ func TestSchedulerServiceUsesPythonONNXWorkerSmoke(t *testing.T) {
 	waitForPredictorHealth(t, endpoint, &workerLog)
 	t.Setenv("SCHEDULER_PREDICTOR_ENDPOINT", endpoint)
 
-	service, _, err := newSchedulerServiceWithStatus("onnx", dir, nil)
+	service, status, err := newSchedulerServiceWithStatus("onnx", dir, nil)
 	if err != nil {
 		t.Fatalf("newSchedulerService: %v", err)
+	}
+	if status.AnomalyStatus != predictorStatusReady || status.AnomalyReason != "" {
+		t.Fatalf("expected ready predictor status, got %#v", status)
 	}
 	resp, err := service.BatchScoreTasks(context.Background(), &schedulerv1.BatchScoreRequest{Tasks: []*schedulerv1.TaskFeature{{
 		TaskId: "smoke", ModelClass: "standard", EstimatedInputTokens: 10,
@@ -168,6 +172,31 @@ func TestSchedulerServiceUsesPythonONNXWorkerSmoke(t *testing.T) {
 	}
 	if len(resp.GetResults()) != 1 || resp.GetResults()[0].GetReason() != "" {
 		t.Fatalf("expected non-fallback predictive score, got reason=%q version=%q latency=%d", resp.GetResults()[0].GetReason(), resp.GetResults()[0].GetSchedulerVersion(), resp.GetResults()[0].GetPredictedLatencyMs())
+	}
+}
+
+func TestRunReturnsHTTPServeError(t *testing.T) {
+	occupied, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen occupied http addr: %v", err)
+	}
+	defer occupied.Close()
+
+	t.Setenv("SCHEDULER_GRPC_ADDR", freeLocalEndpoint(t))
+	t.Setenv("SCHEDULER_HTTP_ADDR", occupied.Addr().String())
+	t.Setenv("SCHEDULER_MODE", "heuristic")
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	err = run(ctx)
+	if err == nil {
+		t.Fatalf("expected http serve error")
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("serve error was swallowed until context deadline: %v", err)
+	}
+	if !strings.Contains(err.Error(), "http serve") {
+		t.Fatalf("expected http serve error, got %v", err)
 	}
 }
 

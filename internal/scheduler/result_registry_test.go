@@ -70,7 +70,9 @@ func TestResultRegistryRegisterTaskStoresSafeSnapshot(t *testing.T) {
 		EnqueueTime: enqueue,
 		Metadata:    map[string]string{"scheduler_type": "fifo"},
 	}
-	registry.RegisterTask(task, func(context.Context) TaskResult { return TaskResult{} })
+	if err := registry.RegisterTask(task, func(context.Context) TaskResult { return TaskResult{} }); err != nil {
+		t.Fatalf("RegisterTask: %v", err)
+	}
 
 	got, ok := registry.Task("t1")
 	if !ok {
@@ -94,10 +96,34 @@ func TestResultRegistryRegisterTaskStoresSafeSnapshot(t *testing.T) {
 
 func TestResultRegistryUnregisterRemovesTaskSnapshot(t *testing.T) {
 	registry := NewResultRegistry()
-	registry.RegisterTask(Task{ID: "t1"}, func(context.Context) TaskResult { return TaskResult{} })
+	if err := registry.RegisterTask(Task{ID: "t1"}, func(context.Context) TaskResult { return TaskResult{} }); err != nil {
+		t.Fatalf("RegisterTask: %v", err)
+	}
 	registry.Unregister("t1")
 	if _, ok := registry.Task("t1"); ok {
 		t.Fatalf("expected task snapshot removed")
+	}
+}
+
+func TestResultRegistryRegisterTaskRejectsDuplicateID(t *testing.T) {
+	registry := NewResultRegistry()
+	if err := registry.RegisterTask(Task{ID: "t1"}, func(context.Context) TaskResult { return TaskResult{} }); err != nil {
+		t.Fatalf("RegisterTask first: %v", err)
+	}
+	err := registry.RegisterTask(Task{ID: "t1"}, func(context.Context) TaskResult { return TaskResult{Response: "second"} })
+	if !errors.Is(err, ErrDuplicateTask) {
+		t.Fatalf("expected duplicate task error, got %v", err)
+	}
+	result := TaskResult{Response: "first"}
+	if !registry.Deliver("t1", result) {
+		t.Fatalf("expected first task channel to remain registered")
+	}
+	got, err := registry.Wait(context.Background(), "t1")
+	if err != nil {
+		t.Fatalf("Wait: %v", err)
+	}
+	if got.Response != "first" {
+		t.Fatalf("duplicate registration replaced first task: %#v", got)
 	}
 }
 

@@ -10,6 +10,7 @@ var (
 	ErrQueueBackpressure = errors.New("queue backpressure")
 	ErrQueueEmpty        = errors.New("queue empty")
 	ErrTaskNotFound      = errors.New("task not found")
+	ErrDuplicateTask     = errors.New("duplicate task")
 )
 
 type QueueItem struct {

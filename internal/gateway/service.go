@@ -376,7 +376,6 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		resp.Strategy = decision.Strategy
 		resp.AttemptCount = attempts
 		resp.FallbackUsed = attempts > 1
-		resp.Usage = resp.Usage // Usually adapters set Usage directly on resp
 
 		if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
 			if err == replication.ErrWriteNotWritable {
@@ -894,6 +893,8 @@ func schedulerGatewayError(err error) error {
 		return errors.NewGatewayError(errors.SchedulerQueueFull, "Scheduler queue is full; retry later", http.StatusServiceUnavailable)
 	case stdlib_errors.Is(err, scheduler.ErrQueueEmpty), stdlib_errors.Is(err, scheduler.ErrTaskNotFound):
 		return errors.NewGatewayError(errors.SchedulerQueueUnavailable, "Scheduler queue task is unavailable; retry later", http.StatusServiceUnavailable)
+	case stdlib_errors.Is(err, scheduler.ErrDuplicateTask):
+		return errors.NewGatewayError(errors.SchedulerDuplicateTask, "Scheduler task already exists for request id", http.StatusConflict)
 	default:
 		return err
 	}

@@ -153,17 +153,18 @@ func TestSLAPromoterIgnoresPromptDerivedUrgencyFields(t *testing.T) {
 	queue := NewMemoryQueue()
 	registry := NewResultRegistry()
 	now := time.Now()
-	task := registerPromotionTask(t, registry, queue, promotionTask{
+	registerPromotionTask(t, registry, queue, promotionTask{
 		id: "urgent-looking", tenantID: "tenant-a", modelClass: "small", requestKind: RequestKindSimpleQA,
 		priority: PriorityNormal, score: 1, enqueue: now.Add(-3 * time.Second),
+		feature: TaskFeature{
+			QuestionCount:            99,
+			CodeBlockCount:           99,
+			EnumerationHint:          true,
+			InstructionVerbCount:     99,
+			MaxSentenceLengthBucket:  4,
+			VocabularyRichnessBucket: 4,
+		},
 	})
-	task.Feature.QuestionCount = 99
-	task.Feature.CodeBlockCount = 99
-	task.Feature.EnumerationHint = true
-	task.Feature.InstructionVerbCount = 99
-	task.Feature.MaxSentenceLengthBucket = 4
-	task.Feature.VocabularyRichnessBucket = 4
-	registry.RegisterTask(task, func(context.Context) TaskResult { return TaskResult{} })
 	promoter := testSLAPromoter(queue, registry)
 
 	result, err := promoter.PromoteBeforePop(ctx, now)
@@ -337,11 +338,10 @@ func TestExecutorRunOneRecordsPromotionErrorAndPopsOriginalTask(t *testing.T) {
 	queue := NewMemoryQueue()
 	registry := NewResultRegistry()
 	ran := false
-	task := registerPromotionTask(t, registry, queue, promotionTask{
+	registerPromotionTaskWithHandler(t, registry, queue, promotionTask{
 		id: "first", tenantID: "tenant-a", modelClass: "large", requestKind: RequestKindCodeGen,
 		priority: PriorityNormal, score: 1, enqueue: time.Now().Add(-3 * time.Second),
-	})
-	registry.RegisterTask(task, func(context.Context) TaskResult {
+	}, func(context.Context) TaskResult {
 		ran = true
 		return TaskResult{}
 	})
@@ -376,26 +376,39 @@ type promotionTask struct {
 	priority    PriorityClass
 	score       float64
 	enqueue     time.Time
+	feature     TaskFeature
 }
 
 func registerPromotionTask(t *testing.T, registry *ResultRegistry, queue QueueBackend, in promotionTask) Task {
+	return registerPromotionTaskWithHandler(t, registry, queue, in, func(context.Context) TaskResult { return TaskResult{} })
+}
+
+func registerPromotionTaskWithHandler(t *testing.T, registry *ResultRegistry, queue QueueBackend, in promotionTask, handler TaskHandler) Task {
 	t.Helper()
 	task := Task{
 		ID:          in.id,
 		TenantID:    in.tenantID,
 		TenantClass: in.tenantClass,
 		Feature: TaskFeature{
-			TaskID:        in.id,
-			ModelClass:    in.modelClass,
-			RequestKind:   in.requestKind,
-			Priority:      in.priority,
-			EnqueueTimeMs: in.enqueue.UnixMilli(),
+			TaskID:                   in.id,
+			ModelClass:               in.modelClass,
+			RequestKind:              in.requestKind,
+			Priority:                 in.priority,
+			EnqueueTimeMs:            in.enqueue.UnixMilli(),
+			QuestionCount:            in.feature.QuestionCount,
+			CodeBlockCount:           in.feature.CodeBlockCount,
+			EnumerationHint:          in.feature.EnumerationHint,
+			InstructionVerbCount:     in.feature.InstructionVerbCount,
+			MaxSentenceLengthBucket:  in.feature.MaxSentenceLengthBucket,
+			VocabularyRichnessBucket: in.feature.VocabularyRichnessBucket,
 		},
 		Score:       in.score,
 		EnqueueTime: in.enqueue,
 		State:       TaskStateQueued,
 	}
-	registry.RegisterTask(task, func(context.Context) TaskResult { return TaskResult{} })
+	if err := registry.RegisterTask(task, handler); err != nil {
+		t.Fatalf("RegisterTask: %v", err)
+	}
 	if err := queue.Push(context.Background(), QueueItem{TaskID: in.id, Score: in.score}); err != nil {
 		t.Fatalf("Push: %v", err)
 	}

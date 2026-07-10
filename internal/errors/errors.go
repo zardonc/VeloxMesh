@@ -59,6 +59,7 @@ const (
 	SchedulerBackpressure     = "scheduler_backpressure"
 	SchedulerQueueFull        = "scheduler_queue_full"
 	SchedulerQueueUnavailable = "scheduler_queue_unavailable"
+	SchedulerDuplicateTask    = "scheduler_duplicate_task"
 )
 
 // AffectsProviderHealth determines whether a given error should count as a provider failure
@@ -117,7 +118,7 @@ func TranslateError(err error) *GatewayError {
 	if err == nil {
 		return nil
 	}
-	
+
 	var gwErr *GatewayError
 	if errors.As(err, &gwErr) {
 		return gwErr

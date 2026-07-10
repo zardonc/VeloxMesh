@@ -30,12 +30,16 @@ func (r *ResultRegistry) Register(taskID string) {
 
 type TaskHandler func(context.Context) TaskResult
 
-func (r *ResultRegistry) RegisterTask(task Task, handler TaskHandler) {
+func (r *ResultRegistry) RegisterTask(task Task, handler TaskHandler) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if _, ok := r.channels[task.ID]; ok {
+		return ErrDuplicateTask
+	}
 	r.channels[task.ID] = make(chan TaskResult, 1)
 	r.handlers[task.ID] = handler
 	r.tasks[task.ID] = cloneTask(task)
+	return nil
 }
 
 func (r *ResultRegistry) RegisterHandler(taskID string, handler TaskHandler) {

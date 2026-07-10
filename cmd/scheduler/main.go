@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -23,6 +24,7 @@ import (
 
 const (
 	defaultPredictorTimeout        = 15 * time.Millisecond
+	predictorStatusReady           = "ready"
 	predictorStatusDegraded        = "degraded"
 	predictorStatusUnavailable     = "unavailable"
 	predictorReasonManifestInvalid = "manifest_invalid"
@@ -52,15 +54,28 @@ func run(ctx context.Context) error {
 	}
 	grpcServer := grpc.NewServer()
 	schedulerv1.RegisterTaskSchedulerServer(grpcServer, service)
-	go func() { _ = grpcServer.Serve(listener) }()
+	serveErrs := make(chan error, 2)
+	go func() {
+		if err := grpcServer.Serve(listener); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+			serveErrs <- fmt.Errorf("grpc serve: %w", err)
+		}
+	}()
 	defer grpcServer.Stop()
 
 	httpServer := &http.Server{Addr: httpAddr, Handler: newHTTPMux(reg, status)}
-	go func() { _ = httpServer.ListenAndServe() }()
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serveErrs <- fmt.Errorf("http serve: %w", err)
+		}
+	}()
 	defer httpServer.Shutdown(ctx)
 
-	<-ctx.Done()
-	return ctx.Err()
+	select {
+	case err := <-serveErrs:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func newSchedulerService(mode, artifactDir string, metrics *heuristic.Metrics) (schedulerv1.TaskSchedulerServer, error) {
@@ -101,7 +116,19 @@ func newPredictiveScorer(ctx context.Context, artifactDir string, _ *heuristic.M
 		MaxConcurrency: getenvInt("SCHEDULER_SCORER_MAX_CONCURRENCY", 4),
 		SlowThreshold:  getenvDuration("SCHEDULER_SCORER_SLOW_THRESHOLD", defaultPredictorTimeout),
 	})
-	return predictive.NewScorer(p, predictive.Config{Version: manifest.ModelVersion}), schedulerStatus{AnomalyStatus: predictorStatusUnavailable, AnomalyReason: predictorReasonSignal}
+	if isNoopPredictor(p) {
+		return predictive.NewScorer(p, predictive.Config{Version: manifest.ModelVersion}), schedulerStatus{AnomalyStatus: predictorStatusUnavailable, AnomalyReason: predictorReasonSignal}
+	}
+	return predictive.NewScorer(p, predictive.Config{Version: manifest.ModelVersion}), schedulerStatus{AnomalyStatus: predictorStatusReady}
+}
+
+func isNoopPredictor(p predictor.OutputTokenPredictor) bool {
+	switch p.(type) {
+	case predictor.NoopPredictor, *predictor.NoopPredictor:
+		return true
+	default:
+		return false
+	}
 }
 
 func newHTTPMux(reg *prometheus.Registry, statuses ...schedulerStatus) http.Handler {

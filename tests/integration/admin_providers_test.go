@@ -92,7 +92,10 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, server.URL+"/v1/chat/completions", bytes.NewBufferString(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer test-dev-key")
-	resp, _ := http.DefaultClient.Do(req)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("initial chat request failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusServiceUnavailable {
@@ -104,7 +107,10 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	reqAdmin, _ := http.NewRequest(http.MethodPost, server.URL+"/admin/v1/providers", bytes.NewBufferString(adminReqBody))
 	reqAdmin.Header.Set("Content-Type", "application/json")
 	reqAdmin.Header.Set("Authorization", "Bearer test-dev-key") // Wrong key for admin
-	respAdmin, _ := http.DefaultClient.Do(reqAdmin)
+	respAdmin, err := http.DefaultClient.Do(reqAdmin)
+	if err != nil {
+		t.Fatalf("unauthenticated admin request failed: %v", err)
+	}
 	defer respAdmin.Body.Close()
 
 	if respAdmin.StatusCode != http.StatusUnauthorized {
@@ -115,7 +121,10 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	reqAdmin, _ = http.NewRequest(http.MethodPost, server.URL+"/admin/v1/providers", bytes.NewBufferString(adminReqBody))
 	reqAdmin.Header.Set("Content-Type", "application/json")
 	reqAdmin.Header.Set("Authorization", "Bearer test-admin-key")
-	respAdmin, _ = http.DefaultClient.Do(reqAdmin)
+	respAdmin, err = http.DefaultClient.Do(reqAdmin)
+	if err != nil {
+		t.Fatalf("create provider request failed: %v", err)
+	}
 	defer respAdmin.Body.Close()
 
 	if respAdmin.StatusCode != http.StatusCreated {
@@ -137,7 +146,10 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, server.URL+"/v1/chat/completions", bytes.NewBufferString(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer test-dev-key")
-	resp, _ = http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("chat request after adding provider failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -147,7 +159,10 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	// 5. Disable provider via Admin API
 	reqAdmin, _ = http.NewRequest(http.MethodPost, server.URL+"/admin/v1/providers/test-admin/disable", nil)
 	reqAdmin.Header.Set("Authorization", "Bearer test-admin-key")
-	respAdmin, _ = http.DefaultClient.Do(reqAdmin)
+	respAdmin, err = http.DefaultClient.Do(reqAdmin)
+	if err != nil {
+		t.Fatalf("disable provider request failed: %v", err)
+	}
 	defer respAdmin.Body.Close()
 
 	if respAdmin.StatusCode != http.StatusNoContent {
@@ -158,7 +173,10 @@ func TestAdminProvidersIntegration(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, server.URL+"/v1/chat/completions", bytes.NewBufferString(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer test-dev-key")
-	resp, _ = http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("chat request after disabling provider failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusServiceUnavailable {
@@ -212,7 +230,10 @@ func TestAdminProvidersRates(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPut, server.URL+"/admin/v1/providers/test-prov/models/gpt-4/rate", bytes.NewBufferString(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer test-admin-key")
-	resp, _ := http.DefaultClient.Do(req)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("put rate request failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -228,7 +249,10 @@ func TestAdminProvidersRates(t *testing.T) {
 	// 2. Get rate
 	req, _ = http.NewRequest(http.MethodGet, server.URL+"/admin/v1/providers/test-prov/models/gpt-4/rate", nil)
 	req.Header.Set("Authorization", "Bearer test-admin-key")
-	resp, _ = http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("get rate request failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -238,7 +262,10 @@ func TestAdminProvidersRates(t *testing.T) {
 	// 3. Delete rate
 	req, _ = http.NewRequest(http.MethodDelete, server.URL+"/admin/v1/providers/test-prov/models/gpt-4/rate", nil)
 	req.Header.Set("Authorization", "Bearer test-admin-key")
-	resp, _ = http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("delete rate request failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {

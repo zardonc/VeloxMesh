@@ -105,9 +105,11 @@ func TestExecutorRunsRealRedisQueuedTask(t *testing.T) {
 	defer client.Del(ctx, queue.keyForTest())
 
 	registry := NewResultRegistry()
-	registry.RegisterTask(Task{ID: "task-run"}, func(context.Context) TaskResult {
+	if err := registry.RegisterTask(Task{ID: "task-run"}, func(context.Context) TaskResult {
 		return TaskResult{Response: "ok"}
-	})
+	}); err != nil {
+		t.Fatalf("RegisterTask: %v", err)
+	}
 	if err := queue.Push(ctx, QueueItem{TaskID: "task-run", Score: 1}); err != nil {
 		t.Fatalf("Push: %v", err)
 	}

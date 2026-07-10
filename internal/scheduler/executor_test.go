@@ -111,9 +111,11 @@ func TestExecutorRunOneDeliversPanicToTaskOwner(t *testing.T) {
 	queue := scheduler.NewMemoryQueue()
 	registry := scheduler.NewResultRegistry()
 	task := scheduler.Task{ID: "panic-task", Feature: scheduler.TaskFeature{TaskID: "panic-task"}}
-	registry.RegisterTask(task, func(context.Context) scheduler.TaskResult {
+	if err := registry.RegisterTask(task, func(context.Context) scheduler.TaskResult {
 		panic("boom")
-	})
+	}); err != nil {
+		t.Fatalf("RegisterTask: %v", err)
+	}
 	if err := queue.Push(ctx, scheduler.QueueItem{TaskID: task.ID, Score: 1}); err != nil {
 		t.Fatalf("Push: %v", err)
 	}

@@ -44,6 +44,6 @@ func TestTaskFeatureProtoMapsSemanticAggregates(t *testing.T) {
 		t.Fatalf("unmarshal task feature: %v", err)
 	}
 	if roundTrip.GetNeighborCount() != 23 || roundTrip.GetCoverageLevel() != SemanticCoverageTenant {
-		t.Fatalf("semantic aggregate fields missing from wire round trip: %#v", roundTrip)
+		t.Fatalf("semantic aggregate fields missing from wire round trip: %#v", &roundTrip)
 	}
 }

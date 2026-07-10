@@ -2,6 +2,7 @@ package predictor
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"veloxmesh/internal/scheduler"
@@ -35,6 +36,25 @@ func TestRouterCanaryUsesChallengerWhenFullyEnabled(t *testing.T) {
 	}
 	if got[0].Quantiles[70] != 30 {
 		t.Fatalf("expected challenger prediction, got %#v", got)
+	}
+}
+
+func TestRouterCanarySplitsPartialTraffic(t *testing.T) {
+	router := Router{
+		Champion:          NoopPredictor{ModelVersion: "champion"},
+		Challenger:        NoopPredictor{ModelVersion: "challenger"},
+		ChallengerPercent: 50,
+	}
+	seen := map[string]bool{}
+	for i := 0; i < 100; i++ {
+		got, err := router.Predict(context.Background(), []scheduler.TaskFeature{{TaskID: "task-" + strconv.Itoa(i)}})
+		if err != nil {
+			t.Fatalf("Predict: %v", err)
+		}
+		seen[got[0].ModelVersion] = true
+	}
+	if !seen["champion"] || !seen["challenger"] {
+		t.Fatalf("expected partial canary to use both predictors, saw %#v", seen)
 	}
 }
 

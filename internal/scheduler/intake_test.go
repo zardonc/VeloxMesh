@@ -33,6 +33,30 @@ func TestTaskIntakeFIFOScorerEnqueuesWhenRunnerEnabled(t *testing.T) {
 	}
 }
 
+func TestTaskIntakeRejectsDuplicateRequestIDBeforeQueuePush(t *testing.T) {
+	registry := NewResultRegistry()
+	queue := NewMemoryQueue()
+	intake := &TaskIntake{
+		Queue: queue, Guard: QueueGuard{}, Scorer: FIFOScorer{Reason: "disabled"}, Registry: registry,
+		Priority: NewPriorityResolver(nil), Policy: PriorityPolicy{Default: PriorityNormal, Max: PriorityHigh}, Backend: "memory",
+	}
+	_, err := intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "same-id"}, func(context.Context) TaskResult {
+		return TaskResult{Response: "first"}
+	})
+	if err != nil {
+		t.Fatalf("Submit first: %v", err)
+	}
+	_, err = intake.Submit(context.Background(), &llm.LLMRequest{RequestID: "same-id"}, func(context.Context) TaskResult {
+		return TaskResult{Response: "second"}
+	})
+	if !errors.Is(err, ErrDuplicateTask) {
+		t.Fatalf("expected duplicate task error, got %v", err)
+	}
+	if length, err := queue.Len(context.Background()); err != nil || length != 1 {
+		t.Fatalf("expected only first task queued, len=%d err=%v", length, err)
+	}
+}
+
 func TestSynchronousRunnerReturnsResponse(t *testing.T) {
 	registry := NewResultRegistry()
 	queue := NewMemoryQueue()
@@ -94,12 +118,16 @@ func TestSynchronousRunnerDrainsUntilSubmittedTaskCompletes(t *testing.T) {
 	queue := NewMemoryQueue()
 	intake := &TaskIntake{Queue: queue, Registry: registry}
 	runner := NewSynchronousRunnerWithConcurrency(intake, &Executor{Queue: queue, Registry: registry}, registry, 1)
-	registry.RegisterTask(Task{ID: "first"}, func(context.Context) TaskResult {
+	if err := registry.RegisterTask(Task{ID: "first"}, func(context.Context) TaskResult {
 		return TaskResult{Response: "first"}
-	})
-	registry.RegisterTask(Task{ID: "target"}, func(context.Context) TaskResult {
+	}); err != nil {
+		t.Fatalf("RegisterTask first: %v", err)
+	}
+	if err := registry.RegisterTask(Task{ID: "target"}, func(context.Context) TaskResult {
 		return TaskResult{Response: "target"}
-	})
+	}); err != nil {
+		t.Fatalf("RegisterTask target: %v", err)
+	}
 	if err := queue.Push(context.Background(), QueueItem{TaskID: "first", Score: 1}); err != nil {
 		t.Fatalf("Push first: %v", err)
 	}
@@ -125,11 +153,13 @@ func TestSynchronousRunnerWaitsWhenTaskAlreadyRunningAndQueueEmpty(t *testing.T)
 	runner := NewSynchronousRunner(&TaskIntake{Queue: queue, Registry: registry}, executor, registry)
 	started := make(chan struct{})
 	release := make(chan struct{})
-	registry.RegisterTask(Task{ID: "running"}, func(context.Context) TaskResult {
+	if err := registry.RegisterTask(Task{ID: "running"}, func(context.Context) TaskResult {
 		close(started)
 		<-release
 		return TaskResult{Response: "done"}
-	})
+	}); err != nil {
+		t.Fatalf("RegisterTask: %v", err)
+	}
 	if err := queue.Push(context.Background(), QueueItem{TaskID: "running", Score: 1}); err != nil {
 		t.Fatalf("Push: %v", err)
 	}

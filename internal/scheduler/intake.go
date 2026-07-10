@@ -53,9 +53,6 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 	feature = i.enrichFeatures(ctx, req, feature)
 	score, scoreLatency := i.scoreFeature(ctx, feature)
 	i.recordSchedulerResult(score.FallbackReason, scoreLatency, score.FallbackReason)
-	if err := i.checkAdmission(ctx, priority.Resolved); err != nil {
-		return Task{}, err
-	}
 	task := Task{
 		ID:          req.RequestID,
 		TenantID:    identityID(ctx),
@@ -66,7 +63,13 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 		State:       TaskStateQueued,
 		Metadata:    scoreMetadata(score, scoreLatency),
 	}
-	i.Registry.RegisterTask(task, handler)
+	if err := i.Registry.RegisterTask(task, handler); err != nil {
+		return Task{}, err
+	}
+	if err := i.checkAdmission(ctx, priority.Resolved); err != nil {
+		i.Registry.Unregister(task.ID)
+		return Task{}, err
+	}
 	if err := i.Queue.Push(ctx, QueueItem{TaskID: task.ID, Score: task.Score}); err != nil {
 		i.Registry.Unregister(task.ID)
 		if i.Metrics != nil {

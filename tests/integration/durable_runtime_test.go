@@ -310,7 +310,10 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	// Models should now have gpt-4o
 	req, _ = http.NewRequest(http.MethodGet, server.URL+"/v1/models", nil)
 	req.Header.Set("Authorization", "Bearer test-dev-key")
-	resp, _ = http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("models request after reload failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	var modelsResp map[string]interface{}
@@ -327,7 +330,10 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, server.URL+"/v1/chat/completions", bytes.NewBufferString(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer test-dev-key")
-	resp, _ = http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("chat request after reload failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -345,7 +351,10 @@ func TestDurableRuntimeIntegration(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodPost, server.URL+"/v1/chat/completions", bytes.NewBufferString(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer test-dev-key")
-	resp, _ = http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("chat request after disabling provider failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusServiceUnavailable {
