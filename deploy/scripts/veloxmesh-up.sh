@@ -1,13 +1,20 @@
 #!/usr/bin/env sh
 set -eu
 
+[ -d deploy/compose ] || {
+  echo "Run this script from the VeloxMesh repository root." >&2
+  exit 1
+}
+
 mode="${1:-simple}"
+extra_env=""
 
 copy_if_missing() {
   src="$1"
   dst="$2"
   if [ ! -f "$dst" ]; then
     cp "$src" "$dst"
+    echo "  Created $dst (from example — edit before first real run)" >&2
   fi
 }
 
@@ -37,7 +44,8 @@ case "$mode" in
     copy_if_missing deploy/config/cache.full.example.json deploy/config/cache.full.json
     ;;
   postgres)
-    env_file="deploy/env/full.env --env-file deploy/env/postgres.env"
+    env_file="deploy/env/full.env"
+    extra_env="--env-file deploy/env/postgres.env"
     profiles="--profile full --profile postgres"
     copy_if_missing deploy/env/full.example.env deploy/env/full.env
     copy_if_missing deploy/env/postgres.example.env deploy/env/postgres.env
@@ -51,7 +59,7 @@ case "$mode" in
     ;;
 esac
 
-echo "Prepared local config for '$mode'. Edit $env_file and deploy/config/*.json before first real run."
+echo "Config ready for '$mode'. Edit $env_file and deploy/config/*.json if you just created them, then re-run."
 
 # shellcheck disable=SC2086
-exec docker compose --env-file $env_file -f deploy/compose/veloxmesh.yml $profiles up -d --build
+exec docker compose --env-file "$env_file" ${extra_env} -f deploy/compose/veloxmesh.yml $profiles up -d --build

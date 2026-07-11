@@ -31,9 +31,8 @@ remain as compatibility examples. New deployments should prefer `deploy/`.
 Preferred path when Git is available:
 
 ```bash
-git clone <your-repo-url> VeloxMesh
+git clone --branch main <your-repo-url> VeloxMesh
 cd VeloxMesh
-git checkout main
 ```
 
 If Git is not installed on the host, let Docker download the `main` branch
@@ -101,8 +100,9 @@ compare   ONNX scheduler and heuristic scheduler side by side
 postgres  full + PostgreSQL/pgvector + Adminer
 ```
 
-The script copies missing local config files from examples, then runs Docker
-Compose. On the first run, stop after the copy message, edit the generated
+The script copies any missing local config files from their examples, then
+immediately runs Docker Compose. On the very first run the copied files still
+contain placeholder values — stop the containers, edit the generated
 `deploy/env/*.env` and `deploy/config/*.json` files, then run the same command
 again.
 

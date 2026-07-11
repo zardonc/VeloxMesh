@@ -12,7 +12,7 @@ ARG VELOXMESH_REPO_URL
 ARG VELOXMESH_BRANCH=main
 
 RUN apk add --no-cache git
-RUN test -n "$VELOXMESH_REPO_URL"
+RUN test -n "$VELOXMESH_REPO_URL" || { echo "ERROR: --build-arg VELOXMESH_REPO_URL=<git-url> is required"; exit 1; }
 RUN git clone --depth 1 --branch "$VELOXMESH_BRANCH" "$VELOXMESH_REPO_URL" /src
 
 FROM golang:1.26.1-alpine AS build
