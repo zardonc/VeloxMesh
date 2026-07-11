@@ -123,13 +123,13 @@ make run
 
 ### 4. Docker Deployment
 
-Docker deployment is planned but not available yet. The intended flow will be:
+Single-host Docker deployment is available under `deploy/`. Start with:
 
 ```bash
-docker compose up
+sh deploy/scripts/veloxmesh-up.sh simple
 ```
 
-For now, use `make run` for local development. Dockerfile and Compose files will be added later.
+Edit the copied files and place `deploy/models/current/model.onnx` plus `manifest.json` before starting ONNX mode. For Redis, Qdrant, PostgreSQL, Grafana, logs, and scheduler comparison profiles, see [deploy/README.md](deploy/README.md).
 
 ### 5. Check Health
 

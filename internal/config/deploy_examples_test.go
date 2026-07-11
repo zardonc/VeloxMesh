@@ -1,0 +1,72 @@
+package config
+
+import (
+	"path/filepath"
+	"testing"
+)
+
+func TestDeployExampleConfigsLoad(t *testing.T) {
+	tests := []struct {
+		name              string
+		appConfig         string
+		schedulerConfig   string
+		cacheConfig       string
+		redisEnabled      bool
+		cacheEnabled      bool
+		heuristicEndpoint string
+	}{
+		{
+			name:              "simple",
+			appConfig:         "app.simple.example.json",
+			schedulerConfig:   "scheduler.simple.example.json",
+			cacheConfig:       "cache.simple.example.json",
+			heuristicEndpoint: "scheduler-onnx:50051",
+		},
+		{
+			name:              "full",
+			appConfig:         "app.full.example.json",
+			schedulerConfig:   "scheduler.full.example.json",
+			cacheConfig:       "cache.full.example.json",
+			redisEnabled:      true,
+			cacheEnabled:      true,
+			heuristicEndpoint: "scheduler-onnx:50051",
+		},
+		{
+			name:              "compare",
+			appConfig:         "app.compare.example.json",
+			schedulerConfig:   "scheduler.compare.example.json",
+			cacheConfig:       "cache.compare.example.json",
+			heuristicEndpoint: "scheduler-heuristic:50051",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("CONFIG_FILE", deployConfigPath(tc.appConfig))
+			t.Setenv("SCHEDULER_CONFIG_FILE", deployConfigPath(tc.schedulerConfig))
+			t.Setenv("CACHE_CONFIG_FILE", deployConfigPath(tc.cacheConfig))
+			t.Setenv("OPENAI_PRIMARY_API_KEY", "test-provider-key")
+
+			cfg, err := LoadConfig()
+			if err != nil {
+				t.Fatalf("LoadConfig: %v", err)
+			}
+			if cfg.Redis.Enabled != tc.redisEnabled {
+				t.Fatalf("redis enabled=%v, want %v", cfg.Redis.Enabled, tc.redisEnabled)
+			}
+			if cfg.Cache.Enabled != tc.cacheEnabled {
+				t.Fatalf("cache enabled=%v, want %v", cfg.Cache.Enabled, tc.cacheEnabled)
+			}
+			if cfg.Scheduler.HeuristicEndpoint != tc.heuristicEndpoint {
+				t.Fatalf("heuristic endpoint=%q, want %q", cfg.Scheduler.HeuristicEndpoint, tc.heuristicEndpoint)
+			}
+			if cfg.Scheduler.ONNXEndpoint != "scheduler-onnx:50051" {
+				t.Fatalf("onnx endpoint=%q", cfg.Scheduler.ONNXEndpoint)
+			}
+		})
+	}
+}
+
+func deployConfigPath(name string) string {
+	return filepath.Join("..", "..", "deploy", "config", name)
+}

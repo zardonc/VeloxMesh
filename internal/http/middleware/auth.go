@@ -19,6 +19,7 @@ type AuthIdentity struct {
 	Role          string
 	CreditBalance int64
 	Enabled       bool
+	TokenHash     string
 }
 
 type authContextKey string
@@ -70,6 +71,7 @@ func Auth(cfg *config.Config, cache hotstate.Client, repo controlstate.Repositor
 							Role:          cachedIdent.Role,
 							CreditBalance: cachedIdent.CreditBalance,
 							Enabled:       cachedIdent.Enabled,
+							TokenHash:     tokenHash,
 						}
 						// Fast path return via cache
 						ctx := context.WithValue(r.Context(), AuthIdentityKey, identity)
@@ -91,6 +93,7 @@ func Auth(cfg *config.Config, cache hotstate.Client, repo controlstate.Repositor
 					Role:          "admin",
 					CreditBalance: 999999, // Dev key has unlimited credits conceptually
 					Enabled:       true,
+					TokenHash:     tokenHash,
 				}
 			} else if repo != nil && repo.APIKeys() != nil {
 				if keyRecord, err := repo.APIKeys().GetByHash(r.Context(), tokenHash); err == nil && keyRecord != nil {
@@ -101,6 +104,7 @@ func Auth(cfg *config.Config, cache hotstate.Client, repo controlstate.Repositor
 							Role:          keyRecord.Role,
 							CreditBalance: keyRecord.CreditBalance,
 							Enabled:       keyRecord.Enabled,
+							TokenHash:     tokenHash,
 						}
 					}
 				}

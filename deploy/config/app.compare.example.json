@@ -1,0 +1,42 @@
+{
+  "routing_strategy": "least-latency",
+  "default_provider": "openai-primary",
+  "fallback_enabled": false,
+  "max_attempts": 1,
+  "providers": [
+    {
+      "id": "openai-primary",
+      "type": "openai-compatible",
+      "base_url": "https://api.example.invalid/v1",
+      "auth": {
+        "api_key_env": "OPENAI_PRIMARY_API_KEY"
+      },
+      "models": ["example-model"],
+      "default_model": "example-model",
+      "timeout": "30s"
+    }
+  ],
+  "control_state": {
+    "backend": "sqlite",
+    "dsn": "file:/data/veloxmesh.db?cache=shared",
+    "migrate_on_startup": true,
+    "local_seed_enabled": true,
+    "encryption_key": "replace-with-32-byte-local-key!!",
+    "admin_api_key": "replace-with-local-admin-token"
+  },
+  "redis": {
+    "enabled": false
+  },
+  "scheduler": {
+    "enabled": true,
+    "heuristic_endpoint": "scheduler-heuristic:50051",
+    "onnx_endpoint": "scheduler-onnx:50051",
+    "onnx_rollout_percent": 100,
+    "queue_backend": "auto",
+    "feedback_enabled": true,
+    "semantic_neighbors_enabled": false
+  },
+  "cache": {
+    "enabled": false
+  }
+}

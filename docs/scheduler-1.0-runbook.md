@@ -226,6 +226,8 @@ Use the existing admin protections for these routes. Send `Authorization: Bearer
 
 Admin changes to ONNX rollout, quality sample window, and SLA promotion rules affect the running process only. In multi-node deployments, apply the same runtime change on each node or update durable config before restart; cross-node propagation is not implemented yet. Put durable values back into `config.scheduler.example.json`, the deployment config file, or environment management before restart.
 
+Known multi-node limitation: the Redis Scheduler queue is node-scoped and stores task IDs only; handlers and task contexts remain process-local in the gateway. Do not point multiple gateway nodes at one shared Scheduler queue for cross-node work stealing. Keep the default in-memory queue or the documented node-scoped Redis queue until a durable task store is added.
+
 SLA rule replacement body:
 
 ```json

@@ -44,6 +44,14 @@ func (m *mockEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest)
 	}, nil
 }
 
+type nilEmbedAdapter struct {
+	mockEmbedAdapter
+}
+
+func (m *nilEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
+	return nil, nil
+}
+
 type mockRepo struct {
 	entries   []*controlstate.SemanticCacheEntry
 	hits      map[string]int
@@ -203,6 +211,20 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 	e, _ = svcExp.Lookup(ctx, "scope-1", "gpt-4", "test")
 	if e != nil {
 		t.Errorf("Expected miss for expired entry")
+	}
+}
+
+func TestSemanticCacheService_NilEmbeddingResponseIsMiss(t *testing.T) {
+	svc := NewSemanticCacheService(SemanticCacheConfig{
+		Enabled: true, Threshold: 0.8, MaxCandidates: 10, TTL: time.Hour,
+	}, &mockRepo{hits: make(map[string]int)}, nil, &nilEmbedAdapter{})
+
+	entry, err := svc.Lookup(context.Background(), "scope-1", "gpt-4", "test")
+	if err != nil || entry != nil {
+		t.Fatalf("expected nil-response lookup miss, entry=%#v err=%v", entry, err)
+	}
+	if err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "test", `{}`, nil); err != nil {
+		t.Fatalf("expected nil-response store no-op, got %v", err)
 	}
 }
 

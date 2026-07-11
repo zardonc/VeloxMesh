@@ -34,13 +34,15 @@ func (s *BatchScoreService) BatchScoreTasks(ctx context.Context, req *schedulerv
 
 func scoreToProto(score scheduler.ScoreResult) *schedulerv1.ScoreResult {
 	return &schedulerv1.ScoreResult{
-		TaskId:             score.TaskID,
-		Score:              score.Score,
-		Priority:           string(score.Priority),
-		PredictedLatencyMs: score.PredictedLatencyMs,
-		Confidence:         score.Confidence,
-		SchedulerVersion:   score.SchedulerVersion,
-		Reason:             score.FallbackReason,
+		TaskId:               score.TaskID,
+		Score:                score.Score,
+		Priority:             string(score.Priority),
+		PredictedLatencyMs:   score.PredictedLatencyMs,
+		Confidence:           score.Confidence,
+		SchedulerVersion:     score.SchedulerVersion,
+		Reason:               score.FallbackReason,
+		ClassificationSource: score.ClassificationSource,
+		AnomalyStatus:        score.AnomalyStatus,
 	}
 }
 

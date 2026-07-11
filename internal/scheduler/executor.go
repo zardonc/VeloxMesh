@@ -130,7 +130,6 @@ func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, 
 	if err != nil {
 		return nil, nil, err
 	}
-	defer r.Registry.Unregister(task.ID)
 	result, err := r.waitForTask(ctx, task.ID)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -141,6 +140,7 @@ func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, 
 	}
 	if result.Error != nil {
 		r.recordCompletionEvidence(ctx, req, task, start, nil, TrainingOutcomeFailure)
+		r.Registry.Unregister(task.ID)
 		return nil, nil, result.Error
 	}
 	stream, _ := result.Response.(StreamResult)
@@ -157,13 +157,16 @@ func (r *SynchronousRunner) RunStream(ctx context.Context, req *llm.LLMRequest, 
 func (r *SynchronousRunner) recordStreamCompletion(ctx context.Context, req *llm.LLMRequest, task Task, start time.Time, events <-chan llm.StreamEvent, resp *llm.LLMResponse) <-chan llm.StreamEvent {
 	if events == nil {
 		r.recordCompletionEvidence(context.WithoutCancel(ctx), req, task, start, resp, TrainingOutcomeSuccess)
+		r.Registry.Unregister(task.ID)
 		return nil
 	}
 	out := make(chan llm.StreamEvent)
 	go func() {
 		defer close(out)
+		defer r.Registry.Unregister(task.ID)
 		finalResp := *resp
 		outcome := TrainingOutcomeSuccess
+	loop:
 		for event := range events {
 			if event.Usage != nil {
 				finalResp.Usage = event.Usage
@@ -174,7 +177,12 @@ func (r *SynchronousRunner) recordStreamCompletion(ctx context.Context, req *llm
 			if event.Error != nil {
 				outcome = TrainingOutcomeFailure
 			}
-			out <- event
+			select {
+			case out <- event:
+			case <-ctx.Done():
+				outcome = TrainingOutcomeFailure
+				break loop
+			}
 		}
 		r.recordCompletionEvidence(context.WithoutCancel(ctx), req, task, start, &finalResp, outcome)
 	}()

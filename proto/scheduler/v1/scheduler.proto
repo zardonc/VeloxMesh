@@ -58,4 +58,6 @@ message ScoreResult {
   double confidence = 5;
   string scheduler_version = 6;
   string reason = 7;
+  string classification_source = 8;
+  string anomaly_status = 9;
 }

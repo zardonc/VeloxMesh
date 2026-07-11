@@ -1,0 +1,6 @@
+{
+  "enabled": false,
+  "provider": "",
+  "vector_dimension": 1536,
+  "vector_store": ""
+}
