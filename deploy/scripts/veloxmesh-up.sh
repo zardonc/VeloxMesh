@@ -10,10 +10,24 @@ mode="${1:-simple}"
 extra_env=""
 created=0
 
+prepare_file_target() {
+  dst="$1"
+  if [ ! -e "$dst" ] || [ -f "$dst" ]; then
+    return
+  fi
+  if [ -d "$dst" ] && rmdir "$dst" 2>/dev/null; then
+    return
+  fi
+  echo "Refusing to overwrite non-file path: $dst" >&2
+  echo "Remove it manually, then rerun this script." >&2
+  exit 2
+}
+
 copy_if_missing() {
   src="$1"
   dst="$2"
   if [ ! -f "$dst" ]; then
+    prepare_file_target "$dst"
     cp "$src" "$dst"
     created=1
     echo "  Created $dst from example; edit before first real run" >&2

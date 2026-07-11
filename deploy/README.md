@@ -20,8 +20,10 @@ curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/insta
 The installer creates `./VeloxMesh` under the directory where you run the
 command, downloads the deployment files, uses the GitHub repository as the
 Docker build context, generates local config, and starts Docker Compose.
-Existing local env/config files are kept on rerun. Override the location with
-`--install-dir` or `VELOXMESH_INSTALL_DIR` when needed.
+Existing local env/config files are kept on rerun for the same profile. To
+change profiles, use a different `--install-dir`, edit `env/veloxmesh.env`, or
+uninstall first. Override the location with `--install-dir` or
+`VELOXMESH_INSTALL_DIR` when needed.
 
 If omitted, the installer generates random values for `DEV_API_KEY`,
 `ADMIN_API_KEY`, `GRAFANA_ADMIN_PASSWORD`, `POSTGRES_PASSWORD`, and the
@@ -45,6 +47,8 @@ curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/unins
 ```
 
 Use `--install-dir` or `VELOXMESH_INSTALL_DIR` if the install path was changed.
+If Docker Compose is unavailable or shutdown fails, the uninstall script stops
+without deleting local files.
 
 ## Prerequisites
 

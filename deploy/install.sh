@@ -128,14 +128,55 @@ sed_escape() {
   printf '%s' "$1" | sed 's/[\/&]/\\&/g'
 }
 
+read_env_value() {
+  key="$1"
+  file="$2"
+  sed -n "s/^$key=//p" "$file" | tail -n 1
+}
+
+read_app_admin_key() {
+  file="$INSTALL_DIR/config/app.$APP_PROFILE_NAME.json"
+  if [ -f "$file" ]; then
+    sed -n 's/.*"admin_api_key"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$file" | head -n 1
+  fi
+}
+
+load_existing_env() {
+  env_file="$1"
+  check_existing_profile "$env_file"
+  loaded="$(read_env_value DEV_API_KEY "$env_file")"; if [ -n "$loaded" ]; then DEV_API_KEY="$loaded"; fi
+  loaded="$(read_env_value OPENAI_PRIMARY_API_KEY "$env_file")"; if [ -n "$loaded" ]; then PROVIDER_API_KEY="$loaded"; fi
+  loaded="$(read_env_value GRAFANA_ADMIN_PASSWORD "$env_file")"; if [ -n "$loaded" ]; then GRAFANA_PASSWORD="$loaded"; fi
+  loaded="$(read_env_value POSTGRES_PASSWORD "$env_file")"; if [ -n "$loaded" ]; then POSTGRES_PASSWORD="$loaded"; fi
+  loaded="$(read_app_admin_key)"; if [ -n "$loaded" ]; then ADMIN_API_KEY="$loaded"; fi
+}
+
+check_existing_profile() {
+  env_file="$1"
+  existing_profile="$(read_env_value VELOXMESH_PROFILE "$env_file")"
+  if [ -n "$existing_profile" ] && [ "$existing_profile" != "$PROFILE" ]; then
+    echo "Existing install env uses profile '$existing_profile', but requested '$PROFILE'." >&2
+    echo "Use a different --install-dir, edit $env_file, or uninstall before changing profiles." >&2
+    exit 2
+  fi
+  expected_app="../config/app.$APP_PROFILE_NAME.json"
+  existing_app="$(read_env_value VELOXMESH_APP_CONFIG "$env_file")"
+  if [ -n "$existing_app" ] && [ "$existing_app" != "$expected_app" ]; then
+    echo "Existing install env uses $existing_app, but profile '$PROFILE' expects $expected_app." >&2
+    echo "Use a different --install-dir, edit $env_file, or uninstall before changing profiles." >&2
+    exit 2
+  fi
+}
+
 write_env_if_missing() {
   env_file="$INSTALL_DIR/env/veloxmesh.env"
   if [ -f "$env_file" ]; then
-    # shellcheck disable=SC1090
-    . "$env_file"
+    load_existing_env "$env_file"
     return
   fi
+  prepare_file_target "$env_file"
   cat >"$env_file" <<EOF
+VELOXMESH_PROFILE=$PROFILE
 DEV_API_KEY=$DEV_API_KEY
 OPENAI_PRIMARY_API_KEY=$PROVIDER_API_KEY
 VELOXMESH_BUILD_CONTEXT=$REPO_URL#$BRANCH
@@ -206,6 +247,10 @@ fi
 if [ "$PROFILE" = "compare" ]; then
   PROMETHEUS_FILE="prometheus.compare.yml"
   GATEWAY_SERVICE="gateway-compare"
+fi
+
+if [ -f "$INSTALL_DIR/env/veloxmesh.env" ]; then
+  check_existing_profile "$INSTALL_DIR/env/veloxmesh.env"
 fi
 
 mkdir -p "$INSTALL_DIR/compose" "$INSTALL_DIR/env" "$INSTALL_DIR/config" "$INSTALL_DIR/models/current" "$INSTALL_DIR/data" "$INSTALL_DIR/reports" "$INSTALL_DIR/observability"
