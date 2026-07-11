@@ -1,0 +1,239 @@
+name: veloxmesh
+
+x-go-service: &go-service
+  build:
+    context: ../..
+    dockerfile: Dockerfile
+  image: veloxmesh-go:local
+  restart: unless-stopped
+
+services:
+  gateway:
+    <<: *go-service
+    command: ["/app/gateway"]
+    environment:
+      DEV_API_KEY: ${DEV_API_KEY:?copy deploy/env/*.example.env and set DEV_API_KEY}
+      OPENAI_PRIMARY_API_KEY: ${OPENAI_PRIMARY_API_KEY:?copy deploy/env/*.example.env and set OPENAI_PRIMARY_API_KEY}
+      CONFIG_FILE: /config/app.json
+      SCHEDULER_CONFIG_FILE: /config/scheduler.json
+      CACHE_CONFIG_FILE: /config/cache.json
+      OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    volumes:
+      - ${VELOXMESH_APP_CONFIG:-../config/app.full.example.json}:/config/app.json:ro
+      - ${VELOXMESH_SCHEDULER_CONFIG:-../config/scheduler.full.example.json}:/config/scheduler.json:ro
+      - ${VELOXMESH_CACHE_CONFIG:-../config/cache.full.example.json}:/config/cache.json:ro
+      - ../data:/data
+    depends_on:
+      scheduler-onnx:
+        condition: service_started
+    profiles: ["full", "simple", "compare"]
+
+  scheduler-onnx:
+    <<: *go-service
+    command: ["/app/scheduler"]
+    environment:
+      SCHEDULER_MODE: onnx
+      SCHEDULER_GRPC_ADDR: ":50051"
+      SCHEDULER_HTTP_ADDR: ":9091"
+      SCHEDULER_ONNX_ARTIFACT_DIR: /models/current
+      SCHEDULER_PREDICTOR_ENDPOINT: onnx-worker:50052
+      SCHEDULER_SCORER_MAX_CONCURRENCY: "4"
+      SCHEDULER_SCORER_SLOW_THRESHOLD: 15ms
+      SCHEDULER_BREAKER_FAILURE_THRESHOLD: "3"
+      SCHEDULER_BREAKER_RECOVERY_TIMEOUT: 1m
+    volumes:
+      - ../models/current:/models/current:ro
+    depends_on:
+      onnx-worker:
+        condition: service_started
+    profiles: ["full", "simple", "compare"]
+
+  scheduler-heuristic:
+    <<: *go-service
+    command: ["/app/scheduler"]
+    environment:
+      SCHEDULER_MODE: heuristic
+      SCHEDULER_GRPC_ADDR: ":50051"
+      SCHEDULER_HTTP_ADDR: ":9091"
+      SCHEDULER_HEURISTIC_CONFIG_FILE: /config/heuristic.json
+    volumes:
+      - ../config/heuristic.example.json:/config/heuristic.json:ro
+    profiles: ["compare"]
+
+  onnx-worker:
+    build:
+      context: ../..
+      dockerfile: docker/onnx-worker.Dockerfile
+    image: veloxmesh-onnx-worker:local
+    command:
+      - python
+      - -m
+      - scheduler_training.onnx_worker
+      - --artifact-dir=/models/current
+      - --addr=0.0.0.0:50052
+    volumes:
+      - ../models/current:/models/current:ro
+    restart: unless-stopped
+    profiles: ["full", "simple", "compare"]
+
+  redis:
+    image: redis/redis-stack-server:latest
+    command: redis-stack-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+    profiles: ["full"]
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
+    depends_on:
+      redis:
+        condition: service_started
+    volumes:
+      - redisinsightdata:/data
+    restart: unless-stopped
+    profiles: ["full"]
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrantdata:/qdrant/storage
+    restart: unless-stopped
+    profiles: ["full"]
+
+  postgres:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?copy deploy/env/postgres.example.env and set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy deploy/env/postgres.example.env and set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?copy deploy/env/postgres.example.env and set POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres18cluster:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    profiles: ["postgres"]
+
+  pgvector-init:
+    image: pgvector/pgvector:pg18
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:?copy deploy/env/postgres.example.env and set POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?copy deploy/env/postgres.example.env and set POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:?copy deploy/env/postgres.example.env and set POSTGRES_DB}
+    command: ["sh", "-c", "psql -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS vector;'"]
+    restart: "no"
+    profiles: ["postgres"]
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - "8082:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles: ["postgres"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../docker/observability/scheduler-alerts.yml:/etc/prometheus/scheduler-alerts.yml:ro
+      - prometheusdata:/prometheus
+    restart: unless-stopped
+    profiles: ["full", "simple", "compare"]
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-me-before-use}
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ../observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    depends_on:
+      prometheus:
+        condition: service_started
+      loki:
+        condition: service_started
+    restart: unless-stopped
+    profiles: ["full", "simple", "compare"]
+
+  loki:
+    image: grafana/loki:latest
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+    profiles: ["full", "simple", "compare"]
+
+  promtail:
+    image: grafana/promtail:latest
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - ../observability/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      loki:
+        condition: service_started
+    restart: unless-stopped
+    profiles: ["full", "simple", "compare"]
+
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    command: ["--config=/etc/otelcol/config.yaml"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8889:8889"
+    volumes:
+      - ../../docker/observability/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    restart: unless-stopped
+    profiles: ["full", "simple", "compare"]
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8083:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+    profiles: ["full", "simple", "compare"]
+
+volumes:
+  redisdata:
+  redisinsightdata:
+  qdrantdata:
+  postgres18cluster:
+  prometheusdata:
+  grafanadata:

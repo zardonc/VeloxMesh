@@ -22,6 +22,14 @@ veloxmesh
 .env
 .env.local
 .env2.local
+deploy/env/*.env
+!deploy/env/*.example.env
+deploy/config/*.json
+!deploy/config/*.example.json
+deploy/data/
+deploy/reports/
+deploy/models/*
+!deploy/models/README.md
 
 # IDE and Editor folders
 .idea/

@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "provider": "openai-primary",
+  "vector_dimension": 1536,
+  "vector_store": "qdrant",
+  "qdrant": {
+    "addr": "http://qdrant:6333"
+  }
+}
