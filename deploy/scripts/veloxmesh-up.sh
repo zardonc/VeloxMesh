@@ -1,12 +1,27 @@
 #!/usr/bin/env sh
 set -eu
+if (set -o pipefail) 2>/dev/null; then
+  set -o pipefail
+fi
 
 [ -d deploy/compose ] || {
   echo "Run this script from the VeloxMesh repository root." >&2
   exit 1
 }
 
+if command -v id >/dev/null 2>&1 && [ "$(id -u)" = "0" ]; then
+  echo "Do not run this script with sudo/root." >&2
+  echo "Run it as the user who will edit VeloxMesh config files." >&2
+  exit 2
+fi
+
+if command -v id >/dev/null 2>&1; then
+  export VELOXMESH_HOST_UID="${VELOXMESH_HOST_UID:-$(id -u)}"
+  export VELOXMESH_HOST_GID="${VELOXMESH_HOST_GID:-$(id -g)}"
+fi
+
 mode="${1:-simple}"
+project_name="${VELOXMESH_PROJECT_NAME:-veloxmesh}"
 extra_env=""
 created=0
 
@@ -87,4 +102,4 @@ mkdir -p deploy/data deploy/reports deploy/models/current
 echo "Config ready for '$mode'. Starting Docker Compose."
 
 # shellcheck disable=SC2086
-exec docker compose --env-file "$env_file" ${extra_env} -f deploy/compose/veloxmesh.yml $profiles up -d --build
+exec docker compose -p "$project_name" --env-file "$env_file" ${extra_env} -f deploy/compose/veloxmesh.yml $profiles up -d --build

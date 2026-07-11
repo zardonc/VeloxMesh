@@ -8,22 +8,29 @@ The deployment branch is currently `main`.
 Use this path when the server does not have a local checkout:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sudo sh
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sh
 ```
 
 Choose a profile:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sudo sh -s -- --profile full
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sh -s -- --profile full
 ```
 
 The installer creates `./VeloxMesh` under the directory where you run the
 command, downloads the deployment files, uses the GitHub repository as the
 Docker build context, generates local config, and starts Docker Compose.
+Do not run it with `sudo`; Docker access should be granted to the current user
+so generated config remains editable.
 Existing local env/config files are kept on rerun for the same profile. To
 change profiles, use a different `--install-dir`, edit `env/veloxmesh.env`, or
 uninstall first. Override the location with `--install-dir` or
 `VELOXMESH_INSTALL_DIR` when needed.
+The Docker Compose project name defaults to `veloxmesh`; override it with
+`--project-name` or `VELOXMESH_PROJECT_NAME` and use the same value when
+uninstalling.
+By default, only the gateway API port `8080` binds to all host interfaces.
+Admin, data, and observability ports bind to `127.0.0.1`.
 
 If omitted, the installer generates random values for `DEV_API_KEY`,
 `ADMIN_API_KEY`, `GRAFANA_ADMIN_PASSWORD`, `POSTGRES_PASSWORD`, and the
@@ -37,22 +44,32 @@ Uninstall the default `./VeloxMesh` installation from the directory where you
 run the command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/uninstall.sh | sudo sh -s -- --yes
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/uninstall.sh | sh -s -- --yes
 ```
 
 Remove Docker Compose named volumes too:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/uninstall.sh | sudo sh -s -- --yes --volumes
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/uninstall.sh | sh -s -- --yes --volumes
 ```
 
 Use `--install-dir` or `VELOXMESH_INSTALL_DIR` if the install path was changed.
+Use `--project-name` or `VELOXMESH_PROJECT_NAME` if the Compose project name was
+changed.
 If Docker Compose is unavailable or shutdown fails, the uninstall script stops
 without deleting local files.
+
+If an older install was created with `sudo`, fix ownership once before editing
+or uninstalling:
+
+```bash
+sudo chown -R "$(id -u):$(id -g)" ./VeloxMesh
+```
 
 ## Prerequisites
 
 - Docker Engine or Docker Desktop with Docker Compose v2.
+- Docker must be usable by the current user without `sudo`.
 - Network access from the host to the selected upstream model provider.
 - A provider API key stored in a local env file, not in Git.
 - Optional custom ONNX scheduler artifact at `deploy/models/current/model.onnx` plus `deploy/models/current/manifest.json`.
@@ -346,6 +363,33 @@ profile is the only profile that starts `scheduler-heuristic`; it also uses
 `deploy/observability/prometheus.compare.yml` so Prometheus does not scrape a
 missing heuristic service in normal deployments.
 
+## Network exposure
+
+Default bind addresses:
+
+```env
+VELOXMESH_GATEWAY_BIND_ADDR=0.0.0.0
+VELOXMESH_ADMIN_BIND_ADDR=127.0.0.1
+VELOXMESH_LOCAL_BIND_ADDR=127.0.0.1
+```
+
+This allows non-local clients to call the gateway on `http://<host>:8080` while
+keeping the admin API, RedisInsight, Adminer, Prometheus, Grafana, Loki,
+OpenTelemetry, cAdvisor, Redis, Qdrant, and PostgreSQL reachable only from the
+host. For remote administration, prefer an SSH tunnel:
+
+```bash
+ssh -L 3000:127.0.0.1:3000 -L 9090:127.0.0.1:9090 user@<host>
+```
+
+Only set `VELOXMESH_ADMIN_BIND_ADDR=0.0.0.0` or
+`VELOXMESH_LOCAL_BIND_ADDR=0.0.0.0` behind a firewall, VPN, or reverse proxy
+with authentication.
+
+Promtail reads Docker JSON log files from `/var/lib/docker/containers` and does
+not mount `/var/run/docker.sock`. If Docker Desktop or host permissions prevent
+that read, use `docker compose logs` for container logs.
+
 Build images directly from the remote `main` branch without a local source
 checkout:
 
@@ -402,6 +446,9 @@ curl http://localhost:8080/v1/models -H "Authorization: Bearer <DEV_API_KEY>"
 | Prometheus | `http://localhost:9090` | Query raw metrics and alert rules. |
 | Grafana | `http://localhost:3000` | View dashboards with Prometheus and Loki datasources. |
 | cAdvisor | `http://localhost:8083` | Inspect container CPU and memory. |
+
+These management URLs are intentionally local-only unless
+`VELOXMESH_LOCAL_BIND_ADDR` is changed.
 
 ## Logs and troubleshooting
 
