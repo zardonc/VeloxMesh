@@ -187,6 +187,34 @@ func TestAdapter_Complete(t *testing.T) {
 	}
 }
 
+func TestAdapter_CompleteMapsUsage(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]any{
+			"model": "gpt-4",
+			"choices": []map[string]any{{
+				"message": map[string]string{"content": "Hi"},
+			}},
+			"usage": map[string]int{
+				"prompt_tokens":     3,
+				"completion_tokens": 5,
+				"total_tokens":      8,
+			},
+		})
+	}))
+	defer server.Close()
+
+	resp, err := NewAdapter("test-openai", server.URL, "test-key", "gpt-4").Complete(context.Background(), &llm.LLMRequest{
+		Model: "gpt-4", Messages: []llm.Message{{Role: llm.RoleUser, Content: "Hello"}},
+	})
+	if err != nil {
+		t.Fatalf("Complete: %v", err)
+	}
+	if resp.Usage == nil || resp.Usage.PromptTokens != 3 || resp.Usage.CompletionTokens != 5 || resp.Usage.TotalTokens != 8 {
+		t.Fatalf("usage not mapped: %#v", resp.Usage)
+	}
+}
+
 func TestAdapter_Conformance(t *testing.T) {
 	var mockStatus int
 	var mockResponse any
@@ -338,6 +366,35 @@ func TestAdapter_Stream(t *testing.T) {
 
 	if len(contents) != 2 || contents[0] != "Hello " || contents[1] != "World" {
 		t.Errorf("unexpected chunks: %v", contents)
+	}
+}
+
+func TestAdapter_StreamTreatsEOFAsDone(t *testing.T) {
+	mockResponse := "data: {\"model\":\"gpt-4\",\"choices\":[{\"delta\":{\"content\":\"Hello\"}}]}\n\n"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(mockResponse))
+	}))
+	defer server.Close()
+
+	ch, err := NewAdapter("test-openai", server.URL, "test-key", "gpt-4").Stream(context.Background(), &llm.LLMRequest{
+		Model: "gpt-4", Messages: []llm.Message{{Role: llm.RoleUser, Content: "hi"}},
+	})
+	if err != nil {
+		t.Fatalf("Stream: %v", err)
+	}
+	done := false
+	for event := range ch {
+		if event.Error != nil {
+			t.Fatalf("unexpected event error: %v", event.Error)
+		}
+		if event.Done {
+			done = true
+		}
+	}
+	if !done {
+		t.Fatalf("expected done event on EOF")
 	}
 }
 

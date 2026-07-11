@@ -182,6 +182,7 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 		GatewayID: req.RequestID,
 		Model:     openAIResp.Model,
 		Choices:   openAIResp.Choices,
+		Usage:     openAIResp.Usage,
 	}, nil
 }
 
@@ -272,6 +273,7 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 		defer resp.Body.Close()
 
 		reader := bufio.NewReader(resp.Body)
+		sawEvent := false
 		for {
 			select {
 			case <-ctx.Done():
@@ -280,56 +282,53 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 			default:
 			}
 
-			line, err := reader.ReadBytes('\n')
-			if err != nil {
-				if errors.Is(err, io.EOF) {
+			line, readErr := reader.ReadBytes('\n')
+			if len(line) > 0 {
+				lineStr := strings.TrimSpace(string(line))
+				if strings.HasPrefix(lineStr, "data:") {
+					data := strings.TrimSpace(strings.TrimPrefix(lineStr, "data:"))
+					if data == "[DONE]" {
+						ch <- llm.StreamEvent{Done: true, Provider: a.id, Model: req.Model}
+						return
+					}
+
+					var chunk streamChunk
+					if err := json.Unmarshal([]byte(data), &chunk); err != nil {
+						ch <- llm.StreamEvent{Error: gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Malformed JSON from provider stream", http.StatusBadGateway)}
+						return
+					}
+
+					event := llm.StreamEvent{
+						Provider: a.id,
+						Model:    chunk.Model,
+					}
+					if event.Model == "" {
+						event.Model = req.Model
+					}
+					if chunk.Usage != nil {
+						event.Usage = chunk.Usage
+					}
+
+					if len(chunk.Choices) > 0 {
+						event.DeltaContent = chunk.Choices[0].Delta.Content
+						event.ToolCalls = chunk.Choices[0].Delta.ToolCalls
+						if chunk.Choices[0].FinishReason != nil {
+							event.FinishReason = *chunk.Choices[0].FinishReason
+						}
+					}
+
+					ch <- event
+					sawEvent = true
+				}
+			}
+			if readErr != nil {
+				if sawEvent || errors.Is(readErr, io.EOF) || errors.Is(readErr, io.ErrUnexpectedEOF) {
+					ch <- llm.StreamEvent{Done: true, Provider: a.id, Model: req.Model}
 					return
 				}
-				ch <- llm.StreamEvent{Error: err}
+				ch <- llm.StreamEvent{Error: readErr}
 				return
 			}
-
-			lineStr := strings.TrimSpace(string(line))
-			if lineStr == "" {
-				continue
-			}
-
-			if !strings.HasPrefix(lineStr, "data:") {
-				continue
-			}
-
-			data := strings.TrimSpace(strings.TrimPrefix(lineStr, "data:"))
-			if data == "[DONE]" {
-				ch <- llm.StreamEvent{Done: true, Provider: a.id, Model: req.Model}
-				return
-			}
-
-			var chunk streamChunk
-			if err := json.Unmarshal([]byte(data), &chunk); err != nil {
-				ch <- llm.StreamEvent{Error: gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Malformed JSON from provider stream", http.StatusBadGateway)}
-				return
-			}
-
-			event := llm.StreamEvent{
-				Provider: a.id,
-				Model:    chunk.Model,
-			}
-			if event.Model == "" {
-				event.Model = req.Model
-			}
-			if chunk.Usage != nil {
-				event.Usage = chunk.Usage
-			}
-
-			if len(chunk.Choices) > 0 {
-				event.DeltaContent = chunk.Choices[0].Delta.Content
-				event.ToolCalls = chunk.Choices[0].Delta.ToolCalls
-				if chunk.Choices[0].FinishReason != nil {
-					event.FinishReason = *chunk.Choices[0].FinishReason
-				}
-			}
-
-			ch <- event
 		}
 	}()
 

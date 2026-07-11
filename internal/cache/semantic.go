@@ -49,7 +49,7 @@ func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, 
 	}
 	// Let the adapter define the default model if needed, or we pass a generic one
 	resp, err := s.adapter.Embed(ctx, req)
-	if err != nil || len(resp.Data) == 0 {
+	if err != nil || resp == nil || len(resp.Data) == 0 {
 		return nil, err // Miss due to error
 	}
 	inputVector := resp.Data[0].Embedding
@@ -112,7 +112,7 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 		Input: []string{text},
 	}
 	resp, err := s.adapter.Embed(ctx, req)
-	if err != nil || len(resp.Data) == 0 {
+	if err != nil || resp == nil || len(resp.Data) == 0 {
 		return err
 	}
 	vector := resp.Data[0].Embedding

@@ -85,6 +85,40 @@ func TestSynchronousRunnerRecordsStreamSampleAfterClose(t *testing.T) {
 	}
 }
 
+func TestSynchronousRunnerKeepsStreamContextUntilDrain(t *testing.T) {
+	runner := testTrainingRunner(&memoryTrainingSampleRepo{})
+	upstream := make(chan llm.StreamEvent, 2)
+	ctxDone := make(chan struct{})
+
+	events, _, err := runner.RunStream(context.Background(), testTrainingRequest(), func(runCtx context.Context, req *llm.LLMRequest) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+		go func() {
+			<-runCtx.Done()
+			close(ctxDone)
+		}()
+		return upstream, &llm.LLMResponse{Provider: "openai-primary"}, nil
+	})
+	if err != nil {
+		t.Fatalf("RunStream: %v", err)
+	}
+	select {
+	case <-ctxDone:
+		t.Fatalf("stream context canceled before consumer drained events")
+	case <-time.After(20 * time.Millisecond):
+	}
+
+	upstream <- llm.StreamEvent{DeltaContent: "ok"}
+	upstream <- llm.StreamEvent{Done: true}
+	close(upstream)
+	for range events {
+	}
+
+	select {
+	case <-ctxDone:
+	case <-time.After(time.Second):
+		t.Fatalf("stream context was not canceled after consumer drained events")
+	}
+}
+
 func TestRecorderErrorDoesNotChangeResponse(t *testing.T) {
 	repo := &memoryTrainingSampleRepo{err: errors.New("store unavailable")}
 	runner := testTrainingRunner(repo)

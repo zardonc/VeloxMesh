@@ -611,6 +611,16 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		}
 
 		if err := p.ProcessResponse(ctx, scope, state, respMeta); err != nil {
+			go drainStream(ch)
+			status, errCategory := streamErrorStatus(errors.TranslateError(err))
+			s.finishStreamRequest(streamFinish{
+				streamRuleContext: streamRuleContext{
+					ctx: ctx, req: req, decision: decision, respMeta: respMeta, pipeline: p,
+					scope: scope, state: state, events: ch, start: start, release: release,
+					attempts: attempts, trace: rt,
+				},
+				status: status, errCategory: errCategory,
+			})
 			if err == replication.ErrWriteNotWritable {
 				return nil, nil, errors.ErrServiceNotWritable
 			}
@@ -851,6 +861,11 @@ func replayStreamEvents(events []llm.StreamEvent) <-chan llm.StreamEvent {
 		}
 	}()
 	return out
+}
+
+func drainStream(ch <-chan llm.StreamEvent) {
+	for range ch {
+	}
 }
 
 func singleTextStream(choices []llm.Choice, usage *llm.Usage) <-chan llm.StreamEvent {

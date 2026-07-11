@@ -2,9 +2,11 @@ package admission_test
 
 import (
 	"context"
+	stdlibErrors "errors"
 	"testing"
 	"veloxmesh/internal/admission"
 	"veloxmesh/internal/controlstate"
+	gatewayErrors "veloxmesh/internal/errors"
 	"veloxmesh/internal/hotstate"
 	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/llm"
@@ -30,10 +32,36 @@ func (m *mockLimitRuleRepo) Delete(ctx context.Context, id string) error        
 type mockRepo struct {
 	controlstate.Repository
 	limitRepo *mockLimitRuleRepo
+	apiKeys   controlstate.APIKeyRepository
 }
 
 func (m *mockRepo) LimitRules() controlstate.LimitRuleRepository {
 	return m.limitRepo
+}
+func (m *mockRepo) APIKeys() controlstate.APIKeyRepository { return m.apiKeys }
+
+type mockAPIKeyRepo struct {
+	record *controlstate.APIKeyRecord
+}
+
+func (m *mockAPIKeyRepo) GetByHash(ctx context.Context, hash string) (*controlstate.APIKeyRecord, error) {
+	if m.record == nil || m.record.Hash != hash {
+		return nil, nil
+	}
+	record := *m.record
+	return &record, nil
+}
+func (m *mockAPIKeyRepo) List(ctx context.Context) ([]*controlstate.APIKeyRecord, error) {
+	return nil, nil
+}
+func (m *mockAPIKeyRepo) Create(ctx context.Context, key *controlstate.APIKeyRecord) error {
+	return nil
+}
+func (m *mockAPIKeyRepo) Update(ctx context.Context, key *controlstate.APIKeyRecord) error {
+	return nil
+}
+func (m *mockAPIKeyRepo) Delete(ctx context.Context, id string) error {
+	return nil
 }
 
 func TestLimitAdmissionController_Admit(t *testing.T) {
@@ -123,5 +151,39 @@ func TestLimitAdmissionController_HighPriorityDoesNotBypassCredit(t *testing.T) 
 	_, _, err := ctrl.Admit(ctx, req, routing.RoutingDecision{})
 	if err == nil {
 		t.Fatalf("expected insufficient credits for high priority")
+	}
+}
+
+func TestLimitAdmissionControllerRefreshesCachedCreditBalance(t *testing.T) {
+	repo := &mockRepo{
+		limitRepo: &mockLimitRuleRepo{},
+		apiKeys: &mockAPIKeyRepo{record: &controlstate.APIKeyRecord{
+			ID: "key-1", Hash: "hash-1", Enabled: true, CreditBalance: 0,
+		}},
+	}
+	ctrl := admission.NewLimitAdmissionController(repo, hotstate.NewLocalHotState())
+	identity := &middleware.AuthIdentity{ID: "key-1", Role: "user", CreditBalance: 100, TokenHash: "hash-1"}
+	ctx := context.WithValue(context.Background(), middleware.AuthIdentityKey, identity)
+
+	_, _, err := ctrl.Admit(ctx, &llm.LLMRequest{PriorityClass: "normal"}, routing.RoutingDecision{})
+	var gwErr *gatewayErrors.GatewayError
+	if err == nil || !stdlibErrors.As(err, &gwErr) || gwErr.Code != "insufficient_credits" {
+		t.Fatalf("expected refreshed insufficient credits error, got %v", err)
+	}
+}
+
+func TestLimitAdmissionControllerRejectsUnsupportedAdmissionDimension(t *testing.T) {
+	repo := &mockRepo{limitRepo: &mockLimitRuleRepo{rules: []*controlstate.LimitRule{{
+		ID: "budget", Scope: controlstate.ScopeAPIKey, TargetID: "key-1",
+		Dimension: controlstate.DimensionPeriodicBudget, Window: controlstate.Window1M, Limit: 100, Enabled: true,
+	}}}}
+	ctrl := admission.NewLimitAdmissionController(repo, hotstate.NewLocalHotState())
+	identity := &middleware.AuthIdentity{ID: "key-1", Role: "user", CreditBalance: 100}
+	ctx := context.WithValue(context.Background(), middleware.AuthIdentityKey, identity)
+
+	_, _, err := ctrl.Admit(ctx, &llm.LLMRequest{PriorityClass: "normal"}, routing.RoutingDecision{})
+	var gwErr *gatewayErrors.GatewayError
+	if err == nil || !stdlibErrors.As(err, &gwErr) || gwErr.Code != "unsupported_limit_dimension" {
+		t.Fatalf("expected unsupported limit dimension, got %v", err)
 	}
 }
