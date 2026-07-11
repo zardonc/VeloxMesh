@@ -46,7 +46,7 @@ var responseOrder = []RuleName{
 
 func (p *Pipeline) HasResponseRulesEnabled() bool {
 	for _, ruleName := range responseOrder {
-		if p.config.Rules[ruleName].Enabled {
+		if p.config.ResponseRule(ruleName).Enabled {
 			return true
 		}
 	}
@@ -55,7 +55,7 @@ func (p *Pipeline) HasResponseRulesEnabled() bool {
 
 func (p *Pipeline) ProcessRequest(ctx context.Context, scope RequestScope, state *RunState, req *llm.LLMRequest) error {
 	for _, ruleName := range requestOrder {
-		ruleCfg := p.config.Rules[ruleName]
+		ruleCfg := p.config.RequestRule(ruleName)
 		if !ruleCfg.Enabled {
 			continue
 		}
@@ -85,7 +85,7 @@ func (p *Pipeline) ProcessRequest(ctx context.Context, scope RequestScope, state
 
 func (p *Pipeline) ProcessResponse(ctx context.Context, scope RequestScope, state *RunState, resp *llm.LLMResponse) error {
 	for _, ruleName := range responseOrder {
-		ruleCfg := p.config.Rules[ruleName]
+		ruleCfg := p.config.ResponseRule(ruleName)
 		if !ruleCfg.Enabled {
 			continue
 		}

@@ -28,6 +28,7 @@ case "$mode" in
     copy_if_missing deploy/config/app.simple.example.json deploy/config/app.simple.json
     copy_if_missing deploy/config/scheduler.simple.example.json deploy/config/scheduler.simple.json
     copy_if_missing deploy/config/cache.simple.example.json deploy/config/cache.simple.json
+    copy_if_missing deploy/config/pipeline.simple.example.yaml deploy/config/pipeline.simple.yaml
     ;;
   full)
     env_file="deploy/env/full.env"
@@ -36,6 +37,7 @@ case "$mode" in
     copy_if_missing deploy/config/app.full.example.json deploy/config/app.full.json
     copy_if_missing deploy/config/scheduler.full.example.json deploy/config/scheduler.full.json
     copy_if_missing deploy/config/cache.full.example.json deploy/config/cache.full.json
+    copy_if_missing deploy/config/pipeline.full.example.yaml deploy/config/pipeline.full.yaml
     ;;
   compare)
     env_file="deploy/env/compare.env"
@@ -44,6 +46,7 @@ case "$mode" in
     copy_if_missing deploy/config/app.compare.example.json deploy/config/app.compare.json
     copy_if_missing deploy/config/scheduler.compare.example.json deploy/config/scheduler.compare.json
     copy_if_missing deploy/config/cache.compare.example.json deploy/config/cache.compare.json
+    copy_if_missing deploy/config/pipeline.compare.example.yaml deploy/config/pipeline.compare.yaml
     ;;
   postgres)
     env_file="deploy/env/full.env"
@@ -54,6 +57,7 @@ case "$mode" in
     copy_if_missing deploy/config/app.full.example.json deploy/config/app.full.json
     copy_if_missing deploy/config/scheduler.full.example.json deploy/config/scheduler.full.json
     copy_if_missing deploy/config/cache.full.example.json deploy/config/cache.full.json
+    copy_if_missing deploy/config/pipeline.full.example.yaml deploy/config/pipeline.full.yaml
     ;;
   *)
     echo "usage: deploy/scripts/veloxmesh-up.sh [simple|full|compare|postgres]" >&2

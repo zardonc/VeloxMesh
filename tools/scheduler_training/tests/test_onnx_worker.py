@@ -2,6 +2,7 @@ import json
 
 import grpc
 
+import scheduler_training.onnx_worker as onnx_worker
 from scheduler_training.onnx_worker import predictor_pb2, predictor_pb2_grpc, start_server
 from scheduler_training.publish import publish_artifact
 from scheduler_training.train import train_file
@@ -71,3 +72,46 @@ def test_worker_reports_malformed_task_without_blocking_siblings(tmp_path):
         assert response.predictions[1].quantiles[70] > 0
     finally:
         server.stop(0)
+
+
+def test_worker_creates_default_artifact_when_missing(tmp_path):
+    artifact = tmp_path / "current"
+    server, port = start_server(artifact, "127.0.0.1:0")
+    try:
+        assert (artifact / "model.onnx").exists()
+        assert (artifact / "manifest.json").exists()
+
+        channel = grpc.insecure_channel(f"127.0.0.1:{port}")
+        stub = predictor_pb2_grpc.OutputTokenPredictorStub(channel)
+        health = stub.Health(predictor_pb2.HealthRequest())
+        response = stub.BatchPredict(
+            predictor_pb2.BatchPredictRequest(
+                tasks=[predictor_pb2.TaskFeature(task_id="default", estimated_input_tokens=20, estimated_output_tokens=40)]
+            )
+        )
+
+        assert health.ready is True
+        assert health.model_version == "scheduler-predictor-default"
+        assert response.predictions[0].quantiles[70] > 0
+    finally:
+        server.stop(0)
+
+
+def test_worker_uses_fallback_default_artifact_when_mount_is_read_only(tmp_path, monkeypatch):
+    artifact = tmp_path / "current"
+    fallback = tmp_path / "fallback"
+    original_write_feature_onnx = onnx_worker.write_feature_onnx
+
+    def write_feature_onnx(model, path):
+        if path.parent == artifact:
+            raise PermissionError("read-only artifact mount")
+        original_write_feature_onnx(model, path)
+
+    monkeypatch.setenv("VELOXMESH_DEFAULT_ARTIFACT_DIR", str(fallback))
+    monkeypatch.setattr(onnx_worker, "write_feature_onnx", write_feature_onnx)
+
+    worker = onnx_worker.ONNXWorker(artifact)
+
+    assert worker.artifact_dir == fallback
+    assert (fallback / "model.onnx").exists()
+    assert (fallback / "manifest.json").exists()

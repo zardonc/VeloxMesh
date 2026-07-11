@@ -16,6 +16,16 @@ func TestSemanticRuleConfig(t *testing.T) {
 				t.Errorf("expected rule %s to be disabled", name)
 			}
 		}
+		for name, rule := range cfg.Input.Rules {
+			if rule.Enabled {
+				t.Errorf("expected input rule %s to be disabled", name)
+			}
+		}
+		for name, rule := range cfg.Output.Rules {
+			if rule.Enabled {
+				t.Errorf("expected output rule %s to be disabled", name)
+			}
+		}
 	})
 
 	t.Run("user config overrides global defaults", func(t *testing.T) {
@@ -148,6 +158,44 @@ rules:
 		}
 		if cfg.Rules[RulePonytail].Enabled {
 			t.Error("expected ponytail to be disabled")
+		}
+	})
+
+	t.Run("loads input and output rule switches separately", func(t *testing.T) {
+		yamlData := []byte(`
+input:
+  rules:
+    pii:
+      enabled: true
+output:
+  rules:
+    filter:
+      enabled: true
+`)
+		tmpfile, err := os.CreateTemp("", "semantic-config-*.yaml")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer os.Remove(tmpfile.Name())
+
+		if _, err := tmpfile.Write(yamlData); err != nil {
+			t.Fatal(err)
+		}
+		tmpfile.Close()
+
+		cfg, err := LoadSemanticPipelineConfigFile(tmpfile.Name())
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if !cfg.Input.Rules[RulePII].Enabled {
+			t.Error("expected input pii to be enabled")
+		}
+		if cfg.Output.Rules[RulePII].Enabled {
+			t.Error("expected output pii to stay disabled")
+		}
+		if !cfg.Output.Rules[RuleFilter].Enabled {
+			t.Error("expected output filter to be enabled")
 		}
 	})
 }
