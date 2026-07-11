@@ -95,6 +95,21 @@ func TestPrometheusQueueAdmissionLabelsAreBounded(t *testing.T) {
 	forbiddenMetricLabels(t, labels[0])
 }
 
+func TestPrometheusQueueLabelsPreserveRedisFallbackBackend(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	m := NewPrometheusMetrics(reg)
+
+	m.RecordQueueDepth("redis+fallback", "normal", 2)
+	m.IncQueueAdmission("redis+fallback", "normal", "accepted", "none")
+
+	for _, name := range []string{"gateway_queue_depth", "gateway_queue_admission_total"} {
+		labels := labelsForMetric(t, reg, name)
+		if labels[0]["backend"] != "redis+fallback" {
+			t.Fatalf("%s backend label = %q", name, labels[0]["backend"])
+		}
+	}
+}
+
 func TestPrometheusSchedulerPredictionQualityLabels(t *testing.T) {
 	reg := prometheus.NewRegistry()
 	m := NewPrometheusMetrics(reg)

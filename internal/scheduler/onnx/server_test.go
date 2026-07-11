@@ -45,3 +45,15 @@ func TestFeatureFromProtoPreservesSafeFeatureBuckets(t *testing.T) {
 		t.Fatalf("safe feature buckets were not preserved: %#v", got)
 	}
 }
+
+func TestScoreToProtoMapsMetadata(t *testing.T) {
+	got := scoreToProto(scheduler.ScoreResult{
+		TaskID:               "t1",
+		ClassificationSource: "onnx",
+		AnomalyStatus:        scheduler.AnomalyStatusOOD,
+	})
+
+	if got.GetClassificationSource() != "onnx" || got.GetAnomalyStatus() != scheduler.AnomalyStatusOOD {
+		t.Fatalf("score metadata not mapped: %#v", got)
+	}
+}

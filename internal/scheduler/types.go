@@ -141,6 +141,9 @@ func (f TaskFeature) proto() *schedulerv1.TaskFeature {
 
 func scoreFromProto(r *schedulerv1.ScoreResult) ScoreResult {
 	fallbackReason, classificationSource := splitLegacyScoreReason(r.GetReason())
+	if r.GetClassificationSource() != "" {
+		classificationSource = r.GetClassificationSource()
+	}
 	return ScoreResult{
 		TaskID:               r.GetTaskId(),
 		Score:                r.GetScore(),
@@ -150,6 +153,7 @@ func scoreFromProto(r *schedulerv1.ScoreResult) ScoreResult {
 		SchedulerVersion:     r.GetSchedulerVersion(),
 		FallbackReason:       fallbackReason,
 		ClassificationSource: classificationSource,
+		AnomalyStatus:        r.GetAnomalyStatus(),
 	}
 }
 

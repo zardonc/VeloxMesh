@@ -324,12 +324,12 @@ func (m *PrometheusMetrics) RecordRequestOutcome(reqID string, provider string, 
 }
 
 func (m *PrometheusMetrics) RecordQueueDepth(backend string, priority string, depth int64) {
-	m.queueDepth.WithLabelValues(allowedLabel(backend, "memory", "redis"), allowedLabel(priority, "normal", "high", "low")).Set(float64(depth))
+	m.queueDepth.WithLabelValues(allowedLabel(backend, "memory", "redis", "redis+fallback"), allowedLabel(priority, "normal", "high", "low")).Set(float64(depth))
 }
 
 func (m *PrometheusMetrics) IncQueueAdmission(backend string, priority string, outcome string, reason string) {
 	m.queueAdmission.WithLabelValues(
-		allowedLabel(backend, "memory", "redis"),
+		allowedLabel(backend, "memory", "redis", "redis+fallback"),
 		allowedLabel(priority, "normal", "high", "low"),
 		allowedLabel(outcome, "accepted", "throttled", "rejected", "guard_error"),
 		allowedLabel(reason, "none", "soft_limit", "hard_limit", "guard_error", "priority_bypass"),

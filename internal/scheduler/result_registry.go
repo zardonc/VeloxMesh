@@ -42,7 +42,7 @@ func (r *ResultRegistry) RegisterTaskWithContext(ctx context.Context, task Task,
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	execCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
+	execCtx, cancel := context.WithCancel(ctx)
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, ok := r.channels[task.ID]; ok {

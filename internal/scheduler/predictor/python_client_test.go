@@ -51,11 +51,11 @@ func TestPythonPredictorBreakerSkipsAndRecovers(t *testing.T) {
 	var calls atomic.Int32
 	server := startPredictorServer(t, func(context.Context, *predictorv1.BatchPredictRequest) (*predictorv1.BatchPredictResponse, error) {
 		if calls.Add(1) == 1 {
-			time.Sleep(40 * time.Millisecond)
+			return nil, errors.New("predictor unavailable")
 		}
 		return &predictorv1.BatchPredictResponse{Predictions: []*predictorv1.Prediction{{ModelVersion: "v1", Quantiles: map[int32]float64{70: 20}}}}, nil
 	})
-	client := newTestClient(t, server.Endpoint, 5*time.Millisecond, 20*time.Millisecond)
+	client := newTestClient(t, server.Endpoint, time.Second, 20*time.Millisecond)
 
 	first, _ := client.Predict(context.Background(), []scheduler.TaskFeature{{TaskID: "t1"}})
 	second, _ := client.Predict(context.Background(), []scheduler.TaskFeature{{TaskID: "t1"}})

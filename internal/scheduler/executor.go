@@ -89,6 +89,7 @@ func (r *SynchronousRunner) RunChat(ctx context.Context, req *llm.LLMRequest, ex
 	if err != nil {
 		return nil, err
 	}
+	defer r.Registry.Unregister(task.ID)
 	result, err := r.waitForTask(ctx, task.ID)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {

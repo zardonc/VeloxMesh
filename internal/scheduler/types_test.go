@@ -47,3 +47,21 @@ func TestTaskFeatureProtoMapsSemanticAggregates(t *testing.T) {
 		t.Fatalf("semantic aggregate fields missing from wire round trip: %#v", &roundTrip)
 	}
 }
+
+func TestScoreFromProtoMapsClassificationAndAnomaly(t *testing.T) {
+	got := scoreFromProto(&schedulerv1.ScoreResult{
+		TaskId:               "t1",
+		Score:                3.5,
+		Priority:             "high",
+		PredictedLatencyMs:   42,
+		Confidence:           0.7,
+		SchedulerVersion:     "onnx-v1",
+		Reason:               "scheduler_error",
+		ClassificationSource: "onnx",
+		AnomalyStatus:        AnomalyStatusOOD,
+	})
+
+	if got.FallbackReason != "scheduler_error" || got.ClassificationSource != "onnx" || got.AnomalyStatus != AnomalyStatusOOD {
+		t.Fatalf("score metadata not mapped: %#v", got)
+	}
+}

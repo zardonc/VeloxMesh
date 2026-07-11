@@ -186,4 +186,85 @@ func TestExecutorRunOneUsesRegisteredTaskContext(t *testing.T) {
 	}
 }
 
+func TestSynchronousRunnerRunChatUnregistersCompletedTask(t *testing.T) {
+	runner := newTestSynchronousRunner()
+	req := &llm.LLMRequest{RequestID: "repeat"}
+	respond := func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error) {
+		return &llm.LLMResponse{}, nil
+	}
+
+	if _, err := runner.RunChat(context.Background(), req, respond); err != nil {
+		t.Fatalf("first RunChat: %v", err)
+	}
+	if _, err := runner.RunChat(context.Background(), req, respond); err != nil {
+		t.Fatalf("second RunChat reused completed task ID: %v", err)
+	}
+}
+
+func TestSynchronousRunnerRunChatUnregistersFailedTask(t *testing.T) {
+	runner := newTestSynchronousRunner()
+	req := &llm.LLMRequest{RequestID: "repeat-error"}
+	providerErr := errors.New("provider failed")
+
+	_, err := runner.RunChat(context.Background(), req, func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error) {
+		return nil, providerErr
+	})
+	if !errors.Is(err, providerErr) {
+		t.Fatalf("expected provider error, got %v", err)
+	}
+	if _, err := runner.RunChat(context.Background(), req, func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error) {
+		return &llm.LLMResponse{}, nil
+	}); err != nil {
+		t.Fatalf("RunChat did not unregister failed task: %v", err)
+	}
+}
+
+func TestSynchronousRunnerRunChatCancelsProviderWithOwnerContext(t *testing.T) {
+	runner := newTestSynchronousRunner()
+	ctx, cancel := context.WithCancel(context.Background())
+	started := make(chan struct{})
+	release := make(chan struct{})
+	done := make(chan error, 1)
+
+	go func() {
+		_, err := runner.RunChat(ctx, &llm.LLMRequest{RequestID: "cancel-provider"}, func(runCtx context.Context, _ *llm.LLMRequest) (*llm.LLMResponse, error) {
+			close(started)
+			select {
+			case <-runCtx.Done():
+				return nil, runCtx.Err()
+			case <-release:
+				return &llm.LLMResponse{}, nil
+			}
+		})
+		done <- err
+	}()
+
+	<-started
+	cancel()
+	select {
+	case err := <-done:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("expected context cancellation, got %v", err)
+		}
+	case <-time.After(200 * time.Millisecond):
+		close(release)
+		t.Fatalf("provider did not observe owner context cancellation")
+	}
+}
+
+func newTestSynchronousRunner() *scheduler.SynchronousRunner {
+	queue := scheduler.NewMemoryQueue()
+	registry := scheduler.NewResultRegistry()
+	intake := &scheduler.TaskIntake{
+		Queue:    queue,
+		Guard:    scheduler.QueueGuard{SoftLimit: 100, HardLimit: 100},
+		Scorer:   scheduler.FIFOScorer{Reason: "test"},
+		Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{},
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+	return scheduler.NewSynchronousRunner(intake, executor, registry)
+}
+
 type contextKey string
