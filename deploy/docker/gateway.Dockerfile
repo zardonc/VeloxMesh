@@ -15,7 +15,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/schedul
 
 FROM alpine:3.22
 
-RUN apk add --no-cache ca-certificates tzdata && adduser -D -H veloxmesh
+RUN apk add --no-cache ca-certificates tzdata && adduser -D -H -u 10001 veloxmesh
 
 WORKDIR /app
 

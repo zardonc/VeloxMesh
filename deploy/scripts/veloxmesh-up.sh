@@ -68,6 +68,8 @@ if [ "$created" = "1" ]; then
   exit 0
 fi
 
+mkdir -p deploy/data deploy/reports deploy/models/current
+
 echo "Config ready for '$mode'. Starting Docker Compose."
 
 # shellcheck disable=SC2086
