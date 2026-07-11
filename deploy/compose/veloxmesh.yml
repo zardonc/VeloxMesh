@@ -77,7 +77,7 @@ services:
       - --artifact-dir=/models/current
       - --addr=0.0.0.0:50052
     volumes:
-      - ../models/current:/models/current:ro
+      - ../models/current:/models/current
     restart: unless-stopped
     profiles: ["full", "simple", "compare"]
 

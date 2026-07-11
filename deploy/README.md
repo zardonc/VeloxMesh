@@ -3,6 +3,24 @@
 This guide is for a host that only has Docker and Docker Compose installed.
 The deployment branch is currently `main`.
 
+## One-command install
+
+Use this path when the server does not have a local checkout:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sudo sh
+```
+
+Choose a profile:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sudo sh -s -- --profile full
+```
+
+The installer creates `/opt/veloxmesh`, downloads the deployment files, uses the
+GitHub repository as the Docker build context, generates local config, and
+starts Docker Compose. Existing local env/config files are kept on rerun.
+
 ## Prerequisites
 
 - Docker Engine or Docker Desktop with Docker Compose v2.
