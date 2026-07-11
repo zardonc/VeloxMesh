@@ -61,3 +61,14 @@ func TestExtractSafeFeaturesChineseSentenceLengthBucket(t *testing.T) {
 		t.Fatalf("expected Chinese punctuation to split sentence bucket to 2, got %#v", got)
 	}
 }
+
+func TestExtractSafeFeaturesUnspacedCJK(t *testing.T) {
+	req := &llm.LLMRequest{Messages: []llm.Message{{Role: llm.RoleUser, Content: "请帮我分析这段代码并提出改进方案，需要考虑性能和可读性两个维度。"}}}
+	got := ExtractSafeFeatures(req, PriorityNormal, "", time.Now())
+	if got.EstimatedInputTokens <= 1 {
+		t.Fatalf("expected unspaced CJK to produce multiple tokens, got %#v", got)
+	}
+	if got.MaxSentenceLengthBucket <= 1 {
+		t.Fatalf("expected unspaced CJK sentence bucket above tiny text, got %#v", got)
+	}
+}

@@ -532,6 +532,17 @@ func TestWeightedScorerONNXFailureFallsBackToHeuristicThenFIFO(t *testing.T) {
 	}
 }
 
+func TestWeightedScorerScorerErrorFallbackKeepsFIFOType(t *testing.T) {
+	scorer := WeightedScorer{Heuristic: errorScorer{}, ONNX: &recordingScorer{}, ONNXRolloutPercent: 0}
+	results, err := scorer.Score(context.Background(), []TaskFeature{{TaskID: "t1", EnqueueTimeMs: 42}})
+	if err != nil {
+		t.Fatalf("Score: %v", err)
+	}
+	if results[0].SchedulerType != SchedulerTypeFIFO || results[0].FallbackReason != "heuristic_failed" {
+		t.Fatalf("expected FIFO fallback metadata, got %#v", results[0])
+	}
+}
+
 func TestRolloutAssignmentUsesTaskID(t *testing.T) {
 	task := TaskFeature{TaskID: "stable", EnqueueTimeMs: 1}
 	if rolloutBucket(task, 0) != rolloutBucket(TaskFeature{TaskID: "stable", EnqueueTimeMs: 999}, 7) {

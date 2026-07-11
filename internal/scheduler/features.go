@@ -10,7 +10,7 @@ import (
 
 func ExtractSafeFeatures(req *llm.LLMRequest, priority PriorityClass, routeHint string, enqueue time.Time) TaskFeature {
 	text := lowerText(req)
-	words := strings.Fields(text)
+	words := featureTokens(text)
 	return TaskFeature{
 		TaskID:                   req.RequestID,
 		ModelClass:               modelClass(req.Model),
@@ -36,6 +36,33 @@ func ExtractSafeFeatures(req *llm.LLMRequest, priority PriorityClass, routeHint 
 		UncertaintyHint:          0,
 		CoverageLevel:            SemanticCoverageNone,
 	}
+}
+
+func featureTokens(text string) []string {
+	words := strings.Fields(text)
+	if len(words) != 1 || !hasCJK(words[0]) {
+		return words
+	}
+	tokens := make([]string, 0, len([]rune(words[0])))
+	for _, r := range words[0] {
+		tokens = append(tokens, string(r))
+	}
+	return tokens
+}
+
+func hasCJK(text string) bool {
+	for _, r := range text {
+		if isCJK(r) {
+			return true
+		}
+	}
+	return false
+}
+
+func isCJK(r rune) bool {
+	return (r >= 0x4E00 && r <= 0x9FFF) ||
+		(r >= 0x3040 && r <= 0x30FF) ||
+		(r >= 0xAC00 && r <= 0xD7AF)
 }
 
 func modelClass(model string) string {

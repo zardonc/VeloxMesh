@@ -132,3 +132,58 @@ func TestExecutorRunOneDeliversPanicToTaskOwner(t *testing.T) {
 		t.Fatalf("panic was not delivered to owner: %#v", result)
 	}
 }
+
+func TestExecutorRunOneUsesRegisteredTaskContext(t *testing.T) {
+	queue := scheduler.NewMemoryQueue()
+	registry := scheduler.NewResultRegistry()
+	scorer := scheduler.FIFOScorer{Reason: "test"}
+	intake := &scheduler.TaskIntake{
+		Queue:    queue,
+		Guard:    scheduler.QueueGuard{SoftLimit: 100, HardLimit: 100},
+		Scorer:   scorer,
+		Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{},
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+	ownerCtx := context.WithValue(context.Background(), contextKey("owner"), "task-owner")
+	started := make(chan context.Context, 1)
+	release := make(chan struct{})
+	task, err := intake.Submit(ownerCtx, &llm.LLMRequest{RequestID: "task-b"}, func(ctx context.Context) scheduler.TaskResult {
+		started <- ctx
+		select {
+		case <-ctx.Done():
+			return scheduler.TaskResult{Error: ctx.Err()}
+		case <-release:
+			return scheduler.TaskResult{Response: ctx.Value(contextKey("owner"))}
+		}
+	})
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
+	waiterCtx, cancelWaiter := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() {
+		done <- executor.RunOne(waiterCtx)
+	}()
+	taskCtx := <-started
+	cancelWaiter()
+	select {
+	case <-taskCtx.Done():
+		t.Fatalf("waiter cancellation reached task context: %v", taskCtx.Err())
+	case <-time.After(20 * time.Millisecond):
+	}
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatalf("RunOne: %v", err)
+	}
+	result, err := registry.Wait(context.Background(), task.ID)
+	if err != nil {
+		t.Fatalf("Wait: %v", err)
+	}
+	if result.Error != nil || result.Response != "task-owner" {
+		t.Fatalf("unexpected task result: %#v", result)
+	}
+}
+
+type contextKey string

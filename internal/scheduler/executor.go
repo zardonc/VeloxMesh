@@ -26,15 +26,13 @@ func (e *Executor) RunOne(ctx context.Context) error {
 		return err
 	}
 	e.Registry.MarkRunning(item.TaskID)
-	handler, ok := e.Registry.Handler(item.TaskID)
+	handler, taskCtx, ok := e.Registry.HandlerContext(item.TaskID)
 	if !ok {
 		if e.Metrics != nil {
 			e.Metrics.IncSchedulerError("missing_handler")
 		}
 		return nil
 	}
-	taskCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
 	result := runTaskHandler(taskCtx, handler)
 	e.Registry.Deliver(item.TaskID, result)
 	return nil

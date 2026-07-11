@@ -65,7 +65,7 @@ func (i *TaskIntake) Submit(ctx context.Context, req *llm.LLMRequest, handler Ta
 		State:       TaskStateQueued,
 		Metadata:    scoreMetadata(score, scoreLatency),
 	}
-	if err := i.Registry.RegisterTask(task, handler); err != nil {
+	if err := i.Registry.RegisterTaskWithContext(ctx, task, handler); err != nil {
 		return Task{}, err
 	}
 	pushed, err := i.pushAdmitted(ctx, task, priority.Resolved)

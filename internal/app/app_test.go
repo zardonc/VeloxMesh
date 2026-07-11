@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -192,6 +193,26 @@ func TestApp_SchedulerDisabledDoesNotCreateRunner(t *testing.T) {
 	}
 }
 
+func TestAppCloseCancelsLifecycle(t *testing.T) {
+	t.Setenv("CONFIG_FILE", "")
+	t.Setenv("DEFAULT_PROVIDER", "openai-primary")
+	t.Setenv("OPENAI_PRIMARY_MODELS", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_BASE_URL", "https://api.openai.com/v1")
+	t.Setenv("OPENAI_PRIMARY_DEFAULT_MODEL", "gpt-4o-mini")
+	t.Setenv("OPENAI_PRIMARY_API_KEY", "test-key")
+
+	application, err := New()
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+	application.Close()
+	select {
+	case <-application.lifecycleCtx.Done():
+	case <-time.After(time.Second):
+		t.Fatalf("expected lifecycle context canceled")
+	}
+}
+
 func TestNewSchedulerQueueDefaultsToMemoryWhenRedisIsEnabled(t *testing.T) {
 	cfg := &config.Config{
 		RedisEnabled:   true,
@@ -218,11 +239,11 @@ func TestNewSchedulerQueueExplicitRedisIsNodeScoped(t *testing.T) {
 		Scheduler:      config.SchedulerConfig{QueueBackend: "redis"},
 	}
 	queue, backend := newSchedulerQueue(context.Background(), cfg, discardLogger())
-	if backend != "redis" {
-		t.Fatalf("expected redis backend, got backend=%s", backend)
+	if backend != "redis+fallback" {
+		t.Fatalf("expected redis fallback backend, got backend=%s", backend)
 	}
-	if _, ok := queue.(*scheduler.RedisQueue); !ok {
-		t.Fatalf("expected redis queue, got %T", queue)
+	if _, ok := queue.(*scheduler.FallbackQueue); !ok {
+		t.Fatalf("expected fallback queue, got %T", queue)
 	}
 	if got := schedulerRedisQueueName(cfg); got != "gateway-node-a" {
 		t.Fatalf("queue name=%q, want gateway-node-a", got)
