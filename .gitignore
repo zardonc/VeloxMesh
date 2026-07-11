@@ -26,6 +26,8 @@ deploy/env/*.env
 !deploy/env/*.example.env
 deploy/config/*.json
 !deploy/config/*.example.json
+deploy/config/*.yaml
+!deploy/config/*.example.yaml
 deploy/data/
 deploy/reports/
 deploy/models/*

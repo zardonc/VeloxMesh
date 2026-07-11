@@ -18,7 +18,7 @@
   "quality_mape_alert_percent": 25,
   "error_spike_alert_rate": 0.05,
   "quality_sample_window": 100,
-  "heuristic_config_file": "config.heuristic.example.json",
+  "heuristic_config_file": "deploy/config/heuristic.example.json",
   "feedback_enabled": false,
   "semantic_neighbors_enabled": false,
   "semantic_neighbors_embedding_model": "text-embedding-3-small",

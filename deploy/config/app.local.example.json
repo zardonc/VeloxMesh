@@ -15,8 +15,8 @@
       "default_model": "gpt-4o-mini"
     }
   ],
-  "scheduler_config_file": "config.scheduler.example.json",
-  "cache_config_file": "config.cache.example.json",
+  "scheduler_config_file": "deploy/config/scheduler.local.example.json",
+  "cache_config_file": "deploy/config/cache.local.example.json",
   "control_state": {
     "backend": "disabled",
     "dsn": "",
@@ -65,7 +65,7 @@
     "max_priority": "high",
     "high_quota_per_minute": 0,
     "score_uncertainty_penalty_k": 0.2,
-    "heuristic_config_file": "config.heuristic.example.json",
+    "heuristic_config_file": "deploy/config/heuristic.example.json",
     "onnx_rollout_percent": 0,
     "quality_mape_alert_percent": 25,
     "error_spike_alert_rate": 0.05,

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 #
 # Build the ONNX worker image from a Git repository without pre-cloning the code:
-# docker build -f docker/onnx-worker.remote-build.Dockerfile \
+# docker build -f deploy/docker/onnx-worker.remote-build.Dockerfile \
 #   --build-arg VELOXMESH_REPO_URL=https://github.com/your-org/VeloxMesh.git \
 #   --build-arg VELOXMESH_BRANCH=main \
 #   -t veloxmesh-onnx-worker:main .
@@ -19,13 +19,11 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install uv for reproducible, lock-file-driven dependency installation
 RUN pip install --no-cache-dir uv
 
 COPY --from=source /src/tools/scheduler_training/pyproject.toml /src/tools/scheduler_training/uv.lock ./
 COPY --from=source /src/tools/scheduler_training/scheduler_training ./scheduler_training
 
-# uv sync installs into .venv; set PATH so the venv python is used at runtime
 RUN uv sync --frozen --no-dev
 ENV PATH="/app/.venv/bin:$PATH"
 
