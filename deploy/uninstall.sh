@@ -67,7 +67,7 @@ if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; 
     down_args="-v"
   fi
   # shellcheck disable=SC2086
-  docker compose --env-file "$env_file" -f "$compose_file" down $down_args || true
+  docker compose --env-file "$env_file" -f "$compose_file" down $down_args
 else
   echo "Docker Compose not found; skipping container shutdown." >&2
 fi

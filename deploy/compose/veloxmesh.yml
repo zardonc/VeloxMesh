@@ -29,9 +29,19 @@ x-gateway-config: &gateway-config
     - ../data:/data
 
 services:
+  data-permissions:
+    image: alpine:3.22
+    command: ["sh", "-c", "mkdir -p /data && chown -R 10001:10001 /data"]
+    volumes:
+      - ../data:/data
+    restart: "no"
+    profiles: ["full", "simple", "compare"]
+
   gateway:
     <<: *gateway-config
     depends_on:
+      data-permissions:
+        condition: service_completed_successfully
       scheduler-onnx:
         condition: service_started
     profiles: ["full", "simple"]
@@ -41,6 +51,8 @@ services:
   gateway-compare:
     <<: *gateway-config
     depends_on:
+      data-permissions:
+        condition: service_completed_successfully
       scheduler-onnx:
         condition: service_started
       scheduler-heuristic:
