@@ -1,0 +1,3 @@
+{"id":"smoke-001","model":"{{MODEL}}","messages":[{"role":"user","content":"Reply with exactly: smoke ok"}],"temperature":0}
+{"id":"smoke-002","model":"{{MODEL}}","messages":[{"role":"user","content":"In one short sentence, say what an API gateway does."}],"temperature":0}
+{"id":"smoke-003","model":"{{MODEL}}","messages":[{"role":"user","content":"Return a tiny JSON object with the field status set to ok."}],"temperature":0}
