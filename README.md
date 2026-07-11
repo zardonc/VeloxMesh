@@ -91,10 +91,10 @@ Optional services:
 
 ### 2. Configure Environment
 
-Copy the example environment file:
+Copy the local example environment file:
 
 ```bash
-cp .env.example .env
+cp deploy/env/local.example.env .env
 ```
 
 Set at least:
@@ -106,11 +106,16 @@ OPENAI_PRIMARY_API_KEY=your-provider-key
 
 For local development, the default gateway address is `:8080`.
 
-For the PostgreSQL/pgvector deployment option, use the dedicated example instead:
+For local development against PostgreSQL/pgvector, use the dedicated local example:
 
 ```bash
-cp .env.postgres.example .env
-docker compose -f docker-compose.postgres.yml up -d
+cp deploy/env/local.postgres.example.env .env
+```
+
+For Docker-based PostgreSQL, use the unified deployment profile:
+
+```bash
+sh deploy/scripts/veloxmesh-up.sh postgres
 ```
 
 Replace all placeholder passwords, DSNs, encryption keys, and provider keys before running the gateway.
@@ -186,7 +191,7 @@ Common settings:
 
 Keep secrets in environment variables or local secret stores. Do not commit real provider keys.
 
-PostgreSQL settings live in `.env.postgres.example` so the default example stays focused on the SQLite-first local path.
+PostgreSQL settings live in `deploy/env/local.postgres.example.env` for local app runs and `deploy/env/postgres.example.env` for Docker Compose.
 
 ### Deployment Plans
 

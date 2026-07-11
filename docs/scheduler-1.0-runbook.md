@@ -11,7 +11,7 @@ The default is off: `SCHEDULER_ENABLED=false`. When disabled or unhealthy, the g
 Start with the gateway only:
 
 ```bash
-cp .env.example .env
+cp deploy/env/local.example.env .env
 make run
 ```
 
@@ -20,7 +20,7 @@ Enable Scheduler only after the gateway path is healthy:
 ```env
 SCHEDULER_ENABLED=true
 SCHEDULER_MODE=heuristic
-SCHEDULER_CONFIG_FILE=config.scheduler.example.json
+SCHEDULER_CONFIG_FILE=deploy/config/scheduler.local.example.json
 ```
 
 For ONNX scoring, keep rollout at zero until both the Scheduler process and Python predictor worker are healthy.
@@ -60,8 +60,8 @@ curl -fsS http://localhost:9091/status
 
 ## Monitoring
 
-Prometheus scrape configuration lives in `docker/observability/prometheus.yml`.
-Scheduler alert rules live in `docker/observability/scheduler-alerts.yml` and cover queue hard-limit rejection, soft-limit backpressure, ONNX MAPE/error rollout alerts, and an open scheduler circuit breaker.
+Prometheus scrape configuration lives in `deploy/observability/prometheus.yml`.
+Scheduler alert rules live in `deploy/observability/scheduler-alerts.yml` and cover queue hard-limit rejection, soft-limit backpressure, ONNX MAPE/error rollout alerts, and an open scheduler circuit breaker.
 
 No Grafana dashboard template is shipped for 1.0. Build dashboards from the shipped Prometheus metrics and alert rules when a deployment needs a visual console.
 
@@ -133,7 +133,7 @@ Semantic-neighbor example:
 ```env
 SCHEDULER_SEMANTIC_NEIGHBORS_ENABLED=true
 SCHEDULER_SEMANTIC_NEIGHBORS_EMBEDDING_MODEL=text-embedding-3-small
-CACHE_CONFIG_FILE=config.cache.example.json
+CACHE_CONFIG_FILE=deploy/config/cache.local.example.json
 ```
 
 ## Degradation Playbooks
@@ -224,7 +224,7 @@ Use the existing admin protections for these routes. Send `Authorization: Bearer
 | `GET /admin/v1/scheduler/training-samples/export` | Export safe training features and labels as JSON or NDJSON. |
 | `PATCH /admin/v1/scheduler/rollout` | Roll ONNX traffic back to heuristic by setting rollout to `0`, or update `quality_sample_window`. |
 
-Admin changes to ONNX rollout, quality sample window, and SLA promotion rules affect the running process only. In multi-node deployments, apply the same runtime change on each node or update durable config before restart; cross-node propagation is not implemented yet. Put durable values back into `config.scheduler.example.json`, the deployment config file, or environment management before restart.
+Admin changes to ONNX rollout, quality sample window, and SLA promotion rules affect the running process only. In multi-node deployments, apply the same runtime change on each node or update durable config before restart; cross-node propagation is not implemented yet. Put durable values back into `deploy/config/scheduler.local.example.json`, the deployment config file, or environment management before restart.
 
 Known multi-node limitation: the Redis Scheduler queue is node-scoped and stores task IDs only; handlers and task contexts remain process-local in the gateway. Do not point multiple gateway nodes at one shared Scheduler queue for cross-node work stealing. Keep the default in-memory queue or the documented node-scoped Redis queue until a durable task store is added.
 

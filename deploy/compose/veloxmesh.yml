@@ -3,7 +3,7 @@ name: veloxmesh
 x-go-service: &go-service
   build:
     context: ${VELOXMESH_BUILD_CONTEXT:-../..}
-    dockerfile: Dockerfile
+    dockerfile: deploy/docker/gateway.Dockerfile
   image: veloxmesh-go:local
   restart: unless-stopped
 
@@ -25,7 +25,7 @@ x-gateway-config: &gateway-config
     - ${VELOXMESH_APP_CONFIG:-../config/app.full.example.json}:/config/app.json:ro
     - ${VELOXMESH_SCHEDULER_CONFIG:-../config/scheduler.full.example.json}:/config/scheduler.json:ro
     - ${VELOXMESH_CACHE_CONFIG:-../config/cache.full.example.json}:/config/cache.json:ro
-    - ${VELOXMESH_PIPELINE_CONFIG:-../config/pipeline.full.example.yaml}:/config/pipeline.yaml:ro
+    - ${VELOXMESH_PIPELINE_CONFIG:-../config/pipeline.example.yaml}:/config/pipeline.yaml:ro
     - ../data:/data
 
 services:
@@ -82,7 +82,7 @@ services:
   onnx-worker:
     build:
       context: ${VELOXMESH_BUILD_CONTEXT:-../..}
-      dockerfile: docker/onnx-worker.Dockerfile
+      dockerfile: deploy/docker/onnx-worker.Dockerfile
     image: veloxmesh-onnx-worker:local
     command:
       - python

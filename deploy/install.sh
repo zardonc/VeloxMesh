@@ -128,7 +128,7 @@ VELOXMESH_BUILD_CONTEXT=$REPO_URL#$BRANCH
 VELOXMESH_APP_CONFIG=../config/app.$PROFILE_NAME.json
 VELOXMESH_SCHEDULER_CONFIG=../config/scheduler.$PROFILE_NAME.json
 VELOXMESH_CACHE_CONFIG=../config/cache.$PROFILE_NAME.json
-VELOXMESH_PIPELINE_CONFIG=../config/pipeline.$PROFILE_NAME.yaml
+VELOXMESH_PIPELINE_CONFIG=../config/pipeline.yaml
 VELOXMESH_PROMETHEUS_CONFIG=../observability/$PROMETHEUS_FILE
 GRAFANA_ADMIN_USER=admin
 GRAFANA_ADMIN_PASSWORD=$GRAFANA_PASSWORD
@@ -192,7 +192,7 @@ if download_if_missing "deploy/config/app.$PROFILE_NAME.example.json" "$INSTALL_
 fi
 download_if_missing "deploy/config/scheduler.$PROFILE_NAME.example.json" "$INSTALL_DIR/config/scheduler.$PROFILE_NAME.json" || true
 download_if_missing "deploy/config/cache.$PROFILE_NAME.example.json" "$INSTALL_DIR/config/cache.$PROFILE_NAME.json" || true
-download_if_missing "deploy/config/pipeline.$PROFILE_NAME.example.yaml" "$INSTALL_DIR/config/pipeline.$PROFILE_NAME.yaml" || true
+download_if_missing deploy/config/pipeline.example.yaml "$INSTALL_DIR/config/pipeline.yaml" || true
 download deploy/config/heuristic.example.json "$INSTALL_DIR/config/heuristic.example.json"
 download "deploy/observability/$PROMETHEUS_FILE" "$INSTALL_DIR/observability/$PROMETHEUS_FILE"
 download deploy/observability/scheduler-alerts.yml "$INSTALL_DIR/observability/scheduler-alerts.yml"

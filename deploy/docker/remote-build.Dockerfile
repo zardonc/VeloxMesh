@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 #
 # Build the Go runtime image from a Git repository without pre-cloning the code:
-# docker build -f docker/remote-build.Dockerfile \
+# docker build -f deploy/docker/remote-build.Dockerfile \
 #   --build-arg VELOXMESH_REPO_URL=https://github.com/your-org/VeloxMesh.git \
 #   --build-arg VELOXMESH_BRANCH=main \
 #   -t veloxmesh-go:main .

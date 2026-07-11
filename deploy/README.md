@@ -36,15 +36,15 @@ deploy/
   compose/veloxmesh.yml          Main single-host Compose file
   env/*.example.env              Copy to *.env; local secrets stay ignored
   config/*.example.json          Safe application, scheduler, and cache examples
-  config/pipeline.*.example.yaml Safe input/output pipeline examples
+  config/pipeline.example.yaml   Shared input/output pipeline example
   models/                        Local ONNX artifacts; ignored except README
   observability/                 Prometheus, Grafana, Promtail, and OTel config
   reports/                       Benchmark output; ignored
   data/                          Local SQLite and runtime data; ignored
 ```
 
-Root-level `.env.example`, `.env.postgres.example`, and `config.*.example.json`
-remain as compatibility examples. New deployments should prefer `deploy/`.
+All deployment Dockerfiles, Compose files, env examples, and config examples live
+under `deploy/` so local deployment state has one home.
 
 ## Get the code
 
@@ -68,6 +68,12 @@ download the application source from.
 
 ## Prepare local configuration
 
+Shared pipeline configuration:
+
+```bash
+cp deploy/config/pipeline.example.yaml deploy/config/pipeline.yaml
+```
+
 Full stack with Redis and Qdrant:
 
 ```bash
@@ -75,7 +81,6 @@ cp deploy/env/full.example.env deploy/env/full.env
 cp deploy/config/app.full.example.json deploy/config/app.full.json
 cp deploy/config/scheduler.full.example.json deploy/config/scheduler.full.json
 cp deploy/config/cache.full.example.json deploy/config/cache.full.json
-cp deploy/config/pipeline.full.example.yaml deploy/config/pipeline.full.yaml
 ```
 
 Simple stack without Redis and Qdrant:
@@ -85,7 +90,6 @@ cp deploy/env/simple.example.env deploy/env/simple.env
 cp deploy/config/app.simple.example.json deploy/config/app.simple.json
 cp deploy/config/scheduler.simple.example.json deploy/config/scheduler.simple.json
 cp deploy/config/cache.simple.example.json deploy/config/cache.simple.json
-cp deploy/config/pipeline.simple.example.yaml deploy/config/pipeline.simple.yaml
 ```
 
 PostgreSQL profile:
@@ -101,7 +105,6 @@ cp deploy/env/compare.example.env deploy/env/compare.env
 cp deploy/config/app.compare.example.json deploy/config/app.compare.json
 cp deploy/config/scheduler.compare.example.json deploy/config/scheduler.compare.json
 cp deploy/config/cache.compare.example.json deploy/config/cache.compare.json
-cp deploy/config/pipeline.compare.example.yaml deploy/config/pipeline.compare.yaml
 ```
 
 Then edit the copied `.env`, `.json`, and `.yaml` files and replace every `replace-with-*`
@@ -228,8 +231,9 @@ uses the normal provider routing pool for that model. Add `X-Route-To:
 
 ## Input and output pipelines
 
-Each deployment profile mounts a pipeline file through
-`VELOXMESH_PIPELINE_CONFIG`. The default examples keep every rule disabled:
+All deployment profiles mount the same pipeline file through
+`VELOXMESH_PIPELINE_CONFIG`. Pipeline behavior is independent of profile; the
+default example keeps every rule disabled:
 
 ```yaml
 input:
@@ -315,19 +319,19 @@ Build images directly from the remote `main` branch without a local source
 checkout:
 
 ```bash
-docker build -f Dockerfile -t veloxmesh-go:main https://github.com/your-org/VeloxMesh.git#main
-docker build -f docker/onnx-worker.Dockerfile -t veloxmesh-onnx-worker:main https://github.com/your-org/VeloxMesh.git#main
+docker build -f deploy/docker/gateway.Dockerfile -t veloxmesh-go:main https://github.com/your-org/VeloxMesh.git#main
+docker build -f deploy/docker/onnx-worker.Dockerfile -t veloxmesh-onnx-worker:main https://github.com/your-org/VeloxMesh.git#main
 ```
 
 Or use the explicit remote-build Dockerfiles from a copied deploy bundle:
 
 ```bash
-docker build -f docker/remote-build.Dockerfile \
+docker build -f deploy/docker/remote-build.Dockerfile \
   --build-arg VELOXMESH_REPO_URL=https://github.com/your-org/VeloxMesh.git \
   --build-arg VELOXMESH_BRANCH=main \
   -t veloxmesh-go:main .
 
-docker build -f docker/onnx-worker.remote-build.Dockerfile \
+docker build -f deploy/docker/onnx-worker.remote-build.Dockerfile \
   --build-arg VELOXMESH_REPO_URL=https://github.com/your-org/VeloxMesh.git \
   --build-arg VELOXMESH_BRANCH=main \
   -t veloxmesh-onnx-worker:main .
@@ -436,7 +440,7 @@ sh deploy/scripts/veloxmesh-down.sh -v
 
 ## Configuration safety
 
-- Commit only `*.example.env` and `*.example.json`.
+- Commit only `*.example.env`, `*.example.json`, and `*.example.yaml`.
 - Do not commit `deploy/env/*.env`, `deploy/data/`, `deploy/reports/`, or model artifacts.
 - Keep provider keys in env files and reference them from JSON through `auth.api_key_env`.
 - Replace placeholder admin, Grafana, Qdrant, PostgreSQL, and encryption values before use.
