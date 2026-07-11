@@ -2,6 +2,7 @@ import json
 
 import grpc
 
+import scheduler_training.onnx_worker as onnx_worker
 from scheduler_training.onnx_worker import predictor_pb2, predictor_pb2_grpc, start_server
 from scheduler_training.publish import publish_artifact
 from scheduler_training.train import train_file
@@ -94,3 +95,23 @@ def test_worker_creates_default_artifact_when_missing(tmp_path):
         assert response.predictions[0].quantiles[70] > 0
     finally:
         server.stop(0)
+
+
+def test_worker_uses_fallback_default_artifact_when_mount_is_read_only(tmp_path, monkeypatch):
+    artifact = tmp_path / "current"
+    fallback = tmp_path / "fallback"
+    original_write_feature_onnx = onnx_worker.write_feature_onnx
+
+    def write_feature_onnx(model, path):
+        if path.parent == artifact:
+            raise PermissionError("read-only artifact mount")
+        original_write_feature_onnx(model, path)
+
+    monkeypatch.setenv("VELOXMESH_DEFAULT_ARTIFACT_DIR", str(fallback))
+    monkeypatch.setattr(onnx_worker, "write_feature_onnx", write_feature_onnx)
+
+    worker = onnx_worker.ONNXWorker(artifact)
+
+    assert worker.artifact_dir == fallback
+    assert (fallback / "model.onnx").exists()
+    assert (fallback / "manifest.json").exists()

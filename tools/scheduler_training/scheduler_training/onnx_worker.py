@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from concurrent import futures
 from pathlib import Path
@@ -23,14 +24,15 @@ import predictor_pb2_grpc  # noqa: E402
 COVERAGE_LEVEL_ENCODING = {"none": 0.0, "fallback": 0.5, "tenant": 1.0, "all": 1.0}
 DEFAULT_MODEL_VERSION = "scheduler-predictor-default"
 DEFAULT_P70_OUTPUT_TOKENS = 128.0
+DEFAULT_ARTIFACT_DIR_ENV = "VELOXMESH_DEFAULT_ARTIFACT_DIR"
+DEFAULT_ARTIFACT_DIR = Path("/tmp/veloxmesh-default-scheduler-artifact")
 
 
 class ONNXWorker(predictor_pb2_grpc.OutputTokenPredictorServicer):
     def __init__(self, artifact_dir: Path):
-        self.artifact_dir = artifact_dir
-        ensure_artifact(artifact_dir)
-        self.manifest = json.loads((artifact_dir / "manifest.json").read_text(encoding="utf-8"))
-        self.session = ort.InferenceSession(str(artifact_dir / "model.onnx"), providers=["CPUExecutionProvider"])
+        self.artifact_dir = ensure_artifact(artifact_dir)
+        self.manifest = json.loads((self.artifact_dir / "manifest.json").read_text(encoding="utf-8"))
+        self.session = ort.InferenceSession(str(self.artifact_dir / "model.onnx"), providers=["CPUExecutionProvider"])
 
     def Health(self, request, context):
         return predictor_pb2.HealthResponse(ready=True, model_version=self.manifest.get("model_version", ""))
@@ -75,11 +77,30 @@ def scalar(value) -> float:
     return float(item)
 
 
-def ensure_artifact(artifact_dir: Path) -> None:
+def ensure_artifact(artifact_dir: Path) -> Path:
+    if artifact_exists(artifact_dir):
+        return artifact_dir
+    try:
+        write_default_artifact(artifact_dir)
+        return artifact_dir
+    except OSError:
+        fallback_dir = Path(os.environ.get(DEFAULT_ARTIFACT_DIR_ENV, DEFAULT_ARTIFACT_DIR))
+        if fallback_dir == artifact_dir:
+            raise
+        if not artifact_exists(fallback_dir):
+            write_default_artifact(fallback_dir)
+        return fallback_dir
+
+
+def artifact_exists(artifact_dir: Path) -> bool:
     model_path = artifact_dir / "model.onnx"
     manifest_path = artifact_dir / "manifest.json"
-    if model_path.exists() and manifest_path.exists():
-        return
+    return model_path.exists() and manifest_path.exists()
+
+
+def write_default_artifact(artifact_dir: Path) -> None:
+    model_path = artifact_dir / "model.onnx"
+    manifest_path = artifact_dir / "manifest.json"
     artifact_dir.mkdir(parents=True, exist_ok=True)
     model = {
         "target": TARGET,
