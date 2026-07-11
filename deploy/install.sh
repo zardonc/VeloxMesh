@@ -1,8 +1,12 @@
 #!/usr/bin/env sh
 set -eu
+if (set -o pipefail) 2>/dev/null; then
+  set -o pipefail
+fi
 
 PROFILE="${VELOXMESH_PROFILE:-simple}"
 INSTALL_DIR="${VELOXMESH_INSTALL_DIR:-$(pwd)/VeloxMesh}"
+PROJECT_NAME="${VELOXMESH_PROJECT_NAME:-veloxmesh}"
 REPO_URL="${VELOXMESH_REPO_URL:-https://github.com/zardonc/VeloxMesh.git}"
 BRANCH="${VELOXMESH_BRANCH:-main}"
 RAW_BASE="${VELOXMESH_RAW_BASE:-}"
@@ -16,6 +20,8 @@ POSTGRES_USER="${POSTGRES_USER:-veloxmesh}"
 POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-}"
 POSTGRES_DB="${POSTGRES_DB:-veloxmesh}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+HOST_UID="${VELOXMESH_HOST_UID:-}"
+HOST_GID="${VELOXMESH_HOST_GID:-}"
 
 usage() {
   cat <<'EOF'
@@ -24,6 +30,7 @@ Usage: install.sh [options]
 Options:
   --profile simple|full|compare|postgres
   --install-dir ./VeloxMesh
+  --project-name veloxmesh
   --repo-url https://github.com/zardonc/VeloxMesh.git
   --branch main
   --raw-base https://raw.githubusercontent.com/zardonc/VeloxMesh/main
@@ -44,6 +51,7 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --profile) PROFILE="$2"; shift 2 ;;
     --install-dir) INSTALL_DIR="$2"; shift 2 ;;
+    --project-name) PROJECT_NAME="$2"; shift 2 ;;
     --repo-url) REPO_URL="$2"; shift 2 ;;
     --branch) BRANCH="$2"; shift 2 ;;
     --raw-base) RAW_BASE="$2"; shift 2 ;;
@@ -74,22 +82,42 @@ need() {
   }
 }
 
+refuse_root() {
+  if command -v id >/dev/null 2>&1 && [ "$(id -u)" = "0" ]; then
+    echo "Do not run install.sh with sudo/root." >&2
+    echo "Run it as the user who will edit VeloxMesh config files." >&2
+    exit 2
+  fi
+}
+
+current_id() {
+  flag="$1"
+  if command -v id >/dev/null 2>&1; then
+    id "$flag"
+    return
+  fi
+  echo "1000"
+}
+
 random_token() {
   if command -v openssl >/dev/null 2>&1; then
     openssl rand -hex 24
     return
   fi
-  LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 48
-  echo
+  random_hex 24
 }
 
 random_key32() {
   if command -v openssl >/dev/null 2>&1; then
-    openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c 32
-    echo
+    openssl rand -hex 16
     return
   fi
-  LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
+  random_hex 16
+}
+
+random_hex() {
+  bytes="$1"
+  od -An -N "$bytes" -tx1 /dev/urandom | tr -d ' \n'
   echo
 }
 
@@ -137,18 +165,31 @@ read_env_value() {
 read_app_admin_key() {
   file="$INSTALL_DIR/config/app.$APP_PROFILE_NAME.json"
   if [ -f "$file" ]; then
-    sed -n 's/.*"admin_api_key"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$file" | head -n 1
+    sed -n 's/.*"admin_api_key"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p; t done; b; :done; q' "$file"
   fi
 }
 
 load_existing_env() {
   env_file="$1"
   check_existing_profile "$env_file"
+  loaded="$(read_env_value VELOXMESH_PROJECT_NAME "$env_file")"; if [ -n "$loaded" ]; then PROJECT_NAME="$loaded"; fi
+  loaded="$(read_env_value VELOXMESH_HOST_UID "$env_file")"; if [ -n "$loaded" ]; then HOST_UID="$loaded"; fi
+  loaded="$(read_env_value VELOXMESH_HOST_GID "$env_file")"; if [ -n "$loaded" ]; then HOST_GID="$loaded"; fi
   loaded="$(read_env_value DEV_API_KEY "$env_file")"; if [ -n "$loaded" ]; then DEV_API_KEY="$loaded"; fi
   loaded="$(read_env_value OPENAI_PRIMARY_API_KEY "$env_file")"; if [ -n "$loaded" ]; then PROVIDER_API_KEY="$loaded"; fi
   loaded="$(read_env_value GRAFANA_ADMIN_PASSWORD "$env_file")"; if [ -n "$loaded" ]; then GRAFANA_PASSWORD="$loaded"; fi
   loaded="$(read_env_value POSTGRES_PASSWORD "$env_file")"; if [ -n "$loaded" ]; then POSTGRES_PASSWORD="$loaded"; fi
   loaded="$(read_app_admin_key)"; if [ -n "$loaded" ]; then ADMIN_API_KEY="$loaded"; fi
+}
+
+ensure_env_value() {
+  key="$1"
+  value="$2"
+  file="$3"
+  if grep -q "^$key=" "$file"; then
+    return
+  fi
+  printf '%s=%s\n' "$key" "$value" >>"$file"
 }
 
 check_existing_profile() {
@@ -172,11 +213,24 @@ write_env_if_missing() {
   env_file="$INSTALL_DIR/env/veloxmesh.env"
   if [ -f "$env_file" ]; then
     load_existing_env "$env_file"
+    ensure_env_value VELOXMESH_PROJECT_NAME "$PROJECT_NAME" "$env_file"
+    ensure_env_value VELOXMESH_GATEWAY_BIND_ADDR "0.0.0.0" "$env_file"
+    ensure_env_value VELOXMESH_ADMIN_BIND_ADDR "127.0.0.1" "$env_file"
+    ensure_env_value VELOXMESH_LOCAL_BIND_ADDR "127.0.0.1" "$env_file"
+    ensure_env_value VELOXMESH_HOST_UID "$HOST_UID" "$env_file"
+    ensure_env_value VELOXMESH_HOST_GID "$HOST_GID" "$env_file"
+    chmod 600 "$env_file" 2>/dev/null || true
     return
   fi
   prepare_file_target "$env_file"
   cat >"$env_file" <<EOF
 VELOXMESH_PROFILE=$PROFILE
+VELOXMESH_PROJECT_NAME=$PROJECT_NAME
+VELOXMESH_GATEWAY_BIND_ADDR=0.0.0.0
+VELOXMESH_ADMIN_BIND_ADDR=127.0.0.1
+VELOXMESH_LOCAL_BIND_ADDR=127.0.0.1
+VELOXMESH_HOST_UID=$HOST_UID
+VELOXMESH_HOST_GID=$HOST_GID
 DEV_API_KEY=$DEV_API_KEY
 OPENAI_PRIMARY_API_KEY=$PROVIDER_API_KEY
 VELOXMESH_BUILD_CONTEXT=$REPO_URL#$BRANCH
@@ -192,6 +246,7 @@ POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 POSTGRES_DB=$POSTGRES_DB
 POSTGRES_PORT=$POSTGRES_PORT
 EOF
+  chmod 600 "$env_file" 2>/dev/null || true
 }
 
 patch_app_config() {
@@ -210,8 +265,10 @@ patch_app_config() {
   sed -i "s/replace-with-local-admin-token/$admin_key/g" "$file"
   sed -i "s/replace-with-32-byte-local-key!!/$enc_key/g" "$file"
   sed -i "s/postgres:\/\/replace-with-postgres-user:replace-with-postgres-password@postgres:5432\/replace-with-postgres-database?sslmode=disable/$postgres_dsn/g" "$file"
+  chmod 600 "$file" 2>/dev/null || true
 }
 
+refuse_root
 need docker
 need curl
 
@@ -225,6 +282,8 @@ if [ -z "$ADMIN_API_KEY" ]; then ADMIN_API_KEY="adm-$(random_token)"; fi
 if [ -z "$PROVIDER_API_KEY" ]; then PROVIDER_API_KEY="replace-with-provider-api-key"; fi
 if [ -z "$GRAFANA_PASSWORD" ]; then GRAFANA_PASSWORD="$(random_token)"; fi
 if [ -z "$POSTGRES_PASSWORD" ]; then POSTGRES_PASSWORD="$(random_token)"; fi
+if [ -z "$HOST_UID" ]; then HOST_UID="$(current_id -u)"; fi
+if [ -z "$HOST_GID" ]; then HOST_GID="$(current_id -g)"; fi
 CONTROL_STATE_ENCRYPTION_KEY="$(random_key32)"
 
 if [ -z "$RAW_BASE" ]; then
@@ -255,6 +314,12 @@ fi
 
 mkdir -p "$INSTALL_DIR/compose" "$INSTALL_DIR/env" "$INSTALL_DIR/config" "$INSTALL_DIR/models/current" "$INSTALL_DIR/data" "$INSTALL_DIR/reports" "$INSTALL_DIR/observability"
 
+if [ ! -w "$INSTALL_DIR" ]; then
+  echo "Install dir is not writable by the current user: $INSTALL_DIR" >&2
+  echo "Fix ownership first, for example: sudo chown -R \"\$(id -u):\$(id -g)\" \"$INSTALL_DIR\"" >&2
+  exit 1
+fi
+
 download deploy/compose/veloxmesh.yml "$INSTALL_DIR/compose/veloxmesh.yml"
 if download_if_missing "deploy/config/app.$APP_PROFILE_NAME.example.json" "$INSTALL_DIR/config/app.$APP_PROFILE_NAME.json"; then
   patch_app_config
@@ -273,7 +338,7 @@ write_env_if_missing
 
 echo "Starting VeloxMesh profile '$PROFILE' in $INSTALL_DIR"
 # shellcheck disable=SC2086
-docker compose --env-file "$INSTALL_DIR/env/veloxmesh.env" -f "$INSTALL_DIR/compose/veloxmesh.yml" $PROFILES up -d --build
+docker compose -p "$PROJECT_NAME" --env-file "$INSTALL_DIR/env/veloxmesh.env" -f "$INSTALL_DIR/compose/veloxmesh.yml" $PROFILES up -d --build
 
 cat <<EOF
 
@@ -293,8 +358,8 @@ Grafana user: admin
 Grafana pass: $GRAFANA_PASSWORD
 
 Useful commands:
-  docker compose --env-file $INSTALL_DIR/env/veloxmesh.env -f $INSTALL_DIR/compose/veloxmesh.yml ps
-  docker compose --env-file $INSTALL_DIR/env/veloxmesh.env -f $INSTALL_DIR/compose/veloxmesh.yml logs -f $GATEWAY_SERVICE
+  docker compose -p $PROJECT_NAME --env-file $INSTALL_DIR/env/veloxmesh.env -f $INSTALL_DIR/compose/veloxmesh.yml ps
+  docker compose -p $PROJECT_NAME --env-file $INSTALL_DIR/env/veloxmesh.env -f $INSTALL_DIR/compose/veloxmesh.yml logs -f $GATEWAY_SERVICE
   curl http://localhost:8080/healthz
   curl http://localhost:8080/v1/models -H "Authorization: Bearer $DEV_API_KEY"
 EOF

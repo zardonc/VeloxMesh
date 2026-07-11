@@ -1,10 +1,11 @@
-name: veloxmesh
+name: ${VELOXMESH_PROJECT_NAME:-veloxmesh}
 
 x-go-service: &go-service
   build:
     context: ${VELOXMESH_BUILD_CONTEXT:-../..}
     dockerfile: deploy/docker/gateway.Dockerfile
   image: veloxmesh-go:local
+  user: "${VELOXMESH_HOST_UID:-1000}:${VELOXMESH_HOST_GID:-1000}"
   restart: unless-stopped
 
 x-gateway-config: &gateway-config
@@ -19,8 +20,8 @@ x-gateway-config: &gateway-config
     SEMANTIC_PIPELINE_CONFIG_FILE: /config/pipeline.yaml
     OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
   ports:
-    - "8080:8080"
-    - "8081:8081"
+    - "${VELOXMESH_GATEWAY_BIND_ADDR:-0.0.0.0}:8080:8080"
+    - "${VELOXMESH_ADMIN_BIND_ADDR:-127.0.0.1}:8081:8081"
   volumes:
     - ${VELOXMESH_APP_CONFIG:-../config/app.full.example.json}:/config/app.json:ro
     - ${VELOXMESH_SCHEDULER_CONFIG:-../config/scheduler.full.example.json}:/config/scheduler.json:ro
@@ -29,19 +30,9 @@ x-gateway-config: &gateway-config
     - ../data:/data
 
 services:
-  data-permissions:
-    image: alpine:3.22
-    command: ["sh", "-c", "mkdir -p /data && chown -R 10001:10001 /data"]
-    volumes:
-      - ../data:/data
-    restart: "no"
-    profiles: ["full", "simple", "compare"]
-
   gateway:
     <<: *gateway-config
     depends_on:
-      data-permissions:
-        condition: service_completed_successfully
       scheduler-onnx:
         condition: service_started
     profiles: ["full", "simple"]
@@ -51,8 +42,6 @@ services:
   gateway-compare:
     <<: *gateway-config
     depends_on:
-      data-permissions:
-        condition: service_completed_successfully
       scheduler-onnx:
         condition: service_started
       scheduler-heuristic:
@@ -96,6 +85,7 @@ services:
       context: ${VELOXMESH_BUILD_CONTEXT:-../..}
       dockerfile: deploy/docker/onnx-worker.Dockerfile
     image: veloxmesh-onnx-worker:local
+    user: "${VELOXMESH_HOST_UID:-1000}:${VELOXMESH_HOST_GID:-1000}"
     command:
       - python
       - -m
@@ -111,7 +101,7 @@ services:
     image: redis/redis-stack-server:latest
     command: redis-stack-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
-      - "6379:6379"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:6379:6379"
     volumes:
       - redisdata:/data
     restart: unless-stopped
@@ -120,7 +110,7 @@ services:
   redisinsight:
     image: redis/redisinsight:latest
     ports:
-      - "5540:5540"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:5540:5540"
     depends_on:
       redis:
         condition: service_started
@@ -132,8 +122,8 @@ services:
   qdrant:
     image: qdrant/qdrant:latest
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:6333:6333"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:6334:6334"
     volumes:
       - qdrantdata:/qdrant/storage
     restart: unless-stopped
@@ -146,7 +136,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy deploy/env/postgres.example.env and set POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:?copy deploy/env/postgres.example.env and set POSTGRES_DB}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres18cluster:/var/lib/postgresql
     healthcheck:
@@ -174,7 +164,7 @@ services:
   adminer:
     image: adminer:latest
     ports:
-      - "8082:8080"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:8082:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -187,7 +177,7 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.retention.time=7d
     ports:
-      - "9090:9090"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:9090:9090"
     volumes:
       - ${VELOXMESH_PROMETHEUS_CONFIG:-../observability/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
       - ../observability/scheduler-alerts.yml:/etc/prometheus/scheduler-alerts.yml:ro
@@ -198,7 +188,7 @@ services:
   grafana:
     image: grafana/grafana-oss:latest
     ports:
-      - "3000:3000"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in deploy/env/*.example.env}
@@ -217,7 +207,7 @@ services:
     image: grafana/loki:latest
     command: ["-config.file=/etc/loki/local-config.yaml"]
     ports:
-      - "3100:3100"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:3100:3100"
     restart: unless-stopped
     profiles: ["full", "simple", "compare"]
 
@@ -227,7 +217,6 @@ services:
     volumes:
       - ../observability/promtail.yml:/etc/promtail/config.yml:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       loki:
         condition: service_started
@@ -238,9 +227,9 @@ services:
     image: otel/opentelemetry-collector:latest
     command: ["--config=/etc/otelcol/config.yaml"]
     ports:
-      - "4317:4317"
-      - "4318:4318"
-      - "8889:8889"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:4317:4317"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:4318:4318"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:8889:8889"
     volumes:
       - ../observability/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
     restart: unless-stopped
@@ -249,7 +238,7 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     ports:
-      - "8083:8080"
+      - "${VELOXMESH_LOCAL_BIND_ADDR:-127.0.0.1}:8083:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro

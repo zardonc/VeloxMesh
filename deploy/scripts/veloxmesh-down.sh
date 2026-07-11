@@ -1,7 +1,11 @@
 #!/usr/bin/env sh
 set -eu
+if (set -o pipefail) 2>/dev/null; then
+  set -o pipefail
+fi
 
 env_args=""
+project_name="${VELOXMESH_PROJECT_NAME:-veloxmesh}"
 
 if [ -n "${VELOXMESH_ENV_FILE:-}" ]; then
   env_args="--env-file $VELOXMESH_ENV_FILE"
@@ -15,7 +19,7 @@ fi
 
 # shellcheck disable=SC2086
 if [ -n "$env_args" ]; then
-  exec docker compose $env_args -f deploy/compose/veloxmesh.yml down "$@"
+  exec docker compose -p "$project_name" $env_args -f deploy/compose/veloxmesh.yml down --remove-orphans "$@"
 fi
 
-exec docker compose -f deploy/compose/veloxmesh.yml down "$@"
+exec docker compose -p "$project_name" -f deploy/compose/veloxmesh.yml down --remove-orphans "$@"
