@@ -12,6 +12,8 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ## Current State
 
+**v7.8 Scheduler Scoring Backpressure Hardening** has shipped. The milestone hardened external scorer/predictor backpressure and closed scheduler release-blocking review findings around queue admission concurrency, task context propagation, rollout PATCH reporting, predictor breaker configuration, planning state, and multilingual feature extraction.
+
 **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** has shipped and is archived. The milestone hardened Scheduler queue recovery, made in-memory queueing the default, kept Redis as a node-scoped optional queue, and clarified the Plan 3 single-node LanceDB/Qdrant vector-store boundary.
 
 **v7.6 Scheduler 1.0 + Config System Unification** has shipped and is archived. The milestone delivered Scheduler 1.0 docs, safe structured config examples, scheduler admin/observability APIs, and real-component UAT evidence.
@@ -100,6 +102,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Phase 23: Scheduler Queue Hardening - v7.7 (SCHQ-01..04).
 - Phase 24: Plan 3 Vector Compatibility - v7.7 (PLAN3-01..04).
 - Phase 25: Runbooks and Verification - v7.7 (DOC-01..02).
+- Phase 26: Scheduler Scoring Backpressure Hardening - v7.8 (SSBH-01..08).
 
 
 ### Active
@@ -121,7 +124,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 - Scheduler implementation reference: `C:\Users\inthe\IdeaProjects\Notes-sur-l-IA\Projects\Agent-gateway\Gateway-Scheduler-Implementation.md`.
 - Operational resource lookup: test-environment components are configured in `.env`, including the test environment address; provider credentials and model resources for real-provider UAT are configured in `.env.local`. Prefer non-Gemini provider resources for routine real-provider checks because Gemini entries may carry usage-limit notes and should be reserved for Gemini-specific scenarios.
 - The original gateway design is Go-first. TypeScript/Node gateway plans were superseded.
-- Current code includes Phase 1 through Phase 25: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission, Redis VSS fallback for Qdrant degradation, multi-node coordination, PostgreSQL/pgvector compatibility, optional Gateway Scheduler queueing/scoring/rollout controls, semantic-neighbor aggregate scheduler features, anomaly/OOD conservative scoring with a production-shape ONNX predictor artifact served through the Python worker, gateway-owned SLA waiting-time promotion with bounded priority-safe queue reordering, unified nested config blocks, scheduler execution hardening, semantic-neighbor input/Qdrant startup safeguards, scheduler admin/observability APIs, safe training export, Scheduler 1.0 operator documentation, default in-memory Scheduler queueing, explicit node-scoped Redis Scheduler queueing, FallbackQueue recovery reads, and Plan 3 LanceDB/Qdrant vector compatibility. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL is available as the Plan 4 extension path; LanceDB is retained for edge builds and remains runtime-deferred in the current local environment.
+- Current code includes Phase 1 through Phase 26: Go/Chi OpenAI-compatible data plane, multi-provider health-aware routing, native Anthropic/Gemini adapters, durable SQLite/PostgreSQL provider control state, versioned Admin provider CRUD, runtime reload, SSE streaming, rate limiting, semantic caching, usage tracking, SQLite-first Plan 1 foundation, configurable semantic pipeline, Redis hot-state primitives, Redis-backed admission, Redis VSS fallback for Qdrant degradation, multi-node coordination, PostgreSQL/pgvector compatibility, optional Gateway Scheduler queueing/scoring/rollout controls, semantic-neighbor aggregate scheduler features, anomaly/OOD conservative scoring with a production-shape ONNX predictor artifact served through the Python worker, gateway-owned SLA waiting-time promotion with bounded priority-safe queue reordering, unified nested config blocks, scheduler execution hardening, semantic-neighbor input/Qdrant startup safeguards, scheduler admin/observability APIs, safe training export, Scheduler 1.0 operator documentation, default in-memory Scheduler queueing, explicit node-scoped Redis Scheduler queueing, FallbackQueue recovery reads, Plan 3 LanceDB/Qdrant vector compatibility, external scorer/predictor backpressure hardening, process-local atomic scheduler admission, task-context propagation, rollout PATCH warning semantics, predictor breaker env wiring, and multilingual safe-feature extraction fixes. Architecture v2.1 makes SQLite the authoritative relational path, Redis Stack part of the Plan 1/2 runtime for hot cache/rate/config coordination, and Qdrant the primary vector and semantic-cache store. PostgreSQL is available as the Plan 4 extension path; LanceDB is retained for edge builds and remains runtime-deferred in the current local environment.
 - Downstream clients should continue to see OpenAI-compatible responses.
 
 ## Constraints
@@ -174,4 +177,4 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Plan 3 vector store is LanceDB or Qdrant, not both | LanceDB remains the embedded default; Qdrant is an explicit substitute when configured, with no data migration or interop in v7.7 | Good |
 
 ---
-*Last updated: 2026-07-08 after v7.7 milestone*
+*Last updated: 2026-07-10 after v7.8 scheduler hardening*

@@ -43,6 +43,8 @@ type App struct {
 	SchedulerQueueBackend        string
 	SchedulerFeedbackOn          bool
 	SchedulerSemanticNeighborsOn bool
+	lifecycleCtx                 context.Context
+	lifecycleCancel              context.CancelFunc
 }
 
 const (
@@ -197,7 +199,7 @@ func newSchedulerQueue(ctx context.Context, cfg *config.Config, logger *slog.Log
 		return memoryQueue, "memory"
 	}
 	redisQueue := scheduler.NewRedisQueue(redisClient, cfg.RedisNamespace, schedulerRedisQueueName(cfg))
-	return redisQueue, "redis"
+	return scheduler.NewFallbackQueue(redisQueue, memoryQueue), "redis+fallback"
 }
 
 func schedulerRedisQueueName(cfg *config.Config) string {
@@ -263,7 +265,13 @@ func New() (*App, error) {
 
 	var repo controlstate.Repository
 	var cipher controlstate.SecretCipher
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	initialized := false
+	defer func() {
+		if !initialized {
+			cancel()
+		}
+	}()
 
 	if cfg.ControlStateBackend != "disabled" {
 		cipher, err = controlstate.NewAESGCMSecretCipher([]byte(cfg.ControlStateEncryptionKey), "v1")
@@ -410,6 +418,8 @@ func New() (*App, error) {
 		SchedulerQueueBackend:        schedulerBackend,
 		SchedulerFeedbackOn:          schedulerFeedbackOn,
 		SchedulerSemanticNeighborsOn: semanticNeighbors != nil,
+		lifecycleCtx:                 ctx,
+		lifecycleCancel:              cancel,
 	}
 
 	if cfg.ControlStateBackend != "disabled" {
@@ -440,7 +450,15 @@ func New() (*App, error) {
 		}
 	}
 
+	initialized = true
 	return application, nil
+}
+
+func (a *App) Close() {
+	if a == nil || a.lifecycleCancel == nil {
+		return
+	}
+	a.lifecycleCancel()
 }
 
 func (a *App) ReloadProviders(ctx context.Context, repo controlstate.Repository, cipher controlstate.SecretCipher) error {
@@ -611,6 +629,7 @@ func (a *App) ReloadSemanticRules(ctx context.Context, repo controlstate.Reposit
 
 func (a *App) Run(ctx context.Context) error {
 	a.Logger.Info("starting gateway", "addr", a.Config.GatewayDataAddr)
+	defer a.Close()
 
 	a.RuntimeProviderManager.Start(ctx)
 	a.Coordinator.Start(ctx)

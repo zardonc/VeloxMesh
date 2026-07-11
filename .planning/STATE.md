@@ -2,24 +2,24 @@
 gsd_state_version: 1.0
 milestone: v7.8
 milestone_name: Phase
-status: verifying
-last_updated: "2026-07-08T22:31:57.944Z"
-last_activity: 2026-07-08 -- Phase 26 execution started
+status: complete
+last_updated: "2026-07-10"
+last_activity: 2026-07-10 -- Phase 26 scheduler bug fixes completed
 progress:
   total_phases: 21
-  completed_phases: 18
-  total_plans: 56
-  completed_plans: 53
-  percent: 86
+  completed_phases: 19
+  total_plans: 57
+  completed_plans: 57
+  percent: 90
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-07-08)
+See: `.planning/PROJECT.md` (updated 2026-07-10)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 26 — scheduler-scoring-backpressure-hardening
+**Current focus:** Phase 26 — scheduler-scoring-backpressure-hardening complete
 
 ## Current Implementation State
 
@@ -38,7 +38,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-08)
 - Phase 23 Scheduler Queue Hardening (v7.7) is implemented, verified, and shipped.
 - Phase 24 Plan 3 Vector Compatibility (v7.7) is implemented, verified, and shipped.
 - Phase 25 Runbooks and Verification (v7.7) is implemented, verified, and shipped.
-- Phase 26 Scheduler Scoring Backpressure Hardening (v7.8) is planned.
+- Phase 26 Scheduler Scoring Backpressure Hardening (v7.8) is implemented, verified, and shipped.
 
 ## Completed
 
@@ -57,27 +57,28 @@ See: `.planning/PROJECT.md` (updated 2026-07-08)
 - Phase 23: Scheduler Queue Hardening
 - Phase 24: Plan 3 Vector Compatibility
 - Phase 25: Runbooks and Verification
+- Phase 26: Scheduler Scoring Backpressure Hardening
 
 ## Planned Next
 
-1. Execute Phase 26: Scheduler Scoring Backpressure Hardening.
+1. Start the next milestone with `$gsd-new-milestone`.
 
 ## Useful Commands
 
 - `$gsd-progress` - review completed milestone status.
-- `$gsd-execute-phase 26` - execute Scheduler scoring backpressure hardening.
+- `$gsd-new-milestone` - start the next milestone.
 - `go test -timeout 60s ./...` - run the current Go test suite.
 
 ## Current Position
 
-Phase: 26 (scheduler-scoring-backpressure-hardening) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-07-08 -- Phase 26 execution started
+Phase: 26 (scheduler-scoring-backpressure-hardening) — COMPLETE
+Plan: 3 of 3
+Status: Phase complete — verified
+Last activity: 2026-07-10 -- Phase 26 scheduler bug fixes completed
 
 ## Operator Next Steps
 
-- Run `$gsd-execute-phase 26` when ready.
+- Start the next milestone with `$gsd-new-milestone` when ready.
 
 ## Deferred Items
 

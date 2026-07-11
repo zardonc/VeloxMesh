@@ -259,7 +259,9 @@ func scoreIndexed(ctx context.Context, scorer Scorer, items []indexedTask, sched
 		results = fallback(tasks, fallbackReason)
 	}
 	for i, result := range results {
-		result.SchedulerType = schedulerType
+		if result.FallbackReason == "" {
+			result.SchedulerType = schedulerType
+		}
 		dst[items[i].Index] = result
 	}
 }

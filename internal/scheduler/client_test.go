@@ -17,6 +17,8 @@ import (
 	"veloxmesh/internal/scheduler/schedulerv1"
 )
 
+const realTCPScorerTimeout = 100 * time.Millisecond
+
 func TestDisabledScorerDoesNotDialAndUsesFIFO(t *testing.T) {
 	scorer, err := NewScorer(context.Background(), config.SchedulerConfig{Enabled: false, Endpoint: "127.0.0.1:1", Timeout: "15ms"})
 	if err != nil {
@@ -42,7 +44,7 @@ func TestGRPCScorerCallsRealSchedulerOverTCP(t *testing.T) {
 	})
 	defer stop()
 
-	scorer := newTCPScorer(t, endpoint, 15*time.Millisecond)
+	scorer := newTCPScorer(t, endpoint, realTCPScorerTimeout)
 	defer scorer.Close()
 
 	results, err := scorer.Score(context.Background(), []TaskFeature{{TaskID: "t1", EnqueueTimeMs: 7, Priority: PriorityHigh}})
@@ -413,7 +415,7 @@ func TestGRPCScorerMissingTaskIDsFallBackPerTask(t *testing.T) {
 	})
 	defer stop()
 
-	scorer := newTCPScorer(t, endpoint, 15*time.Millisecond)
+	scorer := newTCPScorer(t, endpoint, realTCPScorerTimeout)
 	defer scorer.Close()
 
 	results, err := scorer.Score(context.Background(), []TaskFeature{
@@ -470,7 +472,7 @@ func TestNewScorerWithControllerKeepsONNXAvailableAtZeroRollout(t *testing.T) {
 	})
 	defer stopONNX()
 
-	cfg := config.SchedulerConfig{Enabled: true, HeuristicEndpoint: heuristicEndpoint, ONNXEndpoint: onnxEndpoint, ONNXRolloutPercent: 0, Timeout: "15ms", BreakerFailureThreshold: 3, BreakerRecoveryTimeout: "1m"}
+	cfg := config.SchedulerConfig{Enabled: true, HeuristicEndpoint: heuristicEndpoint, ONNXEndpoint: onnxEndpoint, ONNXRolloutPercent: 0, Timeout: realTCPScorerTimeout.String(), BreakerFailureThreshold: 3, BreakerRecoveryTimeout: "1m"}
 	controller := NewSchedulerRolloutController(cfg)
 	scorer, err := NewScorerWithController(context.Background(), cfg, controller)
 	if err != nil {
@@ -527,6 +529,17 @@ func TestWeightedScorerONNXFailureFallsBackToHeuristicThenFIFO(t *testing.T) {
 	}
 	if results[0].SchedulerType != SchedulerTypeFIFO || results[0].FallbackReason != "onnx_then_heuristic_failed" {
 		t.Fatalf("expected FIFO fallback, got %#v", results[0])
+	}
+}
+
+func TestWeightedScorerScorerErrorFallbackKeepsFIFOType(t *testing.T) {
+	scorer := WeightedScorer{Heuristic: errorScorer{}, ONNX: &recordingScorer{}, ONNXRolloutPercent: 0}
+	results, err := scorer.Score(context.Background(), []TaskFeature{{TaskID: "t1", EnqueueTimeMs: 42}})
+	if err != nil {
+		t.Fatalf("Score: %v", err)
+	}
+	if results[0].SchedulerType != SchedulerTypeFIFO || results[0].FallbackReason != "heuristic_failed" {
+		t.Fatalf("expected FIFO fallback metadata, got %#v", results[0])
 	}
 }
 

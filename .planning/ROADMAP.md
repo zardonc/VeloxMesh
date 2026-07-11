@@ -1,18 +1,18 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Updated:** 2026-07-08
-**Current focus:** Phase 26 - Scheduler Scoring Backpressure Hardening
+**Updated:** 2026-07-10
+**Current focus:** Phase 26 - Scheduler Scoring Backpressure Hardening complete
 
 ## Overview
 
 VeloxMesh is being built as vertical gateway slices. The current gateway includes the Go/Chi OpenAI-compatible data plane, provider adapters, durable control state, streaming, rate limits, semantic caching, Redis/Qdrant Plan 1 infrastructure, advanced routing, observability, multi-node coordination, PostgreSQL compatibility, and the optional Gateway Scheduler path.
 
-The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path, with PostgreSQL + pgvector available as the Plan 4 extension path. v7.7 shipped Scheduler queue default hardening, Redis node-scoped queueing, FallbackQueue recovery reads, and Plan 3 single-node LanceDB/Qdrant vector compatibility. Phase 26 hardens synchronous Scheduler scoring against external predictor backpressure.
+The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path, with PostgreSQL + pgvector available as the Plan 4 extension path. v7.7 shipped Scheduler queue default hardening, Redis node-scoped queueing, FallbackQueue recovery reads, and Plan 3 single-node LanceDB/Qdrant vector compatibility. Phase 26 hardened synchronous Scheduler scoring, process-local admission limits, task context propagation, admin rollout reporting, predictor breaker config, and multilingual feature extraction.
 
 ## Milestones
 
-- [x] **v7.8 Scheduler Scoring Backpressure Hardening** - Phase 26 (planned) (completed 2026-07-08)
+- [x] **v7.8 Scheduler Scoring Backpressure Hardening** - Phase 26 (shipped 2026-07-10)
 - [x] **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** - Phases 23-25 (shipped 2026-07-08; archive: `.planning/milestones/v7.7-ROADMAP.md`)
 - [x] **v7.6 Scheduler 1.0 + Config** - Phases 20-22 (shipped 2026-07-06; archive: `.planning/milestones/v7.6-ROADMAP.md`)
 - [x] **v7.5 Scheduler Enhancements** - Phases 17-19 (shipped 2026-07-05; archive: `.planning/milestones/v7.5-ROADMAP.md`)
@@ -29,7 +29,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 
 | Phase | Name | Goal | Requirements | Status |
 |-------|------|------|--------------|--------|
-| 26 | Scheduler Scoring Backpressure Hardening | 2/2 | Complete   | 2026-07-08 |
+| 26 | Scheduler Scoring Backpressure Hardening | 3/3 | Shipped | 2026-07-10 |
 
 ## Recently Shipped v7.7 Phases
 
@@ -65,4 +65,4 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - Config unification in v7.6 is backward-compatible: existing ENV variables remain valid; nested struct grouping is the new preferred form.
 
 ---
-*Roadmap refreshed: 2026-07-08 - Phase 26 planned*
+*Roadmap refreshed: 2026-07-10 - Phase 26 shipped*
