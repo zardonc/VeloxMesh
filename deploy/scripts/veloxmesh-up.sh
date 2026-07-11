@@ -10,10 +10,24 @@ mode="${1:-simple}"
 extra_env=""
 created=0
 
+prepare_file_target() {
+  dst="$1"
+  if [ ! -e "$dst" ] || [ -f "$dst" ]; then
+    return
+  fi
+  if [ -d "$dst" ] && rmdir "$dst" 2>/dev/null; then
+    return
+  fi
+  echo "Refusing to overwrite non-file path: $dst" >&2
+  echo "Remove it manually, then rerun this script." >&2
+  exit 2
+}
+
 copy_if_missing() {
   src="$1"
   dst="$2"
   if [ ! -f "$dst" ]; then
+    prepare_file_target "$dst"
     cp "$src" "$dst"
     created=1
     echo "  Created $dst from example; edit before first real run" >&2
@@ -51,9 +65,9 @@ case "$mode" in
     profiles="--profile full --profile postgres"
     copy_if_missing deploy/env/full.example.env deploy/env/full.env
     copy_if_missing deploy/env/postgres.example.env deploy/env/postgres.env
-    copy_if_missing deploy/config/app.full.example.json deploy/config/app.full.json
+    copy_if_missing deploy/config/app.postgres.example.json deploy/config/app.postgres.json
     copy_if_missing deploy/config/scheduler.full.example.json deploy/config/scheduler.full.json
-    copy_if_missing deploy/config/cache.full.example.json deploy/config/cache.full.json
+    copy_if_missing deploy/config/cache.postgres.example.json deploy/config/cache.postgres.json
     ;;
   *)
     echo "usage: deploy/scripts/veloxmesh-up.sh [simple|full|compare|postgres]" >&2

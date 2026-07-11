@@ -61,16 +61,17 @@ if [ "$YES" != "true" ]; then
   esac
 fi
 
-if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-  down_args=""
-  if [ "$REMOVE_VOLUMES" = "true" ]; then
-    down_args="-v"
-  fi
-  # shellcheck disable=SC2086
-  docker compose --env-file "$env_file" -f "$compose_file" down $down_args
-else
-  echo "Docker Compose not found; skipping container shutdown." >&2
+if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
+  echo "Docker Compose not found; refusing to delete files before containers are stopped." >&2
+  exit 1
 fi
+
+down_args=""
+if [ "$REMOVE_VOLUMES" = "true" ]; then
+  down_args="-v"
+fi
+# shellcheck disable=SC2086
+docker compose --env-file "$env_file" -f "$compose_file" down $down_args
 
 rm -rf "$INSTALL_DIR"
 echo "VeloxMesh uninstalled from $INSTALL_DIR"
