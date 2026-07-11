@@ -21,3 +21,6 @@ veloxmesh
 .gocache
 .cache
 node_modules
+
+# Test and runtime databases
+*.db

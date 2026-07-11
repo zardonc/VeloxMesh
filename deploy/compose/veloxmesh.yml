@@ -7,31 +7,45 @@ x-go-service: &go-service
   image: veloxmesh-go:local
   restart: unless-stopped
 
+x-gateway-config: &gateway-config
+  <<: *go-service
+  command: ["/app/gateway"]
+  environment:
+    DEV_API_KEY: ${DEV_API_KEY:?copy deploy/env/*.example.env and set DEV_API_KEY}
+    OPENAI_PRIMARY_API_KEY: ${OPENAI_PRIMARY_API_KEY:?copy deploy/env/*.example.env and set OPENAI_PRIMARY_API_KEY}
+    CONFIG_FILE: /config/app.json
+    SCHEDULER_CONFIG_FILE: /config/scheduler.json
+    CACHE_CONFIG_FILE: /config/cache.json
+    SEMANTIC_PIPELINE_CONFIG_FILE: /config/pipeline.yaml
+    OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
+  ports:
+    - "8080:8080"
+    - "8081:8081"
+  volumes:
+    - ${VELOXMESH_APP_CONFIG:-../config/app.full.example.json}:/config/app.json:ro
+    - ${VELOXMESH_SCHEDULER_CONFIG:-../config/scheduler.full.example.json}:/config/scheduler.json:ro
+    - ${VELOXMESH_CACHE_CONFIG:-../config/cache.full.example.json}:/config/cache.json:ro
+    - ${VELOXMESH_PIPELINE_CONFIG:-../config/pipeline.full.example.yaml}:/config/pipeline.yaml:ro
+    - ../data:/data
+
 services:
   gateway:
-    <<: *go-service
-    command: ["/app/gateway"]
-    environment:
-      DEV_API_KEY: ${DEV_API_KEY:?copy deploy/env/*.example.env and set DEV_API_KEY}
-      OPENAI_PRIMARY_API_KEY: ${OPENAI_PRIMARY_API_KEY:?copy deploy/env/*.example.env and set OPENAI_PRIMARY_API_KEY}
-      CONFIG_FILE: /config/app.json
-      SCHEDULER_CONFIG_FILE: /config/scheduler.json
-      CACHE_CONFIG_FILE: /config/cache.json
-      SEMANTIC_PIPELINE_CONFIG_FILE: /config/pipeline.yaml
-      OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
-    ports:
-      - "8080:8080"
-      - "8081:8081"
-    volumes:
-      - ${VELOXMESH_APP_CONFIG:-../config/app.full.example.json}:/config/app.json:ro
-      - ${VELOXMESH_SCHEDULER_CONFIG:-../config/scheduler.full.example.json}:/config/scheduler.json:ro
-      - ${VELOXMESH_CACHE_CONFIG:-../config/cache.full.example.json}:/config/cache.json:ro
-      - ${VELOXMESH_PIPELINE_CONFIG:-../config/pipeline.full.example.yaml}:/config/pipeline.yaml:ro
-      - ../data:/data
+    <<: *gateway-config
     depends_on:
       scheduler-onnx:
         condition: service_started
-    profiles: ["full", "simple", "compare"]
+    profiles: ["full", "simple"]
+
+  # compare profile: gateway must wait for BOTH schedulers so rollout ratio
+  # switching between ONNX and heuristic works without a cold-start race.
+  gateway-compare:
+    <<: *gateway-config
+    depends_on:
+      scheduler-onnx:
+        condition: service_started
+      scheduler-heuristic:
+        condition: service_started
+    profiles: ["compare"]
 
   scheduler-onnx:
     <<: *go-service

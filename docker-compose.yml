@@ -1,3 +1,5 @@
+name: veloxmesh
+
 services:
   redis:
     image: redis/redis-stack-server:latest
@@ -40,6 +42,8 @@ services:
     volumes:
       - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./docker/observability/scheduler-alerts.yml:/etc/prometheus/scheduler-alerts.yml
+    depends_on:
+      - otel-collector
     restart: unless-stopped
 
   otel-collector:

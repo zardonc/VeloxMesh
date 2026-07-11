@@ -373,7 +373,10 @@ curl http://localhost:8080/v1/models -H "Authorization: Bearer <DEV_API_KEY>"
 Application logs are JSON on stdout. Use Docker logs first:
 
 ```bash
+# simple / full / postgres profiles:
 docker compose -f deploy/compose/veloxmesh.yml logs -f gateway scheduler-onnx onnx-worker
+# compare profile (gateway is named gateway-compare):
+docker compose -f deploy/compose/veloxmesh.yml logs -f gateway-compare scheduler-onnx scheduler-heuristic onnx-worker
 ```
 
 Grafana also has Loki wired as a datasource when Promtail can read Docker

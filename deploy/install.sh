@@ -174,12 +174,14 @@ fi
 PROFILE_NAME="$PROFILE"
 PROFILES="--profile $PROFILE"
 PROMETHEUS_FILE="prometheus.yml"
+GATEWAY_SERVICE="gateway"
 if [ "$PROFILE" = "postgres" ]; then
   PROFILE_NAME="full"
   PROFILES="--profile full --profile postgres"
 fi
 if [ "$PROFILE" = "compare" ]; then
   PROMETHEUS_FILE="prometheus.compare.yml"
+  GATEWAY_SERVICE="gateway-compare"
 fi
 
 mkdir -p "$INSTALL_DIR/compose" "$INSTALL_DIR/env" "$INSTALL_DIR/config" "$INSTALL_DIR/models/current" "$INSTALL_DIR/data" "$INSTALL_DIR/reports" "$INSTALL_DIR/observability"
@@ -223,7 +225,7 @@ Grafana pass: $GRAFANA_PASSWORD
 
 Useful commands:
   docker compose --env-file $INSTALL_DIR/env/veloxmesh.env -f $INSTALL_DIR/compose/veloxmesh.yml ps
-  docker compose --env-file $INSTALL_DIR/env/veloxmesh.env -f $INSTALL_DIR/compose/veloxmesh.yml logs -f gateway
+  docker compose --env-file $INSTALL_DIR/env/veloxmesh.env -f $INSTALL_DIR/compose/veloxmesh.yml logs -f $GATEWAY_SERVICE
   curl http://localhost:8080/healthz
   curl http://localhost:8080/v1/models -H "Authorization: Bearer $DEV_API_KEY"
 EOF
