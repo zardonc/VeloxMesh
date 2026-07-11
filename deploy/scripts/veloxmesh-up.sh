@@ -51,9 +51,9 @@ case "$mode" in
     profiles="--profile full --profile postgres"
     copy_if_missing deploy/env/full.example.env deploy/env/full.env
     copy_if_missing deploy/env/postgres.example.env deploy/env/postgres.env
-    copy_if_missing deploy/config/app.full.example.json deploy/config/app.full.json
+    copy_if_missing deploy/config/app.postgres.example.json deploy/config/app.postgres.json
     copy_if_missing deploy/config/scheduler.full.example.json deploy/config/scheduler.full.json
-    copy_if_missing deploy/config/cache.full.example.json deploy/config/cache.full.json
+    copy_if_missing deploy/config/cache.postgres.example.json deploy/config/cache.postgres.json
     ;;
   *)
     echo "usage: deploy/scripts/veloxmesh-up.sh [simple|full|compare|postgres]" >&2

@@ -121,6 +121,8 @@ PostgreSQL profile:
 
 ```bash
 cp deploy/env/postgres.example.env deploy/env/postgres.env
+cp deploy/config/app.postgres.example.json deploy/config/app.postgres.json
+cp deploy/config/cache.postgres.example.json deploy/config/cache.postgres.json
 ```
 
 ONNX versus heuristic comparison:

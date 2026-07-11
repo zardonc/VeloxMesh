@@ -97,7 +97,21 @@ download() {
   src="$1"
   dst="$2"
   mkdir -p "$(dirname "$dst")"
+  prepare_file_target "$dst"
   curl -fsSL "$RAW_BASE/$src" -o "$dst"
+}
+
+prepare_file_target() {
+  dst="$1"
+  if [ ! -e "$dst" ] || [ -f "$dst" ]; then
+    return
+  fi
+  if [ -d "$dst" ] && rmdir "$dst" 2>/dev/null; then
+    return
+  fi
+  echo "Refusing to overwrite non-file path: $dst" >&2
+  echo "Remove it manually, then rerun install.sh." >&2
+  exit 2
 }
 
 download_if_missing() {
@@ -125,9 +139,9 @@ write_env_if_missing() {
 DEV_API_KEY=$DEV_API_KEY
 OPENAI_PRIMARY_API_KEY=$PROVIDER_API_KEY
 VELOXMESH_BUILD_CONTEXT=$REPO_URL#$BRANCH
-VELOXMESH_APP_CONFIG=../config/app.$PROFILE_NAME.json
-VELOXMESH_SCHEDULER_CONFIG=../config/scheduler.$PROFILE_NAME.json
-VELOXMESH_CACHE_CONFIG=../config/cache.$PROFILE_NAME.json
+VELOXMESH_APP_CONFIG=../config/app.$APP_PROFILE_NAME.json
+VELOXMESH_SCHEDULER_CONFIG=../config/scheduler.$SCHEDULER_PROFILE_NAME.json
+VELOXMESH_CACHE_CONFIG=../config/cache.$CACHE_PROFILE_NAME.json
 VELOXMESH_PIPELINE_CONFIG=../config/pipeline.yaml
 VELOXMESH_PROMETHEUS_CONFIG=../observability/$PROMETHEUS_FILE
 GRAFANA_ADMIN_USER=admin
@@ -140,15 +154,21 @@ EOF
 }
 
 patch_app_config() {
-  file="$INSTALL_DIR/config/app.$PROFILE_NAME.json"
+  file="$INSTALL_DIR/config/app.$APP_PROFILE_NAME.json"
+  if [ ! -f "$file" ]; then
+    echo "Expected app config file, got non-file path: $file" >&2
+    exit 2
+  fi
   base_url="$(sed_escape "$PROVIDER_BASE_URL")"
   model="$(sed_escape "$PROVIDER_MODEL")"
   admin_key="$(sed_escape "$ADMIN_API_KEY")"
   enc_key="$(sed_escape "$CONTROL_STATE_ENCRYPTION_KEY")"
+  postgres_dsn="$(sed_escape "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB?sslmode=disable")"
   sed -i "s/https:\/\/api.example.invalid\/v1/$base_url/g" "$file"
   sed -i "s/example-model/$model/g" "$file"
   sed -i "s/replace-with-local-admin-token/$admin_key/g" "$file"
   sed -i "s/replace-with-32-byte-local-key!!/$enc_key/g" "$file"
+  sed -i "s/postgres:\/\/replace-with-postgres-user:replace-with-postgres-password@postgres:5432\/replace-with-postgres-database?sslmode=disable/$postgres_dsn/g" "$file"
 }
 
 need docker
@@ -171,12 +191,16 @@ if [ -z "$RAW_BASE" ]; then
   RAW_BASE="https://raw.githubusercontent.com/$repo_slug/$BRANCH"
 fi
 
-PROFILE_NAME="$PROFILE"
+APP_PROFILE_NAME="$PROFILE"
+SCHEDULER_PROFILE_NAME="$PROFILE"
+CACHE_PROFILE_NAME="$PROFILE"
 PROFILES="--profile $PROFILE"
 PROMETHEUS_FILE="prometheus.yml"
 GATEWAY_SERVICE="gateway"
 if [ "$PROFILE" = "postgres" ]; then
-  PROFILE_NAME="full"
+  APP_PROFILE_NAME="postgres"
+  SCHEDULER_PROFILE_NAME="full"
+  CACHE_PROFILE_NAME="postgres"
   PROFILES="--profile full --profile postgres"
 fi
 if [ "$PROFILE" = "compare" ]; then
@@ -187,11 +211,11 @@ fi
 mkdir -p "$INSTALL_DIR/compose" "$INSTALL_DIR/env" "$INSTALL_DIR/config" "$INSTALL_DIR/models/current" "$INSTALL_DIR/data" "$INSTALL_DIR/reports" "$INSTALL_DIR/observability"
 
 download deploy/compose/veloxmesh.yml "$INSTALL_DIR/compose/veloxmesh.yml"
-if download_if_missing "deploy/config/app.$PROFILE_NAME.example.json" "$INSTALL_DIR/config/app.$PROFILE_NAME.json"; then
+if download_if_missing "deploy/config/app.$APP_PROFILE_NAME.example.json" "$INSTALL_DIR/config/app.$APP_PROFILE_NAME.json"; then
   patch_app_config
 fi
-download_if_missing "deploy/config/scheduler.$PROFILE_NAME.example.json" "$INSTALL_DIR/config/scheduler.$PROFILE_NAME.json" || true
-download_if_missing "deploy/config/cache.$PROFILE_NAME.example.json" "$INSTALL_DIR/config/cache.$PROFILE_NAME.json" || true
+download_if_missing "deploy/config/scheduler.$SCHEDULER_PROFILE_NAME.example.json" "$INSTALL_DIR/config/scheduler.$SCHEDULER_PROFILE_NAME.json" || true
+download_if_missing "deploy/config/cache.$CACHE_PROFILE_NAME.example.json" "$INSTALL_DIR/config/cache.$CACHE_PROFILE_NAME.json" || true
 download_if_missing deploy/config/pipeline.example.yaml "$INSTALL_DIR/config/pipeline.yaml" || true
 download deploy/config/heuristic.example.json "$INSTALL_DIR/config/heuristic.example.json"
 download "deploy/observability/$PROMETHEUS_FILE" "$INSTALL_DIR/observability/$PROMETHEUS_FILE"
