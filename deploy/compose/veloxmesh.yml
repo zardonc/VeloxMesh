@@ -2,7 +2,7 @@ name: veloxmesh
 
 x-go-service: &go-service
   build:
-    context: ../..
+    context: ${VELOXMESH_BUILD_CONTEXT:-../..}
     dockerfile: Dockerfile
   image: veloxmesh-go:local
   restart: unless-stopped
@@ -65,7 +65,7 @@ services:
 
   onnx-worker:
     build:
-      context: ../..
+      context: ${VELOXMESH_BUILD_CONTEXT:-../..}
       dockerfile: docker/onnx-worker.Dockerfile
     image: veloxmesh-onnx-worker:local
     command:

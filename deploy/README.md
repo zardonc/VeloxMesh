@@ -28,11 +28,24 @@ remain as compatibility examples. New deployments should prefer `deploy/`.
 
 ## Get the code
 
+Preferred path when Git is available:
+
 ```bash
 git clone <your-repo-url> VeloxMesh
 cd VeloxMesh
 git checkout main
 ```
+
+If Git is not installed on the host, let Docker download the `main` branch
+during image build:
+
+```bash
+export VELOXMESH_BUILD_CONTEXT=https://github.com/your-org/VeloxMesh.git#main
+```
+
+You still need this `deploy/` directory on the host, either from a release
+bundle or any copied checkout. The build context above tells Docker where to
+download the application source from.
 
 ## Prepare local configuration
 
@@ -73,6 +86,26 @@ deploy/models/current/manifest.json
 
 ## Start the services
 
+One-command path from the repository root:
+
+```bash
+sh deploy/scripts/veloxmesh-up.sh simple
+```
+
+Supported modes:
+
+```text
+simple    Gateway + ONNX scheduler + observability, no Redis/Qdrant
+full      simple + Redis/RedisInsight + Qdrant
+compare   ONNX scheduler and heuristic scheduler side by side
+postgres  full + PostgreSQL/pgvector + Adminer
+```
+
+The script copies missing local config files from examples, then runs Docker
+Compose. On the first run, stop after the copy message, edit the generated
+`deploy/env/*.env` and `deploy/config/*.json` files, then run the same command
+again.
+
 Simple ONNX scheduler, no Redis/Qdrant:
 
 ```bash
@@ -95,6 +128,28 @@ ONNX versus heuristic comparison:
 
 ```bash
 docker compose --env-file deploy/env/compare.env -f deploy/compose/veloxmesh.yml --profile compare up -d --build
+```
+
+Build images directly from the remote `main` branch without a local source
+checkout:
+
+```bash
+docker build -f Dockerfile -t veloxmesh-go:main https://github.com/your-org/VeloxMesh.git#main
+docker build -f docker/onnx-worker.Dockerfile -t veloxmesh-onnx-worker:main https://github.com/your-org/VeloxMesh.git#main
+```
+
+Or use the explicit remote-build Dockerfiles from a copied deploy bundle:
+
+```bash
+docker build -f docker/remote-build.Dockerfile \
+  --build-arg VELOXMESH_REPO_URL=https://github.com/your-org/VeloxMesh.git \
+  --build-arg VELOXMESH_BRANCH=main \
+  -t veloxmesh-go:main .
+
+docker build -f docker/onnx-worker.remote-build.Dockerfile \
+  --build-arg VELOXMESH_REPO_URL=https://github.com/your-org/VeloxMesh.git \
+  --build-arg VELOXMESH_BRANCH=main \
+  -t veloxmesh-onnx-worker:main .
 ```
 
 ## Verify the deployment
@@ -186,13 +241,13 @@ scheduler services up while routing through the configured rollout value.
 Stop services:
 
 ```bash
-docker compose -f deploy/compose/veloxmesh.yml down
+sh deploy/scripts/veloxmesh-down.sh
 ```
 
 Remove local volumes only when you intentionally want to delete local data:
 
 ```bash
-docker compose -f deploy/compose/veloxmesh.yml down -v
+sh deploy/scripts/veloxmesh-down.sh -v
 ```
 
 ## Configuration safety

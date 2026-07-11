@@ -126,11 +126,7 @@ make run
 Single-host Docker deployment is available under `deploy/`. Start with:
 
 ```bash
-cp deploy/env/simple.example.env deploy/env/simple.env
-cp deploy/config/app.simple.example.json deploy/config/app.simple.json
-cp deploy/config/scheduler.simple.example.json deploy/config/scheduler.simple.json
-cp deploy/config/cache.simple.example.json deploy/config/cache.simple.json
-docker compose --env-file deploy/env/simple.env -f deploy/compose/veloxmesh.yml --profile simple up -d --build
+sh deploy/scripts/veloxmesh-up.sh simple
 ```
 
 Edit the copied files and place `deploy/models/current/model.onnx` plus `manifest.json` before starting ONNX mode. For Redis, Qdrant, PostgreSQL, Grafana, logs, and scheduler comparison profiles, see [deploy/README.md](deploy/README.md).
