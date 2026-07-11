@@ -10,6 +10,9 @@ import grpc
 import numpy as np
 import onnxruntime as ort
 
+from .artifacts import build_manifest, write_feature_onnx, write_manifest
+from .train import FEATURE_FIELDS, TARGET
+
 _BINDINGS_DIR = Path(__file__).with_name("predictorv1")
 if str(_BINDINGS_DIR) not in sys.path:
     sys.path.insert(0, str(_BINDINGS_DIR))
@@ -18,11 +21,14 @@ import predictor_pb2  # noqa: E402
 import predictor_pb2_grpc  # noqa: E402
 
 COVERAGE_LEVEL_ENCODING = {"none": 0.0, "fallback": 0.5, "tenant": 1.0, "all": 1.0}
+DEFAULT_MODEL_VERSION = "scheduler-predictor-default"
+DEFAULT_P70_OUTPUT_TOKENS = 128.0
 
 
 class ONNXWorker(predictor_pb2_grpc.OutputTokenPredictorServicer):
     def __init__(self, artifact_dir: Path):
         self.artifact_dir = artifact_dir
+        ensure_artifact(artifact_dir)
         self.manifest = json.loads((artifact_dir / "manifest.json").read_text(encoding="utf-8"))
         self.session = ort.InferenceSession(str(artifact_dir / "model.onnx"), providers=["CPUExecutionProvider"])
 
@@ -67,6 +73,33 @@ def scalar(value) -> float:
     while hasattr(item, "__len__") and not isinstance(item, (bytes, str)):
         item = item[0]
     return float(item)
+
+
+def ensure_artifact(artifact_dir: Path) -> None:
+    model_path = artifact_dir / "model.onnx"
+    manifest_path = artifact_dir / "manifest.json"
+    if model_path.exists() and manifest_path.exists():
+        return
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    model = {
+        "target": TARGET,
+        "p70_output_tokens": DEFAULT_P70_OUTPUT_TOKENS,
+        "training_data_hash": "0" * 64,
+        "features": FEATURE_FIELDS,
+        "semantic_aggregate_features": FEATURE_FIELDS[2:],
+        "semantic_aggregates_supported": True,
+        "anomaly_thresholds": {},
+        "anomaly_evidence": {},
+    }
+    write_feature_onnx(model, model_path)
+    manifest = build_manifest(
+        model,
+        {"sample_count": 0, "source": "generated-default"},
+        model_path,
+        DEFAULT_MODEL_VERSION,
+        {"start": "generated", "end": "generated"},
+    )
+    write_manifest(manifest, manifest_path)
 
 
 def start_server(artifact_dir: Path, address: str):

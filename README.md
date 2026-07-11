@@ -129,7 +129,7 @@ Single-host Docker deployment is available under `deploy/`. Start with:
 sh deploy/scripts/veloxmesh-up.sh simple
 ```
 
-Edit the copied files and place `deploy/models/current/model.onnx` plus `manifest.json` before starting ONNX mode. For Redis, Qdrant, PostgreSQL, Grafana, logs, and scheduler comparison profiles, see [deploy/README.md](deploy/README.md).
+Edit the copied files before the second run. ONNX mode creates a default local scheduler artifact if `deploy/models/current/model.onnx` or `manifest.json` is missing. For Redis, Qdrant, PostgreSQL, Grafana, logs, and scheduler comparison profiles, see [deploy/README.md](deploy/README.md).
 
 ### 5. Check Health
 
@@ -182,6 +182,7 @@ Common settings:
 | `SCHEDULER_QUEUE_BACKEND` | Scheduler queue backend; `auto`/empty defaults to memory, `redis` is explicit and node-scoped |
 | `SCHEDULER_CONFIG_FILE` | Optional scheduler component config file |
 | `CACHE_CONFIG_FILE` | Optional cache/vector component config file |
+| `SEMANTIC_PIPELINE_CONFIG_FILE` | Optional input/output rule pipeline config file |
 
 Keep secrets in environment variables or local secret stores. Do not commit real provider keys.
 

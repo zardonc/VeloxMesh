@@ -8,7 +8,8 @@ The deployment branch is currently `main`.
 - Docker Engine or Docker Desktop with Docker Compose v2.
 - Network access from the host to the selected upstream model provider.
 - A provider API key stored in a local env file, not in Git.
-- An ONNX scheduler artifact at `deploy/models/current/model.onnx` plus `deploy/models/current/manifest.json` when running ONNX mode.
+- Optional custom ONNX scheduler artifact at `deploy/models/current/model.onnx` plus `deploy/models/current/manifest.json`.
+  If either file is missing, the ONNX worker creates a default scheduler artifact at startup.
 
 ## Directory layout
 
@@ -17,6 +18,7 @@ deploy/
   compose/veloxmesh.yml          Main single-host Compose file
   env/*.example.env              Copy to *.env; local secrets stay ignored
   config/*.example.json          Safe application, scheduler, and cache examples
+  config/pipeline.*.example.yaml Safe input/output pipeline examples
   models/                        Local ONNX artifacts; ignored except README
   observability/                 Prometheus, Grafana, Promtail, and OTel config
   reports/                       Benchmark output; ignored
@@ -55,6 +57,7 @@ cp deploy/env/full.example.env deploy/env/full.env
 cp deploy/config/app.full.example.json deploy/config/app.full.json
 cp deploy/config/scheduler.full.example.json deploy/config/scheduler.full.json
 cp deploy/config/cache.full.example.json deploy/config/cache.full.json
+cp deploy/config/pipeline.full.example.yaml deploy/config/pipeline.full.yaml
 ```
 
 Simple stack without Redis and Qdrant:
@@ -64,6 +67,7 @@ cp deploy/env/simple.example.env deploy/env/simple.env
 cp deploy/config/app.simple.example.json deploy/config/app.simple.json
 cp deploy/config/scheduler.simple.example.json deploy/config/scheduler.simple.json
 cp deploy/config/cache.simple.example.json deploy/config/cache.simple.json
+cp deploy/config/pipeline.simple.example.yaml deploy/config/pipeline.simple.yaml
 ```
 
 PostgreSQL profile:
@@ -79,17 +83,163 @@ cp deploy/env/compare.example.env deploy/env/compare.env
 cp deploy/config/app.compare.example.json deploy/config/app.compare.json
 cp deploy/config/scheduler.compare.example.json deploy/config/scheduler.compare.json
 cp deploy/config/cache.compare.example.json deploy/config/cache.compare.json
+cp deploy/config/pipeline.compare.example.yaml deploy/config/pipeline.compare.yaml
 ```
 
-Then edit the copied `.env` and `.json` files and replace every `replace-with-*`
+Then edit the copied `.env`, `.json`, and `.yaml` files and replace every `replace-with-*`
 value plus the example provider URL/model names. Do not edit the `*.example.*`
 files with real secrets or real account details.
 
-For ONNX mode, copy or publish model files to:
+For ONNX mode, copy or publish custom model files to:
 
 ```text
 deploy/models/current/model.onnx
 deploy/models/current/manifest.json
+```
+
+If these files do not exist, `onnx-worker` creates a default local artifact in
+the same directory before starting.
+
+## Provider, routing, and combo examples
+
+Configure multiple models on one provider by listing them in `models` and
+choosing one `default_model`:
+
+```json
+{
+  "id": "openai-primary",
+  "type": "openai-compatible",
+  "base_url": "https://api.example.invalid/v1",
+  "auth": {"api_key_env": "OPENAI_PRIMARY_API_KEY"},
+  "models": ["gpt-4o-mini", "gpt-4o"],
+  "default_model": "gpt-4o-mini",
+  "timeout": "30s"
+}
+```
+
+Add multiple providers by adding entries under `providers`. Providers that
+serve the same model become routing candidates for that model:
+
+```json
+{
+  "routing_strategy": "least-latency",
+  "default_provider": "openai-primary",
+  "fallback_enabled": true,
+  "max_attempts": 2,
+  "providers": [
+    {
+      "id": "openai-primary",
+      "type": "openai-compatible",
+      "base_url": "https://api.example.invalid/v1",
+      "auth": {"api_key_env": "OPENAI_PRIMARY_API_KEY"},
+      "models": ["gpt-4o-mini"],
+      "default_model": "gpt-4o-mini"
+    },
+    {
+      "id": "openai-backup",
+      "type": "openai-compatible",
+      "base_url": "https://backup.example.invalid/v1",
+      "auth": {"api_key_env": "OPENAI_PRIMARY_API_KEY"},
+      "models": ["gpt-4o-mini"],
+      "default_model": "gpt-4o-mini"
+    }
+  ]
+}
+```
+
+Provider routing controls:
+
+```json
+{
+  "routing_strategy": "least-latency",
+  "fallback_enabled": true,
+  "max_attempts": 2
+}
+```
+
+Use `routing_strategy: "round-robin"` for simple rotation, `"least-latency"`
+for health-latency selection, or durable routing config with
+`"composite-score"` when the control-state repository is enabled. For one
+request, force a provider with:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Authorization: Bearer <DEV_API_KEY>" \
+  -H "X-Route-To: openai-backup" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"hi"}]}'
+```
+
+Create a combo with the admin API:
+
+```bash
+curl -X POST http://localhost:8081/admin/v1/combos \
+  -H "Authorization: Bearer <ADMIN_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "fast-chat",
+    "name": "fast-chat",
+    "enabled": true,
+    "strategy": "round-robin",
+    "members": ["gpt-4o-mini", "gpt-4o"]
+  }'
+```
+
+Combo routing strategies:
+
+```json
+{"strategy": "round-robin"}
+{"strategy": "capacity-auto-switch"}
+{"strategy": "fusion", "judge": "gpt-4o"}
+```
+
+Choose combo versus single-provider routing per request:
+
+```json
+{"model": "fast-chat"}
+```
+
+uses the combo named `fast-chat`.
+
+```json
+{"model": "gpt-4o-mini"}
+```
+
+uses the normal provider routing pool for that model. Add `X-Route-To:
+<provider-id>` to force one provider.
+
+## Input and output pipelines
+
+Each deployment profile mounts a pipeline file through
+`VELOXMESH_PIPELINE_CONFIG`. The default examples keep every rule disabled:
+
+```yaml
+input:
+  rules:
+    filter:
+      enabled: false
+    pii:
+      enabled: false
+    rewrite:
+      enabled: false
+    rtk:
+      enabled: false
+    headroom:
+      enabled: false
+    caveman:
+      enabled: false
+    ponytail:
+      enabled: false
+output:
+  rules:
+    caveman:
+      enabled: false
+    ponytail:
+      enabled: false
+    filter:
+      enabled: false
+    pii:
+      enabled: false
 ```
 
 ## Start the services

@@ -17,6 +17,7 @@ services:
       CONFIG_FILE: /config/app.json
       SCHEDULER_CONFIG_FILE: /config/scheduler.json
       CACHE_CONFIG_FILE: /config/cache.json
+      SEMANTIC_PIPELINE_CONFIG_FILE: /config/pipeline.yaml
       OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
     ports:
       - "8080:8080"
@@ -25,6 +26,7 @@ services:
       - ${VELOXMESH_APP_CONFIG:-../config/app.full.example.json}:/config/app.json:ro
       - ${VELOXMESH_SCHEDULER_CONFIG:-../config/scheduler.full.example.json}:/config/scheduler.json:ro
       - ${VELOXMESH_CACHE_CONFIG:-../config/cache.full.example.json}:/config/cache.json:ro
+      - ${VELOXMESH_PIPELINE_CONFIG:-../config/pipeline.full.example.yaml}:/config/pipeline.yaml:ro
       - ../data:/data
     depends_on:
       scheduler-onnx:
