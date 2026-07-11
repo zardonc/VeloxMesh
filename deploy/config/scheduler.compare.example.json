@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "heuristic_endpoint": "scheduler-onnx:50051",
+  "heuristic_endpoint": "scheduler-heuristic:50051",
   "onnx_endpoint": "scheduler-onnx:50051",
   "onnx_rollout_percent": 100,
   "timeout": "15ms",
@@ -9,9 +9,7 @@
   "breaker_recovery_timeout": "1m",
   "scorer_max_concurrency": 4,
   "scorer_slow_threshold": "15ms",
-  "queue_backend": "redis",
-  "queue_soft_limit": 0,
-  "queue_hard_limit": 0,
+  "queue_backend": "auto",
   "queue_pop_timeout": "100ms",
   "executor_concurrency": 1,
   "default_priority": "normal",
@@ -20,13 +18,5 @@
   "error_spike_alert_rate": 0.05,
   "quality_sample_window": 100,
   "feedback_enabled": true,
-  "semantic_neighbors_enabled": true,
-  "semantic_neighbors_embedding_model": "text-embedding-3-small",
-  "semantic_neighbors_min_count": 20,
-  "semantic_neighbors_input_max_chars": 16000,
-  "semantic_neighbors_task_timeout": "5ms",
-  "semantic_neighbors_batch_timeout": "15ms",
-  "sla_promotion_enabled": false,
-  "sla_promotion_candidate_window": 32,
-  "sla_promotion_rules": []
+  "semantic_neighbors_enabled": false
 }

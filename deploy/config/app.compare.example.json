@@ -25,27 +25,18 @@
     "admin_api_key": "replace-with-local-admin-token"
   },
   "redis": {
-    "enabled": true,
-    "addr": "redis:6379",
-    "namespace": "veloxmesh:local",
-    "degrade_to_local": false
+    "enabled": false
   },
   "scheduler": {
     "enabled": true,
-    "heuristic_endpoint": "scheduler-onnx:50051",
+    "heuristic_endpoint": "scheduler-heuristic:50051",
     "onnx_endpoint": "scheduler-onnx:50051",
     "onnx_rollout_percent": 100,
-    "queue_backend": "redis",
+    "queue_backend": "auto",
     "feedback_enabled": true,
-    "semantic_neighbors_enabled": true
+    "semantic_neighbors_enabled": false
   },
   "cache": {
-    "enabled": true,
-    "provider": "openai-primary",
-    "vector_store": "qdrant",
-    "vector_dimension": 1536,
-    "qdrant": {
-      "addr": "http://qdrant:6333"
-    }
+    "enabled": false
   }
 }

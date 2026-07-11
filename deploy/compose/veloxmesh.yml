@@ -161,7 +161,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ../observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ${VELOXMESH_PROMETHEUS_CONFIG:-../observability/prometheus.yml}:/etc/prometheus/prometheus.yml:ro
       - ../observability/scheduler-alerts.yml:/etc/prometheus/scheduler-alerts.yml:ro
       - prometheusdata:/prometheus
     restart: unless-stopped

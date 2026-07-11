@@ -18,7 +18,7 @@ deploy/
   env/*.example.env              Copy to *.env; local secrets stay ignored
   config/*.example.json          Safe application, scheduler, and cache examples
   models/                        Local ONNX artifacts; ignored except README
-  observability/                 Prometheus, Grafana, and Promtail config
+  observability/                 Prometheus, Grafana, Promtail, and OTel config
   reports/                       Benchmark output; ignored
   data/                          Local SQLite and runtime data; ignored
 ```
@@ -72,6 +72,15 @@ PostgreSQL profile:
 cp deploy/env/postgres.example.env deploy/env/postgres.env
 ```
 
+ONNX versus heuristic comparison:
+
+```bash
+cp deploy/env/compare.example.env deploy/env/compare.env
+cp deploy/config/app.compare.example.json deploy/config/app.compare.json
+cp deploy/config/scheduler.compare.example.json deploy/config/scheduler.compare.json
+cp deploy/config/cache.compare.example.json deploy/config/cache.compare.json
+```
+
 Then edit the copied `.env` and `.json` files and replace every `replace-with-*`
 value plus the example provider URL/model names. Do not edit the `*.example.*`
 files with real secrets or real account details.
@@ -100,9 +109,8 @@ compare   ONNX scheduler and heuristic scheduler side by side
 postgres  full + PostgreSQL/pgvector + Adminer
 ```
 
-The script copies any missing local config files from their examples, then
-immediately runs Docker Compose. On the very first run the copied files still
-contain placeholder values — stop the containers, edit the generated
+The script copies any missing local config files from their examples. If it
+created files, it stops before Docker Compose starts. Edit the generated
 `deploy/env/*.env` and `deploy/config/*.json` files, then run the same command
 again.
 
@@ -129,6 +137,11 @@ ONNX versus heuristic comparison:
 ```bash
 docker compose --env-file deploy/env/compare.env -f deploy/compose/veloxmesh.yml --profile compare up -d --build
 ```
+
+The `simple` and `full` profiles run the ONNX scheduler only. The `compare`
+profile is the only profile that starts `scheduler-heuristic`; it also uses
+`deploy/observability/prometheus.compare.yml` so Prometheus does not scrape a
+missing heuristic service in normal deployments.
 
 Build images directly from the remote `main` branch without a local source
 checkout:

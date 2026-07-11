@@ -29,6 +29,7 @@
   },
   "scheduler": {
     "enabled": true,
+    "heuristic_endpoint": "scheduler-onnx:50051",
     "onnx_endpoint": "scheduler-onnx:50051",
     "onnx_rollout_percent": 100,
     "queue_backend": "auto",
