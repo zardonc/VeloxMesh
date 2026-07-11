@@ -17,9 +17,34 @@ Choose a profile:
 curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sudo sh -s -- --profile full
 ```
 
-The installer creates `/opt/veloxmesh`, downloads the deployment files, uses the
-GitHub repository as the Docker build context, generates local config, and
-starts Docker Compose. Existing local env/config files are kept on rerun.
+The installer creates `./VeloxMesh` under the directory where you run the
+command, downloads the deployment files, uses the GitHub repository as the
+Docker build context, generates local config, and starts Docker Compose.
+Existing local env/config files are kept on rerun. Override the location with
+`--install-dir` or `VELOXMESH_INSTALL_DIR` when needed.
+
+If omitted, the installer generates random values for `DEV_API_KEY`,
+`ADMIN_API_KEY`, `GRAFANA_ADMIN_PASSWORD`, `POSTGRES_PASSWORD`, and the
+control-state encryption key. It does not generate a real provider API key;
+pass `--provider-api-key` or edit `env/veloxmesh.env` before making live model
+calls.
+
+## One-command uninstall
+
+Uninstall the default `./VeloxMesh` installation from the directory where you
+run the command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/uninstall.sh | sudo sh -s -- --yes
+```
+
+Remove Docker Compose named volumes too:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/uninstall.sh | sudo sh -s -- --yes --volumes
+```
+
+Use `--install-dir` or `VELOXMESH_INSTALL_DIR` if the install path was changed.
 
 ## Prerequisites
 

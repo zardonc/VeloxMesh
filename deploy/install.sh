@@ -2,7 +2,7 @@
 set -eu
 
 PROFILE="${VELOXMESH_PROFILE:-simple}"
-INSTALL_DIR="${VELOXMESH_INSTALL_DIR:-/opt/veloxmesh}"
+INSTALL_DIR="${VELOXMESH_INSTALL_DIR:-$(pwd)/VeloxMesh}"
 REPO_URL="${VELOXMESH_REPO_URL:-https://github.com/zardonc/VeloxMesh.git}"
 BRANCH="${VELOXMESH_BRANCH:-main}"
 RAW_BASE="${VELOXMESH_RAW_BASE:-}"
@@ -23,7 +23,7 @@ Usage: install.sh [options]
 
 Options:
   --profile simple|full|compare|postgres
-  --install-dir /opt/veloxmesh
+  --install-dir ./VeloxMesh
   --repo-url https://github.com/zardonc/VeloxMesh.git
   --branch main
   --raw-base https://raw.githubusercontent.com/zardonc/VeloxMesh/main
