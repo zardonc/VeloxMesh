@@ -1,19 +1,29 @@
 #!/usr/bin/env sh
 set -eu
 
-[ -d deploy/compose ] || {
-  echo "Run this script from the VeloxMesh repository root." >&2
+if [ -d deploy/compose ]; then
+  env_file="${VELOXMESH_ENV_FILE:-deploy/env/full.env}"
+  dataset="deploy/testdata/full-concurrent.jsonl"
+  runner="deploy/scripts/run-gateway-dataset.py"
+  report_base="deploy/reports"
+  sh deploy/scripts/veloxmesh-up.sh full
+elif [ -d compose ]; then
+  env_file="${VELOXMESH_ENV_FILE:-env/veloxmesh.env}"
+  dataset="testdata/full-concurrent.jsonl"
+  runner="scripts/run-gateway-dataset.py"
+  report_base="reports"
+  project="$(sed -n 's/^VELOXMESH_PROJECT_NAME=//p' "$env_file" | tail -n 1)"
+  docker compose -p "${project:-veloxmesh}" --env-file "$env_file" -f compose/veloxmesh.yml --profile full up -d --build
+else
+  echo "Run this script from the VeloxMesh repository root or installed VeloxMesh directory." >&2
   exit 1
-}
+fi
 
-env_file="${VELOXMESH_ENV_FILE:-deploy/env/full.env}"
 run_id="full-concurrent-$(date +%Y%m%d-%H%M%S)"
 python_bin="${PYTHON_BIN:-python3}"
 
-sh deploy/scripts/veloxmesh-up.sh full
-
-"$python_bin" deploy/scripts/run-gateway-dataset.py \
+"$python_bin" "$runner" \
   --env-file "$env_file" \
-  --dataset deploy/testdata/full-concurrent.jsonl \
-  --report-dir "deploy/reports/$run_id" \
+  --dataset "$dataset" \
+  --report-dir "$report_base/$run_id" \
   --concurrency 8

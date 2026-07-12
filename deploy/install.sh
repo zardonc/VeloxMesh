@@ -237,6 +237,7 @@ VELOXMESH_HOST_GID=$HOST_GID
 DEV_API_KEY=$DEV_API_KEY
 OPENAI_PRIMARY_API_KEY=$PROVIDER_API_KEY
 VELOXMESH_BUILD_CONTEXT=$BUILD_CONTEXT
+VELOXMESH_CONTAINER_ENV_FILE=../env/veloxmesh.env
 VELOXMESH_APP_CONFIG=../config/app.$APP_PROFILE_NAME.json
 VELOXMESH_SCHEDULER_CONFIG=../config/scheduler.$SCHEDULER_PROFILE_NAME.json
 VELOXMESH_CACHE_CONFIG=../config/cache.$CACHE_PROFILE_NAME.json
@@ -318,7 +319,7 @@ if [ -f "$INSTALL_DIR/env/veloxmesh.env" ]; then
   check_existing_profile "$INSTALL_DIR/env/veloxmesh.env"
 fi
 
-mkdir -p "$INSTALL_DIR/compose" "$INSTALL_DIR/env" "$INSTALL_DIR/config" "$INSTALL_DIR/models/current" "$INSTALL_DIR/data" "$INSTALL_DIR/reports" "$INSTALL_DIR/observability"
+mkdir -p "$INSTALL_DIR/compose" "$INSTALL_DIR/env" "$INSTALL_DIR/config" "$INSTALL_DIR/models/current" "$INSTALL_DIR/data" "$INSTALL_DIR/reports" "$INSTALL_DIR/observability" "$INSTALL_DIR/scripts" "$INSTALL_DIR/testdata"
 
 if [ ! -w "$INSTALL_DIR" ]; then
   echo "Install dir is not writable by the current user: $INSTALL_DIR" >&2
@@ -339,6 +340,16 @@ download deploy/observability/scheduler-alerts.yml "$INSTALL_DIR/observability/s
 download deploy/observability/grafana-datasources.yml "$INSTALL_DIR/observability/grafana-datasources.yml"
 download deploy/observability/otel-collector-config.yaml "$INSTALL_DIR/observability/otel-collector-config.yaml"
 download deploy/observability/promtail.yml "$INSTALL_DIR/observability/promtail.yml"
+download deploy/scripts/run-gateway-dataset.py "$INSTALL_DIR/scripts/run-gateway-dataset.py"
+download deploy/scripts/test-simple-smoke.sh "$INSTALL_DIR/scripts/test-simple-smoke.sh"
+download deploy/scripts/test-full-concurrent.sh "$INSTALL_DIR/scripts/test-full-concurrent.sh"
+download deploy/scripts/test-compare-rollout.sh "$INSTALL_DIR/scripts/test-compare-rollout.sh"
+download deploy/scripts/veloxmesh-up.sh "$INSTALL_DIR/scripts/veloxmesh-up.sh"
+download deploy/scripts/veloxmesh-down.sh "$INSTALL_DIR/scripts/veloxmesh-down.sh"
+download deploy/testdata/simple-smoke.jsonl "$INSTALL_DIR/testdata/simple-smoke.jsonl"
+download deploy/testdata/full-concurrent.jsonl "$INSTALL_DIR/testdata/full-concurrent.jsonl"
+download deploy/testdata/compare-rollout.jsonl "$INSTALL_DIR/testdata/compare-rollout.jsonl"
+chmod +x "$INSTALL_DIR"/scripts/*.sh "$INSTALL_DIR/scripts/run-gateway-dataset.py" 2>/dev/null || true
 
 write_env_if_missing
 
