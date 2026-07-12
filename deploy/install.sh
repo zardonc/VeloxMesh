@@ -7,6 +7,7 @@ fi
 PROFILE="${VELOXMESH_PROFILE:-simple}"
 INSTALL_DIR="${VELOXMESH_INSTALL_DIR:-$(pwd)/VeloxMesh}"
 PROJECT_NAME="${VELOXMESH_PROJECT_NAME:-veloxmesh}"
+BUILD_CONTEXT="${VELOXMESH_BUILD_CONTEXT:-}"
 REPO_URL="${VELOXMESH_REPO_URL:-https://github.com/zardonc/VeloxMesh.git}"
 BRANCH="${VELOXMESH_BRANCH:-main}"
 RAW_BASE="${VELOXMESH_RAW_BASE:-}"
@@ -31,6 +32,7 @@ Options:
   --profile simple|full|compare|postgres
   --install-dir ./VeloxMesh
   --project-name veloxmesh
+  --build-context https://github.com/zardonc/VeloxMesh.git#main
   --repo-url https://github.com/zardonc/VeloxMesh.git
   --branch main
   --raw-base https://raw.githubusercontent.com/zardonc/VeloxMesh/main
@@ -52,6 +54,7 @@ while [ "$#" -gt 0 ]; do
     --profile) PROFILE="$2"; shift 2 ;;
     --install-dir) INSTALL_DIR="$2"; shift 2 ;;
     --project-name) PROJECT_NAME="$2"; shift 2 ;;
+    --build-context) BUILD_CONTEXT="$2"; shift 2 ;;
     --repo-url) REPO_URL="$2"; shift 2 ;;
     --branch) BRANCH="$2"; shift 2 ;;
     --raw-base) RAW_BASE="$2"; shift 2 ;;
@@ -233,7 +236,8 @@ VELOXMESH_HOST_UID=$HOST_UID
 VELOXMESH_HOST_GID=$HOST_GID
 DEV_API_KEY=$DEV_API_KEY
 OPENAI_PRIMARY_API_KEY=$PROVIDER_API_KEY
-VELOXMESH_BUILD_CONTEXT=$REPO_URL#$BRANCH
+VELOXMESH_BUILD_CONTEXT=$BUILD_CONTEXT
+VELOXMESH_CONTAINER_ENV_FILE=../env/veloxmesh.env
 VELOXMESH_APP_CONFIG=../config/app.$APP_PROFILE_NAME.json
 VELOXMESH_SCHEDULER_CONFIG=../config/scheduler.$SCHEDULER_PROFILE_NAME.json
 VELOXMESH_CACHE_CONFIG=../config/cache.$CACHE_PROFILE_NAME.json
@@ -290,6 +294,9 @@ if [ -z "$RAW_BASE" ]; then
   repo_slug="$(printf '%s' "$REPO_URL" | sed -E 's#^https://github.com/##; s#^git@github.com:##; s#\.git$##')"
   RAW_BASE="https://raw.githubusercontent.com/$repo_slug/$BRANCH"
 fi
+if [ -z "$BUILD_CONTEXT" ]; then
+  BUILD_CONTEXT="$REPO_URL#$BRANCH"
+fi
 
 APP_PROFILE_NAME="$PROFILE"
 SCHEDULER_PROFILE_NAME="$PROFILE"
@@ -312,7 +319,7 @@ if [ -f "$INSTALL_DIR/env/veloxmesh.env" ]; then
   check_existing_profile "$INSTALL_DIR/env/veloxmesh.env"
 fi
 
-mkdir -p "$INSTALL_DIR/compose" "$INSTALL_DIR/env" "$INSTALL_DIR/config" "$INSTALL_DIR/models/current" "$INSTALL_DIR/data" "$INSTALL_DIR/reports" "$INSTALL_DIR/observability"
+mkdir -p "$INSTALL_DIR/compose" "$INSTALL_DIR/env" "$INSTALL_DIR/config" "$INSTALL_DIR/models/current" "$INSTALL_DIR/data" "$INSTALL_DIR/reports" "$INSTALL_DIR/observability" "$INSTALL_DIR/scripts" "$INSTALL_DIR/testdata"
 
 if [ ! -w "$INSTALL_DIR" ]; then
   echo "Install dir is not writable by the current user: $INSTALL_DIR" >&2
@@ -333,6 +340,16 @@ download deploy/observability/scheduler-alerts.yml "$INSTALL_DIR/observability/s
 download deploy/observability/grafana-datasources.yml "$INSTALL_DIR/observability/grafana-datasources.yml"
 download deploy/observability/otel-collector-config.yaml "$INSTALL_DIR/observability/otel-collector-config.yaml"
 download deploy/observability/promtail.yml "$INSTALL_DIR/observability/promtail.yml"
+download deploy/scripts/run-gateway-dataset.py "$INSTALL_DIR/scripts/run-gateway-dataset.py"
+download deploy/scripts/test-simple-smoke.sh "$INSTALL_DIR/scripts/test-simple-smoke.sh"
+download deploy/scripts/test-full-concurrent.sh "$INSTALL_DIR/scripts/test-full-concurrent.sh"
+download deploy/scripts/test-compare-rollout.sh "$INSTALL_DIR/scripts/test-compare-rollout.sh"
+download deploy/scripts/veloxmesh-up.sh "$INSTALL_DIR/scripts/veloxmesh-up.sh"
+download deploy/scripts/veloxmesh-down.sh "$INSTALL_DIR/scripts/veloxmesh-down.sh"
+download deploy/testdata/simple-smoke.jsonl "$INSTALL_DIR/testdata/simple-smoke.jsonl"
+download deploy/testdata/full-concurrent.jsonl "$INSTALL_DIR/testdata/full-concurrent.jsonl"
+download deploy/testdata/compare-rollout.jsonl "$INSTALL_DIR/testdata/compare-rollout.jsonl"
+chmod +x "$INSTALL_DIR"/scripts/*.sh "$INSTALL_DIR/scripts/run-gateway-dataset.py" 2>/dev/null || true
 
 write_env_if_missing
 
