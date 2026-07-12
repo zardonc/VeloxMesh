@@ -12,6 +12,8 @@ x-gateway-config: &gateway-config
   <<: *go-service
   command: ["/app/gateway"]
   environment:
+    GATEWAY_DATA_ADDR: ":8080"
+    GATEWAY_ADMIN_ADDR: ":8081"
     DEV_API_KEY: ${DEV_API_KEY:?copy deploy/env/*.example.env and set DEV_API_KEY}
     OPENAI_PRIMARY_API_KEY: ${OPENAI_PRIMARY_API_KEY:?copy deploy/env/*.example.env and set OPENAI_PRIMARY_API_KEY}
     CONFIG_FILE: /config/app.json

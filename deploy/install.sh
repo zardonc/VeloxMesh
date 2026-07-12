@@ -7,6 +7,7 @@ fi
 PROFILE="${VELOXMESH_PROFILE:-simple}"
 INSTALL_DIR="${VELOXMESH_INSTALL_DIR:-$(pwd)/VeloxMesh}"
 PROJECT_NAME="${VELOXMESH_PROJECT_NAME:-veloxmesh}"
+BUILD_CONTEXT="${VELOXMESH_BUILD_CONTEXT:-}"
 REPO_URL="${VELOXMESH_REPO_URL:-https://github.com/zardonc/VeloxMesh.git}"
 BRANCH="${VELOXMESH_BRANCH:-main}"
 RAW_BASE="${VELOXMESH_RAW_BASE:-}"
@@ -31,6 +32,7 @@ Options:
   --profile simple|full|compare|postgres
   --install-dir ./VeloxMesh
   --project-name veloxmesh
+  --build-context https://github.com/zardonc/VeloxMesh.git#main
   --repo-url https://github.com/zardonc/VeloxMesh.git
   --branch main
   --raw-base https://raw.githubusercontent.com/zardonc/VeloxMesh/main
@@ -52,6 +54,7 @@ while [ "$#" -gt 0 ]; do
     --profile) PROFILE="$2"; shift 2 ;;
     --install-dir) INSTALL_DIR="$2"; shift 2 ;;
     --project-name) PROJECT_NAME="$2"; shift 2 ;;
+    --build-context) BUILD_CONTEXT="$2"; shift 2 ;;
     --repo-url) REPO_URL="$2"; shift 2 ;;
     --branch) BRANCH="$2"; shift 2 ;;
     --raw-base) RAW_BASE="$2"; shift 2 ;;
@@ -233,7 +236,7 @@ VELOXMESH_HOST_UID=$HOST_UID
 VELOXMESH_HOST_GID=$HOST_GID
 DEV_API_KEY=$DEV_API_KEY
 OPENAI_PRIMARY_API_KEY=$PROVIDER_API_KEY
-VELOXMESH_BUILD_CONTEXT=$REPO_URL#$BRANCH
+VELOXMESH_BUILD_CONTEXT=$BUILD_CONTEXT
 VELOXMESH_APP_CONFIG=../config/app.$APP_PROFILE_NAME.json
 VELOXMESH_SCHEDULER_CONFIG=../config/scheduler.$SCHEDULER_PROFILE_NAME.json
 VELOXMESH_CACHE_CONFIG=../config/cache.$CACHE_PROFILE_NAME.json
@@ -289,6 +292,9 @@ CONTROL_STATE_ENCRYPTION_KEY="$(random_key32)"
 if [ -z "$RAW_BASE" ]; then
   repo_slug="$(printf '%s' "$REPO_URL" | sed -E 's#^https://github.com/##; s#^git@github.com:##; s#\.git$##')"
   RAW_BASE="https://raw.githubusercontent.com/$repo_slug/$BRANCH"
+fi
+if [ -z "$BUILD_CONTEXT" ]; then
+  BUILD_CONTEXT="$REPO_URL#$BRANCH"
 fi
 
 APP_PROFILE_NAME="$PROFILE"
