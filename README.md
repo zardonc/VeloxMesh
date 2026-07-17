@@ -126,15 +126,36 @@ Replace all placeholder passwords, DSNs, encryption keys, and provider keys befo
 make run
 ```
 
-### 4. Docker Deployment
+### 4. One-command Docker Deployment
 
-Single-host Docker deployment is available under `deploy/`. Start with:
+For a single-host deployment, use Docker Compose v2 and run the installer as
+the current user (without `sudo`):
 
 ```bash
-sh deploy/scripts/veloxmesh-up.sh simple
+# Default simple profile; creates ./VeloxMesh in the current directory.
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sh -s -- \
+  --provider-api-key "<provider-api-key>" \
+  --provider-base-url "https://api.example.com/v1" \
+  --provider-model "example-model"
+
+# Optional profiles: full, compare, or postgres.
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sh -s -- \
+  --profile full \
+  --provider-api-key "<provider-api-key>" \
+  --provider-base-url "https://api.example.com/v1" \
+  --provider-model "example-model"
 ```
 
-Edit the copied files before the second run. ONNX mode creates a default local scheduler artifact if `deploy/models/current/model.onnx` or `manifest.json` is missing. For Redis, Qdrant, PostgreSQL, Grafana, logs, and scheduler comparison profiles, see [deploy/README.md](deploy/README.md).
+The installer downloads deployment files, generates local credentials, copies
+the bundled test scripts and datasets, builds the images, and starts Compose.
+It does not generate a real provider API key. Edit `VeloxMesh/env/veloxmesh.env`
+for provider keys or other local settings; for multiple providers, each
+`providers[].auth.api_key_env` name in the app config must have a matching
+variable in that file. Re-running preserves same-profile local configuration;
+uninstall first or use another `--install-dir` to change profiles.
+
+Profiles and the complete deployment, UI, testing, and uninstall instructions
+are in [deploy/README.md](deploy/README.md).
 
 ### 5. Check Health
 
@@ -191,6 +212,9 @@ Common settings:
 
 Keep secrets in environment variables or local secret stores. Do not commit real provider keys.
 
+For multiple providers, define each provider key using the exact environment
+variable name referenced by its `auth.api_key_env` configuration field.
+
 PostgreSQL settings live in `deploy/env/local.postgres.example.env` for local app runs and `deploy/env/postgres.example.env` for Docker Compose.
 
 ### Deployment Plans
@@ -244,6 +268,27 @@ make vet
 ```
 
 Some integration tests require local services such as Redis Stack or Qdrant. Set the related environment variables before running those tests.
+
+The installed Docker deployment also includes smoke, concurrent, and scheduler
+rollout dataset runners:
+
+```bash
+cd VeloxMesh
+sh scripts/test-simple-smoke.sh       # 3 sequential smoke requests
+sh scripts/test-full-concurrent.sh    # full dataset with concurrency 8
+sh scripts/test-compare-rollout.sh    # ONNX rollout 100, 0, and 50
+```
+
+Each runner writes a timestamped report under `VeloxMesh/reports/`.
+
+To stop containers and remove the installed directory while keeping named
+volumes:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/uninstall.sh | sh -s -- --yes
+```
+
+Add `--volumes` only when the local persistent data should also be deleted.
 
 ## Scheduler Training
 
