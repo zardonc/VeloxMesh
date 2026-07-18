@@ -42,7 +42,7 @@ The application derives the unauthenticated portal from `window.location.pathnam
 
 - Client-selected portal role is treated only as an expected role, never as authorization.
 - Admin and Customer API middleware remains the final authorization boundary.
-- Public registration creates Customer accounts only.
+- The public Customer registration endpoint creates Customer accounts only. The legacy generic registration endpoint may create an Admin only when the existing `AllowAdminRegistration` test/development flag is explicitly enabled; production keeps that flag disabled and provisions Admin accounts through bootstrap configuration.
 - Role mismatch does not issue a challenge or Session Cookie.
 
 ## Tests
