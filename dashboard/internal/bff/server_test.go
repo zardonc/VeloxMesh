@@ -897,6 +897,127 @@ func TestRegisterPersistsUserWithoutCreatingSessionAndLoginRequiresVerification(
 	}
 }
 
+func TestRoleSpecificLoginEnforcesStoredRoleBeforeCreatingChallenge(t *testing.T) {
+	tests := []struct {
+		name          string
+		storedRole    string
+		wrongPortal   string
+		correctPortal string
+		wrongRole     string
+		wantMessage   string
+	}{
+		{
+			name:          "Admin account",
+			storedRole:    "Admin",
+			wrongPortal:   "/bff/auth/customer/login",
+			correctPortal: "/bff/auth/admin/login",
+			wrongRole:     "Customer",
+			wantMessage:   "This account does not have access to the Customer portal",
+		},
+		{
+			name:          "Customer account",
+			storedRole:    "Customer",
+			wrongPortal:   "/bff/auth/admin/login",
+			correctPortal: "/bff/auth/customer/login",
+			wrongRole:     "Admin",
+			wantMessage:   "This account does not have access to the Admin portal",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			outboxPath := filepath.Join(t.TempDir(), "email-outbox.log")
+			sendLimit := 1
+			if test.storedRole == "Customer" {
+				sendLimit = 2
+			}
+			handler := newTestServer(Config{
+				EmailOutboxPath:            outboxPath,
+				VerificationSendEmailLimit: sendLimit,
+			})
+			username := strings.ToLower(test.storedRole) + "_portal_user"
+			password := "correct-horse"
+			registered := authRequest(t, handler, http.MethodPost, "/bff/auth/register", fmt.Sprintf(`{
+				"email": %q,
+				"username": %q,
+				"password": %q,
+				"role": %q
+			}`, username+"@example.test", username, password, test.storedRole), nil)
+			if registered.Code != http.StatusCreated {
+				t.Fatalf("expected %s registration status 201, got %d: %s", test.storedRole, registered.Code, registered.Body.String())
+			}
+			outboxBefore, err := os.ReadFile(outboxPath)
+			if err != nil && !os.IsNotExist(err) {
+				t.Fatalf("read verification outbox before wrong-portal login: %v", err)
+			}
+
+			wrongPortal := authRequest(t, handler, http.MethodPost, test.wrongPortal, fmt.Sprintf(`{
+				"identifier": %q,
+				"password": %q,
+				"role": %q
+			}`, username, password, test.wrongRole), nil)
+			if wrongPortal.Code != http.StatusForbidden {
+				t.Fatalf("expected wrong-portal status 403, got %d: %s", wrongPortal.Code, wrongPortal.Body.String())
+			}
+			if !strings.Contains(wrongPortal.Body.String(), test.wantMessage) {
+				t.Fatalf("expected portal-specific error %q, got %s", test.wantMessage, wrongPortal.Body.String())
+			}
+			if strings.Contains(wrongPortal.Body.String(), `"challengeId"`) {
+				t.Fatalf("wrong-portal response must not contain a challenge: %s", wrongPortal.Body.String())
+			}
+			if cookieNamed(wrongPortal, sessionCookieName) != nil {
+				t.Fatalf("wrong-portal response must not create a session cookie")
+			}
+			outboxAfter, err := os.ReadFile(outboxPath)
+			if err != nil && !os.IsNotExist(err) {
+				t.Fatalf("read verification outbox after wrong-portal login: %v", err)
+			}
+			if !bytes.Equal(outboxAfter, outboxBefore) {
+				t.Fatalf("wrong-portal login must not send a verification challenge")
+			}
+
+			correctPortal := authRequest(t, handler, http.MethodPost, test.correctPortal, fmt.Sprintf(`{
+				"identifier": %q,
+				"password": %q,
+				"role": %q
+			}`, username, password, test.wrongRole), nil)
+			if correctPortal.Code != http.StatusOK {
+				t.Fatalf("expected correct-portal challenge status 200, got %d: %s", correctPortal.Code, correctPortal.Body.String())
+			}
+			if !strings.Contains(correctPortal.Body.String(), `"verificationRequired":true`) || !strings.Contains(correctPortal.Body.String(), `"challengeId"`) {
+				t.Fatalf("expected correct-portal verification challenge, got %s", correctPortal.Body.String())
+			}
+			if cookieNamed(correctPortal, sessionCookieName) != nil {
+				t.Fatalf("correct-portal password login must not create a session before verification")
+			}
+		})
+	}
+}
+
+func TestRoleSpecificLoginKeepsGenericEndpointCompatible(t *testing.T) {
+	handler := newTestServer(Config{})
+	registered := authRequest(t, handler, http.MethodPost, "/bff/auth/register", `{
+		"email": "generic-login@example.test",
+		"username": "generic_login",
+		"password": "correct-horse",
+		"role": "Customer"
+	}`, nil)
+	if registered.Code != http.StatusCreated {
+		t.Fatalf("expected registration status 201, got %d: %s", registered.Code, registered.Body.String())
+	}
+
+	login := authRequest(t, handler, http.MethodPost, "/bff/auth/login", `{
+		"identifier": "generic_login",
+		"password": "correct-horse"
+	}`, nil)
+	if login.Code != http.StatusOK {
+		t.Fatalf("expected generic login challenge status 200, got %d: %s", login.Code, login.Body.String())
+	}
+	if !strings.Contains(login.Body.String(), `"verificationRequired":true`) || !strings.Contains(login.Body.String(), `"challengeId"`) {
+		t.Fatalf("expected generic login verification challenge, got %s", login.Body.String())
+	}
+}
+
 func TestRegisterAssignsAdminAndCustomerRoles(t *testing.T) {
 	handler := newTestServer(Config{ProviderName: "sans-primary"})
 

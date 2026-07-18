@@ -470,6 +470,8 @@ func (server *Server) routes() {
 	server.mux.HandleFunc("POST /bff/auth/register", server.handleAuthRegister)
 	server.mux.HandleFunc("POST /bff/auth/customer/register", server.handleCustomerRegister)
 	server.mux.HandleFunc("POST /bff/auth/login", server.handleAuthLogin)
+	server.mux.HandleFunc("POST /bff/auth/admin/login", server.handleAdminAuthLogin)
+	server.mux.HandleFunc("POST /bff/auth/customer/login", server.handleCustomerAuthLogin)
 	server.mux.HandleFunc("POST /bff/auth/verify-login", server.handleAuthVerifyLogin)
 	server.mux.HandleFunc("POST /bff/auth/verify", server.handleAuthVerifyLogin)
 	server.mux.HandleFunc("POST /bff/auth/logout", server.handleAuthLogout)
@@ -764,6 +766,18 @@ func (server *Server) registerCustomer(w http.ResponseWriter, r *http.Request, i
 }
 
 func (server *Server) handleAuthLogin(w http.ResponseWriter, r *http.Request) {
+	server.handleRoleAuthLogin(w, r, "")
+}
+
+func (server *Server) handleAdminAuthLogin(w http.ResponseWriter, r *http.Request) {
+	server.handleRoleAuthLogin(w, r, "Admin")
+}
+
+func (server *Server) handleCustomerAuthLogin(w http.ResponseWriter, r *http.Request) {
+	server.handleRoleAuthLogin(w, r, "Customer")
+}
+
+func (server *Server) handleRoleAuthLogin(w http.ResponseWriter, r *http.Request, expectedRole string) {
 	var input struct {
 		Identifier string `json:"identifier"`
 		Password   string `json:"password"`
@@ -782,6 +796,14 @@ func (server *Server) handleAuthLogin(w http.ResponseWriter, r *http.Request) {
 	if user == nil || !passwordMatches(*user, input.Password) {
 		server.state.mu.Unlock()
 		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid username or password"})
+		return
+	}
+	if expectedRole != "" && !strings.EqualFold(strings.TrimSpace(user.Role), expectedRole) {
+		server.state.mu.Unlock()
+		writeJSON(w, http.StatusForbidden, map[string]string{
+			"error":   strings.ToLower(expectedRole) + "_portal_access_denied",
+			"message": "This account does not have access to the " + expectedRole + " portal",
+		})
 		return
 	}
 	if !strings.HasPrefix(user.PasswordHash, "$2") {
