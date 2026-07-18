@@ -1,0 +1,21 @@
+{
+  "prompts": [
+    "Summarize gateway provider health",
+    "Compare FCFS and LTR scheduler latency",
+    "Summarize gateway provider health",
+    "Explain cache hit behavior",
+    "Compare FCFS and LTR scheduler latency",
+    "List benchmark readiness checks",
+    "Explain cache hit behavior",
+    "Summarize gateway provider health"
+  ],
+  "missLatencyMs": 120,
+  "hitLatencyMs": 28,
+  "endpoints": {
+    "gatewayHealth": "http://127.0.0.1:8080/health",
+    "bffHealth": "http://127.0.0.1:8080/bff/health",
+    "frontend": "http://127.0.0.1:5173/",
+    "providers": "http://127.0.0.1:8080/bff/admin/providers",
+    "benchmarks": "http://127.0.0.1:8080/bff/admin/benchmarks"
+  }
+}
