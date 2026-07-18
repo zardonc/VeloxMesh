@@ -1,6 +1,10 @@
 export type AccountRole = "Admin" | "Customer";
 export type AuthMode = "login" | "register";
 
+export function portalRoleForPathname(pathname: string): AccountRole {
+  return pathname === "/admin/login" ? "Admin" : "Customer";
+}
+
 export function canRegisterRole(role: AccountRole): boolean {
   return role === "Customer";
 }

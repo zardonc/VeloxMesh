@@ -528,7 +528,7 @@ describe("admin write APIs", () => {
     expect(fetch).toHaveBeenCalledWith("/bff/session");
   });
 
-  it("calls auth endpoints for register, login, verification, and logout", async () => {
+  it("calls auth endpoints for register, role-specific login, verification, and logout", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ user: "capstone_owner", role: "Admin", scopes: ["admin:write"] })
@@ -541,7 +541,8 @@ describe("admin write APIs", () => {
       password: "correct-horse",
       role: "Customer"
     });
-    await loginAccount({ identifier: "capstone_owner", password: "correct-horse" });
+    await loginAccount({ identifier: "capstone_owner", password: "correct-horse", role: "Admin" });
+    await loginAccount({ identifier: "customer_user", password: "correct-horse", role: "Customer" });
     await verifyLoginCode({ challengeId: "challenge-1", code: "123456" });
     await logoutAccount();
 
@@ -558,10 +559,17 @@ describe("admin write APIs", () => {
       })
     );
     expect(fetchMock).toHaveBeenCalledWith(
-      "/bff/auth/login",
+      "/bff/auth/admin/login",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({ identifier: "capstone_owner", password: "correct-horse" })
+      })
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/bff/auth/customer/login",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ identifier: "customer_user", password: "correct-horse" })
       })
     );
     expect(fetchMock).toHaveBeenCalledWith(
@@ -572,6 +580,25 @@ describe("admin write APIs", () => {
       })
     );
     expect(fetchMock).toHaveBeenCalledWith("/bff/auth/logout", expect.objectContaining({ method: "POST" }));
+  });
+
+  it("surfaces a wrong-portal BFF error from role-specific login", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      statusText: "Forbidden",
+      json: async () => ({
+        error: "admin_portal_access_denied",
+        message: "This account does not have access to the Admin portal"
+      })
+    }));
+
+    await expect(loginAccount({
+      identifier: "customer_user",
+      password: "correct-horse",
+      role: "Admin"
+    })).rejects.toThrow("This account does not have access to the Admin portal");
+    expect(fetch).toHaveBeenCalledWith("/bff/auth/admin/login", expect.any(Object));
   });
 
   it("loads customer startup data without calling admin endpoints", async () => {

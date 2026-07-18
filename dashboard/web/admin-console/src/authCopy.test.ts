@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { authCopy, canRegisterRole } from "./authCopy";
+import { authCopy, canRegisterRole, portalRoleForPathname } from "./authCopy";
 
 describe("authCopy", () => {
   it("uses role-specific copy on the admin login screen", () => {
@@ -23,5 +23,13 @@ describe("authCopy", () => {
 		expect(canRegisterRole("Admin")).toBe(false);
 		expect(authCopy("register", "Admin", false).title).toBe("Create customer account");
     expect(authCopy("register", "Customer", false).title).toBe("Create customer account");
+  });
+
+  it("maps only the admin login path to the Admin portal", () => {
+    expect(portalRoleForPathname("/admin/login")).toBe("Admin");
+    expect(portalRoleForPathname("/customer/login")).toBe("Customer");
+    expect(portalRoleForPathname("/admin")).toBe("Customer");
+    expect(portalRoleForPathname("/somewhere-else")).toBe("Customer");
+    expect(portalRoleForPathname("/")).toBe("Customer");
   });
 });

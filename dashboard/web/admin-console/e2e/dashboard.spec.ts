@@ -54,7 +54,7 @@ async function finishVerification(page: Page) {
 async function registerCustomer(page: Page, suffix: string) {
   const username = `customer_${suffix}`;
   const password = "DashboardPass1234";
-  await page.goto("/");
+  await page.goto("/customer/login");
 	await page.getByRole("button", { name: "Create Customer Account" }).click();
   await page.getByLabel("Email").fill(`${username}@example.test`);
   await page.getByLabel("Username").fill(username);
@@ -64,18 +64,53 @@ async function registerCustomer(page: Page, suffix: string) {
   await page.getByRole("button", { name: "Create account" }).click();
 	await finishVerification(page);
 	await expect(page.getByRole("heading", { name: "Customer Home" })).toBeVisible();
+	return { username, password };
 }
 
 async function loginAdmin(page: Page) {
 	const password = process.env.E2E_ADMIN_PASSWORD ?? "E2E-Admin-Password-1234";
-	await page.goto("/");
-	await page.getByRole("button", { name: "Admin Sign In" }).click();
+	await page.goto("/admin/login");
 	await page.getByLabel("Username or email").fill(process.env.E2E_ADMIN_USERNAME ?? "e2e_admin");
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
 	await finishVerification(page);
 	await expect(page.getByRole("heading", { name: "Admin Home" })).toBeVisible();
 }
+
+test("login portals use fixed roles and browser history navigation", async ({ page }) => {
+	await page.goto("/admin/login");
+	await expect(page.getByRole("heading", { name: "Admin sign in" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Create Customer Account" })).toHaveCount(0);
+	await expect(page.getByLabel("Account role")).toHaveCount(0);
+
+	await page.getByRole("button", { name: "Customer portal" }).click();
+	await expect(page).toHaveURL(/\/customer\/login$/);
+	await expect(page.getByRole("heading", { name: "Customer sign in" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Create Customer Account" })).toBeVisible();
+
+	await page.goBack();
+	await expect(page).toHaveURL(/\/admin\/login$/);
+	await expect(page.getByRole("heading", { name: "Admin sign in" })).toBeVisible();
+	await page.goForward();
+	await expect(page).toHaveURL(/\/customer\/login$/);
+	await expect(page.getByRole("heading", { name: "Customer sign in" })).toBeVisible();
+
+	await page.goto("/unrecognized-login-path");
+	await expect(page.getByRole("heading", { name: "Customer sign in" })).toBeVisible();
+});
+
+test("wrong portal displays the BFF error and keeps the user signed out", async ({ page }) => {
+	const account = await registerCustomer(page, `wrong_portal_${Date.now()}`);
+	await page.getByRole("button", { name: "Sign out" }).click();
+	await page.goto("/admin/login");
+	await page.getByLabel("Username or email").fill(account.username);
+	await page.getByLabel("Password").fill(account.password);
+	await page.getByRole("button", { name: "Sign in", exact: true }).click();
+
+	await expect(page.getByRole("alert")).toContainText("This account does not have access to the Admin portal");
+	await expect(page.getByRole("heading", { name: "Admin sign in" })).toBeVisible();
+	expect((await page.request.get("/bff/session")).status()).toBe(401);
+});
 
 test("admin sees live operational data and exports benchmark files", async ({ page }) => {
 	seedAdminOperationalData();

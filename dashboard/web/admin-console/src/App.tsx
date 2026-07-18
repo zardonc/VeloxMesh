@@ -45,7 +45,7 @@ import {
   roleCanAccessView
 } from "./api";
 import "./styles.css";
-import { AccountRole, AuthMode, authCopy } from "./authCopy";
+import { AccountRole, AuthMode, authCopy, canRegisterRole, portalRoleForPathname } from "./authCopy";
 import { SystemManagement } from "./SystemManagement";
 
 type AppState =
@@ -83,6 +83,7 @@ const viewIcons: Record<string, typeof Gauge> = {
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>({ status: "loading" });
+  const [portalRole, setPortalRole] = useState<AccountRole>(() => portalRoleForPathname(window.location.pathname));
   const [activeView, setActiveView] = useState<MvpView>("admin-home");
   const [activeManagementTab, setActiveManagementTab] = useState<SystemManagementTab>("routing");
   const [data, setData] = useState<DashboardData>(emptyData);
@@ -91,6 +92,15 @@ export default function App() {
 
   useEffect(() => {
     void boot();
+  }, []);
+
+  useEffect(() => {
+    function syncPortalRole() {
+      setPortalRole(portalRoleForPathname(window.location.pathname));
+    }
+
+    window.addEventListener("popstate", syncPortalRole);
+    return () => window.removeEventListener("popstate", syncPortalRole);
   }, []);
 
   useEffect(() => {
@@ -164,6 +174,12 @@ export default function App() {
     setAppState({ status: "signed-out" });
   }
 
+  function navigateToPortal(role: AccountRole) {
+    const pathname = role === "Admin" ? "/admin/login" : "/customer/login";
+    window.history.pushState({}, "", pathname);
+    setPortalRole(role);
+  }
+
   async function refresh(session: MvpSession) {
     try {
       await loadRoleData(session.role);
@@ -185,7 +201,14 @@ export default function App() {
   }
 
   if (appState.status === "signed-out") {
-    return <LoginScreen onAuthenticated={completeLogin} />;
+    return (
+      <LoginScreen
+        key={portalRole}
+        role={portalRole}
+        onAuthenticated={completeLogin}
+        onPortalChange={navigateToPortal}
+      />
+    );
   }
 
   if (appState.status === "error") {
@@ -229,9 +252,16 @@ export default function App() {
   );
 }
 
-function LoginScreen({ onAuthenticated }: { onAuthenticated: (session: MvpSession) => Promise<void> }) {
+function LoginScreen({
+  role,
+  onAuthenticated,
+  onPortalChange
+}: {
+  role: AccountRole;
+  onAuthenticated: (session: MvpSession) => Promise<void>;
+  onPortalChange: (role: AccountRole) => void;
+}) {
   const [mode, setMode] = useState<AuthMode>("login");
-	const [role, setRole] = useState<AccountRole>("Customer");
   const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -268,7 +298,7 @@ function LoginScreen({ onAuthenticated }: { onAuthenticated: (session: MvpSessio
         setMessage(response.message);
         return;
       }
-      const challenge = await mockApi.login({ identifier, password });
+      const challenge = await mockApi.login({ identifier, password, role });
       setChallengeId(challenge.challengeId);
       setDevCode(challenge.devCode ?? "");
       setMessage(challenge.message);
@@ -281,9 +311,6 @@ function LoginScreen({ onAuthenticated }: { onAuthenticated: (session: MvpSessio
 
   function resetAuth(nextMode: AuthMode) {
     setMode(nextMode);
-	if (nextMode === "register") {
-		setRole("Customer");
-	}
     setChallengeId("");
     setVerificationCode("");
     setDevCode("");
@@ -304,16 +331,6 @@ function LoginScreen({ onAuthenticated }: { onAuthenticated: (session: MvpSessio
         <span className="auth-eyebrow">{copy.brandLabel}</span>
         <h1>{copy.title}</h1>
         <p>{copy.description}</p>
-		{!isVerifying && mode === "login" && (
-          <div className="auth-segments" aria-label="Account role">
-            {(["Admin", "Customer"] as AccountRole[]).map((item) => (
-              <button key={item} type="button" className={role === item ? "active" : ""} onClick={() => setRole(item)}>
-                {item === "Admin" ? <ShieldAlert size={17} aria-hidden="true" /> : <UserRound size={17} aria-hidden="true" />}
-				{item} Sign In
-              </button>
-            ))}
-          </div>
-        )}
         <form className="auth-form" onSubmit={submit}>
           {mode === "register" && !isVerifying && (
             <>
@@ -342,12 +359,17 @@ function LoginScreen({ onAuthenticated }: { onAuthenticated: (session: MvpSessio
             {submitting ? "Please wait..." : isVerifying ? "Verify and sign in" : mode === "login" ? "Sign in" : "Create account"}
           </button>
         </form>
-        {!isVerifying && (
+        {!isVerifying && canRegisterRole(role) && (
           <button className="auth-switch" type="button" onClick={() => resetAuth(mode === "login" ? "register" : "login")}>
 			{mode === "login" ? "Create Customer Account" : "Back to sign in"}
           </button>
         )}
         {isVerifying && <button className="auth-switch" type="button" onClick={() => resetAuth("login")}>Back to sign in</button>}
+        {!isVerifying && mode === "login" && (
+          <button className="auth-switch auth-portal-switch" type="button" onClick={() => onPortalChange(role === "Admin" ? "Customer" : "Admin")}>
+            {role === "Admin" ? "Customer portal" : "Admin portal"}
+          </button>
+        )}
       </section>
     </main>
   );

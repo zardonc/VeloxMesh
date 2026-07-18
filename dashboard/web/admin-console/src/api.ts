@@ -235,6 +235,7 @@ export type CustomerRegisterInput = {
 export type LoginInput = {
   identifier: string;
   password: string;
+  role: "Admin" | "Customer";
 };
 
 export type LoginChallengeResponse = {
@@ -707,7 +708,8 @@ export async function registerCustomerAccount(input: CustomerRegisterInput): Pro
 }
 
 export async function loginAccount(input: LoginInput): Promise<LoginChallengeResponse> {
-  return postJSONResponse<LoginChallengeResponse>("/bff/auth/login", input);
+  const { role, ...credentials } = input;
+  return postJSONResponse<LoginChallengeResponse>(`/bff/auth/${role.toLowerCase()}/login`, credentials);
 }
 
 export async function verifyLoginCode(input: VerifyLoginInput): Promise<SessionResponse> {
@@ -826,7 +828,10 @@ async function deleteJSON(path: string): Promise<void> {
 
 async function responseErrorMessage(response: Response): Promise<string> {
   try {
-    const body = await response.json() as { error?: string };
+    const body = await response.json() as { error?: string; message?: string };
+    if (body.message) {
+      return body.message;
+    }
     if (body.error) {
       return body.error;
     }
