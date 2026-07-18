@@ -45,7 +45,7 @@ import {
   roleCanAccessView
 } from "./api";
 import "./styles.css";
-import { AccountRole, AuthMode, authCopy, canRegisterRole, portalRoleForPathname } from "./authCopy";
+import { AccountRole, AuthMode, authCopy, canRegisterRole, portalRoleForPathname, shouldHandlePortalClick } from "./authCopy";
 import { SystemManagement } from "./SystemManagement";
 
 type AppState =
@@ -276,6 +276,8 @@ function LoginScreen({
   const [submitting, setSubmitting] = useState(false);
   const isVerifying = Boolean(challengeId);
   const copy = authCopy(mode, role, isVerifying);
+  const otherPortalRole: AccountRole = role === "Admin" ? "Customer" : "Admin";
+  const otherPortalPath = otherPortalRole === "Admin" ? "/admin/login" : "/customer/login";
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -366,9 +368,19 @@ function LoginScreen({
         )}
         {isVerifying && <button className="auth-switch" type="button" onClick={() => resetAuth("login")}>Back to sign in</button>}
         {!isVerifying && mode === "login" && (
-          <button className="auth-switch auth-portal-switch" type="button" onClick={() => onPortalChange(role === "Admin" ? "Customer" : "Admin")}>
-            {role === "Admin" ? "Customer portal" : "Admin portal"}
-          </button>
+          <a
+            className="auth-switch auth-portal-switch"
+            href={otherPortalPath}
+            onClick={(event) => {
+              if (!shouldHandlePortalClick(event)) {
+                return;
+              }
+              event.preventDefault();
+              onPortalChange(otherPortalRole);
+            }}
+          >
+            {otherPortalRole} portal
+          </a>
         )}
       </section>
     </main>

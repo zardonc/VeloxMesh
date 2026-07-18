@@ -83,10 +83,23 @@ test("login portals use fixed roles and browser history navigation", async ({ pa
 	await expect(page.getByRole("button", { name: "Create Customer Account" })).toHaveCount(0);
 	await expect(page.getByLabel("Account role")).toHaveCount(0);
 
-	await page.getByRole("button", { name: "Customer portal" }).click();
+	const customerPortal = page.getByRole("link", { name: "Customer portal" });
+	await expect(customerPortal).toHaveAttribute("href", "/customer/login");
+	const [portalBox, panelBox] = await Promise.all([
+		customerPortal.boundingBox(),
+		page.locator(".login-panel").boundingBox()
+	]);
+	expect(portalBox).not.toBeNull();
+	expect(panelBox).not.toBeNull();
+	expect(portalBox!.width).toBeLessThan(panelBox!.width / 2);
+	await page.evaluate(() => {
+		(window as Window & { portalNavigationMarker?: string }).portalNavigationMarker = "preserved";
+	});
+	await customerPortal.click();
 	await expect(page).toHaveURL(/\/customer\/login$/);
 	await expect(page.getByRole("heading", { name: "Customer sign in" })).toBeVisible();
 	await expect(page.getByRole("button", { name: "Create Customer Account" })).toBeVisible();
+	expect(await page.evaluate(() => (window as Window & { portalNavigationMarker?: string }).portalNavigationMarker)).toBe("preserved");
 
 	await page.goBack();
 	await expect(page).toHaveURL(/\/admin\/login$/);
@@ -101,7 +114,11 @@ test("login portals use fixed roles and browser history navigation", async ({ pa
 
 test("wrong portal displays the BFF error and keeps the user signed out", async ({ page }) => {
 	const account = await registerCustomer(page, `wrong_portal_${Date.now()}`);
-	await page.getByRole("button", { name: "Sign out" }).click();
+	await Promise.all([
+		page.waitForResponse((response) => response.url().endsWith("/bff/auth/logout") && response.request().method() === "POST"),
+		page.getByRole("button", { name: "Sign out" }).click()
+	]);
+	await expect(page.getByRole("heading", { name: "Customer sign in" })).toBeVisible();
 	await page.goto("/admin/login");
 	await page.getByLabel("Username or email").fill(account.username);
 	await page.getByLabel("Password").fill(account.password);

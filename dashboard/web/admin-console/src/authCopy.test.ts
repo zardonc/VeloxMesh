@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { authCopy, canRegisterRole, portalRoleForPathname } from "./authCopy";
+import { authCopy, canRegisterRole, portalRoleForPathname, shouldHandlePortalClick } from "./authCopy";
 
 describe("authCopy", () => {
   it("uses role-specific copy on the admin login screen", () => {
@@ -31,5 +31,24 @@ describe("authCopy", () => {
     expect(portalRoleForPathname("/admin")).toBe("Customer");
     expect(portalRoleForPathname("/somewhere-else")).toBe("Customer");
     expect(portalRoleForPathname("/")).toBe("Customer");
+  });
+
+  it("intercepts only ordinary unmodified primary portal clicks", () => {
+    const ordinaryClick = {
+      altKey: false,
+      button: 0,
+      ctrlKey: false,
+      defaultPrevented: false,
+      metaKey: false,
+      shiftKey: false
+    };
+
+    expect(shouldHandlePortalClick(ordinaryClick)).toBe(true);
+    expect(shouldHandlePortalClick({ ...ordinaryClick, button: 1 })).toBe(false);
+    expect(shouldHandlePortalClick({ ...ordinaryClick, altKey: true })).toBe(false);
+    expect(shouldHandlePortalClick({ ...ordinaryClick, ctrlKey: true })).toBe(false);
+    expect(shouldHandlePortalClick({ ...ordinaryClick, metaKey: true })).toBe(false);
+    expect(shouldHandlePortalClick({ ...ordinaryClick, shiftKey: true })).toBe(false);
+    expect(shouldHandlePortalClick({ ...ordinaryClick, defaultPrevented: true })).toBe(false);
   });
 });

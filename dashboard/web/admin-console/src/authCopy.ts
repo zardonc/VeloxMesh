@@ -5,6 +5,24 @@ export function portalRoleForPathname(pathname: string): AccountRole {
   return pathname === "/admin/login" ? "Admin" : "Customer";
 }
 
+type PortalClick = {
+  altKey: boolean;
+  button: number;
+  ctrlKey: boolean;
+  defaultPrevented: boolean;
+  metaKey: boolean;
+  shiftKey: boolean;
+};
+
+export function shouldHandlePortalClick(event: PortalClick): boolean {
+  return event.button === 0
+    && !event.defaultPrevented
+    && !event.altKey
+    && !event.ctrlKey
+    && !event.metaKey
+    && !event.shiftKey;
+}
+
 export function canRegisterRole(role: AccountRole): boolean {
   return role === "Customer";
 }

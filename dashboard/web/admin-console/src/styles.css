@@ -142,8 +142,10 @@ h2 {
 }
 
 .auth-portal-switch {
+  width: fit-content;
   color: #475569;
   font-weight: 600;
+  text-decoration: none;
 }
 
 .auth-message,
