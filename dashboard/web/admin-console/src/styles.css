@@ -574,6 +574,36 @@ nav button.active {
   margin-bottom: 12px;
 }
 
+.partial-banner span {
+	display: block;
+	margin-top: 4px;
+}
+
+.summary-provenance {
+	display: grid;
+	gap: 8px;
+	margin-top: 16px;
+	padding-top: 12px;
+	border-top: 1px solid #e2e8f0;
+	font-size: 0.82rem;
+	color: #64748b;
+}
+
+.summary-provenance div {
+	display: grid;
+	grid-template-columns: 88px minmax(0, 1fr);
+	gap: 12px;
+}
+
+.summary-provenance strong {
+	color: #0f172a;
+}
+
+.summary-provenance span {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
 .benchmark-actions {
   display: flex;
   align-items: center;
@@ -996,6 +1026,290 @@ tbody tr:hover {
   max-width: 620px;
 }
 
+.management-panel {
+  min-width: 0;
+}
+
+.management-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.management-source {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.management-live-source,
+.management-contract-note {
+  margin-bottom: 12px;
+  border-left: 3px solid #16835f;
+  background: #eef8f4;
+  color: #245247;
+  padding: 9px 11px;
+  font-size: 0.82rem;
+}
+
+.management-contract-note {
+  border-left-color: #5572a1;
+  background: #f1f5fb;
+  color: #354c70;
+}
+
+.icon-button {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  flex: 0 0 34px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #334155;
+}
+
+.icon-button:hover,
+.icon-button:focus-visible {
+  border-color: #2563eb;
+  color: #1d4ed8;
+  outline: 2px solid #bfdbfe;
+}
+
+.icon-button.danger {
+  color: #b91c1c;
+}
+
+.icon-button.danger:hover,
+.icon-button.danger:focus-visible {
+  border-color: #dc2626;
+  background: #fef2f2;
+  color: #991b1b;
+  outline-color: #fecaca;
+}
+
+.management-tabs {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  border-bottom: 1px solid #dbe2ea;
+  margin: 18px 0 0;
+  scrollbar-width: thin;
+}
+
+.management-tabs button {
+  flex: 0 0 auto;
+  min-width: 112px;
+  min-height: 42px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #64748b;
+  padding: 0 14px;
+  font-weight: 700;
+}
+
+.management-tabs button:hover,
+.management-tabs button:focus-visible {
+  background: #f8fafc;
+  color: #1d4ed8;
+  outline: 2px solid transparent;
+}
+
+.management-tabs button[aria-selected="true"] {
+  border-bottom-color: #2563eb;
+  color: #1d4ed8;
+}
+
+.management-tab-panel {
+  min-height: 220px;
+  padding-top: 18px;
+}
+
+.management-partial {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.management-partial strong {
+  color: #78350f;
+}
+
+.management-partial small {
+  white-space: nowrap;
+}
+
+.operation-notice {
+  border-left: 3px solid #16a34a;
+  background: #f0fdf4;
+  color: #166534;
+  padding: 9px 11px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.operation-notice.error {
+  border-left-color: #dc2626;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.operation-notice.warning {
+	border-left-color: #d97706;
+	background: #fffbeb;
+	color: #92400e;
+}
+
+.management-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.management-toolbar .primary-button,
+.management-toolbar .secondary-button {
+  flex: 0 0 auto;
+}
+
+.audit-toolbar .search-field {
+  flex: 1 1 360px;
+}
+
+.management-form,
+.settings-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
+  gap: 12px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.management-form.compact-form {
+  grid-template-columns: repeat(2, minmax(180px, 1fr)) auto;
+}
+
+.management-form label,
+.settings-form label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.management-form input,
+.management-form select,
+.settings-form input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0 10px;
+}
+
+.management-form input:focus,
+.management-form select:focus,
+.settings-form input:focus {
+  border-color: #2563eb;
+  outline: 2px solid #bfdbfe;
+}
+
+.form-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.compact-form .form-actions {
+  grid-column: auto;
+  align-items: end;
+}
+
+.management-table {
+  max-width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+}
+
+.management-table table {
+  min-width: 780px;
+}
+
+.management-table td:last-child,
+.management-table th:last-child {
+  width: 92px;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.management-secret {
+  margin-top: 0;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  gap: 16px;
+}
+
+.settings-form {
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+  margin: 0;
+}
+
+.settings-form .primary-button {
+  justify-self: start;
+}
+
+.integration-status {
+  border-left: 1px solid #e2e8f0;
+  padding-left: 16px;
+}
+
+.integration-status h3 {
+  margin: 0 0 10px;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.integration-status div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid #e2e8f0;
+  padding: 10px 0;
+  color: #475569;
+  text-transform: capitalize;
+}
+
+.integration-status strong {
+  color: #b45309;
+  font-size: 12px;
+  text-align: right;
+}
+
+.integration-status strong.configured {
+  color: #15803d;
+}
+
 .spinner {
   width: 34px;
   height: 34px;
@@ -1040,6 +1354,10 @@ tbody tr:hover {
   .chart-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .management-form {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
@@ -1067,6 +1385,41 @@ tbody tr:hover {
     align-items: stretch;
   }
 
+  .management-toolbar,
+  .management-partial,
+  .settings-layout,
+  .management-form,
+  .management-form.compact-form,
+  .settings-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .management-toolbar .primary-button,
+  .management-toolbar .secondary-button,
+  .management-partial small {
+    width: 100%;
+  }
+
+  .management-partial small {
+    white-space: normal;
+  }
+
+  .compact-form .form-actions,
+  .form-actions {
+    grid-column: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .integration-status {
+    border-top: 1px solid #e2e8f0;
+    border-left: 0;
+    padding-top: 14px;
+    padding-left: 0;
+  }
+
 	.request-filters .page-size-field {
 		width: 100%;
 	}
@@ -1082,6 +1435,10 @@ tbody tr:hover {
 	.usage-range-control button {
 		white-space: normal;
 	}
+
+  .management-tabs button {
+    min-width: 104px;
+  }
 
 	.custom-range {
 		display: grid;

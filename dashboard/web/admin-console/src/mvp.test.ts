@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   BENCHMARK_COLUMNS,
   COMPARED_METHODS,
+  SYSTEM_MANAGEMENT_TABS,
   benchmarkChartKey,
+  dashboardHashFor,
   buildBenchmarkCsv,
   buildBenchmarkReportHtml,
   buildBenchmarkComparisonGroups,
@@ -15,10 +17,20 @@ import {
   mapBffRequestLogs,
   mvpSessionFromBff,
   maskApiKey,
+  parseDashboardHash,
   roleCanAccessView
 } from "./api";
+import { applicationNotice } from "./SystemManagement";
 
 describe("MVP benchmark data contract", () => {
+	it("renders truthful configuration application outcomes", () => {
+		expect(applicationNotice({ state: "verified", applied: true, verified: true, revision: 8, providerId: "provider-2", route: "default-provider", requestId: "verify-123" }, "Saved")).toEqual({
+			tone: "success",
+			text: "Configuration applied and verified (revision 8; provider provider-2; route default-provider; request verify-123)."
+		});
+		expect(applicationNotice({ state: "warning", applied: true, verified: false, revision: 8, message: "Live verification timed out" }, "Saved").tone).toBe("warning");
+		expect(applicationNotice({ state: "failed", applied: false, verified: false, revision: 8, message: "Runtime activation failed" }, "Saved").tone).toBe("error");
+	});
   it("exposes every required benchmark column", async () => {
     const benchmarks = demoBenchmarks;
 
@@ -213,8 +225,13 @@ describe("MVP role and security behavior", () => {
   });
 
   it("returns separate sidebars for admin and customer roles", () => {
-    expect(getNavigationForRole("Admin").map((item) => item.view)).toContain("provider-health");
-    expect(getNavigationForRole("Admin").map((item) => item.view)).toContain("request-logs");
+    expect(getNavigationForRole("Admin").map((item) => item.view)).toEqual([
+      "admin-home",
+      "system-management",
+      "benchmarks",
+      "provider-health",
+      "request-logs"
+    ]);
     expect(getNavigationForRole("Customer").map((item) => item.view)).toEqual([
       "customer-home",
       "customer-usage",
@@ -222,6 +239,31 @@ describe("MVP role and security behavior", () => {
       "customer-api-keys",
       "customer-account"
     ]);
+  });
+
+  it("keeps system management tabs in one admin-only view", () => {
+    expect(SYSTEM_MANAGEMENT_TABS.map((tab) => tab.id)).toEqual([
+      "routing",
+      "tenants",
+      "api-keys",
+      "audit",
+      "settings"
+    ]);
+    expect(roleCanAccessView("Admin", "system-management")).toBe(true);
+    expect(roleCanAccessView("Customer", "system-management")).toBe(false);
+  });
+
+  it("parses and builds deep links for system management tabs", () => {
+    expect(parseDashboardHash("#system-management/audit")).toEqual({
+      view: "system-management",
+      managementTab: "audit"
+    });
+    expect(parseDashboardHash("#system-management/unknown")).toEqual({
+      view: "system-management",
+      managementTab: "routing"
+    });
+    expect(dashboardHashFor("system-management", "settings")).toBe("system-management/settings");
+    expect(dashboardHashFor("benchmarks")).toBe("benchmarks");
   });
 });
 

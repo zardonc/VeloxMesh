@@ -28,21 +28,25 @@ import {
   MvpView,
   ProviderHealth,
   RequestLog,
+  SystemManagementTab,
   UserRole,
   benchmarkChartKey,
   buildBenchmarkComparisonGroups,
-  buildBenchmarkCsv,
-  buildBenchmarkReportHtml,
   calculateBenchmarkImprovements,
+  dashboardHashFor,
   filterBenchmarkRows,
+	fetchBenchmarkRawCSVExport,
+	fetchBenchmarkReportZIPExport,
   getNavigationForRole,
   maskApiKey,
 	mapBffRequestLogs,
   mockApi,
+  parseDashboardHash,
   roleCanAccessView
 } from "./api";
 import "./styles.css";
 import { AccountRole, AuthMode, authCopy } from "./authCopy";
+import { SystemManagement } from "./SystemManagement";
 
 type AppState =
   | { status: "loading" }
@@ -66,14 +70,10 @@ const emptyData: DashboardData = {
 
 const viewIcons: Record<string, typeof Gauge> = {
   "admin-home": Gauge,
+  "system-management": Network,
   benchmarks: BarChart3,
   "provider-health": Server,
   "request-logs": FileText,
-  routing: Network,
-  tenants: UserRound,
-  "api-keys": KeyRound,
-  audit: ShieldAlert,
-  settings: Gauge,
   "customer-home": Gauge,
   "customer-usage": BarChart3,
   "customer-requests": FileText,
@@ -84,6 +84,7 @@ const viewIcons: Record<string, typeof Gauge> = {
 export default function App() {
   const [appState, setAppState] = useState<AppState>({ status: "loading" });
   const [activeView, setActiveView] = useState<MvpView>("admin-home");
+  const [activeManagementTab, setActiveManagementTab] = useState<SystemManagementTab>("routing");
   const [data, setData] = useState<DashboardData>(emptyData);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMode, setErrorMode] = useState(false);
@@ -94,9 +95,12 @@ export default function App() {
 
   useEffect(() => {
     function syncHashView() {
-      const hashView = viewFromHash();
-      if (hashView) {
-        setActiveView(hashView);
+      const location = parseDashboardHash(window.location.hash);
+      if (location) {
+        setActiveView(location.view);
+        if (location.managementTab) {
+          setActiveManagementTab(location.managementTab);
+        }
       }
     }
 
@@ -113,7 +117,7 @@ export default function App() {
         setAppState({ status: "signed-out" });
         return;
       }
-      setActiveView(viewFromHash() ?? (session.role === "Admin" ? "admin-home" : "customer-home"));
+      applyInitialLocation(session.role);
       setAppState({ status: "ready", session });
       await loadRoleData(session.role);
     } catch (error) {
@@ -149,7 +153,7 @@ export default function App() {
   }
 
   async function completeLogin(session: MvpSession) {
-    setActiveView(viewFromHash() ?? (session.role === "Admin" ? "admin-home" : "customer-home"));
+    applyInitialLocation(session.role);
     setAppState({ status: "ready", session });
     await loadRoleData(session.role);
   }
@@ -165,6 +169,14 @@ export default function App() {
       await loadRoleData(session.role);
     } catch (error) {
       setAppState({ status: "error", message: errorMessage(error) });
+    }
+  }
+
+  function applyInitialLocation(role: UserRole) {
+    const location = parseDashboardHash(window.location.hash);
+    setActiveView(location?.view ?? (role === "Admin" ? "admin-home" : "customer-home"));
+    if (location?.managementTab) {
+      setActiveManagementTab(location.managementTab);
     }
   }
 
@@ -185,8 +197,13 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Sidebar session={session} activeView={activeView} onNavigate={(view) => navigateToView(view, setActiveView)} onLogout={logout} />
-      <main className="workspace">
+      <Sidebar
+        session={session}
+        activeView={activeView}
+        onNavigate={(view) => navigateToView(view, activeManagementTab, setActiveView)}
+        onLogout={logout}
+      />
+      <main className="workspace" aria-busy={isRefreshing}>
         <Topbar
           session={session}
           activeView={activeView}
@@ -198,7 +215,14 @@ export default function App() {
         {!canAccess ? (
           <NoPermissionState role={session.role} view={activeView} />
         ) : (
-			<ViewRouter session={session} view={activeView} data={data} onCustomerRefresh={() => loadRoleData("Customer")} />
+			<ViewRouter
+              session={session}
+              view={activeView}
+              data={data}
+              managementTab={activeManagementTab}
+              onManagementTabChange={(tab) => navigateToManagementTab(tab, setActiveManagementTab)}
+              onCustomerRefresh={() => loadRoleData("Customer")}
+            />
         )}
       </main>
     </div>
@@ -413,16 +437,23 @@ function ViewRouter({
   session,
   view,
   data,
+	managementTab,
+	onManagementTabChange,
 	onCustomerRefresh
 }: {
   session: MvpSession;
   view: MvpView;
   data: DashboardData;
+	managementTab: SystemManagementTab;
+	onManagementTabChange: (tab: SystemManagementTab) => void;
 	onCustomerRefresh: () => Promise<void>;
 }) {
   if (session.role === "Admin") {
     if (view === "admin-home") {
-      return <AdminHome overview={data.adminOverview} providerHealth={data.providerHealth} benchmarks={data.benchmarks} />;
+	  return <AdminHome overview={data.adminOverview} providerHealth={data.providerHealth} />;
+    }
+    if (view === "system-management") {
+      return <SystemManagement activeTab={managementTab} onTabChange={onManagementTabChange} />;
     }
     if (view === "benchmarks") {
       return <BenchmarksPage rows={data.benchmarks} />;
@@ -461,27 +492,24 @@ function ViewRouter({
 
 function AdminHome({
   overview,
-  providerHealth,
-  benchmarks
+  providerHealth
 }: {
   overview?: AdminOverview;
   providerHealth: ProviderHealth[];
-  benchmarks: BenchmarkRun[];
 }) {
   if (!overview) {
     return <LoadingState compact />;
   }
-  const best = [...benchmarks]
-    .filter((row) => row.status === "passed" && row.avgLatencyMs !== null)
-    .sort((left, right) => (left.avgLatencyMs ?? Number.POSITIVE_INFINITY) - (right.avgLatencyMs ?? Number.POSITIVE_INFINITY))[0];
+	const liveProviderHealth = overview.providerHealth.length > 0 ? overview.providerHealth : providerHealth;
+	const latest = overview.latestBenchmark;
   return (
     <>
-      <PartialDataBanner show={providerHealth.some((provider) => provider.status !== "Healthy")} />
+	  <PartialDataBanner show={overview.partial} warnings={overview.warnings} />
       <section className="metric-grid">
         <Metric label="Gateway Status" value={overview.gatewayStatus} detail="Overall control-plane status" />
-        <Metric label="Requests Today" value={overview.requestsToday.toLocaleString()} detail="Across all tenants" />
-        <Metric label="Avg Latency" value={`${overview.avgLatencyMs} ms`} detail="Best current method" />
-        <Metric label="Success Rate" value={`${overview.successRate}%`} detail={`${overview.activeProviders} providers active`} />
+		<Metric label="Requests Today" value={formatOptionalNumber(overview.requestsToday)} detail={overview.activeTenants === null ? "Active tenants unavailable" : `${overview.activeTenants} active tenants`} />
+		<Metric label="Avg Latency" value={formatOptionalMetric(overview.avgLatencyMs, "ms")} detail={`P95 ${formatOptionalMetric(overview.p95LatencyMs, "ms")}`} />
+		<Metric label="Success Rate" value={formatOptionalMetric(overview.successRate, "%")} detail={overview.activeProviders === null ? "Active providers unavailable" : `${overview.activeProviders} providers active`} />
       </section>
       <section className="dashboard-grid">
         <article className="panel">
@@ -489,8 +517,8 @@ function AdminHome({
             <h2>Latest Benchmark</h2>
             <BarChart3 size={18} aria-hidden="true" />
           </div>
-          <strong className="large-value">{overview.latestBenchmark}</strong>
-          <p>{best ? `${formatMs(best.avgLatencyMs)} average latency, ${formatRps(best.throughputRps)} throughput.` : "No valid benchmark data yet."}</p>
+		  <strong className="large-value">{latest?.method ?? "Unavailable"}</strong>
+		  <p>{latest ? `${latest.runId} · ${formatMs(latest.avgLatencyMs)} average latency, ${formatRps(latest.throughputRps)} throughput.` : "No valid benchmark data yet."}</p>
         </article>
         <article className="panel">
           <div className="panel-heading">
@@ -498,17 +526,41 @@ function AdminHome({
             <Activity size={18} aria-hidden="true" />
           </div>
           <div className="compact-list">
-            {providerHealth.slice(0, 3).map((provider) => (
+			{liveProviderHealth.slice(0, 3).map((provider) => (
               <div key={provider.provider}>
                 <span>{provider.provider}</span>
                 <strong>{provider.status}</strong>
               </div>
             ))}
+			{liveProviderHealth.length === 0 ? <p>Provider health unavailable.</p> : null}
           </div>
         </article>
       </section>
+	  <section className="summary-provenance" aria-label="Admin summary data sources">
+		<div>
+		  <strong>Generated</strong>
+		  <span>{formatSummaryTimestamp(overview.generatedAt)}</span>
+		</div>
+		<div>
+		  <strong>Sources</strong>
+		  <span>{overview.dataSources.map((source) => `${source.name}: ${source.status}`).join(" · ") || "Unavailable"}</span>
+		</div>
+	  </section>
     </>
   );
+}
+
+function formatOptionalNumber(value: number | null): string {
+	return value === null ? "Unavailable" : value.toLocaleString();
+}
+
+function formatOptionalMetric(value: number | null, unit: string): string {
+	return value === null ? "Unavailable" : unit === "%" ? `${value}%` : `${value} ${unit}`;
+}
+
+function formatSummaryTimestamp(value: string): string {
+	const timestamp = new Date(value);
+	return Number.isNaN(timestamp.getTime()) ? "Unavailable" : timestamp.toLocaleString();
 }
 
 function CustomerHome({ session, summary, requests }: { session: MvpSession; summary?: CustomerSummaryResponse; requests: RequestLog[] }) {
@@ -660,6 +712,7 @@ function BenchmarksPage({ rows }: { rows: BenchmarkRun[] }) {
   const [query, setQuery] = useState("");
   const [datasetFilter, setDatasetFilter] = useState("All");
   const [methodFilter, setMethodFilter] = useState("All");
+	const [exportState, setExportState] = useState<{ kind: "idle" | "busy" | "error"; message?: string }>({ kind: "idle" });
   const sourceLabel = rows.some((row) => row.source.toLowerCase().includes("demo"))
     ? "Demo data"
     : "BFF / Redis live data";
@@ -674,13 +727,24 @@ function BenchmarksPage({ rows }: { rows: BenchmarkRun[] }) {
     [calculatedRows, datasetFilter]
   );
 
-  function exportCsv() {
-    downloadFile("veloxmesh-benchmarks.csv", buildBenchmarkCsv(rows), "text/csv;charset=utf-8");
+  async function exportCsv() {
+	await exportArtifact(fetchBenchmarkRawCSVExport);
   }
 
-  function exportReport() {
-    downloadFile("veloxmesh-benchmark-report.html", buildBenchmarkReportHtml(rows), "text/html;charset=utf-8");
+  async function exportReport() {
+	await exportArtifact(fetchBenchmarkReportZIPExport);
   }
+
+	async function exportArtifact(load: () => Promise<{ blob: Blob; filename: string }>) {
+		setExportState({ kind: "busy" });
+		try {
+			const artifact = await load();
+			downloadBlob(artifact.filename, artifact.blob);
+			setExportState({ kind: "idle" });
+		} catch (error) {
+			setExportState({ kind: "error", message: errorMessage(error) });
+		}
+	}
 
   if (rows.length === 0) {
     return <EmptyState title="No benchmark rows" detail="Run a benchmark or connect the BFF benchmark endpoint." />;
@@ -709,16 +773,17 @@ function BenchmarksPage({ rows }: { rows: BenchmarkRun[] }) {
           </label>
         </div>
         <div className="toolbar-actions">
-          <button className="secondary-button" onClick={exportCsv}>
+          <button className="secondary-button" onClick={exportCsv} disabled={exportState.kind === "busy"}>
             <Download size={17} aria-hidden="true" />
             Export CSV
           </button>
-          <button className="primary-button" onClick={exportReport}>
+          <button className="primary-button" onClick={exportReport} disabled={exportState.kind === "busy"}>
             <FileText size={17} aria-hidden="true" />
             Export Report
           </button>
         </div>
       </section>
+	  {exportState.kind === "error" ? <div className="operation-notice error" role="alert">Export failed: {exportState.message}</div> : null}
       <PartialDataBanner show={rows.some((row) => row.partialData || row.status !== "passed")} />
       <section className="panel comparison-readiness">
         <div className="panel-heading">
@@ -1106,13 +1171,14 @@ function MiniBarChart({ title, rows, metric }: { title: string; rows: BenchmarkR
   );
 }
 
-function PartialDataBanner({ show }: { show: boolean }) {
+function PartialDataBanner({ show, warnings = [] }: { show: boolean; warnings?: string[] }) {
   if (!show) {
     return null;
   }
   return (
     <div className="partial-banner" role="status">
-      Partial data: at least one run is incomplete or failed. Available measurements are shown without filling missing values.
+	  <strong>Partial data:</strong> Available measurements are shown without filling missing values.
+	  {warnings.length > 0 ? <span>{warnings.join(" · ")}</span> : null}
     </div>
   );
 }
@@ -1200,8 +1266,7 @@ function formatRps(value: number | null): string {
   return value === null ? "-" : `${value.toLocaleString()} req/s`;
 }
 
-function downloadFile(filename: string, content: string, type: string) {
-  const blob = new Blob([content], { type });
+function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -1221,28 +1286,19 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown dashboard error";
 }
 
-function navigateToView(view: MvpView, setActiveView: (view: MvpView) => void) {
+function navigateToView(
+  view: MvpView,
+  managementTab: SystemManagementTab,
+  setActiveView: (view: MvpView) => void
+) {
   setActiveView(view);
-  window.location.hash = view;
+  window.location.hash = dashboardHashFor(view, managementTab);
 }
 
-function viewFromHash(): MvpView | null {
-  const value = window.location.hash.replace(/^#/, "");
-  const validViews: MvpView[] = [
-    "admin-home",
-    "benchmarks",
-    "provider-health",
-    "request-logs",
-    "routing",
-    "tenants",
-    "api-keys",
-    "audit",
-    "settings",
-    "customer-home",
-    "customer-usage",
-    "customer-requests",
-    "customer-api-keys",
-    "customer-account"
-  ];
-  return validViews.includes(value as MvpView) ? value as MvpView : null;
+function navigateToManagementTab(
+  tab: SystemManagementTab,
+  setActiveManagementTab: (tab: SystemManagementTab) => void
+) {
+  setActiveManagementTab(tab);
+  window.location.hash = dashboardHashFor("system-management", tab);
 }

@@ -1,0 +1,24 @@
+# Merge this fragment with the production Dashboard BFF Compose service.
+# The referenced host file must be created by the deployer and must not be
+# committed to Git.
+services:
+  dashboard-bff:
+    image: ${VELOXMESH_DASHBOARD_BFF_IMAGE:-veloxmesh-dashboard-bff:latest}
+    environment:
+      DASHBOARD_DEMO_MODE: "false"
+      DASHBOARD_TEST_MODE: "false"
+      SESSION_TTL: "8h"
+      SESSION_COOKIE_SECURE: "true"
+      SMTP_HOST: "smtp.example.com"
+      SMTP_PORT: "587"
+      SMTP_USERNAME: "veloxmesh-mailer"
+      SMTP_PASSWORD_FILE: "/run/secrets/veloxmesh_smtp_password"
+      SMTP_FROM: "noreply@example.com"
+      SMTP_TLS_MODE: "starttls"
+      SMTP_SERVER_NAME: "smtp.example.com"
+    secrets:
+      - veloxmesh_smtp_password
+
+secrets:
+  veloxmesh_smtp_password:
+    file: ${VELOXMESH_SMTP_SECRET_FILE}

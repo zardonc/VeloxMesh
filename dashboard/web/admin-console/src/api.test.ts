@@ -17,6 +17,13 @@ import {
   deleteRoutingRule,
   deleteTenant,
 	exportAuditCSV,
+	fetchBenchmarkRawCSVExport,
+	fetchBenchmarkReportZIPExport,
+	fetchAdminApiKeys,
+	fetchAdminAudit,
+	fetchAdminRouting,
+	fetchAdminSettings,
+	fetchAdminTenants,
 	fetchInitialAppData,
 	fetchCustomerDashboardData,
 	fetchCustomerRequests,
@@ -25,11 +32,14 @@ import {
   filterManagementRows,
   loginAccount,
   logoutAccount,
+	mapAdminSummaryToOverview,
+	mockApi,
   registerAccount,
 	registerCustomerAccount,
 	revokeCustomerApiKey,
-  updateProvider,
-  updateRoutingRule,
+	updateProvider,
+	updateRoutingRule,
+	updateAdminSettings,
   updateTenant,
   verifyLoginCode
 } from "./api";
@@ -45,12 +55,26 @@ describe("buildDashboardViewModel", () => {
         defaultProvider: "sans-primary",
         defaultModel: "oc/deepseek-v4-flash-free",
         modelCount: 3,
+		activeProviders: 1,
         activeTenants: 4,
         requestVolume: 18420,
+		avgLatencyMs: 610.25,
         successRate: 99.2,
+		errorRate: 0.5,
+		timeoutRate: 0.3,
         p95LatencyMs: 842,
         queueDepth: 17,
-        updatedAt: "2026-07-06T14:41:04Z"
+		gatewayStatus: "Healthy",
+		routingStrategy: "latency-aware",
+		topology: null,
+		latestBenchmark: null,
+		providerHealth: [],
+		recentErrors: [],
+		generatedAt: "2026-07-06T14:41:04Z",
+		dataSources: [{ name: "Operational data", source: "redis", status: "ok" }],
+		partial: false,
+		partialData: false,
+		warnings: []
       },
       providers: {
         providers: [
@@ -93,6 +117,92 @@ describe("buildDashboardViewModel", () => {
     expect(viewModel.providers[0].modelCount).toBe(3);
     expect(viewModel.recentRequests[0].statusLabel).toBe("Success");
   });
+
+	it("formats unavailable live summary metrics without substituting zero", () => {
+		const summary = {
+			defaultProvider: "",
+			defaultModel: "",
+			modelCount: null,
+			activeProviders: null,
+			activeTenants: null,
+			requestVolume: null,
+			avgLatencyMs: null,
+			p95LatencyMs: null,
+			successRate: null,
+			errorRate: null,
+			timeoutRate: null,
+			queueDepth: null,
+			gatewayStatus: "Error" as const,
+			routingStrategy: "",
+			topology: null,
+			latestBenchmark: null,
+			providerHealth: [],
+			recentErrors: [],
+			generatedAt: "2026-07-18T12:00:00Z",
+			dataSources: [{ name: "Operational data", source: "Operational Store", status: "error" as const, detail: "unreachable" }],
+			partial: true,
+			partialData: true,
+			warnings: ["Operational data source is error: unreachable"]
+		};
+
+		const overview = mapAdminSummaryToOverview(summary);
+		expect(overview.requestsToday).toBeNull();
+		expect(overview.avgLatencyMs).toBeNull();
+		expect(overview.activeProviders).toBeNull();
+		expect(overview.dataSources[0].name).toBe("Operational data");
+		expect(overview.warnings).toEqual(["Operational data source is error: unreachable"]);
+	});
+
+	it("keeps Admin Home metrics exactly consistent with the BFF summary", () => {
+		const overview = mapAdminSummaryToOverview({
+			defaultProvider: "provider-live",
+			defaultModel: "model-live",
+			modelCount: 7,
+			activeProviders: 2,
+			activeTenants: 3,
+			requestVolume: 41,
+			avgLatencyMs: 432.19,
+			p95LatencyMs: 987.65,
+			successRate: 97.34,
+			errorRate: 1.22,
+			timeoutRate: 1.44,
+			queueDepth: 5.5,
+			gatewayStatus: "Partial",
+			routingStrategy: "latency-aware",
+			topology: { node_id: "node-a", role: "leader", leader_id: "node-a", writable: true, wal_lag_elapsed: 0, wal_lag_pending: 0 },
+			latestBenchmark: null,
+			providerHealth: [],
+			recentErrors: [],
+			generatedAt: "2026-07-18T12:34:56Z",
+			dataSources: [{ name: "Gateway health", source: "/healthz", status: "ok" }],
+			partial: true,
+			partialData: true,
+			warnings: ["Topology source is error"]
+		});
+
+		expect(overview).toMatchObject({
+			requestsToday: 41,
+			avgLatencyMs: 432.19,
+			p95LatencyMs: 987.65,
+			successRate: 97.34,
+			errorRate: 1.22,
+			timeoutRate: 1.44,
+			activeProviders: 2,
+			generatedAt: "2026-07-18T12:34:56Z",
+			partial: true
+		});
+	});
+
+	it("fails the production Admin Home instead of substituting demo metrics", async () => {
+		vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+			ok: false,
+			status: 503,
+			statusText: "Service Unavailable",
+			json: async () => ({ error: "admin_summary_unavailable" })
+		}));
+
+		await expect(mockApi.getAdminOverview()).rejects.toThrow("admin_summary_unavailable");
+	});
 });
 
 describe("buildProvidersPageViewModel", () => {
@@ -237,6 +347,38 @@ describe("secondary page view models", () => {
 });
 
 describe("admin write APIs", () => {
+	it("downloads request-level benchmark CSV and ZIP from authenticated BFF endpoints", async () => {
+		const fetchMock = vi.fn()
+			.mockResolvedValueOnce(new Response("run_id,request_id\nrun-1,req-1\n", {
+				status: 200,
+				headers: { "Content-Type": "text/csv", "Content-Disposition": "attachment; filename=\"raw-live.csv\"" }
+			}))
+			.mockResolvedValueOnce(new Response(new Uint8Array([80, 75, 3, 4]), {
+				status: 200,
+				headers: { "Content-Type": "application/zip", "Content-Disposition": "attachment; filename=\"report-live.zip\"" }
+			}));
+		vi.stubGlobal("fetch", fetchMock);
+
+		const csv = await fetchBenchmarkRawCSVExport();
+		const report = await fetchBenchmarkReportZIPExport();
+
+		expect(fetchMock).toHaveBeenNthCalledWith(1, "/bff/admin/benchmarks/raw.csv", expect.objectContaining({ credentials: "same-origin" }));
+		expect(fetchMock).toHaveBeenNthCalledWith(2, "/bff/admin/benchmarks/export.zip", expect.objectContaining({ credentials: "same-origin" }));
+		expect(csv.filename).toBe("raw-live.csv");
+		expect(await csv.blob.text()).toContain("run-1,req-1");
+		expect(report.filename).toBe("report-live.zip");
+		expect(report.blob.type).toBe("application/zip");
+	});
+
+	it("surfaces BFF request-level export errors without building a demo report", async () => {
+		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: "benchmark_requests_unavailable" }), {
+			status: 404,
+			headers: { "Content-Type": "application/json" }
+		})));
+
+		await expect(fetchBenchmarkReportZIPExport()).rejects.toThrow("benchmark_requests_unavailable");
+	});
+
   it("posts create operations to BFF endpoints", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -314,14 +456,23 @@ describe("admin write APIs", () => {
       policy: "Primary route",
       selector: "latency-aware",
       target: "sans-primary",
-      status: "Active"
+      status: "Active",
+      revision: 7
     });
     await updateTenant("capstone-demo", {
       tenant: "capstone-demo",
       owner: "Demo",
       dailyQuota: "6,000",
-      status: "Healthy"
+      status: "Healthy",
+      revision: 8
     });
+		await updateAdminSettings({
+			defaultProvider: "sans-primary",
+			defaultModel: "new/model",
+			requestTimeoutSeconds: 45,
+			dataRetentionDays: 60,
+			revision: 9
+		});
     await deleteRoutingRule("Primary route");
     await deleteTenant("capstone-demo");
     await deleteApiKey("vx-dev");
@@ -332,12 +483,16 @@ describe("admin write APIs", () => {
     );
     expect(fetchMock).toHaveBeenCalledWith(
       "/bff/admin/routing/Primary%20route",
-      expect.objectContaining({ method: "PUT" })
+      expect.objectContaining({ method: "PUT", body: expect.stringContaining('"revision":7') })
     );
     expect(fetchMock).toHaveBeenCalledWith(
       "/bff/admin/tenants/capstone-demo",
-      expect.objectContaining({ method: "PUT" })
+      expect.objectContaining({ method: "PUT", body: expect.stringContaining('"revision":8') })
     );
+		expect(fetchMock).toHaveBeenCalledWith(
+			"/bff/admin/settings",
+			expect.objectContaining({ method: "PUT", body: expect.stringContaining('"revision":9') })
+		);
     expect(fetchMock).toHaveBeenCalledWith(
       "/bff/admin/routing/Primary%20route",
       expect.objectContaining({ method: "DELETE" })
@@ -434,6 +589,83 @@ describe("admin write APIs", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith("/bff/session");
     expect(fetchMock.mock.calls.some(([path]) => String(path).startsWith("/bff/admin/"))).toBe(false);
+  });
+});
+
+describe("system management API service", () => {
+  it("loads each management resource with partial-data metadata", async () => {
+    const responses = [
+      { rules: [], source: "dashboard-state", partialData: true, warnings: ["local"] },
+      { tenants: [], source: "dashboard-state", partialData: true, warnings: ["local"] },
+      { keys: [], source: "dashboard-state", partialData: true, warnings: ["local"] },
+      { events: [], source: "dashboard-state", partialData: true, warnings: ["local"] },
+      {
+        settings: { defaultProvider: "sans-primary", defaultModel: "model-a", requestTimeoutSeconds: 30, dataRetentionDays: 30 },
+        integrations: { gateway: "Not connected", redis: "Configured", qdrant: "Configured", smtp: "Not configured" },
+        source: "dashboard-state",
+        partialData: true,
+        warnings: ["local"]
+      }
+    ];
+    const fetchMock = vi.fn();
+    responses.forEach((body) => fetchMock.mockResolvedValueOnce({ ok: true, json: async () => body }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const loaded = await Promise.all([
+      fetchAdminRouting(),
+      fetchAdminTenants(),
+      fetchAdminApiKeys(),
+      fetchAdminAudit(),
+      fetchAdminSettings()
+    ]);
+
+    expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+      "/bff/admin/routing",
+      "/bff/admin/tenants",
+      "/bff/admin/api-keys",
+      "/bff/admin/audit",
+      "/bff/admin/settings"
+    ]);
+    expect(loaded.every((response) => response.partialData)).toBe(true);
+  });
+
+  it("returns a newly issued admin API key secret once", async () => {
+    const created = {
+      id: "key-123",
+      key: "vx_admin_full_secret",
+      maskedKey: "vx_admi...cret",
+      tenant: "coursework-lab",
+      scope: "gateway:invoke",
+      status: "Active",
+      createdAt: "2026-07-17T10:00:00Z"
+    };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => created }));
+
+    await expect(createApiKey({ tenant: "coursework-lab", scope: "gateway:invoke" })).resolves.toEqual(created);
+  });
+
+  it("updates only safe dashboard settings through PUT", async () => {
+    const settings = {
+      defaultProvider: "backup-provider",
+      defaultModel: "model-b",
+      requestTimeoutSeconds: 45,
+      dataRetentionDays: 60
+    };
+    const response = {
+      settings,
+      integrations: { gateway: "Not connected", redis: "Configured", qdrant: "Configured", smtp: "Not configured" },
+      source: "dashboard-state",
+      partialData: true,
+      warnings: ["local"]
+    };
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => response });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(updateAdminSettings(settings)).resolves.toEqual(response);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/bff/admin/settings",
+      expect.objectContaining({ method: "PUT", body: JSON.stringify(settings) })
+    );
   });
 });
 

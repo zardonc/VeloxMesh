@@ -9,3 +9,6 @@ tmp/
 .gotmp/
 playwright-report/
 test-results/
+secrets/
+__pycache__/
+*.pyc

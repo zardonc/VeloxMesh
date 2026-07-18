@@ -3,8 +3,10 @@ param(
   [string]$GatewayUrl = "http://127.0.0.1:18080",
   [string]$EnvFile = "",
   [string]$Model = "oc/deepseek-v4-flash-free",
+	[string]$ModelVersion = "provider-managed",
   [string]$Provider = "openai-compatible",
-  [string]$Method = "Our Gateway Method",
+	[ValidateSet("local_baseline", "gateway", "improved_model", "gateway_improved_model")]
+	[string]$MethodId = "gateway",
   [string]$GatewayVersion = "VeloxMesh",
   [int]$Concurrency = 1,
   [double]$RequestRate = 0,
@@ -18,22 +20,30 @@ $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $DashboardRoot = Resolve-Path (Join-Path $ScriptDir "..\..")
 $WorkspaceRoot = Resolve-Path (Join-Path $DashboardRoot "..")
-$VeloxMeshRoot = Join-Path $WorkspaceRoot "VeloxMesh"
-$Runner = Join-Path $VeloxMeshRoot "scripts\run-gateway-dataset.py"
-$Publisher = Join-Path $VeloxMeshRoot "scripts\publish-benchmark-results.py"
+$BenchmarkScriptRoot = Join-Path $DashboardRoot "scripts\benchmark"
+$Runner = Join-Path $BenchmarkScriptRoot "request_level_benchmark.py"
+$Publisher = Join-Path $BenchmarkScriptRoot "publish_request_level_results.py"
+$DatasetRoot = Join-Path $WorkspaceRoot "testdata\full-benchmark-work\step3_jsonl"
+	if (-not (Test-Path -LiteralPath $DatasetRoot)) {
+		$SiblingVeloxMesh = Join-Path (Split-Path -Parent $WorkspaceRoot) "VeloxMesh"
+		$DatasetRoot = Join-Path $SiblingVeloxMesh "testdata\full-benchmark-work\step3_jsonl"
+	}
 
 if ($Dataset.Count -eq 0) {
   $Dataset = @(
-    (Join-Path $VeloxMeshRoot "testdata\full-benchmark-work\step3_jsonl\mmlu_5.jsonl"),
-    (Join-Path $VeloxMeshRoot "testdata\full-benchmark-work\step3_jsonl\lmsys_5.jsonl")
+		(Join-Path $DatasetRoot "mmlu_5.jsonl"),
+		(Join-Path $DatasetRoot "lmsys_5.jsonl")
   )
 }
 if (-not $EnvFile) {
-  $EnvFile = Join-Path $VeloxMeshRoot "env\veloxmesh.env"
+	$EnvFile = Join-Path $WorkspaceRoot "env\veloxmesh.env"
+	if (-not (Test-Path -LiteralPath $EnvFile)) {
+		$EnvFile = ""
+	}
 }
 if (-not $ReportDir) {
   $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-  $ReportDir = Join-Path $VeloxMeshRoot "reports\dashboard-e2e-$stamp"
+	$ReportDir = Join-Path $WorkspaceRoot "reports\dashboard-e2e-$stamp"
 }
 if (-not (Test-Path -LiteralPath $Runner)) {
   throw "Gateway dataset runner not found: $Runner"
@@ -61,16 +71,19 @@ foreach ($datasetPath in $Dataset) {
     $Runner,
     "--dataset", $datasetPath,
     "--report-dir", $datasetReportDir,
-    "--env-file", $EnvFile,
     "--gateway-url", $GatewayUrl,
     "--model", $Model,
     "--provider", $Provider,
-    "--method", $Method,
+		"--method-id", $MethodId,
+		"--model-version", $ModelVersion,
     "--gateway-version", $GatewayVersion,
     "--concurrency", $Concurrency,
     "--timeout-seconds", $TimeoutSeconds,
     "--run-id", $runId
   )
+	if ($EnvFile) {
+		$runnerArgs += @("--env-file", $EnvFile)
+	}
   if ($RequestRate -gt 0) {
     $runnerArgs += @("--request-rate", $RequestRate)
   }
@@ -80,7 +93,7 @@ foreach ($datasetPath in $Dataset) {
     Write-Warning "$datasetName completed with failed or invalid model responses; publishing the real failure state."
   }
 
-  foreach ($requiredName in @("summary.json", "latency.csv", "responses.jsonl", "run_config.json")) {
+	foreach ($requiredName in @("summary.json", "summary.csv", "raw_requests.csv", "request_snapshot.json", "metadata.json", "report.html", "veloxmesh-benchmark-report.zip")) {
     if (-not (Test-Path -LiteralPath (Join-Path $datasetReportDir $requiredName))) {
       throw "Gateway run did not produce $requiredName in $datasetReportDir"
     }
@@ -102,6 +115,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Published real gateway benchmarks to Redis key veloxmesh:benchmarks"
+Write-Host "Published request evidence to Redis key veloxmesh:benchmark_requests"
 Write-Host "Dashboard endpoint: http://127.0.0.1:8080/bff/admin/benchmarks"
 Write-Host "Control panel: http://127.0.0.1:5173/"
 Write-Host "Snapshot: $snapshotPath"

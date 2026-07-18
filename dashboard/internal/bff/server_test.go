@@ -10,14 +10,330 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 func newTestServer(config Config) http.Handler {
 	config.AllowAdminRegistration = true
+	config.DemoMode = true
 	return NewServer(config)
+}
+
+func TestAdminTenantsUseRealGatewayOutsideDemoMode(t *testing.T) {
+	var authorization string
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authorization = r.Header.Get("Authorization")
+		if r.URL.Path != "/admin/v1/tenants" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"data":[{"id":"tenant-a","name":"Tenant A","owner":"owner@example.test","daily_quota":2000,"status":"active","revision":1}]}`)
+	}))
+	defer upstream.Close()
+
+	handler := NewServer(Config{
+		AllowAdminRegistration: true,
+		TestMode:               true,
+		GatewayAdminURL:        upstream.URL,
+		GatewayAdminAPIKey:     "server-only-admin-key",
+		GatewayAPITimeout:      time.Second,
+	})
+	response := authRequest(t, handler, http.MethodGet, "/bff/admin/tenants", "", adminCookie(t, handler))
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", response.Code, response.Body.String())
+	}
+	if authorization != "Bearer server-only-admin-key" {
+		t.Fatalf("upstream Authorization = %q", authorization)
+	}
+	if !strings.Contains(response.Body.String(), `"source":"veloxmesh-admin"`) || strings.Contains(response.Body.String(), "server-only-admin-key") {
+		t.Fatalf("unexpected real Gateway response: %s", response.Body.String())
+	}
+}
+
+func TestAdminManagementFailsClosedOutsideDemoMode(t *testing.T) {
+	handler := NewServer(Config{AllowAdminRegistration: true, TestMode: true})
+	response := authRequest(t, handler, http.MethodGet, "/bff/admin/tenants", "", adminCookie(t, handler))
+	if response.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, body = %s", response.Code, response.Body.String())
+	}
+	if strings.Contains(response.Body.String(), "dashboard-state") {
+		t.Fatalf("production response silently fell back to local state: %s", response.Body.String())
+	}
+}
+
+func TestAdminManagementMapsUpstreamAdminAuthFailureToBadGateway(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid admin key"})
+	}))
+	defer upstream.Close()
+
+	handler := NewServer(Config{AllowAdminRegistration: true, TestMode: true, GatewayAdminURL: upstream.URL, GatewayAdminAPIKey: "wrong-key"})
+	response := authRequest(t, handler, http.MethodGet, "/bff/admin/tenants", "", adminCookie(t, handler))
+	if response.Code != http.StatusBadGateway || !strings.Contains(response.Body.String(), `"error":"gateway_admin_auth_failed"`) {
+		t.Fatalf("upstream admin auth failure leaked as client auth response: %d %s", response.Code, response.Body.String())
+	}
+}
+
+func TestAdminRequestsMarksLegacyUsageWithoutTenantAsPartial(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/admin/v1/usage" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"data":[{"id":"legacy-usage","provider_id":"provider-a","model":"model-a","duration_ms":240,"timestamp":"2026-07-17T12:00:00Z","status":"settled"}]}`)
+	}))
+	defer upstream.Close()
+
+	handler := NewServer(Config{AllowAdminRegistration: true, TestMode: true, GatewayAdminURL: upstream.URL, GatewayAdminAPIKey: "admin-key"})
+	response := authRequest(t, handler, http.MethodGet, "/bff/admin/requests", "", adminCookie(t, handler))
+	body := response.Body.String()
+	if response.Code != http.StatusOK || !strings.Contains(body, `"partialData":true`) || !strings.Contains(body, "legacy usage rows") {
+		t.Fatalf("legacy usage partial-data response = %d %s", response.Code, body)
+	}
+}
+
+func TestAdminManagementReadsAllRealGatewayResources(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/admin/v1/providers":
+			_, _ = io.WriteString(w, `{"data":[{"id":"provider-a","name":"Provider A","base_url":"https://provider.example/v1","enabled":true,"models":["model-a"],"default_model":"model-a"}]}`)
+		case "/admin/v1/routing":
+			_, _ = io.WriteString(w, `{"id":"global","strategy":"latency","default_provider":"provider-a","fallback_enabled":true,"max_attempts":2,"revision":3}`)
+		case "/admin/v1/api-keys":
+			_, _ = io.WriteString(w, `{"data":[{"id":"key-a","tenant_id":"tenant-a","prefix":"vx_live_abc","name":"benchmark","role":"customer","enabled":true}]}`)
+		case "/admin/v1/audit":
+			_, _ = io.WriteString(w, `{"data":[{"id":"audit-a","actor":"admin","action":"routing.update","outcome":"success","timestamp":"2026-07-17T12:00:00Z"}]}`)
+		case "/admin/v1/settings":
+			_, _ = io.WriteString(w, `{"id":"global","default_provider":"provider-a","default_model":"model-a","request_timeout_seconds":30,"data_retention_days":30,"revision":2}`)
+		case "/admin/v1/usage":
+			_, _ = io.WriteString(w, `{"data":[{"id":"usage-a","tenant_id":"tenant-a","api_key_id":"key-a","provider_id":"provider-a","model":"model-a","prompt_tokens":10,"response_tokens":5,"total_tokens":15,"duration_ms":240,"timestamp":"2026-07-17T12:00:00Z","status":"settled"}]}`)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer upstream.Close()
+	handler := NewServer(Config{AllowAdminRegistration: true, TestMode: true, GatewayAdminURL: upstream.URL, GatewayAdminAPIKey: "admin-key"})
+	cookie := adminCookie(t, handler)
+
+	for _, path := range []string{"/bff/admin/providers", "/bff/admin/routing", "/bff/admin/api-keys", "/bff/admin/audit", "/bff/admin/settings", "/bff/admin/requests"} {
+		response := authRequest(t, handler, http.MethodGet, path, "", cookie)
+		if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"source":"veloxmesh-admin"`) {
+			t.Fatalf("GET %s returned %d: %s", path, response.Code, response.Body.String())
+		}
+		if path == "/bff/admin/routing" && (!strings.Contains(response.Body.String(), `"singleton":true`) || !strings.Contains(response.Body.String(), `"revision":3`)) {
+			t.Fatalf("real routing response did not expose singleton/revision contract: %s", response.Body.String())
+		}
+	}
+}
+
+func TestAdminManagementWritesThroughToRealGateway(t *testing.T) {
+	seen := map[string]int{}
+	statePath := filepath.Join(t.TempDir(), "production-dashboard-state.json")
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen[r.Method+" "+r.URL.Path]++
+		w.Header().Set("Content-Type", "application/json")
+		switch r.Method + " " + r.URL.Path {
+		case "POST /admin/v1/providers":
+			_, _ = io.WriteString(w, `{"id":"provider-a","name":"Provider A","type":"openai-compatible","base_url":"https://provider.example/v1","enabled":true,"models":["model-a"],"default_model":"model-a","revision":1}`)
+		case "GET /admin/v1/providers/provider-a":
+			_, _ = io.WriteString(w, `{"id":"provider-a","name":"Provider A","type":"openai-compatible","base_url":"https://provider.example/v1","enabled":true,"models":["model-a"],"default_model":"model-a","revision":1}`)
+		case "GET /admin/v1/providers":
+			_, _ = io.WriteString(w, `{"data":[{"id":"provider-a","name":"Provider A","type":"openai-compatible","base_url":"https://provider.example/v1","enabled":true,"models":["model-a"],"default_model":"model-a","revision":1}]}`)
+		case "GET /v1/models":
+			_, _ = io.WriteString(w, `{"data":[{"id":"model-a"}]}`)
+		case "POST /v1/chat/completions":
+			w.Header().Set("X-Provider", "provider-a")
+			w.Header().Set("X-Routing-Strategy", "latency")
+			w.Header().Set("X-Request-ID", r.Header.Get("X-Request-ID"))
+			_, _ = io.WriteString(w, `{"id":"verified","choices":[]}`)
+		case "GET /admin/v1/routing":
+			if seen["PUT /admin/v1/routing"] > 0 {
+				_, _ = io.WriteString(w, `{"id":"global","strategy":"latency","default_provider":"provider-a","fallback_enabled":true,"max_attempts":2,"revision":3}`)
+			} else {
+				_, _ = io.WriteString(w, `{"id":"global","strategy":"round-robin","default_provider":"provider-a","fallback_enabled":true,"max_attempts":2,"revision":2}`)
+			}
+		case "PUT /admin/v1/routing":
+			_, _ = io.WriteString(w, `{"id":"global","strategy":"latency","default_provider":"provider-a","fallback_enabled":true,"max_attempts":2,"revision":3}`)
+		case "POST /admin/v1/api-keys":
+			w.WriteHeader(http.StatusCreated)
+			_, _ = io.WriteString(w, `{"record":{"id":"key-a","tenant_id":"tenant-a","prefix":"vx_live_abc","name":"benchmark","role":"customer","enabled":true},"secret":"vx_live_one_time_secret"}`)
+		case "GET /admin/v1/settings":
+			_, _ = io.WriteString(w, `{"id":"global","default_provider":"provider-a","default_model":"model-a","request_timeout_seconds":30,"data_retention_days":30,"revision":4}`)
+		case "PUT /admin/v1/settings":
+			_, _ = io.WriteString(w, `{"id":"global","default_provider":"provider-a","default_model":"model-a","request_timeout_seconds":45,"data_retention_days":60,"revision":5}`)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer upstream.Close()
+	handler := NewServer(Config{AllowAdminRegistration: true, TestMode: true, StatePath: statePath, GatewayAdminURL: upstream.URL, GatewayDataURL: upstream.URL, GatewayAdminAPIKey: "admin-key", GatewayDataAPIKey: "data-key"})
+	cookie := adminCookie(t, handler)
+	before := readManagementStateForTest(t, statePath)
+
+	requests := []struct {
+		method, path, body string
+		status             int
+	}{
+		{http.MethodPost, "/bff/admin/providers", `{"name":"provider-a","baseUrl":"https://provider.example/v1","defaultModel":"model-a","models":["model-a"],"apiKey":"provider-secret"}`, http.StatusCreated},
+		{http.MethodPost, "/bff/admin/routing", `{"policy":"global","selector":"latency","target":"provider-a","status":"Active"}`, http.StatusCreated},
+		{http.MethodPost, "/bff/admin/api-keys", `{"tenant":"tenant-a","scope":"customer"}`, http.StatusCreated},
+		{http.MethodPut, "/bff/admin/settings", `{"defaultProvider":"provider-a","defaultModel":"model-a","requestTimeoutSeconds":45,"dataRetentionDays":60}`, http.StatusOK},
+	}
+	for _, item := range requests {
+		response := authRequest(t, handler, item.method, item.path, item.body, cookie)
+		if response.Code != item.status {
+			t.Fatalf("%s %s returned %d: %s", item.method, item.path, response.Code, response.Body.String())
+		}
+	}
+	for _, call := range []string{"POST /admin/v1/providers", "PUT /admin/v1/routing", "POST /admin/v1/api-keys", "PUT /admin/v1/settings"} {
+		if seen[call] != 1 {
+			t.Fatalf("real Gateway call %s count = %d", call, seen[call])
+		}
+	}
+	after := readManagementStateForTest(t, statePath)
+	if !reflect.DeepEqual(before, after) {
+		t.Fatalf("production Gateway writes mutated Dashboard-local management state: before=%v after=%v", before, after)
+	}
+}
+
+func TestAdminManagementForwardsBrowserObservedRevisions(t *testing.T) {
+	revisions := map[string]int64{}
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.Method + " " + r.URL.Path {
+		case "GET /admin/v1/routing":
+			if revisions["routing"] != 0 {
+				_, _ = io.WriteString(w, `{"id":"global","strategy":"latency","default_provider":"provider-a","fallback_enabled":true,"max_attempts":2,"revision":4}`)
+			} else {
+				_, _ = io.WriteString(w, `{"id":"global","strategy":"round-robin","default_provider":"provider-a","fallback_enabled":true,"max_attempts":2,"revision":9}`)
+			}
+		case "PUT /admin/v1/routing":
+			var body GatewayRoutingUpdateRequest
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Fatal(err)
+			}
+			revisions["routing"] = body.Revision
+			_, _ = io.WriteString(w, `{"id":"global","strategy":"latency","default_provider":"provider-a","fallback_enabled":true,"max_attempts":2,"revision":4}`)
+		case "GET /admin/v1/providers":
+			_, _ = io.WriteString(w, `{"data":[{"id":"provider-a","name":"Provider A","type":"openai-compatible","base_url":"https://provider.example/v1","enabled":true,"models":["model-a"],"default_model":"model-a","revision":1}]}`)
+		case "POST /v1/chat/completions":
+			w.Header().Set("X-Provider", "provider-a")
+			w.Header().Set("X-Routing-Strategy", "latency")
+			w.Header().Set("X-Request-ID", r.Header.Get("X-Request-ID"))
+			_, _ = io.WriteString(w, `{"id":"verified","choices":[]}`)
+		case "GET /admin/v1/tenants":
+			_, _ = io.WriteString(w, `{"data":[{"id":"tenant-a","name":"Tenant A","owner":"owner@example.test","daily_quota":1000,"status":"active","revision":9}]}`)
+		case "PUT /admin/v1/tenants/tenant-a":
+			var body GatewayTenantUpdateRequest
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Fatal(err)
+			}
+			revisions["tenant"] = body.Revision
+			_, _ = io.WriteString(w, `{"id":"tenant-a","name":"Tenant A","owner":"owner@example.test","daily_quota":1000,"status":"active","revision":4}`)
+		case "GET /admin/v1/settings":
+			_, _ = io.WriteString(w, `{"id":"global","default_provider":"provider-a","default_model":"model-a","request_timeout_seconds":30,"data_retention_days":30,"revision":9}`)
+		case "PUT /admin/v1/settings":
+			var body GatewaySettingsUpdateRequest
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Fatal(err)
+			}
+			revisions["settings"] = body.Revision
+			_, _ = io.WriteString(w, `{"id":"global","default_provider":"provider-a","default_model":"model-a","request_timeout_seconds":30,"data_retention_days":30,"revision":4}`)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer upstream.Close()
+
+	handler := NewServer(Config{AllowAdminRegistration: true, TestMode: true, GatewayAdminURL: upstream.URL, GatewayDataURL: upstream.URL, GatewayAdminAPIKey: "admin-key", GatewayDataAPIKey: "data-key"})
+	cookie := adminCookie(t, handler)
+	requests := []struct {
+		path string
+		body string
+	}{
+		{"/bff/admin/routing/global", `{"policy":"global","selector":"latency","target":"provider-a","status":"Active","revision":3}`},
+		{"/bff/admin/tenants/tenant-a", `{"tenant":"tenant-a","owner":"owner@example.test","dailyQuota":"1000","status":"Healthy","revision":3}`},
+		{"/bff/admin/settings", `{"defaultProvider":"provider-a","defaultModel":"model-a","requestTimeoutSeconds":30,"dataRetentionDays":30,"revision":3}`},
+	}
+	for _, request := range requests {
+		response := authRequest(t, handler, http.MethodPut, request.path, request.body, cookie)
+		if response.Code != http.StatusOK {
+			t.Fatalf("PUT %s = %d: %s", request.path, response.Code, response.Body.String())
+		}
+	}
+	for resource, revision := range revisions {
+		if revision != 3 {
+			t.Fatalf("%s revision = %d, want browser-observed 3", resource, revision)
+		}
+	}
+}
+
+func TestRoutingClosedLoopReportsWarningAndReadbackFailureTruthfully(t *testing.T) {
+	t.Run("missing data key is warning after confirmed apply", func(t *testing.T) {
+		written := false
+		upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			switch r.Method + " " + r.URL.Path {
+			case "GET /admin/v1/routing":
+				if written {
+					_, _ = io.WriteString(w, `{"id":"global","strategy":"default-provider","default_provider":"provider-b","fallback_enabled":true,"max_attempts":2,"revision":2}`)
+				} else {
+					_, _ = io.WriteString(w, `{"id":"global","strategy":"default-provider","default_provider":"provider-a","fallback_enabled":true,"max_attempts":2,"revision":1}`)
+				}
+			case "PUT /admin/v1/routing":
+				written = true
+				_, _ = io.WriteString(w, `{"id":"global","strategy":"default-provider","default_provider":"provider-b","fallback_enabled":true,"max_attempts":2,"revision":2,"application":{"state":"applied","applied":true,"revision":2}}`)
+			case "GET /admin/v1/providers":
+				_, _ = io.WriteString(w, `{"data":[{"id":"provider-b","name":"Provider B","type":"openai-compatible","base_url":"https://provider.example/v1","enabled":true,"models":["model-a"],"default_model":"model-a","revision":1}]}`)
+			default:
+				http.NotFound(w, r)
+			}
+		}))
+		defer upstream.Close()
+		handler := NewServer(Config{AllowAdminRegistration: true, TestMode: true, GatewayAdminURL: upstream.URL, GatewayAdminAPIKey: "admin-key"})
+		response := authRequest(t, handler, http.MethodPut, "/bff/admin/routing/global", `{"policy":"global","selector":"default-provider","target":"provider-b","status":"Active","revision":1}`, adminCookie(t, handler))
+		if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"state":"warning"`) || !strings.Contains(response.Body.String(), `"applied":true`) {
+			t.Fatalf("warning response = %d %s", response.Code, response.Body.String())
+		}
+	})
+
+	t.Run("stale readback is failed", func(t *testing.T) {
+		upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			if r.Method == http.MethodPut {
+				_, _ = io.WriteString(w, `{"id":"global","strategy":"default-provider","default_provider":"provider-b","fallback_enabled":true,"max_attempts":2,"revision":2}`)
+				return
+			}
+			_, _ = io.WriteString(w, `{"id":"global","strategy":"default-provider","default_provider":"provider-a","fallback_enabled":true,"max_attempts":2,"revision":1}`)
+		}))
+		defer upstream.Close()
+		handler := NewServer(Config{AllowAdminRegistration: true, TestMode: true, GatewayAdminURL: upstream.URL, GatewayAdminAPIKey: "admin-key"})
+		response := authRequest(t, handler, http.MethodPut, "/bff/admin/routing/global", `{"policy":"global","selector":"default-provider","target":"provider-b","status":"Active","revision":1}`, adminCookie(t, handler))
+		if response.Code != http.StatusBadGateway || !strings.Contains(response.Body.String(), `"state":"failed"`) || strings.Contains(response.Body.String(), `"state":"verified"`) {
+			t.Fatalf("failed readback response = %d %s", response.Code, response.Body.String())
+		}
+	})
+}
+
+func readManagementStateForTest(t *testing.T, path string) map[string]any {
+	t.Helper()
+	encoded, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var state map[string]any
+	if err := json.Unmarshal(encoded, &state); err != nil {
+		t.Fatal(err)
+	}
+	return map[string]any{"providers": state["providers"], "routing": state["routing"], "tenants": state["tenants"], "apiKeys": state["apiKeys"], "audit": state["audit"], "settings": state["settings"]}
 }
 
 func TestHealthEndpoints(t *testing.T) {
@@ -194,9 +510,14 @@ func TestStatePersistsAcrossServerRestart(t *testing.T) {
 
 func TestOperationalEndpointsReturnRequestLogsAndBenchmarks(t *testing.T) {
 	handler := newTestServer(Config{
-		ProviderName:     "sans-primary",
-		DemoMode:         true,
-		OperationalStore: fakeOperationalStore{snapshot: operationalSnapshot{Source: "empty"}},
+		ProviderName: "sans-primary",
+		DemoMode:     true,
+		OperationalStore: fakeOperationalStore{snapshot: operationalSnapshot{
+			Source: "empty",
+		}},
+		BenchmarkRequestStore: fakeBenchmarkRequestStore{snapshot: benchmarkRequestSnapshot{
+			Requests: []benchmarkRequestDTO{}, Source: "empty", Redis: storageStatusDTO{Status: "connected"},
+		}},
 		BenchmarkStore: fakeBenchmarkStore{
 			snapshot: benchmarkSnapshot{
 				Benchmarks: fallbackBenchmarks(),
@@ -291,9 +612,11 @@ func TestAdminBenchmarksReturnsStorageStatusFromConfiguredStore(t *testing.T) {
 }
 
 func TestAdminBenchmarksReturnsEmptyRowsOutsideDemoMode(t *testing.T) {
-	handler := newTestServer(Config{
-		ProviderName: "sans-primary",
-		DemoMode:     false,
+	handler := NewServer(Config{
+		AllowAdminRegistration: true,
+		TestMode:               true,
+		ProviderName:           "sans-primary",
+		DemoMode:               false,
 		BenchmarkStore: fakeBenchmarkStore{snapshot: benchmarkSnapshot{
 			Source: "empty",
 			Redis:  storageStatusDTO{Status: "connected", Detail: "no benchmark snapshot key"},
@@ -381,16 +704,25 @@ func TestUpdateProviderAndDeleteResources(t *testing.T) {
 	deleteResource(t, handler, "/bff/admin/tenants/delete-team")
 	assertGETNotContains(t, handler, "/bff/admin/tenants", "delete-team")
 
-	postJSON(t, handler, "/bff/admin/api-keys", `{
+	createdKey := authRequest(t, handler, http.MethodPost, "/bff/admin/api-keys", `{
 		"tenant": "delete-key-team",
 		"scope": "gateway:invoke"
-	}`)
-	deleteResource(t, handler, "/bff/admin/api-keys/vx-delete-key-team")
+	}`, adminCookie(t, handler))
+	if createdKey.Code != http.StatusCreated {
+		t.Fatalf("expected API key status 201, got %d: %s", createdKey.Code, createdKey.Body.String())
+	}
+	var createdKeyBody struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(createdKey.Body.Bytes(), &createdKeyBody); err != nil || createdKeyBody.ID == "" {
+		t.Fatalf("expected created API key ID, got %s", createdKey.Body.String())
+	}
+	deleteResource(t, handler, "/bff/admin/api-keys/"+createdKeyBody.ID)
 	assertGETNotContains(t, handler, "/bff/admin/api-keys", "delete-key-team")
 
 	assertGETContains(t, handler, "/bff/admin/audit", "Updated provider editable-provider")
 	assertGETContains(t, handler, "/bff/admin/audit", "Deleted tenant delete-team")
-	assertGETContains(t, handler, "/bff/admin/audit", "Deleted API key vx-delete-key-team")
+	assertGETContains(t, handler, "/bff/admin/audit", "Revoked API key "+createdKeyBody.ID)
 }
 
 func TestUpdateAndDeleteMissingResourcesReturnNotFound(t *testing.T) {
@@ -754,6 +1086,187 @@ func TestCreateManagementResourcesAndExportAuditCSV(t *testing.T) {
 	}
 }
 
+func TestAdminManagementResponsesDeclareDashboardStateAsPartial(t *testing.T) {
+	handler := newTestServer(Config{ProviderName: "sans-primary"})
+	for _, path := range []string{
+		"/bff/admin/routing",
+		"/bff/admin/tenants",
+		"/bff/admin/api-keys",
+		"/bff/admin/audit",
+	} {
+		response := authRequest(t, handler, http.MethodGet, path, "", adminCookie(t, handler))
+		if response.Code != http.StatusOK {
+			t.Fatalf("GET %s expected 200, got %d: %s", path, response.Code, response.Body.String())
+		}
+		body := response.Body.String()
+		if !strings.Contains(body, `"source":"dashboard-state"`) || !strings.Contains(body, `"partialData":true`) {
+			t.Fatalf("GET %s must identify local partial data, got %s", path, body)
+		}
+	}
+}
+
+func TestAdminSettingsAreSafeValidatedAndPersisted(t *testing.T) {
+	statePath := filepath.Join(t.TempDir(), "admin-settings-state.json")
+	config := Config{
+		ProviderName: "sans-primary",
+		DefaultModel: "model-a",
+		StatePath:    statePath,
+		DevAPIKey:    "dev-secret-value",
+		QdrantAPIKey: "qdrant-secret-value",
+		SMTPPassword: "smtp-secret-value",
+		SMTPHost:     "smtp.example.test",
+		SMTPUsername: "",
+		SMTPFrom:     "",
+	}
+	handler := newTestServer(config)
+	cookie := adminCookie(t, handler)
+
+	initial := authRequest(t, handler, http.MethodGet, "/bff/admin/settings", "", cookie)
+	if initial.Code != http.StatusOK {
+		t.Fatalf("expected settings status 200, got %d: %s", initial.Code, initial.Body.String())
+	}
+	for _, secret := range []string{config.DevAPIKey, config.QdrantAPIKey, config.SMTPPassword} {
+		if strings.Contains(initial.Body.String(), secret) {
+			t.Fatalf("settings response leaked secret %q: %s", secret, initial.Body.String())
+		}
+	}
+	for _, want := range []string{`"smtp":"Not configured"`, `"source":"dashboard-state"`, `"partialData":true`} {
+		if !strings.Contains(initial.Body.String(), want) {
+			t.Fatalf("settings response missing %s: %s", want, initial.Body.String())
+		}
+	}
+
+	updated := authRequest(t, handler, http.MethodPut, "/bff/admin/settings", `{
+		"defaultProvider":"backup-provider",
+		"defaultModel":"model-b",
+		"requestTimeoutSeconds":45,
+		"dataRetentionDays":60
+	}`, cookie)
+	if updated.Code != http.StatusOK || !strings.Contains(updated.Body.String(), `"defaultProvider":"backup-provider"`) {
+		t.Fatalf("expected settings update, got %d: %s", updated.Code, updated.Body.String())
+	}
+
+	invalid := authRequest(t, handler, http.MethodPut, "/bff/admin/settings", `{
+		"defaultProvider":"backup-provider",
+		"defaultModel":"model-b",
+		"requestTimeoutSeconds":0,
+		"dataRetentionDays":60
+	}`, cookie)
+	if invalid.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("expected invalid settings status 422, got %d: %s", invalid.Code, invalid.Body.String())
+	}
+
+	restarted := newTestServer(Config{ProviderName: "sans-primary", DefaultModel: "model-a", StatePath: statePath})
+	persisted := authRequest(t, restarted, http.MethodGet, "/bff/admin/settings", "", adminCookie(t, restarted))
+	for _, want := range []string{`"defaultProvider":"backup-provider"`, `"defaultModel":"model-b"`, `"dataRetentionDays":60`} {
+		if !strings.Contains(persisted.Body.String(), want) {
+			t.Fatalf("persisted settings missing %s: %s", want, persisted.Body.String())
+		}
+	}
+}
+
+func TestAdminAPIKeySecretIsShownOnceAndStoredAsHash(t *testing.T) {
+	statePath := filepath.Join(t.TempDir(), "admin-key-state.json")
+	handler := newTestServer(Config{StatePath: statePath})
+	cookie := adminCookie(t, handler)
+	created := authRequest(t, handler, http.MethodPost, "/bff/admin/api-keys", `{
+		"tenant":"new-team",
+		"scope":"gateway:invoke"
+	}`, cookie)
+	if created.Code != http.StatusCreated {
+		t.Fatalf("expected API key status 201, got %d: %s", created.Code, created.Body.String())
+	}
+	var response struct {
+		ID        string `json:"id"`
+		Key       string `json:"key"`
+		MaskedKey string `json:"maskedKey"`
+	}
+	if err := json.Unmarshal(created.Body.Bytes(), &response); err != nil {
+		t.Fatal(err)
+	}
+	if response.ID == "" || response.Key == "" || response.MaskedKey == "" || response.Key == response.MaskedKey {
+		t.Fatalf("expected one-time secret and masked value, got %+v", response)
+	}
+
+	listed := authRequest(t, handler, http.MethodGet, "/bff/admin/api-keys", "", cookie)
+	if !strings.Contains(listed.Body.String(), response.MaskedKey) || strings.Contains(listed.Body.String(), response.Key) {
+		t.Fatalf("API key list must contain only masked value, got %s", listed.Body.String())
+	}
+	state, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(state), response.Key) || !strings.Contains(string(state), hashAPIKeySecret(response.Key)) {
+		t.Fatalf("state must store hash but not secret: %s", string(state))
+	}
+}
+
+func TestAdminSettingsAndAPIKeyFailWithoutMutatingStateWhenPersistenceFails(t *testing.T) {
+	statePath := filepath.Join(t.TempDir(), "state-directory")
+	if err := os.Mkdir(statePath, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	handler := newTestServer(Config{ProviderName: "sans-primary", DefaultModel: "model-a", StatePath: statePath})
+	cookie := adminCookie(t, handler)
+
+	settings := authRequest(t, handler, http.MethodPut, "/bff/admin/settings", `{
+		"defaultProvider":"must-not-stick",
+		"defaultModel":"must-not-stick",
+		"requestTimeoutSeconds":45,
+		"dataRetentionDays":60
+	}`, cookie)
+	if settings.Code != http.StatusInternalServerError {
+		t.Fatalf("expected settings persistence failure status 500, got %d: %s", settings.Code, settings.Body.String())
+	}
+	currentSettings := authRequest(t, handler, http.MethodGet, "/bff/admin/settings", "", cookie)
+	if strings.Contains(currentSettings.Body.String(), "must-not-stick") {
+		t.Fatalf("failed settings write must not mutate memory: %s", currentSettings.Body.String())
+	}
+
+	created := authRequest(t, handler, http.MethodPost, "/bff/admin/api-keys", `{
+		"tenant":"must-not-stick",
+		"scope":"gateway:invoke"
+	}`, cookie)
+	if created.Code != http.StatusInternalServerError || strings.Contains(created.Body.String(), "vx_admin_") {
+		t.Fatalf("expected API key persistence failure without secret, got %d: %s", created.Code, created.Body.String())
+	}
+	listed := authRequest(t, handler, http.MethodGet, "/bff/admin/api-keys", "", cookie)
+	if strings.Contains(listed.Body.String(), "must-not-stick") {
+		t.Fatalf("failed API key write must not mutate memory: %s", listed.Body.String())
+	}
+}
+
+func TestLegacyPlaintextAdminAPIKeysAreMigratedBeforeTheyAreListed(t *testing.T) {
+	statePath := filepath.Join(t.TempDir(), "legacy-state.json")
+	legacySecret := "vx-legacy-plaintext-secret"
+	legacyState := fmt.Sprintf(`{
+		"providers":[],
+		"routing":[],
+		"tenants":[],
+		"apiKeys":[{"key":%q,"tenant":"legacy-team","scope":"admin:read","lastUsed":"never"}],
+		"audit":[],
+		"users":[]
+	}`, legacySecret)
+	if err := os.WriteFile(statePath, []byte(legacyState), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	handler := newTestServer(Config{StatePath: statePath})
+	listed := authRequest(t, handler, http.MethodGet, "/bff/admin/api-keys", "", adminCookie(t, handler))
+	if listed.Code != http.StatusOK {
+		t.Fatalf("expected API key list status 200, got %d: %s", listed.Code, listed.Body.String())
+	}
+	if strings.Contains(listed.Body.String(), legacySecret) || !strings.Contains(listed.Body.String(), maskAPIKeySecret(legacySecret)) {
+		t.Fatalf("legacy API key list must expose only the masked value: %s", listed.Body.String())
+	}
+	persisted, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(persisted), legacySecret) || !strings.Contains(string(persisted), hashAPIKeySecret(legacySecret)) {
+		t.Fatalf("legacy state must replace plaintext with a hash: %s", string(persisted))
+	}
+}
+
 func postJSON(t *testing.T, handler http.Handler, path string, body string) {
 	t.Helper()
 	req := httptest.NewRequest(http.MethodPost, path, bytes.NewBufferString(body))
@@ -946,6 +1459,9 @@ func (store fakeBenchmarkStore) Snapshot(_ context.Context) benchmarkSnapshot {
 func TestAdminOperationalPagesUseLiveStoreSnapshots(t *testing.T) {
 	handler := newTestServer(Config{
 		ProviderName: "sans-primary",
+		BenchmarkRequestStore: fakeBenchmarkRequestStore{snapshot: benchmarkRequestSnapshot{
+			Requests: []benchmarkRequestDTO{}, Source: "empty", Redis: storageStatusDTO{Status: "connected"},
+		}},
 		OperationalStore: fakeOperationalStore{snapshot: operationalSnapshot{
 			ProviderHealth: []providerHealthDTO{{
 				Provider:     "sans-primary",
@@ -983,10 +1499,125 @@ func TestAdminOperationalPagesUseLiveStoreSnapshots(t *testing.T) {
 	}
 }
 
-func TestAdminOperationalPagesAreEmptyWithoutLiveDataOutsideDemoMode(t *testing.T) {
+func TestAdminRequestLogsMergeLatestBenchmarkEvidence(t *testing.T) {
 	handler := newTestServer(Config{
-		ProviderName: "sans-primary",
-		DemoMode:     false,
+		OperationalStore: fakeOperationalStore{snapshot: operationalSnapshot{
+			RequestLogs: []requestLogDTO{
+				{RequestID: "duplicate-request", Tenant: "tenant-a", Provider: "old-provider", Status: "Success", Timestamp: "2026-07-18T10:00:00Z"},
+				{RequestID: "operational-only", Tenant: "tenant-b", Provider: "provider-b", Status: "Success", Timestamp: "2026-07-18T09:00:00Z"},
+			},
+			Source: "redis", GeneratedAt: "2026-07-18T10:01:00Z", Redis: storageStatusDTO{Status: "connected", Detail: "loaded operational logs"},
+		}},
+		BenchmarkRequestStore: fakeBenchmarkRequestStore{snapshot: benchmarkRequestSnapshot{
+			Requests: []benchmarkRequestDTO{
+				{RunID: "step9-mmlu", RequestID: "duplicate-request", Dataset: "mmlu_20", Method: "Our Gateway Method", Provider: "openai-primary", Model: "nvidia/z-ai/glm-5.2", StartedAt: "2026-07-18T11:00:00Z", LatencyMs: 100, TTFTMs: benchmarkFloat(80), InputTokens: 10, OutputTokens: 5, Status: "success", HTTPStatus: 200},
+				{RunID: "step9-lmsys", RequestID: "benchmark-latest", Dataset: "lmsys_20", Method: "Our Gateway Method", Provider: "openai-primary", Model: "nvidia/z-ai/glm-5.2", StartedAt: "2026-07-18T12:00:00Z", LatencyMs: 55, Status: "error", HTTPStatus: 502, ErrorType: "provider_rate_limit"},
+			},
+			Source: "redis", GeneratedAt: "2026-07-18T12:01:00Z", Redis: storageStatusDTO{Status: "connected", Detail: "loaded benchmark requests"},
+		}},
+	})
+
+	response := authRequest(t, handler, http.MethodGet, "/bff/admin/request-logs", "", adminCookie(t, handler))
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", response.Code, response.Body.String())
+	}
+	var body struct {
+		Logs   []requestLogDTO `json:"logs"`
+		Source string          `json:"source"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode request logs: %v", err)
+	}
+	if len(body.Logs) != 3 {
+		t.Fatalf("logs = %+v, want three merged rows", body.Logs)
+	}
+	if body.Logs[0].RequestID != "benchmark-latest" || body.Logs[1].RequestID != "duplicate-request" || body.Logs[2].RequestID != "operational-only" {
+		t.Fatalf("unexpected merge order: %+v", body.Logs)
+	}
+	if body.Logs[1].Provider != "openai-primary" {
+		t.Fatalf("duplicate did not prefer benchmark evidence: %+v", body.Logs[1])
+	}
+	if body.Logs[0].Tenant != "benchmark/lmsys_20" || body.Logs[0].ErrorMessage != "provider_rate_limit (HTTP 502)" {
+		t.Fatalf("benchmark mapping mismatch: %+v", body.Logs[0])
+	}
+	if body.Source != "operational+benchmark" {
+		t.Fatalf("source = %q, want operational+benchmark", body.Source)
+	}
+}
+
+func TestAdminRequestLogsCapsNewestRowsAndReportsTruncation(t *testing.T) {
+	requests := make([]benchmarkRequestDTO, 0, 1002)
+	start := time.Date(2026, 7, 18, 0, 0, 0, 0, time.UTC)
+	for index := 0; index < 1002; index++ {
+		requests = append(requests, benchmarkRequestDTO{
+			RunID: "large-run", RequestID: fmt.Sprintf("request-%04d", index), Dataset: "lmsys_full", Method: "Our Gateway Method",
+			StartedAt: start.Add(time.Duration(index) * time.Second).Format(time.RFC3339), Status: "success", HTTPStatus: 200,
+		})
+	}
+	handler := newTestServer(Config{
+		OperationalStore: fakeOperationalStore{snapshot: operationalSnapshot{Source: "empty", Redis: storageStatusDTO{Status: "connected"}}},
+		BenchmarkRequestStore: fakeBenchmarkRequestStore{snapshot: benchmarkRequestSnapshot{
+			Requests: requests, Source: "redis", Redis: storageStatusDTO{Status: "connected"},
+		}},
+	})
+
+	response := authRequest(t, handler, http.MethodGet, "/bff/admin/request-logs", "", adminCookie(t, handler))
+	var body struct {
+		Logs         []requestLogDTO `json:"logs"`
+		TotalRows    int             `json:"totalRows"`
+		ReturnedRows int             `json:"returnedRows"`
+		Truncated    bool            `json:"truncated"`
+		PartialData  bool            `json:"partialData"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode request logs: %v", err)
+	}
+	if len(body.Logs) != 1000 || body.TotalRows != 1002 || body.ReturnedRows != 1000 || !body.Truncated || !body.PartialData {
+		t.Fatalf("unexpected truncation metadata: logs=%d total=%d returned=%d truncated=%v partial=%v", len(body.Logs), body.TotalRows, body.ReturnedRows, body.Truncated, body.PartialData)
+	}
+	if body.Logs[0].RequestID != "request-1001" || body.Logs[999].RequestID != "request-0002" {
+		t.Fatalf("cap did not preserve newest rows: first=%q last=%q", body.Logs[0].RequestID, body.Logs[999].RequestID)
+	}
+}
+
+func TestAdminRequestLogsPreserveBenchmarkRowsWhenOperationalStoreUnavailable(t *testing.T) {
+	handler := newTestServer(Config{
+		OperationalStore: fakeOperationalStore{snapshot: operationalSnapshot{
+			Source: "empty", Redis: storageStatusDTO{Status: "unreachable", Detail: "connection refused"},
+		}},
+		BenchmarkRequestStore: fakeBenchmarkRequestStore{snapshot: benchmarkRequestSnapshot{
+			Requests: []benchmarkRequestDTO{{RequestID: "benchmark-only", Dataset: "mmlu_20", StartedAt: "2026-07-18T12:00:00Z", Status: "success", HTTPStatus: 200}},
+			Source:   "redis", Redis: storageStatusDTO{Status: "connected"},
+		}},
+	})
+
+	response := authRequest(t, handler, http.MethodGet, "/bff/admin/request-logs", "", adminCookie(t, handler))
+	var body struct {
+		Logs        []requestLogDTO `json:"logs"`
+		Source      string          `json:"source"`
+		Warnings    []string        `json:"warnings"`
+		PartialData bool            `json:"partialData"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode request logs: %v", err)
+	}
+	if len(body.Logs) != 1 || body.Logs[0].RequestID != "benchmark-only" || body.Source != "benchmark" {
+		t.Fatalf("benchmark evidence was not preserved: %+v", body)
+	}
+	if !body.PartialData || !containsSummaryWarning(body.Warnings, "operational") {
+		t.Fatalf("missing partial-source warning: partial=%v warnings=%v", body.PartialData, body.Warnings)
+	}
+}
+
+func TestAdminOperationalPagesAreEmptyWithoutLiveDataOutsideDemoMode(t *testing.T) {
+	handler := NewServer(Config{
+		AllowAdminRegistration: true,
+		TestMode:               true,
+		ProviderName:           "sans-primary",
+		DemoMode:               false,
+		BenchmarkRequestStore: fakeBenchmarkRequestStore{snapshot: benchmarkRequestSnapshot{
+			Requests: []benchmarkRequestDTO{}, Source: "empty", Redis: storageStatusDTO{Status: "connected"},
+		}},
 		OperationalStore: fakeOperationalStore{snapshot: operationalSnapshot{
 			Source: "empty",
 		}},
@@ -1015,6 +1646,7 @@ func TestCustomerRegistrationCreatesTenantAndReturnsVerificationChallenge(t *tes
 	handler := NewServer(Config{
 		StatePath:       statePath,
 		EmailOutboxPath: filepath.Join(t.TempDir(), "email-outbox.log"),
+		TestMode:        true,
 	})
 
 	registered := authRequest(t, handler, http.MethodPost, "/bff/auth/customer/register", `{
@@ -1078,7 +1710,7 @@ func TestPublicRegistrationCannotCreateAdmin(t *testing.T) {
 }
 
 func TestVerifiedCustomerSessionBindsTenantRoleAndExpiresOnLogout(t *testing.T) {
-	handler := NewServer(Config{EmailOutboxPath: filepath.Join(t.TempDir(), "email-outbox.log")})
+	handler := NewServer(Config{EmailOutboxPath: filepath.Join(t.TempDir(), "email-outbox.log"), TestMode: true})
 	registered := authRequest(t, handler, http.MethodPost, "/bff/auth/customer/register", `{
 		"email": "session-customer@example.test",
 		"username": "session_customer",
@@ -1140,6 +1772,7 @@ func TestCustomerAPIsEnforceTenantIsolationAndMaskAPIKeys(t *testing.T) {
 		StatePath:        filepath.Join(t.TempDir(), "customer-api-state.json"),
 		EmailOutboxPath:  filepath.Join(t.TempDir(), "email-outbox.log"),
 		OperationalStore: store,
+		TestMode:         true,
 	})
 	aliceCookie, aliceTenant := registeredCustomerCookie(t, handler, "alice_api", "Alice API")
 	bobCookie, bobTenant := registeredCustomerCookie(t, handler, "bob_api", "Bob API")
@@ -1198,7 +1831,7 @@ func TestCustomerAPIsEnforceTenantIsolationAndMaskAPIKeys(t *testing.T) {
 func TestCustomerTenantAndAPIKeyPersistAcrossRestartWhileSessionRequiresLogin(t *testing.T) {
 	statePath := filepath.Join(t.TempDir(), "customer-restart-state.json")
 	outboxPath := filepath.Join(t.TempDir(), "customer-restart-outbox.log")
-	handler := NewServer(Config{StatePath: statePath, EmailOutboxPath: outboxPath})
+	handler := NewServer(Config{StatePath: statePath, EmailOutboxPath: outboxPath, TestMode: true})
 	cookie, tenantID := registeredCustomerCookie(t, handler, "restart_customer", "Restart Research")
 	created := authRequest(t, handler, http.MethodPost, "/bff/customer/api-keys", `{"scope":"gateway:invoke"}`, cookie)
 	if created.Code != http.StatusCreated {
@@ -1213,7 +1846,7 @@ func TestCustomerTenantAndAPIKeyPersistAcrossRestartWhileSessionRequiresLogin(t 
 	}
 
 	restartedOutbox := filepath.Join(t.TempDir(), "customer-restarted-outbox.log")
-	restarted := NewServer(Config{StatePath: statePath, EmailOutboxPath: restartedOutbox})
+	restarted := NewServer(Config{StatePath: statePath, EmailOutboxPath: restartedOutbox, TestMode: true})
 	oldSession := authRequest(t, restarted, http.MethodGet, "/bff/session", "", cookie)
 	if oldSession.Code != http.StatusUnauthorized {
 		t.Fatalf("expected pre-restart session to require login, got %d", oldSession.Code)
@@ -1250,7 +1883,7 @@ func TestCustomerTenantAndAPIKeyPersistAcrossRestartWhileSessionRequiresLogin(t 
 
 func TestCustomerPasswordUsesAdaptiveHash(t *testing.T) {
 	statePath := filepath.Join(t.TempDir(), "password-state.json")
-	handler := NewServer(Config{StatePath: statePath, EmailOutboxPath: filepath.Join(t.TempDir(), "email-outbox.log")})
+	handler := NewServer(Config{StatePath: statePath, EmailOutboxPath: filepath.Join(t.TempDir(), "email-outbox.log"), TestMode: true})
 	registeredCustomerCookie(t, handler, "bcrypt_customer", "Bcrypt Customer")
 	data, err := os.ReadFile(statePath)
 	if err != nil {
@@ -1270,6 +1903,7 @@ func TestBootstrapAdminWorksWithoutPublicAdminRegistration(t *testing.T) {
 		BootstrapAdminUsername: "bootstrap_admin",
 		BootstrapAdminPassword: "bootstrap-password-1234",
 		EmailOutboxPath:        filepath.Join(t.TempDir(), "email-outbox.log"),
+		TestMode:               true,
 	})
 	public := authRequest(t, handler, http.MethodPost, "/bff/auth/register", `{
 		"email":"other-admin@example.test","username":"other_admin","password":"password-1234","role":"Admin"

@@ -9,11 +9,11 @@ import (
 	"encoding/csv"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
-	"net/smtp"
 	"os"
 	"path/filepath"
 	"sort"
@@ -26,40 +26,70 @@ import (
 )
 
 const sessionCookieName = "veloxmesh_session"
+const adminRequestLogLimit = 1000
 
 type Config struct {
-	DevAPIKey                 string
-	AllowAdminRegistration    bool
-	BootstrapAdminEmail       string
-	BootstrapAdminUsername    string
-	BootstrapAdminPassword    string
-	ProviderName              string
-	BaseURL                   string
-	DefaultModel              string
-	Models                    []string
-	StatePath                 string
-	RedisAddr                 string
-	QdrantURL                 string
-	QdrantAPIKey              string
-	QdrantBenchmarkCollection string
-	BenchmarkStore            benchmarkStore
-	OperationalStore          operationalStore
-	EmailOutboxPath           string
-	SMTPHost                  string
-	SMTPPort                  string
-	SMTPUsername              string
-	SMTPPassword              string
-	SMTPFrom                  string
-	DemoMode                  bool
+	DevAPIKey                    string
+	AllowAdminRegistration       bool
+	BootstrapAdminEmail          string
+	BootstrapAdminUsername       string
+	BootstrapAdminPassword       string
+	ProviderName                 string
+	BaseURL                      string
+	DefaultModel                 string
+	Models                       []string
+	StatePath                    string
+	RedisAddr                    string
+	QdrantURL                    string
+	QdrantAPIKey                 string
+	QdrantBenchmarkCollection    string
+	BenchmarkStore               benchmarkStore
+	BenchmarkRequestStore        benchmarkRequestStore
+	OperationalStore             operationalStore
+	EmailOutboxPath              string
+	SMTPHost                     string
+	SMTPPort                     string
+	SMTPUsername                 string
+	SMTPPassword                 string
+	SMTPPasswordFile             string
+	SMTPFrom                     string
+	SMTPTLSMode                  string
+	SMTPServerName               string
+	SMTPTimeout                  time.Duration
+	MailSender                   MailSender
+	DemoMode                     bool
+	TestMode                     bool
+	VerificationPepper           []byte
+	VerificationSendEmailLimit   int
+	VerificationSendIPLimit      int
+	VerificationVerifyEmailLimit int
+	VerificationVerifyIPLimit    int
+	VerificationRateWindow       time.Duration
+	SessionTTL                   time.Duration
+	SessionCookieSecure          bool
+	Now                          func() time.Time
+	GatewayAdminURL              string
+	GatewayDataURL               string
+	GatewayMetricsURL            string
+	GatewayAdminAPIKey           string
+	GatewayDataAPIKey            string
+	GatewayAPITimeout            time.Duration
+	GatewayAdminClient           GatewayAdminClient
 }
 
 type Server struct {
-	mux              *http.ServeMux
-	config           Config
-	now              func() time.Time
-	state            *stateStore
-	benchmarkStore   benchmarkStore
-	operationalStore operationalStore
+	mux                 *http.ServeMux
+	config              Config
+	now                 func() time.Time
+	state               *stateStore
+	benchmarkStore      benchmarkStore
+	benchmarkRequests   benchmarkRequestStore
+	operationalStore    operationalStore
+	gatewayAdmin        GatewayAdminClient
+	gatewayAdminErr     error
+	verificationPepper  []byte
+	verificationLimiter *fixedWindowLimiter
+	mailSender          MailSender
 }
 
 type stateStore struct {
@@ -69,27 +99,42 @@ type stateStore struct {
 	tenants    []tenantDTO
 	apiKeys    []apiKeyDTO
 	audit      []auditDTO
+	settings   settingsDTO
 	users      []userDTO
 	sessions   map[string]sessionDTO
 	challenges map[string]loginChallengeDTO
 }
 
 type providerDTO struct {
-	Name          string   `json:"name"`
-	BaseURL       string   `json:"baseUrl"`
-	DefaultModel  string   `json:"defaultModel"`
-	Models        []string `json:"models"`
-	Status        string   `json:"status"`
-	P95LatencyMs  int      `json:"p95LatencyMs"`
-	SuccessRate   float64  `json:"successRate"`
-	RequestsToday int      `json:"requestsToday"`
+	Name          string          `json:"name"`
+	BaseURL       string          `json:"baseUrl"`
+	DefaultModel  string          `json:"defaultModel"`
+	Models        []string        `json:"models"`
+	Status        string          `json:"status"`
+	P95LatencyMs  int             `json:"p95LatencyMs"`
+	SuccessRate   float64         `json:"successRate"`
+	RequestsToday int             `json:"requestsToday"`
+	Application   *applicationDTO `json:"application,omitempty"`
 }
 
 type routingDTO struct {
-	Policy   string `json:"policy"`
-	Selector string `json:"selector"`
-	Target   string `json:"target"`
-	Status   string `json:"status"`
+	Policy      string          `json:"policy"`
+	Selector    string          `json:"selector"`
+	Target      string          `json:"target"`
+	Status      string          `json:"status"`
+	Revision    int64           `json:"revision,omitempty"`
+	Application *applicationDTO `json:"application,omitempty"`
+}
+
+type applicationDTO struct {
+	State      string `json:"state"`
+	Applied    bool   `json:"applied"`
+	Verified   bool   `json:"verified"`
+	Revision   int64  `json:"revision"`
+	RequestID  string `json:"requestId,omitempty"`
+	ProviderID string `json:"providerId,omitempty"`
+	Route      string `json:"route,omitempty"`
+	Message    string `json:"message,omitempty"`
 }
 
 type tenantDTO struct {
@@ -98,17 +143,27 @@ type tenantDTO struct {
 	OwnerUsername string `json:"ownerUsername,omitempty"`
 	DailyQuota    string `json:"dailyQuota"`
 	Status        string `json:"status"`
+	Revision      int64  `json:"revision,omitempty"`
 }
 
 type apiKeyDTO struct {
 	ID        string `json:"id,omitempty"`
 	Key       string `json:"key"`
-	KeyHash   string `json:"-"`
+	KeyHash   string `json:"keyHash,omitempty"`
+	KeyPrefix string `json:"keyPrefix,omitempty"`
 	Tenant    string `json:"tenant"`
 	Scope     string `json:"scope"`
 	Status    string `json:"status,omitempty"`
 	CreatedAt string `json:"createdAt,omitempty"`
 	LastUsed  string `json:"lastUsed"`
+}
+
+type settingsDTO struct {
+	DefaultProvider       string `json:"defaultProvider"`
+	DefaultModel          string `json:"defaultModel"`
+	RequestTimeoutSeconds int    `json:"requestTimeoutSeconds"`
+	DataRetentionDays     int    `json:"dataRetentionDays"`
+	Revision              int64  `json:"revision,omitempty"`
 }
 
 type auditDTO struct {
@@ -131,10 +186,12 @@ type userDTO struct {
 }
 
 type loginChallengeDTO struct {
-	ID        string    `json:"id"`
-	Username  string    `json:"username"`
-	Code      string    `json:"code"`
-	ExpiresAt time.Time `json:"expiresAt"`
+	ID             string    `json:"id"`
+	Username       string    `json:"username"`
+	CodeHash       string    `json:"codeHash"`
+	ExpiresAt      time.Time `json:"expiresAt"`
+	FailedAttempts int       `json:"failedAttempts"`
+	Consumed       bool      `json:"consumed"`
 }
 
 type sessionDTO struct {
@@ -172,6 +229,7 @@ type providerHealthDTO struct {
 
 type benchmarkDTO struct {
 	RunID                 string   `json:"runId"`
+	MethodID              string   `json:"methodId,omitempty"`
 	Method                string   `json:"method"`
 	Dataset               string   `json:"dataset"`
 	RequestCount          int      `json:"requestCount"`
@@ -182,6 +240,7 @@ type benchmarkDTO struct {
 	TimeoutSettingSeconds int      `json:"timeoutSettingSeconds"`
 	Provider              string   `json:"provider"`
 	TargetModel           string   `json:"targetModel"`
+	ModelVersion          string   `json:"modelVersion,omitempty"`
 	GatewayVersion        string   `json:"gatewayVersion"`
 	AvgLatencyMs          *float64 `json:"avgLatencyMs"`
 	P50LatencyMs          *float64 `json:"p50LatencyMs"`
@@ -248,6 +307,7 @@ type persistedState struct {
 	Tenants   []tenantDTO   `json:"tenants"`
 	APIKeys   []apiKeyDTO   `json:"apiKeys"`
 	Audit     []auditDTO    `json:"audit"`
+	Settings  settingsDTO   `json:"settings"`
 	Users     []userDTO     `json:"users"`
 }
 
@@ -262,11 +322,35 @@ func NewServer(config Config) http.Handler {
 		operationalStore = liveOperationalStore{redisAddr: config.RedisAddr}
 	}
 	server := &Server{
-		mux:              http.NewServeMux(),
-		config:           config,
-		now:              time.Now,
-		benchmarkStore:   store,
-		operationalStore: operationalStore,
+		mux:                 http.NewServeMux(),
+		config:              config,
+		now:                 config.Now,
+		benchmarkStore:      store,
+		benchmarkRequests:   config.BenchmarkRequestStore,
+		operationalStore:    operationalStore,
+		gatewayAdmin:        config.GatewayAdminClient,
+		verificationPepper:  append([]byte(nil), config.VerificationPepper...),
+		verificationLimiter: newFixedWindowLimiter(),
+		mailSender:          config.MailSender,
+	}
+	if server.now == nil {
+		server.now = time.Now
+	}
+	if server.mailSender == nil && smtpConfigurationComplete(config) {
+		server.mailSender, _ = newSMTPMailSender(SMTPConfig{
+			Host: config.SMTPHost, Port: config.SMTPPort, Username: config.SMTPUsername,
+			Password: config.SMTPPassword, From: config.SMTPFrom, TLSMode: config.SMTPTLSMode,
+			ServerName: config.SMTPServerName, Timeout: config.SMTPTimeout,
+		})
+	}
+	if len(server.verificationPepper) == 0 {
+		server.verificationPepper = mustRandomBytes(32)
+	}
+	if server.benchmarkRequests == nil {
+		server.benchmarkRequests = liveBenchmarkRequestStore{redisAddr: config.RedisAddr}
+	}
+	if !config.DemoMode && server.gatewayAdmin == nil && strings.TrimSpace(config.GatewayAdminURL) != "" {
+		server.gatewayAdmin, server.gatewayAdminErr = NewHTTPGatewayAdminClientWithCredentials(config.GatewayAdminURL, config.GatewayDataURL, config.GatewayMetricsURL, config.GatewayAdminAPIKey, config.GatewayDataAPIKey, config.GatewayAPITimeout, nil)
 	}
 	server.state = newStateStore(server.config, server.now)
 	server.loadState()
@@ -276,6 +360,9 @@ func NewServer(config Config) http.Handler {
 }
 
 func (config Config) withDefaults() Config {
+	if config.GatewayAPITimeout <= 0 {
+		config.GatewayAPITimeout = 10 * time.Second
+	}
 	if config.ProviderName == "" {
 		config.ProviderName = "sans-primary"
 	}
@@ -300,7 +387,81 @@ func (config Config) withDefaults() Config {
 	if config.SMTPFrom == "" {
 		config.SMTPFrom = config.SMTPUsername
 	}
+	if config.SMTPTLSMode == "" {
+		config.SMTPTLSMode = "starttls"
+	}
+	if config.SMTPTimeout <= 0 {
+		config.SMTPTimeout = 10 * time.Second
+	}
+	if config.VerificationSendEmailLimit <= 0 {
+		config.VerificationSendEmailLimit = 3
+	}
+	if config.VerificationSendIPLimit <= 0 {
+		config.VerificationSendIPLimit = 20
+	}
+	if config.VerificationVerifyEmailLimit <= 0 {
+		config.VerificationVerifyEmailLimit = 10
+	}
+	if config.VerificationVerifyIPLimit <= 0 {
+		config.VerificationVerifyIPLimit = 50
+	}
+	if config.VerificationRateWindow <= 0 {
+		config.VerificationRateWindow = defaultRateLimitWindow
+	}
+	if config.SessionTTL <= 0 {
+		config.SessionTTL = 8 * time.Hour
+	}
 	return config
+}
+
+func (server *Server) gatewayAdminUnavailable(w http.ResponseWriter) bool {
+	if server.config.DemoMode {
+		return false
+	}
+	if server.gatewayAdmin != nil {
+		return false
+	}
+	detail := "VeloxMesh Admin API is not configured"
+	if server.gatewayAdminErr != nil {
+		detail = "VeloxMesh Admin API configuration is invalid"
+	}
+	writeJSON(w, http.StatusServiceUnavailable, map[string]any{
+		"error":       "gateway_admin_unavailable",
+		"message":     detail,
+		"source":      "veloxmesh-admin",
+		"partialData": true,
+		"warnings":    []string{detail},
+	})
+	return true
+}
+
+func writeGatewayAdminError(w http.ResponseWriter, err error) {
+	status := http.StatusBadGateway
+	code := "gateway_admin_error"
+	if errors.Is(err, ErrGatewayAdminTimeout) {
+		status, code = http.StatusGatewayTimeout, "gateway_admin_timeout"
+	} else if errors.Is(err, ErrGatewayAdminUnavailable) {
+		status, code = http.StatusServiceUnavailable, "gateway_admin_unavailable"
+	} else {
+		var upstream *GatewayAdminHTTPError
+		if errors.As(err, &upstream) {
+			switch {
+			case upstream.StatusCode == http.StatusUnauthorized || upstream.StatusCode == http.StatusForbidden:
+				status, code = http.StatusBadGateway, "gateway_admin_auth_failed"
+			case upstream.StatusCode >= 400 && upstream.StatusCode < 500:
+				status, code = upstream.StatusCode, "gateway_admin_rejected"
+			default:
+				status, code = http.StatusBadGateway, "gateway_admin_bad_gateway"
+			}
+		}
+	}
+	writeJSON(w, status, map[string]any{
+		"error":       code,
+		"message":     "VeloxMesh Admin API request failed",
+		"source":      "veloxmesh-admin",
+		"partialData": true,
+		"warnings":    []string{"The requested Gateway management data is unavailable or incomplete"},
+	})
 }
 
 func (server *Server) routes() {
@@ -324,6 +485,7 @@ func (server *Server) routes() {
 	server.mux.HandleFunc("POST /bff/admin/routing", server.requireAdmin(server.handleCreateRouting))
 	server.mux.HandleFunc("PUT /bff/admin/routing/{policy}", server.requireAdmin(server.handleUpdateRouting))
 	server.mux.HandleFunc("DELETE /bff/admin/routing/{policy}", server.requireAdmin(server.handleDeleteRouting))
+	server.mux.HandleFunc("POST /bff/admin/runtime/verify", server.requireAdmin(server.handleRuntimeVerification))
 	server.mux.HandleFunc("GET /bff/admin/tenants", server.requireAdmin(server.handleAdminTenants))
 	server.mux.HandleFunc("POST /bff/admin/tenants", server.requireAdmin(server.handleCreateTenant))
 	server.mux.HandleFunc("PUT /bff/admin/tenants/{tenant}", server.requireAdmin(server.handleUpdateTenant))
@@ -333,10 +495,14 @@ func (server *Server) routes() {
 	server.mux.HandleFunc("DELETE /bff/admin/api-keys/{key}", server.requireAdmin(server.handleDeleteAPIKey))
 	server.mux.HandleFunc("GET /bff/admin/audit", server.requireAdmin(server.handleAdminAudit))
 	server.mux.HandleFunc("GET /bff/admin/audit.csv", server.requireAdmin(server.handleAuditCSV))
+	server.mux.HandleFunc("GET /bff/admin/settings", server.requireAdmin(server.handleAdminSettings))
+	server.mux.HandleFunc("PUT /bff/admin/settings", server.requireAdmin(server.handleUpdateSettings))
 	server.mux.HandleFunc("GET /bff/admin/requests", server.requireAdmin(server.handleAdminRequests))
 	server.mux.HandleFunc("GET /bff/admin/provider-health", server.requireAdmin(server.handleAdminProviderHealth))
 	server.mux.HandleFunc("GET /bff/admin/request-logs", server.requireAdmin(server.handleAdminRequestLogs))
 	server.mux.HandleFunc("GET /bff/admin/benchmarks", server.requireAdmin(server.handleAdminBenchmarks))
+	server.mux.HandleFunc("GET /bff/admin/benchmarks/raw.csv", server.requireAdmin(server.handleAdminBenchmarkRawCSV))
+	server.mux.HandleFunc("GET /bff/admin/benchmarks/export.zip", server.requireAdmin(server.handleAdminBenchmarkExportZIP))
 	server.mux.HandleFunc("GET /bff/customer/summary", server.requireCustomer(server.handleCustomerSummary))
 	server.mux.HandleFunc("GET /bff/customer/usage", server.requireCustomer(server.handleCustomerUsage))
 	server.mux.HandleFunc("GET /bff/customer/requests", server.requireCustomer(server.handleCustomerRequests))
@@ -345,7 +511,29 @@ func (server *Server) routes() {
 	server.mux.HandleFunc("DELETE /bff/customer/api-keys/{id}", server.requireCustomer(server.handleDeleteCustomerAPIKey))
 }
 
-func (server *Server) handleGatewayHealth(w http.ResponseWriter, _ *http.Request) {
+func (server *Server) handleGatewayHealth(w http.ResponseWriter, r *http.Request) {
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		health, err := server.gatewayAdmin.GetHealth(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		readiness, err := server.gatewayAdmin.GetReadiness(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		topology, err := server.gatewayAdmin.GetTopology(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"status": health.Status, "service": "gateway", "readiness": readiness, "topology": topology, "source": "veloxmesh-admin", "partialData": false})
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":  "ok",
 		"service": "gateway",
@@ -395,7 +583,7 @@ func (server *Server) handleAuthRegister(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if role == "Customer" {
-		server.registerCustomer(w, customerRegistrationInput{
+		server.registerCustomer(w, r, customerRegistrationInput{
 			Email:           email,
 			Username:        username,
 			Organization:    username,
@@ -412,11 +600,11 @@ func (server *Server) handleAuthRegister(w http.ResponseWriter, r *http.Request)
 	server.state.mu.Lock()
 	defer server.state.mu.Unlock()
 	if server.findUserLocked(username) != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": "username already taken"})
+		writeJSON(w, http.StatusConflict, map[string]string{"error": "account registration unavailable"})
 		return
 	}
 	if server.findUserLocked(email) != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": "email already registered"})
+		writeJSON(w, http.StatusConflict, map[string]string{"error": "account registration unavailable"})
 		return
 	}
 
@@ -458,10 +646,10 @@ func (server *Server) handleCustomerRegister(w http.ResponseWriter, r *http.Requ
 	if !decodeJSON(w, r, &input) {
 		return
 	}
-	server.registerCustomer(w, input)
+	server.registerCustomer(w, r, input)
 }
 
-func (server *Server) registerCustomer(w http.ResponseWriter, input customerRegistrationInput) {
+func (server *Server) registerCustomer(w http.ResponseWriter, r *http.Request, input customerRegistrationInput) {
 	email := strings.TrimSpace(input.Email)
 	username := strings.TrimSpace(input.Username)
 	organization := strings.TrimSpace(input.Organization)
@@ -482,16 +670,23 @@ func (server *Server) registerCustomer(w http.ResponseWriter, input customerRegi
 		writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "password confirmation does not match"})
 		return
 	}
+	if !server.verificationDeliveryAvailable() {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "verification_delivery_unavailable", "message": "Email verification is temporarily unavailable"})
+		return
+	}
+	if !server.allowVerificationSend(w, r, email) {
+		return
+	}
 
 	server.state.mu.Lock()
 	if server.findUserLocked(username) != nil {
 		server.state.mu.Unlock()
-		writeJSON(w, http.StatusConflict, map[string]string{"error": "username already taken"})
+		writeJSON(w, http.StatusConflict, map[string]string{"error": "account registration unavailable"})
 		return
 	}
 	if server.findUserLocked(email) != nil {
 		server.state.mu.Unlock()
-		writeJSON(w, http.StatusConflict, map[string]string{"error": "email already registered"})
+		writeJSON(w, http.StatusConflict, map[string]string{"error": "account registration unavailable"})
 		return
 	}
 
@@ -541,16 +736,14 @@ func (server *Server) registerCustomer(w http.ResponseWriter, input customerRegi
 	server.state.tenants = candidate.Tenants
 	server.state.users = candidate.Users
 	server.state.audit = candidate.Audit
-	server.state.challenges[challengeID] = loginChallengeDTO{
-		ID:        challengeID,
-		Username:  username,
-		Code:      code,
-		ExpiresAt: server.now().Add(10 * time.Minute),
-	}
+	server.state.challenges[challengeID] = newLoginChallenge(challengeID, username, code, server.verificationPepper, server.now())
 	server.state.mu.Unlock()
 
 	if err := server.sendVerificationEmail(user, code); err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "account created but verification email could not be sent"})
+		server.state.mu.Lock()
+		delete(server.state.challenges, challengeID)
+		server.state.mu.Unlock()
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "verification_delivery_unavailable", "message": "Email verification is temporarily unavailable"})
 		return
 	}
 	response := map[string]any{
@@ -564,7 +757,7 @@ func (server *Server) registerCustomer(w http.ResponseWriter, input customerRegi
 		"challengeId":          challengeID,
 		"delivery":             "email",
 	}
-	if !server.smtpConfigured() {
+	if server.developmentVerificationEnabled() {
 		response["devCode"] = code
 	}
 	writeJSON(w, http.StatusCreated, response)
@@ -599,6 +792,15 @@ func (server *Server) handleAuthLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	userCopy := *user
+	if !server.verificationDeliveryAvailable() {
+		server.state.mu.Unlock()
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "verification_delivery_unavailable", "message": "Email verification is temporarily unavailable"})
+		return
+	}
+	if !server.allowVerificationSend(w, r, userCopy.Email) {
+		server.state.mu.Unlock()
+		return
+	}
 	challengeID, code, err := server.createLoginChallengeLocked(userCopy)
 	if err != nil {
 		server.state.mu.Unlock()
@@ -610,16 +812,19 @@ func (server *Server) handleAuthLogin(w http.ResponseWriter, r *http.Request) {
 	server.state.mu.Unlock()
 
 	if err := server.sendVerificationEmail(userCopy, code); err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to send verification code"})
+		server.state.mu.Lock()
+		delete(server.state.challenges, challengeID)
+		server.state.mu.Unlock()
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "verification_delivery_unavailable", "message": "Email verification is temporarily unavailable"})
 		return
 	}
 	response := map[string]any{
 		"verificationRequired": true,
 		"challengeId":          challengeID,
 		"delivery":             "email",
-		"message":              "Verification code sent to " + userCopy.Email,
+		"message":              "Verification code sent.",
 	}
-	if !server.smtpConfigured() {
+	if server.developmentVerificationEnabled() {
 		response["devCode"] = code
 	}
 	writeJSON(w, http.StatusOK, response)
@@ -651,16 +856,24 @@ func (server *Server) handleAuthVerifyLogin(w http.ResponseWriter, r *http.Reque
 		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid or expired verification code"})
 		return
 	}
-	if server.now().After(challenge.ExpiresAt) {
-		delete(server.state.challenges, challengeID)
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "verification code expired"})
+	user := server.findUserLocked(challenge.Username)
+	email := "unknown"
+	if user != nil {
+		email = user.Email
+	}
+	if !server.allowVerificationAttempt(w, r, email, challengeID) {
 		return
 	}
-	if subtle.ConstantTimeCompare([]byte(challenge.Code), []byte(code)) != 1 {
+	result := challenge.verify(code, server.verificationPepper, server.now())
+	if result != verificationAccepted {
+		if result == verificationExpired || result == verificationExhausted || result == verificationConsumed {
+			delete(server.state.challenges, challengeID)
+		} else {
+			server.state.challenges[challengeID] = challenge
+		}
 		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid or expired verification code"})
 		return
 	}
-	user := server.findUserLocked(challenge.Username)
 	if user == nil {
 		delete(server.state.challenges, challengeID)
 		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid or expired verification code"})
@@ -681,7 +894,7 @@ func (server *Server) handleAuthLogout(w http.ResponseWriter, r *http.Request) {
 		delete(server.state.sessions, cookie.Value)
 	}
 	server.state.mu.Unlock()
-	clearSessionCookie(w)
+	server.clearSessionCookie(w)
 	writeJSON(w, http.StatusOK, map[string]string{"status": "signed out"})
 }
 
@@ -705,7 +918,14 @@ func (server *Server) requireAdmin(next http.HandlerFunc) http.HandlerFunc {
 			writeJSON(w, http.StatusForbidden, map[string]string{"error": "admin access required"})
 			return
 		}
-		next(w, r)
+		requestID := strings.TrimSpace(r.Header.Get("X-Request-ID"))
+		if requestID == "" {
+			requestID, _ = randomHex(16)
+		}
+		actor := firstNonEmpty([]string{user.Email, user.Username}, "admin")
+		w.Header().Set("X-Request-ID", requestID)
+		ctx := WithGatewayOperation(r.Context(), actor, requestID)
+		next(w, r.WithContext(ctx))
 	}
 }
 
@@ -898,6 +1118,7 @@ func (server *Server) handleCreateCustomerAPIKey(w http.ResponseWriter, r *http.
 		ID:        "key-" + idSuffix,
 		Key:       maskAPIKeySecret(secret),
 		KeyHash:   hashAPIKeySecret(secret),
+		KeyPrefix: apiKeyPrefix(secret),
 		Tenant:    user.TenantID,
 		Scope:     scope,
 		Status:    "Active",
@@ -1047,10 +1268,26 @@ func roundMetric(value float64) float64 {
 }
 
 func maskAPIKeySecret(secret string) string {
-	if len(secret) <= 12 {
-		return "****"
+	return maskAPIKeyPrefix(apiKeyPrefix(secret))
+}
+
+func maskAPIKeyPrefix(prefix string) string {
+	prefix = strings.TrimSpace(prefix)
+	if prefix == "" {
+		return "********"
 	}
-	return secret[:7] + "..." + secret[len(secret)-4:]
+	return prefix + "...********"
+}
+
+func apiKeyPrefix(secret string) string {
+	secret = strings.TrimSpace(secret)
+	if index := strings.LastIndex(secret, "_"); index >= 0 {
+		return secret[:index+1]
+	}
+	if len(secret) > 8 {
+		return secret[:8]
+	}
+	return secret
 }
 
 func hashAPIKeySecret(secret string) string {
@@ -1058,18 +1295,47 @@ func hashAPIKeySecret(secret string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-func (server *Server) handleAdminSummary(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]any{
-		"defaultProvider": server.config.ProviderName,
-		"defaultModel":    server.config.DefaultModel,
-		"modelCount":      len(server.config.Models),
-		"activeTenants":   4,
-		"requestVolume":   18420,
-		"successRate":     99.2,
-		"p95LatencyMs":    842,
-		"queueDepth":      17,
-		"updatedAt":       server.now().UTC().Format(time.RFC3339),
-	})
+func migrateLegacyAPIKeys(keys []apiKeyDTO, now func() time.Time) ([]apiKeyDTO, bool) {
+	migrated := false
+	result := append([]apiKeyDTO(nil), keys...)
+	for index := range result {
+		key := &result[index]
+		masked := key.Key == "****" || strings.Contains(key.Key, "...")
+		if !masked && key.Key != "" {
+			key.KeyPrefix = apiKeyPrefix(key.Key)
+			if key.KeyHash == "" {
+				key.KeyHash = hashAPIKeySecret(key.Key)
+			}
+			key.Key = maskAPIKeyPrefix(key.KeyPrefix)
+			migrated = true
+		}
+		if key.KeyPrefix == "" {
+			switch {
+			case strings.HasPrefix(key.Key, "vx_live"):
+				key.KeyPrefix = "vx_live_"
+			case strings.HasPrefix(key.Key, "vx_admin"):
+				key.KeyPrefix = "vx_admin_"
+			}
+			if key.KeyPrefix != "" {
+				key.Key = maskAPIKeyPrefix(key.KeyPrefix)
+				migrated = true
+			}
+		}
+		if key.ID == "" {
+			identity := hashAPIKeySecret(key.Tenant + "\x00" + key.Scope + "\x00" + key.Key)
+			key.ID = "key-legacy-" + identity[:12]
+			migrated = true
+		}
+		if key.Status == "" {
+			key.Status = "Active"
+			migrated = true
+		}
+		if key.CreatedAt == "" {
+			key.CreatedAt = now().UTC().Format(time.RFC3339)
+			migrated = true
+		}
+	}
+	return result, migrated
 }
 
 func (server *Server) handleAdminSession(w http.ResponseWriter, r *http.Request) {
@@ -1081,7 +1347,27 @@ func (server *Server) handleAdminSession(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, sessionResponse(user))
 }
 
-func (server *Server) handleAdminProviders(w http.ResponseWriter, _ *http.Request) {
+func (server *Server) handleAdminProviders(w http.ResponseWriter, r *http.Request) {
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		items, err := server.gatewayAdmin.ListProviders(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		providers := make([]providerDTO, 0, len(items))
+		for _, item := range items {
+			status := "healthy"
+			if !item.Enabled {
+				status = "disabled"
+			}
+			providers = append(providers, providerDTO{Name: item.ID, BaseURL: item.BaseURL, DefaultModel: item.DefaultModel, Models: item.Models, Status: status})
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"providers": providers, "source": "veloxmesh-admin", "partialData": false, "warnings": []string{}})
+		return
+	}
 	server.state.mu.Lock()
 	providers := append([]providerDTO(nil), server.state.providers...)
 	server.state.mu.Unlock()
@@ -1097,6 +1383,8 @@ func (server *Server) handleCreateProvider(w http.ResponseWriter, r *http.Reques
 		BaseURL      string   `json:"baseUrl"`
 		DefaultModel string   `json:"defaultModel"`
 		Models       []string `json:"models"`
+		APIKey       string   `json:"apiKey"`
+		Type         string   `json:"type"`
 	}
 	if !decodeJSON(w, r, &input) {
 		return
@@ -1107,6 +1395,34 @@ func (server *Server) handleCreateProvider(w http.ResponseWriter, r *http.Reques
 	}
 	if len(input.Models) == 0 && strings.TrimSpace(input.DefaultModel) != "" {
 		input.Models = []string{input.DefaultModel}
+	}
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		if strings.TrimSpace(input.APIKey) == "" {
+			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "apiKey is required when creating a real Gateway provider"})
+			return
+		}
+		providerType := strings.TrimSpace(input.Type)
+		if providerType == "" {
+			providerType = "openai-compatible"
+		}
+		defaultModel, secret := strings.TrimSpace(input.DefaultModel), strings.TrimSpace(input.APIKey)
+		item, err := server.gatewayAdmin.CreateProvider(r.Context(), GatewayProviderMutation{ID: strings.TrimSpace(input.Name), Name: strings.TrimSpace(input.Name), Type: providerType, BaseURL: strings.TrimSpace(input.BaseURL), Enabled: true, APIKey: &secret, Models: input.Models, DefaultModel: &defaultModel})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		application, verifyErr := server.verifyProviderApplication(r.Context(), item)
+		if verifyErr != nil {
+			writeJSON(w, http.StatusBadGateway, map[string]any{"error": verifyErr.Error(), "application": application})
+			return
+		}
+		response := mapGatewayProvider(item)
+		response.Application = application
+		writeJSON(w, http.StatusCreated, response)
+		return
 	}
 	provider := providerDTO{
 		Name:          strings.TrimSpace(input.Name),
@@ -1133,6 +1449,8 @@ func (server *Server) handleUpdateProvider(w http.ResponseWriter, r *http.Reques
 		DefaultModel string   `json:"defaultModel"`
 		Models       []string `json:"models"`
 		Status       string   `json:"status"`
+		APIKey       *string  `json:"apiKey,omitempty"`
+		Type         string   `json:"type"`
 	}
 	if !decodeJSON(w, r, &input) {
 		return
@@ -1146,6 +1464,46 @@ func (server *Server) handleUpdateProvider(w http.ResponseWriter, r *http.Reques
 	}
 	if strings.TrimSpace(input.Status) == "" {
 		input.Status = "healthy"
+	}
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		providers, err := server.gatewayAdmin.ListProviders(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		var current *GatewayProvider
+		for index := range providers {
+			if providers[index].ID == name || providers[index].Name == name {
+				current = &providers[index]
+				break
+			}
+		}
+		if current == nil {
+			writeJSON(w, http.StatusNotFound, map[string]string{"error": "provider not found"})
+			return
+		}
+		providerType := strings.TrimSpace(input.Type)
+		if providerType == "" {
+			providerType = current.Type
+		}
+		defaultModel := strings.TrimSpace(input.DefaultModel)
+		item, err := server.gatewayAdmin.UpdateProvider(r.Context(), current.ID, GatewayProviderMutation{Name: current.Name, Type: providerType, BaseURL: strings.TrimSpace(input.BaseURL), Enabled: !strings.EqualFold(input.Status, "disabled"), APIKey: input.APIKey, Models: input.Models, DefaultModel: &defaultModel, Revision: current.Revision})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		application, verifyErr := server.verifyProviderApplication(r.Context(), item)
+		if verifyErr != nil {
+			writeJSON(w, http.StatusBadGateway, map[string]any{"error": verifyErr.Error(), "application": application})
+			return
+		}
+		response := mapGatewayProvider(item)
+		response.Application = application
+		writeJSON(w, http.StatusOK, response)
+		return
 	}
 
 	server.state.mu.Lock()
@@ -1167,6 +1525,17 @@ func (server *Server) handleUpdateProvider(w http.ResponseWriter, r *http.Reques
 
 func (server *Server) handleDeleteProvider(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimSpace(r.PathValue("name"))
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		if err := server.gatewayAdmin.DeleteProvider(r.Context(), name); err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+		return
+	}
 	server.state.mu.Lock()
 	defer server.state.mu.Unlock()
 	for index, provider := range server.state.providers {
@@ -1181,11 +1550,70 @@ func (server *Server) handleDeleteProvider(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, http.StatusNotFound, map[string]string{"error": "provider not found"})
 }
 
-func (server *Server) handleAdminRouting(w http.ResponseWriter, _ *http.Request) {
+func mapGatewayProvider(item GatewayProvider) providerDTO {
+	status := "healthy"
+	if !item.Enabled {
+		status = "disabled"
+	}
+	return providerDTO{Name: item.ID, BaseURL: item.BaseURL, DefaultModel: item.DefaultModel, Models: item.Models, Status: status}
+}
+
+func (server *Server) verifyProviderApplication(ctx context.Context, written GatewayProvider) (*applicationDTO, error) {
+	application := &applicationDTO{State: "applied", Applied: true, Revision: written.Revision, ProviderID: written.ID}
+	readback, err := server.gatewayAdmin.GetProvider(ctx, written.ID)
+	if err != nil || readback.Revision != written.Revision || readback.UpdatedAt.Before(written.UpdatedAt) {
+		application.State = "failed"
+		application.Applied = false
+		application.Message = "provider readback did not confirm the persisted revision"
+		return application, errors.New(application.Message)
+	}
+	model := firstNonEmpty([]string{readback.DefaultModel}, "")
+	if model == "" && len(readback.Models) > 0 {
+		model = readback.Models[0]
+	}
+	if model == "" {
+		application.State = "warning"
+		application.Message = "provider is active but no model was available for live verification"
+		return application, nil
+	}
+	verification, err := server.gatewayAdmin.VerifyModels(ctx, model)
+	application.RequestID = verification.RequestID
+	if err != nil || !verification.Verified {
+		application.State = "warning"
+		application.Message = "provider is active but the live model verification did not complete"
+		if verification.Message != "" {
+			application.Message = verification.Message
+		}
+		return application, nil
+	}
+	application.State = "verified"
+	application.Verified = true
+	return application, nil
+}
+
+func (server *Server) handleAdminRouting(w http.ResponseWriter, r *http.Request) {
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		item, err := server.gatewayAdmin.GetRouting(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		rules := []routingDTO{{Policy: item.ID, Selector: item.Strategy, Target: item.DefaultProvider, Status: "Active", Revision: item.Revision}}
+		writeJSON(w, http.StatusOK, map[string]any{"rules": rules, "source": "veloxmesh-admin", "partialData": false, "warnings": []string{}, "singleton": true, "revision": item.Revision})
+		return
+	}
 	server.state.mu.Lock()
 	rules := append([]routingDTO(nil), server.state.routing...)
 	server.state.mu.Unlock()
-	writeJSON(w, http.StatusOK, map[string]any{"rules": rules})
+	writeJSON(w, http.StatusOK, map[string]any{
+		"rules":       rules,
+		"source":      "dashboard-state",
+		"partialData": true,
+		"warnings":    []string{"VeloxMesh Admin API is not connected"},
+	})
 }
 
 func (server *Server) handleCreateRouting(w http.ResponseWriter, r *http.Request) {
@@ -1199,6 +1627,30 @@ func (server *Server) handleCreateRouting(w http.ResponseWriter, r *http.Request
 	}
 	if strings.TrimSpace(input.Status) == "" {
 		input.Status = "Draft"
+	}
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		current, err := server.gatewayAdmin.GetRouting(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		item, err := server.gatewayAdmin.PutRouting(r.Context(), GatewayRoutingUpdateRequest{Strategy: strings.TrimSpace(input.Selector), DefaultProvider: strings.TrimSpace(input.Target), FallbackEnabled: current.FallbackEnabled, MaxAttempts: positiveOrDefault(current.MaxAttempts, 2), Composite: current.Composite, Revision: input.Revision})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		observed := current
+		observed.Revision = input.Revision
+		application, verifyErr := server.verifyRoutingApplication(r.Context(), observed, item)
+		if verifyErr != nil {
+			writeJSON(w, http.StatusBadGateway, map[string]any{"error": verifyErr.Error(), "application": application})
+			return
+		}
+		writeJSON(w, http.StatusCreated, routingDTO{Policy: item.ID, Selector: item.Strategy, Target: item.DefaultProvider, Status: "Active", Revision: item.Revision, Application: application})
+		return
 	}
 	server.state.mu.Lock()
 	server.state.routing = append(server.state.routing, input)
@@ -1221,6 +1673,30 @@ func (server *Server) handleUpdateRouting(w http.ResponseWriter, r *http.Request
 	if strings.TrimSpace(input.Status) == "" {
 		input.Status = "Draft"
 	}
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		current, err := server.gatewayAdmin.GetRouting(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		item, err := server.gatewayAdmin.PutRouting(r.Context(), GatewayRoutingUpdateRequest{Strategy: strings.TrimSpace(input.Selector), DefaultProvider: strings.TrimSpace(input.Target), FallbackEnabled: current.FallbackEnabled, MaxAttempts: positiveOrDefault(current.MaxAttempts, 2), Composite: current.Composite, Revision: input.Revision})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		observed := current
+		observed.Revision = input.Revision
+		application, verifyErr := server.verifyRoutingApplication(r.Context(), observed, item)
+		if verifyErr != nil {
+			writeJSON(w, http.StatusBadGateway, map[string]any{"error": verifyErr.Error(), "application": application})
+			return
+		}
+		writeJSON(w, http.StatusOK, routingDTO{Policy: item.ID, Selector: item.Strategy, Target: item.DefaultProvider, Status: "Active", Revision: item.Revision, Application: application})
+		return
+	}
 	server.state.mu.Lock()
 	defer server.state.mu.Unlock()
 	for index := range server.state.routing {
@@ -1235,8 +1711,120 @@ func (server *Server) handleUpdateRouting(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusNotFound, map[string]string{"error": "routing rule not found"})
 }
 
+func (server *Server) verifyRoutingApplication(ctx context.Context, previous, written GatewayRouting) (*applicationDTO, error) {
+	application := &applicationDTO{State: "applied", Applied: true, Revision: written.Revision, ProviderID: written.DefaultProvider, Route: written.Strategy}
+	readback, err := server.gatewayAdmin.GetRouting(ctx)
+	if err != nil || readback.Revision != written.Revision || readback.Revision <= previous.Revision || readback.DefaultProvider != written.DefaultProvider || readback.Strategy != written.Strategy {
+		application.State = "failed"
+		application.Applied = false
+		application.Message = "routing readback did not confirm the persisted revision"
+		return application, errors.New(application.Message)
+	}
+	if written.Application != nil && !written.Application.Applied {
+		application.State = "warning"
+		application.Applied = false
+		application.Message = firstNonEmpty([]string{written.Application.Message}, "Gateway persisted routing but did not confirm runtime activation")
+		return application, nil
+	}
+	providers, err := server.gatewayAdmin.ListProviders(ctx)
+	model := ""
+	if err == nil {
+		for _, provider := range providers {
+			if provider.ID == readback.DefaultProvider {
+				model = provider.DefaultModel
+				if model == "" && len(provider.Models) > 0 {
+					model = provider.Models[0]
+				}
+				break
+			}
+		}
+	}
+	if model == "" {
+		application.State = "warning"
+		application.Message = "routing is active but its target model could not be resolved for verification"
+		return application, nil
+	}
+	verification, err := server.gatewayAdmin.VerifyChat(ctx, model)
+	application.RequestID = verification.RequestID
+	if err != nil || !verification.Verified {
+		application.State = "warning"
+		application.Message = "routing is active but the live request verification did not complete"
+		if verification.Message != "" {
+			application.Message = verification.Message
+		}
+		return application, nil
+	}
+	application.ProviderID = verification.ProviderID
+	application.Route = verification.Route
+	if verification.ProviderID != readback.DefaultProvider || verification.Route != readback.Strategy {
+		application.State = "warning"
+		application.Message = "live request used a different provider or route than the saved configuration"
+		return application, nil
+	}
+	if written.Application != nil && written.Application.State == "warning" {
+		application.State = "warning"
+		application.Message = written.Application.Message
+		return application, nil
+	}
+	application.State = "verified"
+	application.Verified = true
+	return application, nil
+}
+
+func (server *Server) handleRuntimeVerification(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Resource string `json:"resource"`
+		Target   string `json:"target"`
+		Revision int64  `json:"revision"`
+		Model    string `json:"model"`
+	}
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	if server.config.DemoMode || server.gatewayAdminUnavailable(w) {
+		return
+	}
+	switch strings.ToLower(strings.TrimSpace(input.Resource)) {
+	case "provider":
+		item, err := server.gatewayAdmin.GetProvider(r.Context(), input.Target)
+		if err != nil || (input.Revision > 0 && item.Revision != input.Revision) {
+			writeJSON(w, http.StatusBadGateway, map[string]any{"application": applicationDTO{State: "failed", Revision: input.Revision, Message: "provider readback revision mismatch"}})
+			return
+		}
+		if strings.TrimSpace(input.Model) != "" {
+			item.DefaultModel = strings.TrimSpace(input.Model)
+		}
+		application, verifyErr := server.verifyProviderApplication(r.Context(), item)
+		if verifyErr != nil {
+			writeJSON(w, http.StatusBadGateway, map[string]any{"application": application})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"application": application})
+	case "routing":
+		item, err := server.gatewayAdmin.GetRouting(r.Context())
+		if err != nil || (input.Revision > 0 && item.Revision != input.Revision) {
+			writeJSON(w, http.StatusBadGateway, map[string]any{"application": applicationDTO{State: "failed", Revision: input.Revision, Message: "routing readback revision mismatch"}})
+			return
+		}
+		previous := item
+		previous.Revision--
+		application, verifyErr := server.verifyRoutingApplication(r.Context(), previous, item)
+		if verifyErr != nil {
+			writeJSON(w, http.StatusBadGateway, map[string]any{"application": application})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"application": application})
+	default:
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "resource must be provider or routing"})
+	}
+}
+
 func (server *Server) handleDeleteRouting(w http.ResponseWriter, r *http.Request) {
 	policy := strings.TrimSpace(r.PathValue("policy"))
+	if !server.config.DemoMode {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "the Gateway global routing configuration cannot be deleted; update it instead"})
+		return
+	}
 	server.state.mu.Lock()
 	defer server.state.mu.Unlock()
 	for index, rule := range server.state.routing {
@@ -1251,11 +1839,39 @@ func (server *Server) handleDeleteRouting(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusNotFound, map[string]string{"error": "routing rule not found"})
 }
 
-func (server *Server) handleAdminTenants(w http.ResponseWriter, _ *http.Request) {
+func positiveOrDefault(value, fallback int) int {
+	if value > 0 {
+		return value
+	}
+	return fallback
+}
+
+func (server *Server) handleAdminTenants(w http.ResponseWriter, r *http.Request) {
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		items, err := server.gatewayAdmin.ListTenants(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		tenants := make([]tenantDTO, 0, len(items))
+		for _, item := range items {
+			tenants = append(tenants, mapGatewayTenant(item))
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"tenants": tenants, "source": "veloxmesh-admin", "partialData": false, "warnings": []string{}})
+		return
+	}
 	server.state.mu.Lock()
 	tenants := append([]tenantDTO(nil), server.state.tenants...)
 	server.state.mu.Unlock()
-	writeJSON(w, http.StatusOK, map[string]any{"tenants": tenants})
+	writeJSON(w, http.StatusOK, map[string]any{
+		"tenants":     tenants,
+		"source":      "dashboard-state",
+		"partialData": true,
+		"warnings":    []string{"VeloxMesh Admin API is not connected"},
+	})
 }
 
 func (server *Server) handleCreateTenant(w http.ResponseWriter, r *http.Request) {
@@ -1269,6 +1885,23 @@ func (server *Server) handleCreateTenant(w http.ResponseWriter, r *http.Request)
 	}
 	if strings.TrimSpace(input.Status) == "" {
 		input.Status = "Healthy"
+	}
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		quota, err := parseDailyQuota(input.DailyQuota)
+		if err != nil {
+			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "dailyQuota must be a non-negative integer"})
+			return
+		}
+		item, err := server.gatewayAdmin.CreateTenant(r.Context(), GatewayTenantCreateRequest{ID: strings.TrimSpace(input.Tenant), Name: strings.TrimSpace(input.Tenant), Owner: strings.TrimSpace(input.Owner), DailyQuota: quota, Status: gatewayTenantStatus(input.Status)})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusCreated, mapGatewayTenant(item))
+		return
 	}
 	server.state.mu.Lock()
 	server.state.tenants = append(server.state.tenants, input)
@@ -1291,6 +1924,23 @@ func (server *Server) handleUpdateTenant(w http.ResponseWriter, r *http.Request)
 	if strings.TrimSpace(input.Status) == "" {
 		input.Status = "Healthy"
 	}
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		quota, err := parseDailyQuota(input.DailyQuota)
+		if err != nil {
+			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "dailyQuota must be a non-negative integer"})
+			return
+		}
+		item, err := server.gatewayAdmin.UpdateTenant(r.Context(), tenantName, GatewayTenantUpdateRequest{Name: strings.TrimSpace(input.Tenant), Owner: strings.TrimSpace(input.Owner), DailyQuota: quota, Status: gatewayTenantStatus(input.Status), Revision: input.Revision})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, mapGatewayTenant(item))
+		return
+	}
 	server.state.mu.Lock()
 	defer server.state.mu.Unlock()
 	for index := range server.state.tenants {
@@ -1307,6 +1957,17 @@ func (server *Server) handleUpdateTenant(w http.ResponseWriter, r *http.Request)
 
 func (server *Server) handleDeleteTenant(w http.ResponseWriter, r *http.Request) {
 	tenantName := strings.TrimSpace(r.PathValue("tenant"))
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		if err := server.gatewayAdmin.DeleteTenant(r.Context(), tenantName); err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+		return
+	}
 	server.state.mu.Lock()
 	defer server.state.mu.Unlock()
 	for index, tenant := range server.state.tenants {
@@ -1321,11 +1982,73 @@ func (server *Server) handleDeleteTenant(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusNotFound, map[string]string{"error": "tenant not found"})
 }
 
-func (server *Server) handleAdminAPIKeys(w http.ResponseWriter, _ *http.Request) {
+func mapGatewayTenant(item GatewayTenant) tenantDTO {
+	status := "Healthy"
+	if item.Status != "active" {
+		status = "Inactive"
+	}
+	return tenantDTO{Tenant: item.ID, Owner: item.Owner, DailyQuota: strconv.FormatInt(item.DailyQuota, 10), Status: status, Revision: item.Revision}
+}
+
+func gatewayTenantStatus(status string) string {
+	if strings.EqualFold(strings.TrimSpace(status), "inactive") {
+		return "inactive"
+	}
+	return "active"
+}
+
+func parseDailyQuota(value string) (int64, error) {
+	if strings.TrimSpace(value) == "" {
+		return 0, nil
+	}
+	quota, err := strconv.ParseInt(strings.TrimSpace(value), 10, 64)
+	if err != nil || quota < 0 {
+		return 0, errors.New("invalid daily quota")
+	}
+	return quota, nil
+}
+
+func (server *Server) handleAdminAPIKeys(w http.ResponseWriter, r *http.Request) {
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		items, err := server.gatewayAdmin.ListAPIKeys(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		keys := make([]map[string]string, 0, len(items))
+		for _, item := range items {
+			status := "Revoked"
+			if item.Enabled {
+				status = "Active"
+			}
+			keys = append(keys, map[string]string{"id": item.ID, "key": maskedGatewayKey(item.Prefix), "tenant": item.TenantID, "scope": item.Role, "status": status, "createdAt": formatGatewayTime(item.CreatedAt), "lastUsed": formatOptionalGatewayTime(item.LastUsedAt)})
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"keys": keys, "source": "veloxmesh-admin", "partialData": false, "warnings": []string{}})
+		return
+	}
 	server.state.mu.Lock()
-	keys := append([]apiKeyDTO(nil), server.state.apiKeys...)
+	keys := make([]map[string]string, 0, len(server.state.apiKeys))
+	for _, key := range server.state.apiKeys {
+		keys = append(keys, map[string]string{
+			"id":        key.ID,
+			"key":       key.Key,
+			"tenant":    key.Tenant,
+			"scope":     key.Scope,
+			"status":    key.Status,
+			"createdAt": key.CreatedAt,
+			"lastUsed":  key.LastUsed,
+		})
+	}
 	server.state.mu.Unlock()
-	writeJSON(w, http.StatusOK, map[string]any{"keys": keys})
+	writeJSON(w, http.StatusOK, map[string]any{
+		"keys":        keys,
+		"source":      "dashboard-state",
+		"partialData": true,
+		"warnings":    []string{"VeloxMesh Admin API is not connected"},
+	})
 }
 
 func (server *Server) handleCreateAPIKey(w http.ResponseWriter, r *http.Request) {
@@ -1340,28 +2063,82 @@ func (server *Server) handleCreateAPIKey(w http.ResponseWriter, r *http.Request)
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "tenant and scope are required"})
 		return
 	}
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		created, err := server.gatewayAdmin.CreateAPIKey(r.Context(), GatewayAPIKeyCreateRequest{TenantID: strings.TrimSpace(input.Tenant), Name: "Dashboard key for " + strings.TrimSpace(input.Tenant), Role: strings.TrimSpace(input.Scope)})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusCreated, map[string]string{"id": created.Record.ID, "key": created.Secret, "maskedKey": maskedGatewayKey(created.Record.Prefix), "tenant": created.Record.TenantID, "scope": created.Record.Role, "status": "Active", "createdAt": formatGatewayTime(created.Record.CreatedAt)})
+		return
+	}
+	keyID, err := randomHex(8)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not issue api key"})
+		return
+	}
+	keySecret, err := randomHex(24)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not issue api key"})
+		return
+	}
+	secret := "vx_admin_" + keySecret
 	key := apiKeyDTO{
-		Key:      "vx-" + strings.ReplaceAll(strings.ToLower(input.Tenant), " ", "-"),
-		Tenant:   strings.TrimSpace(input.Tenant),
-		Scope:    strings.TrimSpace(input.Scope),
-		LastUsed: "never",
+		ID:        "key-" + keyID,
+		Key:       maskAPIKeySecret(secret),
+		KeyHash:   hashAPIKeySecret(secret),
+		KeyPrefix: apiKeyPrefix(secret),
+		Tenant:    strings.TrimSpace(input.Tenant),
+		Scope:     strings.TrimSpace(input.Scope),
+		Status:    "Active",
+		CreatedAt: server.now().UTC().Format(time.RFC3339),
+		LastUsed:  "never",
 	}
 	server.state.mu.Lock()
-	server.state.apiKeys = append(server.state.apiKeys, key)
-	server.appendAuditLocked("admin", "Issued API key for "+key.Tenant, "Success")
-	server.saveStateLocked()
+	candidate := server.persistedStateLocked()
+	candidate.APIKeys = append(candidate.APIKeys, key)
+	candidate.Audit = prependAudit(candidate.Audit, server.now, "admin", "Issued API key for "+key.Tenant, "Success")
+	if err := server.writePersistedState(candidate); err != nil {
+		server.state.mu.Unlock()
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to persist api key"})
+		return
+	}
+	server.state.apiKeys = candidate.APIKeys
+	server.state.audit = candidate.Audit
 	server.state.mu.Unlock()
-	writeJSON(w, http.StatusCreated, key)
+	writeJSON(w, http.StatusCreated, map[string]string{
+		"id":        key.ID,
+		"key":       secret,
+		"maskedKey": key.Key,
+		"tenant":    key.Tenant,
+		"scope":     key.Scope,
+		"status":    key.Status,
+		"createdAt": key.CreatedAt,
+	})
 }
 
 func (server *Server) handleDeleteAPIKey(w http.ResponseWriter, r *http.Request) {
 	keyName := strings.TrimSpace(r.PathValue("key"))
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		if err := server.gatewayAdmin.RevokeAPIKey(r.Context(), keyName); err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+		return
+	}
 	server.state.mu.Lock()
 	defer server.state.mu.Unlock()
 	for index, key := range server.state.apiKeys {
-		if key.Key == keyName {
+		if key.ID == keyName || key.Key == keyName {
 			server.state.apiKeys = append(server.state.apiKeys[:index], server.state.apiKeys[index+1:]...)
-			server.appendAuditLocked("admin", "Deleted API key "+keyName, "Success")
+			server.appendAuditLocked("admin", "Revoked API key "+keyName, "Success")
 			server.saveStateLocked()
 			writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
 			return
@@ -1370,17 +2147,54 @@ func (server *Server) handleDeleteAPIKey(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusNotFound, map[string]string{"error": "api key not found"})
 }
 
-func (server *Server) handleAdminAudit(w http.ResponseWriter, _ *http.Request) {
+func (server *Server) handleAdminAudit(w http.ResponseWriter, r *http.Request) {
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		items, err := server.gatewayAdmin.ListAudit(r.Context(), GatewayAuditFilter{TargetID: r.URL.Query().Get("target_id"), Actor: r.URL.Query().Get("actor"), Action: r.URL.Query().Get("action"), Outcome: r.URL.Query().Get("outcome")})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		events := make([]auditDTO, 0, len(items))
+		for _, item := range items {
+			events = append(events, auditDTO{Time: formatGatewayTime(item.Timestamp), Actor: item.Actor, Action: item.Action, Result: item.Outcome})
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"events": events, "source": "veloxmesh-admin", "partialData": false, "warnings": []string{}})
+		return
+	}
 	server.state.mu.Lock()
 	events := append([]auditDTO(nil), server.state.audit...)
 	server.state.mu.Unlock()
-	writeJSON(w, http.StatusOK, map[string]any{"events": events})
+	writeJSON(w, http.StatusOK, map[string]any{
+		"events":      events,
+		"source":      "dashboard-state",
+		"partialData": true,
+		"warnings":    []string{"VeloxMesh Admin API is not connected"},
+	})
 }
 
-func (server *Server) handleAuditCSV(w http.ResponseWriter, _ *http.Request) {
-	server.state.mu.Lock()
-	events := append([]auditDTO(nil), server.state.audit...)
-	server.state.mu.Unlock()
+func (server *Server) handleAuditCSV(w http.ResponseWriter, r *http.Request) {
+	var events []auditDTO
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		items, err := server.gatewayAdmin.ListAudit(r.Context(), GatewayAuditFilter{TargetID: r.URL.Query().Get("target_id"), Actor: r.URL.Query().Get("actor"), Action: r.URL.Query().Get("action"), Outcome: r.URL.Query().Get("outcome")})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		events = make([]auditDTO, 0, len(items))
+		for _, item := range items {
+			events = append(events, auditDTO{Time: formatGatewayTime(item.Timestamp), Actor: item.Actor, Action: item.Action, Result: item.Outcome})
+		}
+	} else {
+		server.state.mu.Lock()
+		events = append([]auditDTO(nil), server.state.audit...)
+		server.state.mu.Unlock()
+	}
 
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
 	w.Header().Set("Content-Disposition", `attachment; filename="veloxmesh-audit.csv"`)
@@ -1392,7 +2206,156 @@ func (server *Server) handleAuditCSV(w http.ResponseWriter, _ *http.Request) {
 	writer.Flush()
 }
 
-func (server *Server) handleAdminRequests(w http.ResponseWriter, _ *http.Request) {
+func configuredLabel(configured bool) string {
+	if configured {
+		return "Configured"
+	}
+	return "Not configured"
+}
+
+func (server *Server) settingsResponse(settings settingsDTO) map[string]any {
+	return map[string]any{
+		"settings": settings,
+		"integrations": map[string]string{
+			"gateway": "Not connected",
+			"redis":   configuredLabel(strings.TrimSpace(server.config.RedisAddr) != ""),
+			"qdrant":  configuredLabel(strings.TrimSpace(server.config.QdrantURL) != ""),
+			"smtp":    configuredLabel(server.smtpConfigured()),
+		},
+		"source":      "dashboard-state",
+		"partialData": true,
+		"warnings":    []string{"Settings are local to the Dashboard BFF"},
+	}
+}
+
+func (server *Server) handleAdminSettings(w http.ResponseWriter, r *http.Request) {
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		item, err := server.gatewayAdmin.GetSettings(r.Context())
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		settings := settingsDTO{DefaultProvider: item.DefaultProvider, DefaultModel: item.DefaultModel, RequestTimeoutSeconds: item.RequestTimeoutSeconds, DataRetentionDays: item.DataRetentionDays, Revision: item.Revision}
+		writeJSON(w, http.StatusOK, map[string]any{"settings": settings, "integrations": map[string]string{"gateway": "Connected", "redis": configuredLabel(strings.TrimSpace(server.config.RedisAddr) != ""), "qdrant": configuredLabel(strings.TrimSpace(server.config.QdrantURL) != ""), "smtp": configuredLabel(server.smtpConfigured())}, "source": "veloxmesh-admin", "partialData": false, "warnings": []string{}})
+		return
+	}
+	server.state.mu.Lock()
+	settings := server.state.settings
+	server.state.mu.Unlock()
+	writeJSON(w, http.StatusOK, server.settingsResponse(settings))
+}
+
+func maskedGatewayKey(prefix string) string {
+	prefix = strings.TrimSpace(prefix)
+	if prefix == "" {
+		return "********"
+	}
+	return prefix + "********"
+}
+
+func formatGatewayTime(value time.Time) string {
+	if value.IsZero() {
+		return "never"
+	}
+	return value.UTC().Format(time.RFC3339)
+}
+
+func formatOptionalGatewayTime(value *time.Time) string {
+	if value == nil {
+		return "never"
+	}
+	return formatGatewayTime(*value)
+}
+
+func (server *Server) handleUpdateSettings(w http.ResponseWriter, r *http.Request) {
+	var input settingsDTO
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+	input.DefaultProvider = strings.TrimSpace(input.DefaultProvider)
+	input.DefaultModel = strings.TrimSpace(input.DefaultModel)
+	if input.DefaultProvider == "" || input.DefaultModel == "" {
+		writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "default provider and model are required"})
+		return
+	}
+	if input.RequestTimeoutSeconds < 1 || input.RequestTimeoutSeconds > 600 {
+		writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "request timeout must be between 1 and 600 seconds"})
+		return
+	}
+	if input.DataRetentionDays < 1 || input.DataRetentionDays > 3650 {
+		writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "data retention must be between 1 and 3650 days"})
+		return
+	}
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		item, err := server.gatewayAdmin.PutSettings(r.Context(), GatewaySettingsUpdateRequest{DefaultProvider: input.DefaultProvider, DefaultModel: input.DefaultModel, RequestTimeoutSeconds: input.RequestTimeoutSeconds, DataRetentionDays: input.DataRetentionDays, Revision: input.Revision})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		settings := settingsDTO{DefaultProvider: item.DefaultProvider, DefaultModel: item.DefaultModel, RequestTimeoutSeconds: item.RequestTimeoutSeconds, DataRetentionDays: item.DataRetentionDays, Revision: item.Revision}
+		writeJSON(w, http.StatusOK, map[string]any{"settings": settings, "integrations": map[string]string{"gateway": "Connected"}, "source": "veloxmesh-admin", "partialData": false, "warnings": []string{}})
+		return
+	}
+
+	server.state.mu.Lock()
+	candidate := server.persistedStateLocked()
+	candidate.Settings = input
+	candidate.Audit = prependAudit(candidate.Audit, server.now, "admin", "Updated Dashboard settings", "Success")
+	if err := server.writePersistedState(candidate); err != nil {
+		server.state.mu.Unlock()
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to persist settings"})
+		return
+	}
+	server.state.settings = candidate.Settings
+	server.state.audit = candidate.Audit
+	server.state.mu.Unlock()
+	writeJSON(w, http.StatusOK, server.settingsResponse(input))
+}
+
+func (server *Server) handleAdminRequests(w http.ResponseWriter, r *http.Request) {
+	if !server.config.DemoMode {
+		if server.gatewayAdminUnavailable(w) {
+			return
+		}
+		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+		startValue, endValue := parseQueryTime(r.URL.Query().Get("start")), parseQueryTime(r.URL.Query().Get("end"))
+		var start, end *time.Time
+		if !startValue.IsZero() {
+			start = &startValue
+		}
+		if !endValue.IsZero() {
+			end = &endValue
+		}
+		items, err := server.gatewayAdmin.ListUsage(r.Context(), GatewayUsageFilter{TenantID: r.URL.Query().Get("tenant_id"), APIKeyID: r.URL.Query().Get("api_key_id"), ProviderID: r.URL.Query().Get("provider_id"), Model: r.URL.Query().Get("model"), Status: r.URL.Query().Get("status"), Start: start, End: end, Limit: limit})
+		if err != nil {
+			writeGatewayAdminError(w, err)
+			return
+		}
+		requests := make([]map[string]any, 0, len(items))
+		partialData := false
+		for _, item := range items {
+			if item.TenantID == "" {
+				partialData = true
+			}
+			status := item.Status
+			if status == "settled" {
+				status = "success"
+			}
+			requests = append(requests, map[string]any{"id": item.ID, "tenant": item.TenantID, "provider": item.ProviderID, "model": item.Model, "status": status, "latencyMs": item.DurationMs, "route": "gateway-usage"})
+		}
+		warnings := []string{}
+		if partialData {
+			warnings = []string{"Some legacy usage rows do not contain tenant_id"}
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"requests": requests, "source": "veloxmesh-admin", "partialData": partialData, "warnings": warnings})
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"requests": []map[string]any{
 			{
@@ -1428,24 +2391,132 @@ func (server *Server) handleAdminRequests(w http.ResponseWriter, _ *http.Request
 
 func (server *Server) handleAdminRequestLogs(w http.ResponseWriter, r *http.Request) {
 	snapshot := server.operationalStore.Snapshot(r.Context())
-	logs := snapshot.RequestLogs
-	if len(logs) == 0 && server.config.DemoMode {
-		logs = server.requestLogs()
+	benchmarkSnapshot := server.benchmarkRequests.Snapshot(r.Context())
+	operationalLogs := snapshot.RequestLogs
+	if len(operationalLogs) == 0 && len(benchmarkSnapshot.Requests) == 0 && server.config.DemoMode {
+		operationalLogs = server.requestLogs()
 		snapshot.Source = "demo"
 	}
+	logs := mergeRequestLogs(operationalLogs, benchmarkSnapshot.Requests)
 	if logs == nil {
 		logs = []requestLogDTO{}
 	}
-	source := strings.TrimSpace(snapshot.Source)
-	if source == "" {
-		source = "empty"
+	totalRows := len(logs)
+	truncated := totalRows > adminRequestLogLimit
+	if truncated {
+		logs = logs[:adminRequestLogLimit]
+	}
+	warnings := requestLogWarnings(snapshot, benchmarkSnapshot, truncated)
+	source := requestLogSource(snapshot, benchmarkSnapshot)
+	generatedAt := latestTimestamp(snapshot.GeneratedAt, benchmarkSnapshot.GeneratedAt)
+	if generatedAt == "" {
+		generatedAt = snapshot.GeneratedAt
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"logs":        logs,
-		"source":      source,
-		"generatedAt": snapshot.GeneratedAt,
-		"storage":     map[string]storageStatusDTO{"redis": snapshot.Redis},
+		"logs":         logs,
+		"source":       source,
+		"generatedAt":  generatedAt,
+		"storage":      map[string]storageStatusDTO{"redis": snapshot.Redis, "benchmarkRedis": benchmarkSnapshot.Redis},
+		"totalRows":    totalRows,
+		"returnedRows": len(logs),
+		"truncated":    truncated,
+		"partialData":  len(warnings) > 0,
+		"warnings":     warnings,
 	})
+}
+
+func mergeRequestLogs(operational []requestLogDTO, benchmark []benchmarkRequestDTO) []requestLogDTO {
+	byID := make(map[string]requestLogDTO, len(operational)+len(benchmark))
+	for _, row := range operational {
+		byID[row.RequestID] = row
+	}
+	for _, row := range benchmark {
+		mapped := benchmarkRequestLog(row)
+		byID[mapped.RequestID] = mapped
+	}
+	result := make([]requestLogDTO, 0, len(byID))
+	for _, row := range byID {
+		result = append(result, row)
+	}
+	sort.SliceStable(result, func(left, right int) bool {
+		return parseQueryTime(result[left].Timestamp).After(parseQueryTime(result[right].Timestamp))
+	})
+	return result
+}
+
+func benchmarkRequestLog(row benchmarkRequestDTO) requestLogDTO {
+	status := "Error"
+	switch strings.ToLower(strings.TrimSpace(row.Status)) {
+	case "success", "passed", "settled":
+		status = "Success"
+	case "timeout":
+		status = "Timeout"
+	}
+	ttft := 0.0
+	if row.TTFTMs != nil {
+		ttft = *row.TTFTMs
+	}
+	errorMessage := ""
+	if status != "Success" {
+		errorMessage = strings.TrimSpace(row.ErrorType)
+		if row.HTTPStatus > 0 {
+			if errorMessage == "" {
+				errorMessage = "request failed"
+			}
+			errorMessage += " (HTTP " + strconv.Itoa(row.HTTPStatus) + ")"
+		}
+	}
+	tenant := "benchmark"
+	if strings.TrimSpace(row.Dataset) != "" {
+		tenant += "/" + strings.TrimSpace(row.Dataset)
+	}
+	return requestLogDTO{
+		RequestID: row.RequestID, Tenant: tenant, Provider: row.Provider, Model: row.Model, Method: row.Method,
+		InputTokens: row.InputTokens, OutputTokens: row.OutputTokens, Status: status, LatencyMs: row.LatencyMs,
+		TTFTMs: ttft, ErrorMessage: errorMessage, Timestamp: firstNonEmpty([]string{row.StartedAt, row.EndedAt}, ""),
+	}
+}
+
+func requestLogSource(operational operationalSnapshot, benchmark benchmarkRequestSnapshot) string {
+	hasOperational := len(operational.RequestLogs) > 0
+	hasBenchmark := len(benchmark.Requests) > 0
+	if hasOperational && hasBenchmark {
+		return "operational+benchmark"
+	}
+	if hasBenchmark {
+		return "benchmark"
+	}
+	if source := strings.TrimSpace(operational.Source); source != "" {
+		return source
+	}
+	return "empty"
+}
+
+func requestLogWarnings(operational operationalSnapshot, benchmark benchmarkRequestSnapshot, truncated bool) []string {
+	warnings := make([]string, 0, 3)
+	if status := strings.ToLower(strings.TrimSpace(operational.Redis.Status)); status == "unreachable" || status == "error" {
+		warnings = append(warnings, "Operational request log source is unavailable: "+operational.Redis.Detail)
+	}
+	if status := strings.ToLower(strings.TrimSpace(benchmark.Redis.Status)); status == "unreachable" || status == "error" {
+		warnings = append(warnings, "Benchmark request log source is unavailable: "+benchmark.Redis.Detail)
+	}
+	if truncated {
+		warnings = append(warnings, "Request logs are limited to the newest "+strconv.Itoa(adminRequestLogLimit)+" rows")
+	}
+	return warnings
+}
+
+func latestTimestamp(values ...string) string {
+	latest := ""
+	latestTime := time.Time{}
+	for _, value := range values {
+		parsed := parseQueryTime(value)
+		if parsed.After(latestTime) {
+			latest = value
+			latestTime = parsed
+		}
+	}
+	return latest
 }
 
 func (server *Server) handleAdminProviderHealth(w http.ResponseWriter, r *http.Request) {
@@ -1527,6 +2598,9 @@ func firstNonEmpty(values []string, fallback string) string {
 }
 
 func newStateStore(config Config, now func() time.Time) *stateStore {
+	seedDevKey := "vx_admin_seed_development"
+	seedCourseworkKey := "vx_admin_seed_coursework"
+	seedOperationsKey := "vx_admin_seed_operations"
 	providers := []providerDTO{
 		{
 			Name:          config.ProviderName,
@@ -1552,14 +2626,20 @@ func newStateStore(config Config, now func() time.Time) *stateStore {
 			{Tenant: "ops-sandbox", Owner: "Operations", DailyQuota: "1,000", Status: "Rate Limited"},
 		},
 		apiKeys: []apiKeyDTO{
-			{Key: "vx-dev", Tenant: "capstone-demo", Scope: "admin:read", LastUsed: "just now"},
-			{Key: "vx-coursework", Tenant: "coursework-lab", Scope: "gateway:invoke", LastUsed: "12 min ago"},
-			{Key: "vx-ops", Tenant: "ops-sandbox", Scope: "admin:write", LastUsed: "1 hour ago"},
+			{ID: "key-seed-dev", Key: maskAPIKeySecret(seedDevKey), KeyHash: hashAPIKeySecret(seedDevKey), KeyPrefix: apiKeyPrefix(seedDevKey), Tenant: "capstone-demo", Scope: "admin:read", Status: "Active", CreatedAt: now().UTC().Format(time.RFC3339), LastUsed: "just now"},
+			{ID: "key-seed-coursework", Key: maskAPIKeySecret(seedCourseworkKey), KeyHash: hashAPIKeySecret(seedCourseworkKey), KeyPrefix: apiKeyPrefix(seedCourseworkKey), Tenant: "coursework-lab", Scope: "gateway:invoke", Status: "Active", CreatedAt: now().UTC().Format(time.RFC3339), LastUsed: "12 min ago"},
+			{ID: "key-seed-operations", Key: maskAPIKeySecret(seedOperationsKey), KeyHash: hashAPIKeySecret(seedOperationsKey), KeyPrefix: apiKeyPrefix(seedOperationsKey), Tenant: "ops-sandbox", Scope: "admin:write", Status: "Active", CreatedAt: now().UTC().Format(time.RFC3339), LastUsed: "1 hour ago"},
 		},
 		audit: []auditDTO{
 			{Time: now().Format("15:04"), Actor: "admin", Action: "Refreshed provider health", Result: "Success"},
 			{Time: now().Format("15:04"), Actor: "gateway", Action: "Applied tenant quota", Result: "Rate Limited"},
 			{Time: now().Format("15:04"), Actor: "admin", Action: "Viewed routing policy", Result: "Success"},
+		},
+		settings: settingsDTO{
+			DefaultProvider:       config.ProviderName,
+			DefaultModel:          config.DefaultModel,
+			RequestTimeoutSeconds: 30,
+			DataRetentionDays:     30,
 		},
 		sessions:   map[string]sessionDTO{},
 		challenges: map[string]loginChallengeDTO{},
@@ -1567,12 +2647,16 @@ func newStateStore(config Config, now func() time.Time) *stateStore {
 }
 
 func (server *Server) appendAuditLocked(actor string, action string, result string) {
-	server.state.audit = append([]auditDTO{{
-		Time:   server.now().Format("15:04"),
+	server.state.audit = prependAudit(server.state.audit, server.now, actor, action, result)
+}
+
+func prependAudit(events []auditDTO, now func() time.Time, actor string, action string, result string) []auditDTO {
+	return append([]auditDTO{{
+		Time:   now().Format("15:04"),
 		Actor:  actor,
 		Action: action,
 		Result: result,
-	}}, server.state.audit...)
+	}}, events...)
 }
 
 func (server *Server) findUserLocked(identifier string) *userDTO {
@@ -1597,44 +2681,39 @@ func (server *Server) createLoginChallengeLocked(user userDTO) (string, string, 
 	if server.state.challenges == nil {
 		server.state.challenges = map[string]loginChallengeDTO{}
 	}
-	server.state.challenges[challengeID] = loginChallengeDTO{
-		ID:        challengeID,
-		Username:  user.Username,
-		Code:      code,
-		ExpiresAt: server.now().Add(10 * time.Minute),
-	}
+	server.state.challenges[challengeID] = newLoginChallenge(challengeID, user.Username, code, server.verificationPepper, server.now())
 	return challengeID, code, nil
 }
 
 func (server *Server) sendVerificationEmail(user userDTO, code string) error {
 	subject := "VeloxMesh login verification code"
-	body := "Your VeloxMesh login verification code is " + code + ". It expires in 10 minutes."
-	if server.smtpConfigured() {
-		return server.sendSMTP(user.Email, subject, body)
+	body := "Your VeloxMesh login verification code is " + code + ". It expires in 5 minutes."
+	if server.mailSender != nil {
+		return server.mailSender.Send(user.Email, subject, body)
+	}
+	if !server.developmentVerificationEnabled() {
+		return errors.New("verification delivery unavailable")
 	}
 	return server.writeEmailOutbox(user.Email, subject, body)
 }
 
-func (server *Server) smtpConfigured() bool {
-	return strings.TrimSpace(server.config.SMTPHost) != "" &&
-		strings.TrimSpace(server.config.SMTPUsername) != "" &&
-		strings.TrimSpace(server.config.SMTPPassword) != "" &&
-		strings.TrimSpace(server.config.SMTPFrom) != ""
+func (server *Server) developmentVerificationEnabled() bool {
+	return server.config.DemoMode || server.config.TestMode
 }
 
-func (server *Server) sendSMTP(to string, subject string, body string) error {
-	addr := net.JoinHostPort(server.config.SMTPHost, server.config.SMTPPort)
-	auth := smtp.PlainAuth("", server.config.SMTPUsername, server.config.SMTPPassword, server.config.SMTPHost)
-	message := strings.Join([]string{
-		"From: " + server.config.SMTPFrom,
-		"To: " + to,
-		"Subject: " + subject,
-		"MIME-Version: 1.0",
-		"Content-Type: text/plain; charset=UTF-8",
-		"",
-		body,
-	}, "\r\n")
-	return smtp.SendMail(addr, auth, server.config.SMTPFrom, []string{to}, []byte(message))
+func (server *Server) verificationDeliveryAvailable() bool {
+	return server.smtpConfigured() || server.developmentVerificationEnabled()
+}
+
+func (server *Server) smtpConfigured() bool {
+	return server.mailSender != nil
+}
+
+func smtpConfigurationComplete(config Config) bool {
+	return strings.TrimSpace(config.SMTPHost) != "" &&
+		strings.TrimSpace(config.SMTPUsername) != "" &&
+		strings.TrimSpace(config.SMTPPassword) != "" &&
+		strings.TrimSpace(config.SMTPFrom) != ""
 }
 
 func (server *Server) writeEmailOutbox(to string, subject string, body string) error {
@@ -1668,15 +2747,18 @@ func (server *Server) createSessionLocked(w http.ResponseWriter, user userDTO) {
 		Username:  user.Username,
 		TenantID:  user.TenantID,
 		Role:      user.Role,
-		ExpiresAt: server.now().Add(8 * time.Hour),
+		ExpiresAt: server.now().Add(server.config.SessionTTL),
 	}
+	maxAge := int(server.config.SessionTTL / time.Second)
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   server.secureSessionCookie(),
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   60 * 60 * 8,
+		MaxAge:   maxAge,
+		Expires:  server.now().Add(server.config.SessionTTL),
 	})
 }
 
@@ -1763,14 +2845,25 @@ func randomHex(byteCount int) (string, error) {
 	return hex.EncodeToString(data), nil
 }
 
-func randomDigits(length int) (string, error) {
-	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+func mustRandomBytes(byteCount int) []byte {
+	data := make([]byte, byteCount)
+	if _, err := rand.Read(data); err != nil {
+		panic("secure random source unavailable: " + err.Error())
 	}
+	return data
+}
+
+func randomDigits(length int) (string, error) {
 	var builder strings.Builder
-	for _, value := range bytes {
-		builder.WriteString(strconv.Itoa(int(value) % 10))
+	for builder.Len() < length {
+		value := []byte{0}
+		if _, err := rand.Read(value); err != nil {
+			return "", err
+		}
+		if value[0] >= 250 {
+			continue
+		}
+		builder.WriteString(strconv.Itoa(int(value[0] % 10)))
 	}
 	return builder.String(), nil
 }
@@ -1784,15 +2877,21 @@ func isDigitsOnly(value string) bool {
 	return true
 }
 
-func clearSessionCookie(w http.ResponseWriter) {
+func (server *Server) clearSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   server.secureSessionCookie(),
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,
+		Expires:  time.Unix(1, 0).UTC(),
 	})
+}
+
+func (server *Server) secureSessionCookie() bool {
+	return server.config.SessionCookieSecure || (!server.config.DemoMode && !server.config.TestMode)
 }
 
 func (server *Server) requestLogs() []requestLogDTO {
@@ -1923,12 +3022,17 @@ func (server *Server) loadState() {
 	if err := json.Unmarshal(data, &saved); err != nil {
 		return
 	}
+	var migratedAPIKeys bool
+	saved.APIKeys, migratedAPIKeys = migrateLegacyAPIKeys(saved.APIKeys, server.now)
 	server.state.providers = saved.Providers
 	server.state.routing = saved.Routing
 	server.state.tenants = saved.Tenants
 	server.state.apiKeys = saved.APIKeys
 	server.state.audit = saved.Audit
 	server.state.users = saved.Users
+	if saved.Settings.DefaultProvider != "" && saved.Settings.DefaultModel != "" {
+		server.state.settings = saved.Settings
+	}
 	for index := range server.state.users {
 		if server.state.users[index].ID == "" {
 			server.state.users[index].ID = stableUserID(server.state.users[index].Username)
@@ -1939,6 +3043,9 @@ func (server *Server) loadState() {
 	}
 	if server.state.challenges == nil {
 		server.state.challenges = map[string]loginChallengeDTO{}
+	}
+	if migratedAPIKeys {
+		_ = server.writePersistedState(server.persistedStateLocked())
 	}
 }
 
@@ -1980,6 +3087,7 @@ func (server *Server) persistedStateLocked() persistedState {
 		Tenants:   append([]tenantDTO(nil), server.state.tenants...),
 		APIKeys:   append([]apiKeyDTO(nil), server.state.apiKeys...),
 		Audit:     append([]auditDTO(nil), server.state.audit...),
+		Settings:  server.state.settings,
 		Users:     append([]userDTO(nil), server.state.users...),
 	}
 

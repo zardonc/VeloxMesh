@@ -1,13 +1,43 @@
 export type SummaryResponse = {
   defaultProvider: string;
   defaultModel: string;
-  modelCount: number;
-  activeTenants: number;
-  requestVolume: number;
-  successRate: number;
-  p95LatencyMs: number;
-  queueDepth: number;
-  updatedAt: string;
+  modelCount: number | null;
+  activeProviders: number | null;
+  activeTenants: number | null;
+  requestVolume: number | null;
+  avgLatencyMs: number | null;
+  successRate: number | null;
+  errorRate: number | null;
+  timeoutRate: number | null;
+  p95LatencyMs: number | null;
+  queueDepth: number | null;
+	gatewayStatus: "Healthy" | "Partial" | "Error";
+	routingStrategy: string;
+	topology: {
+		node_id: string;
+		role: string;
+		leader_id: string;
+		writable: boolean;
+		wal_lag_elapsed: number;
+		wal_lag_pending: number;
+		degraded_reason?: string;
+	} | null;
+	latestBenchmark: BenchmarkRun | null;
+	providerHealth: ProviderHealth[];
+	recentErrors: RequestLogsResponse["logs"];
+	generatedAt: string;
+	dataSources: SummaryDataSource[];
+	partial: boolean;
+	partialData: boolean;
+	warnings: string[];
+};
+
+export type SummaryDataSource = {
+	name: string;
+	source: string;
+	status: "ok" | "empty" | "error";
+	detail?: string;
+	generatedAt?: string;
 };
 
 export type ProviderResponse = {
@@ -20,7 +50,19 @@ export type ProviderResponse = {
     p95LatencyMs: number;
     successRate: number;
     requestsToday: number;
+		application?: ConfigurationApplication;
   }>;
+};
+
+export type ConfigurationApplication = {
+	state: "applied" | "verified" | "warning" | "failed";
+	applied: boolean;
+	verified: boolean;
+	revision: number;
+	requestId?: string;
+	providerId?: string;
+	route?: string;
+	message?: string;
 };
 
 export type RequestsResponse = {
@@ -35,40 +77,82 @@ export type RequestsResponse = {
   }>;
 };
 
-export type RoutingResponse = {
+export type ManagementMetadata = {
+  source?: string;
+  partialData?: boolean;
+  warnings?: string[];
+};
+
+export type RoutingResponse = ManagementMetadata & {
+	singleton?: boolean;
+	revision?: number;
   rules: Array<{
     policy: string;
     selector: string;
     target: string;
     status: string;
+		revision?: number;
+		application?: ConfigurationApplication;
   }>;
 };
 
-export type TenantsResponse = {
+export type TenantsResponse = ManagementMetadata & {
   tenants: Array<{
     tenant: string;
     owner: string;
     dailyQuota: string;
     status: string;
+		revision?: number;
   }>;
 };
 
-export type ApiKeysResponse = {
+export type ApiKeysResponse = ManagementMetadata & {
   keys: Array<{
+    id?: string;
     key: string;
     tenant: string;
     scope: string;
+    status?: string;
+    createdAt?: string;
     lastUsed: string;
   }>;
 };
 
-export type AuditResponse = {
+export type AuditResponse = ManagementMetadata & {
   events: Array<{
     time: string;
     actor: string;
     action: string;
     result: string;
   }>;
+};
+
+export type AdminSettings = {
+  defaultProvider: string;
+  defaultModel: string;
+  requestTimeoutSeconds: number;
+  dataRetentionDays: number;
+	revision?: number;
+};
+
+export type AdminSettingsResponse = ManagementMetadata & {
+  settings: AdminSettings;
+  integrations: {
+    gateway: string;
+    redis: string;
+    qdrant: string;
+    smtp: string;
+  };
+};
+
+export type CreatedAdminApiKey = {
+  id: string;
+  key: string;
+  maskedKey: string;
+  tenant: string;
+  scope: string;
+  status: string;
+  createdAt: string;
 };
 
 export type RequestLogsResponse = {
@@ -275,26 +359,26 @@ export function buildDashboardViewModel(payload: DashboardPayload): DashboardVie
     kpis: [
       {
         label: "Requests",
-        value: summary.requestVolume.toLocaleString(),
+        value: formatLiveNumber(summary.requestVolume),
         detail: "Today across gateway routes",
         tone: "blue"
       },
       {
         label: "Success Rate",
-        value: `${summary.successRate.toFixed(1)}%`,
+        value: formatLivePercent(summary.successRate),
         detail: "Provider completion health",
         tone: "green"
       },
       {
         label: "P95 Latency",
-        value: `${summary.p95LatencyMs} ms`,
+        value: formatLiveMilliseconds(summary.p95LatencyMs),
         detail: "End-to-end request latency",
         tone: "amber"
       },
       {
         label: "Queue Depth",
-        value: summary.queueDepth.toLocaleString(),
-        detail: `${summary.activeTenants} active tenants`,
+        value: formatLiveNumber(summary.queueDepth),
+		detail: summary.activeTenants === null ? "Active tenants unavailable" : `${summary.activeTenants} active tenants`,
         tone: "slate"
       }
     ],
@@ -318,8 +402,20 @@ export function buildDashboardViewModel(payload: DashboardPayload): DashboardVie
       latency: request.latencyMs > 0 ? `${request.latencyMs} ms` : "Blocked",
       route: request.route
     })),
-    updatedAt: new Date(summary.updatedAt).toLocaleString()
+	updatedAt: new Date(summary.generatedAt).toLocaleString()
   };
+}
+
+function formatLiveNumber(value: number | null): string {
+	return value === null ? "Unavailable" : value.toLocaleString();
+}
+
+function formatLivePercent(value: number | null): string {
+	return value === null ? "Unavailable" : `${value}%`;
+}
+
+function formatLiveMilliseconds(value: number | null): string {
+	return value === null ? "Unavailable" : `${value} ms`;
 }
 
 export function buildProvidersPageViewModel(payload: ProviderResponse): ProvidersPageViewModel {
@@ -492,6 +588,16 @@ export type ProviderInput = {
   models: string[];
 };
 
+export type ProviderMutationResult = ProviderInput & {
+	status: string;
+	application?: ConfigurationApplication;
+};
+
+export type RoutingMutationResult = RoutingInput & {
+	revision?: number;
+	application?: ConfigurationApplication;
+};
+
 export type ProviderUpdateInput = {
   baseUrl: string;
   defaultModel: string;
@@ -504,6 +610,7 @@ export type RoutingInput = {
   selector: string;
   target: string;
   status: string;
+	revision?: number;
 };
 
 export type TenantInput = {
@@ -511,6 +618,7 @@ export type TenantInput = {
   owner: string;
   dailyQuota: string;
   status: string;
+	revision?: number;
 };
 
 export type ApiKeyInput = {
@@ -518,24 +626,48 @@ export type ApiKeyInput = {
   scope: string;
 };
 
-export async function createProvider(input: ProviderInput): Promise<void> {
-  await postJSON("/bff/admin/providers", input);
+export async function fetchAdminRouting(): Promise<RoutingResponse> {
+  return getJSON<RoutingResponse>("/bff/admin/routing");
 }
 
-export async function updateProvider(name: string, input: ProviderUpdateInput): Promise<void> {
-  await putJSON(`/bff/admin/providers/${encodeURIComponent(name)}`, input);
+export async function fetchAdminTenants(): Promise<TenantsResponse> {
+  return getJSON<TenantsResponse>("/bff/admin/tenants");
+}
+
+export async function fetchAdminApiKeys(): Promise<ApiKeysResponse> {
+  return getJSON<ApiKeysResponse>("/bff/admin/api-keys");
+}
+
+export async function fetchAdminAudit(): Promise<AuditResponse> {
+  return getJSON<AuditResponse>("/bff/admin/audit");
+}
+
+export async function fetchAdminSettings(): Promise<AdminSettingsResponse> {
+  return getJSON<AdminSettingsResponse>("/bff/admin/settings");
+}
+
+export async function updateAdminSettings(input: AdminSettings): Promise<AdminSettingsResponse> {
+  return putJSONResponse<AdminSettingsResponse>("/bff/admin/settings", input);
+}
+
+export async function createProvider(input: ProviderInput): Promise<ProviderMutationResult> {
+	return postJSONResponse<ProviderMutationResult>("/bff/admin/providers", input);
+}
+
+export async function updateProvider(name: string, input: ProviderUpdateInput): Promise<ProviderMutationResult> {
+	return putJSONResponse<ProviderMutationResult>(`/bff/admin/providers/${encodeURIComponent(name)}`, input);
 }
 
 export async function deleteProvider(name: string): Promise<void> {
   await deleteJSON(`/bff/admin/providers/${encodeURIComponent(name)}`);
 }
 
-export async function createRoutingRule(input: RoutingInput): Promise<void> {
-  await postJSON("/bff/admin/routing", input);
+export async function createRoutingRule(input: RoutingInput): Promise<RoutingMutationResult> {
+	return postJSONResponse<RoutingMutationResult>("/bff/admin/routing", input);
 }
 
-export async function updateRoutingRule(policy: string, input: RoutingInput): Promise<void> {
-  await putJSON(`/bff/admin/routing/${encodeURIComponent(policy)}`, input);
+export async function updateRoutingRule(policy: string, input: RoutingInput): Promise<RoutingMutationResult> {
+	return putJSONResponse<RoutingMutationResult>(`/bff/admin/routing/${encodeURIComponent(policy)}`, input);
 }
 
 export async function deleteRoutingRule(policy: string): Promise<void> {
@@ -554,8 +686,8 @@ export async function deleteTenant(tenant: string): Promise<void> {
   await deleteJSON(`/bff/admin/tenants/${encodeURIComponent(tenant)}`);
 }
 
-export async function createApiKey(input: ApiKeyInput): Promise<void> {
-  await postJSON("/bff/admin/api-keys", input);
+export async function createApiKey(input: ApiKeyInput): Promise<CreatedAdminApiKey> {
+  return postJSONResponse<CreatedAdminApiKey>("/bff/admin/api-keys", input);
 }
 
 export async function deleteApiKey(key: string): Promise<void> {
@@ -592,6 +724,41 @@ export async function exportAuditCSV(): Promise<string> {
     throw new Error(await responseErrorMessage(response));
   }
   return response.text();
+}
+
+export type DownloadedArtifact = {
+	blob: Blob;
+	filename: string;
+};
+
+export async function fetchBenchmarkRawCSVExport(): Promise<DownloadedArtifact> {
+	return fetchDownloadArtifact("/bff/admin/benchmarks/raw.csv", "veloxmesh-benchmark-raw-requests.csv");
+}
+
+export async function fetchBenchmarkReportZIPExport(): Promise<DownloadedArtifact> {
+	return fetchDownloadArtifact("/bff/admin/benchmarks/export.zip", "veloxmesh-benchmark-report.zip");
+}
+
+async function fetchDownloadArtifact(path: string, fallbackFilename: string): Promise<DownloadedArtifact> {
+	const response = await fetch(path, { credentials: "same-origin" });
+	if (!response.ok) {
+		throw new Error(await responseErrorMessage(response));
+	}
+	return {
+		blob: await response.blob(),
+		filename: attachmentFilename(response.headers.get("Content-Disposition"), fallbackFilename)
+	};
+}
+
+function attachmentFilename(contentDisposition: string | null, fallback: string): string {
+	const match = contentDisposition?.match(/filename\*?=(?:UTF-8''|\")?([^\";]+)/i);
+	const candidate = match?.[1]?.trim();
+	if (!candidate) {
+		return fallback;
+	}
+	const decoded = decodeURIComponent(candidate);
+	const basename = decoded.split(/[\\/]/).pop()?.replace(/[^A-Za-z0-9._-]/g, "-");
+	return basename || fallback;
 }
 
 async function getJSON<T>(path: string): Promise<T> {
@@ -634,6 +801,18 @@ async function putJSON(path: string, value: unknown): Promise<void> {
   if (!response.ok) {
     throw new Error(await responseErrorMessage(response));
   }
+}
+
+async function putJSONResponse<T>(path: string, value: unknown): Promise<T> {
+  const response = await fetch(path, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(value)
+  });
+  if (!response.ok) {
+    throw new Error(await responseErrorMessage(response));
+  }
+  return response.json() as Promise<T>;
 }
 
 async function deleteJSON(path: string): Promise<void> {
@@ -734,14 +913,10 @@ export type UserRole = "Admin" | "Customer";
 
 export type MvpView =
   | "admin-home"
+  | "system-management"
   | "benchmarks"
   | "provider-health"
   | "request-logs"
-  | "routing"
-  | "tenants"
-  | "api-keys"
-  | "audit"
-  | "settings"
   | "customer-home"
   | "customer-usage"
   | "customer-requests"
@@ -751,6 +926,21 @@ export type MvpView =
 export type NavigationItem = {
   label: string;
   view: MvpView;
+};
+
+export type SystemManagementTab = "routing" | "tenants" | "api-keys" | "audit" | "settings";
+
+export const SYSTEM_MANAGEMENT_TABS: Array<{ id: SystemManagementTab; label: string }> = [
+  { id: "routing", label: "Routing" },
+  { id: "tenants", label: "Tenants" },
+  { id: "api-keys", label: "API Keys" },
+  { id: "audit", label: "Audit" },
+  { id: "settings", label: "Settings" }
+];
+
+export type DashboardLocation = {
+  view: MvpView;
+  managementTab?: SystemManagementTab;
 };
 
 export type MvpSession = {
@@ -776,12 +966,51 @@ export function mvpSessionFromBff(session: SessionResponse): MvpSession {
 
 export type AdminOverview = {
   gatewayStatus: "Healthy" | "Partial" | "Error";
-  requestsToday: number;
-  avgLatencyMs: number;
-  successRate: number;
-  activeProviders: number;
-  latestBenchmark: string;
+  requestsToday: number | null;
+  avgLatencyMs: number | null;
+	p95LatencyMs: number | null;
+  successRate: number | null;
+	errorRate: number | null;
+	timeoutRate: number | null;
+  activeProviders: number | null;
+	activeTenants: number | null;
+	queueDepth: number | null;
+	defaultProvider: string;
+	defaultModel: string;
+	routingStrategy: string;
+	latestBenchmark: BenchmarkRun | null;
+	providerHealth: ProviderHealth[];
+	recentErrors: RequestLog[];
+	generatedAt: string;
+	dataSources: SummaryDataSource[];
+	partial: boolean;
+	warnings: string[];
 };
+
+export function mapAdminSummaryToOverview(summary: SummaryResponse): AdminOverview {
+	return {
+		gatewayStatus: summary.gatewayStatus,
+		requestsToday: summary.requestVolume,
+		avgLatencyMs: summary.avgLatencyMs,
+		p95LatencyMs: summary.p95LatencyMs,
+		successRate: summary.successRate,
+		errorRate: summary.errorRate,
+		timeoutRate: summary.timeoutRate,
+		activeProviders: summary.activeProviders,
+		activeTenants: summary.activeTenants,
+		queueDepth: summary.queueDepth,
+		defaultProvider: summary.defaultProvider,
+		defaultModel: summary.defaultModel,
+		routingStrategy: summary.routingStrategy,
+		latestBenchmark: summary.latestBenchmark,
+		providerHealth: mapBffProviderHealth({ providers: summary.providerHealth }),
+		recentErrors: mapBffRequestLogs({ logs: summary.recentErrors }),
+		generatedAt: summary.generatedAt,
+		dataSources: summary.dataSources.map((source) => ({ ...source })),
+		partial: summary.partial,
+		warnings: [...summary.warnings]
+	};
+}
 
 export type ProviderHealth = {
   provider: string;
@@ -808,6 +1037,7 @@ export type RequestLog = {
 
 export type BenchmarkRun = {
   runId: string;
+	methodId?: "local_baseline" | "gateway" | "improved_model" | "gateway_improved_model";
   method: string;
   dataset: string;
   requestCount: number;
@@ -818,6 +1048,7 @@ export type BenchmarkRun = {
   timeoutSettingSeconds: number;
   provider: string;
   targetModel: string;
+	modelVersion?: string;
   gatewayVersion: string;
   avgLatencyMs: number | null;
   p50LatencyMs: number | null;
@@ -1117,14 +1348,10 @@ export const BENCHMARK_COLUMNS = [
 
 export const adminNavigation: NavigationItem[] = [
   { label: "Admin Home", view: "admin-home" },
+  { label: "System Management", view: "system-management" },
   { label: "Benchmarks", view: "benchmarks" },
   { label: "Provider Health", view: "provider-health" },
-  { label: "Requests / Logs", view: "request-logs" },
-  { label: "Routing", view: "routing" },
-  { label: "Tenants", view: "tenants" },
-  { label: "API Keys", view: "api-keys" },
-  { label: "Audit", view: "audit" },
-  { label: "Settings", view: "settings" }
+  { label: "Requests / Logs", view: "request-logs" }
 ];
 
 export const customerNavigation: NavigationItem[] = [
@@ -1336,6 +1563,27 @@ export function roleCanAccessView(role: UserRole, view: MvpView): boolean {
   return allowed.includes(view);
 }
 
+export function parseDashboardHash(hash: string): DashboardLocation | null {
+  const value = hash.replace(/^#/, "");
+  const [viewValue, tabValue] = value.split("/");
+  const validViews = [...adminNavigation, ...customerNavigation].map((item) => item.view);
+  if (!validViews.includes(viewValue as MvpView)) {
+    return null;
+  }
+  const view = viewValue as MvpView;
+  if (view !== "system-management") {
+    return { view };
+  }
+  const managementTab = SYSTEM_MANAGEMENT_TABS.some((tab) => tab.id === tabValue)
+    ? tabValue as SystemManagementTab
+    : "routing";
+  return { view, managementTab };
+}
+
+export function dashboardHashFor(view: MvpView, managementTab: SystemManagementTab = "routing"): string {
+  return view === "system-management" ? `${view}/${managementTab}` : view;
+}
+
 export function maskApiKey(value: string): string {
 	if (!value) {
 		return "Not issued";
@@ -1411,6 +1659,53 @@ export function buildBenchmarkReportHtml(rows: BenchmarkRun[]): string {
 </html>`;
 }
 
+function demoAdminSummaryResponse(): SummaryResponse {
+	const successful = mockRequestLogs.filter((row) => row.status === "Success");
+	const errors = mockRequestLogs.filter((row) => row.status === "Error");
+	const timeouts = mockRequestLogs.filter((row) => row.status === "Timeout");
+	const denominator = mockRequestLogs.length || 1;
+	const average = mockRequestLogs.reduce((total, row) => total + row.latencyMs, 0) / denominator;
+	const activeTenants = new Set(mockRequestLogs.map((row) => row.tenant).filter(Boolean)).size;
+	return {
+		defaultProvider: mockProviderHealth[0]?.provider ?? "demo-provider",
+		defaultModel: mockProviderHealth[0]?.targetModel ?? "demo-model",
+		modelCount: new Set(mockProviderHealth.map((row) => row.targetModel)).size,
+		activeProviders: mockProviderHealth.filter((row) => row.status !== "Unavailable").length,
+		activeTenants,
+		requestVolume: mockRequestLogs.length,
+		avgLatencyMs: Number(average.toFixed(2)),
+		p95LatencyMs: Math.max(...mockRequestLogs.map((row) => row.latencyMs)),
+		successRate: Number(((successful.length * 100) / denominator).toFixed(2)),
+		errorRate: Number(((errors.length * 100) / denominator).toFixed(2)),
+		timeoutRate: Number(((timeouts.length * 100) / denominator).toFixed(2)),
+		queueDepth: null,
+		gatewayStatus: "Partial",
+		routingStrategy: "demo",
+		topology: null,
+		latestBenchmark: demoBenchmarks.at(-1) ?? null,
+		providerHealth: mockProviderHealth,
+		recentErrors: [...errors, ...timeouts].map((row) => ({
+			requestId: row.requestId,
+			tenant: row.tenant,
+			provider: row.provider,
+			model: row.model,
+			method: row.method,
+			inputTokens: 0,
+			outputTokens: 0,
+			status: row.status,
+			latencyMs: row.latencyMs,
+			ttftMs: row.ttftMs,
+			errorMessage: row.errorMessage,
+			timestamp: row.timestamp
+		})),
+		generatedAt: new Date().toISOString(),
+		dataSources: [{ name: "Demo data", source: "VITE_DASHBOARD_DEMO_MODE", status: "ok", detail: "explicit frontend demo mode" }],
+		partial: true,
+		partialData: true,
+		warnings: ["Demo mode is enabled; values are not production evidence."]
+	};
+}
+
 export const mockApi = {
   async login(input: LoginInput): Promise<LoginChallengeResponse> {
     return loginAccount(input);
@@ -1437,14 +1732,14 @@ export const mockApi = {
   },
 
   async getAdminOverview(): Promise<AdminOverview> {
-    return delayed({
-      gatewayStatus: "Partial",
-      requestsToday: 18420,
-      avgLatencyMs: 610,
-      successRate: 99.2,
-      activeProviders: 3,
-      latestBenchmark: "Our Gateway + Improved Model"
-    });
+	try {
+		return mapAdminSummaryToOverview(await getJSON<SummaryResponse>("/bff/admin/summary"));
+	} catch (error) {
+		if (import.meta.env.VITE_DASHBOARD_DEMO_MODE === "true") {
+			return delayed(mapAdminSummaryToOverview(demoAdminSummaryResponse()));
+		}
+		throw error;
+	}
   },
 
   async getProviderHealth(): Promise<ProviderHealth[]> {

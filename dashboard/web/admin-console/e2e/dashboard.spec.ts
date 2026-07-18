@@ -31,6 +31,16 @@ function seedAdminOperationalData() {
 		generatedAt,
 		benchmarks: [{ runId: "e2e-benchmark-run", method: "Our Gateway Method", dataset: "e2e-dataset", requestCount: 1, concurrency: 1, requestRate: 1, warmUp: 0, repeatedRuns: 1, timeoutSettingSeconds: 30, provider: "e2e-provider", targetModel: "e2e/model", gatewayVersion: "e2e", avgLatencyMs: 120, p50LatencyMs: 120, p95LatencyMs: 120, p99LatencyMs: 120, ttftMs: 35, throughputRps: 1, successRatePct: 100, errorRatePct: 0, timeoutRatePct: 0, improvementPct: 10, testDate: generatedAt, source: "e2e Redis", rawFilePath: "e2e/raw.json", exportId: "e2e-export", status: "passed", partialData: false }]
 	});
+	seedRedisDocument("veloxmesh:benchmark_requests", {
+		generatedAt,
+		requests: [{
+			runId: "e2e-benchmark-run", requestId: "e2e-benchmark-request", dataset: "e2e-dataset", rowIndex: 0,
+			methodId: "gateway", method: "Our Gateway Method", provider: "e2e-provider", model: "e2e/model", modelVersion: "e2e-v1",
+			route: "default-provider", startedAt: generatedAt, endedAt: generatedAt, latencyMs: 120, ttftMs: 35,
+			inputTokens: 10, outputTokens: 20, totalTokens: 30, status: "success", httpStatus: 200, errorType: "",
+			timeout: false, retryCount: 0, cacheHit: false
+		}]
+	});
 }
 
 async function finishVerification(page: Page) {
@@ -70,6 +80,19 @@ async function loginAdmin(page: Page) {
 test("admin sees live operational data and exports benchmark files", async ({ page }) => {
 	seedAdminOperationalData();
 	await loginAdmin(page);
+	const summaryResponse = await page.request.get("/bff/admin/summary");
+	expect(summaryResponse.ok()).toBe(true);
+	const summaryPayload = await summaryResponse.json();
+	await expect(page.locator(".metric-card").filter({ hasText: "Requests Today" }).locator("strong"))
+		.toHaveText(summaryPayload.requestVolume === null ? "Unavailable" : Number(summaryPayload.requestVolume).toLocaleString());
+	await expect(page.locator(".metric-card").filter({ hasText: "Success Rate" }).locator("strong"))
+		.toHaveText(summaryPayload.successRate === null ? "Unavailable" : `${summaryPayload.successRate}%`);
+	await expect(page.getByText("Generated", { exact: true })).toBeVisible();
+	await expect(page.getByText("Sources", { exact: true })).toBeVisible();
+	await Promise.all([
+		page.waitForResponse((response) => response.url().includes("/bff/admin/summary") && response.status() === 200),
+		page.getByRole("button", { name: "Refresh" }).click()
+	]);
 
   const benchmarksResponse = await page.request.get("/bff/admin/benchmarks");
   expect(benchmarksResponse.ok()).toBe(true);
@@ -92,10 +115,10 @@ test("admin sees live operational data and exports benchmark files", async ({ pa
 
   const csvDownload = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export CSV" }).click();
-  expect((await csvDownload).suggestedFilename()).toBe("veloxmesh-benchmarks.csv");
+  expect((await csvDownload).suggestedFilename()).toBe("veloxmesh-benchmark-raw-requests.csv");
   const reportDownload = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export Report" }).click();
-  expect((await reportDownload).suggestedFilename()).toBe("veloxmesh-benchmark-report.html");
+  expect((await reportDownload).suggestedFilename()).toBe("veloxmesh-benchmark-report.zip");
 
   await page.getByRole("button", { name: "Provider Health" }).click();
   await expect(page.getByText(currentProvider!, { exact: true }).first()).toBeVisible();
@@ -123,6 +146,172 @@ test("admin sees live operational data and exports benchmark files", async ({ pa
   expect(mobileLayout.firstCellDisplay).toBe("grid");
 });
 
+test("admin system management tabs preserve their deep link", async ({ page }) => {
+	await loginAdmin(page);
+
+	const adminNavigation = page.getByRole("navigation", { name: "Admin navigation" });
+	await expect(adminNavigation.getByRole("button", { name: "System Management" })).toBeVisible();
+	await expect(adminNavigation.getByRole("button", { name: "Routing", exact: true })).toHaveCount(0);
+	await expect(adminNavigation.getByRole("button", { name: "Tenants", exact: true })).toHaveCount(0);
+
+	await adminNavigation.getByRole("button", { name: "System Management" }).click();
+	await expect(page.getByRole("heading", { name: "System Management", level: 2 })).toBeVisible();
+	await expect(page).toHaveURL(/#system-management\/routing$/);
+
+	await page.getByRole("tab", { name: "Audit" }).click();
+	await expect(page.getByRole("tab", { name: "Audit" })).toHaveAttribute("aria-selected", "true");
+	await expect(page).toHaveURL(/#system-management\/audit$/);
+
+	await page.reload();
+	await expect(page.getByRole("tab", { name: "Audit" })).toHaveAttribute("aria-selected", "true");
+	await expect(page.getByRole("tabpanel", { name: "Audit" })).toBeVisible();
+
+	for (const viewport of [
+		{ width: 1440, height: 900 },
+		{ width: 1024, height: 768 },
+		{ width: 390, height: 844 }
+	]) {
+		await page.setViewportSize(viewport);
+		const layout = await page.evaluate(() => ({
+			bodyOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+			tabsScrollable: document.querySelector(".management-tabs")!.scrollWidth >= document.querySelector(".management-tabs")!.clientWidth
+		}));
+		expect(layout.bodyOverflow).toBeLessThanOrEqual(1);
+		expect(layout.tabsScrollable).toBe(true);
+	}
+});
+
+test("admin manages local routing tenants API keys audit and settings", async ({ page }) => {
+	await loginAdmin(page);
+	await page.getByRole("navigation", { name: "Admin navigation" }).getByRole("button", { name: "System Management" }).click();
+	await expect(page.getByText("VeloxMesh Admin API is not connected", { exact: true })).toBeVisible();
+
+	const suffix = Date.now().toString();
+	const policy = `E2E route ${suffix}`;
+	await page.getByRole("button", { name: "Add routing rule" }).click();
+	await page.getByLabel("Policy").fill(policy);
+	await page.getByLabel("Selector").fill("latency-aware");
+	await page.getByLabel("Target").fill("e2e-provider");
+	await page.getByLabel("Routing status").selectOption("Draft");
+	await page.getByRole("button", { name: "Save routing rule" }).click();
+	let routingRow = page.getByRole("row", { name: new RegExp(policy) });
+	await expect(routingRow).toBeVisible();
+	await routingRow.getByRole("button", { name: `Edit ${policy}` }).click();
+	await page.getByLabel("Target").fill("e2e-backup-provider");
+	await page.getByRole("button", { name: "Save routing rule" }).click();
+	routingRow = page.getByRole("row", { name: new RegExp(policy) });
+	await expect(routingRow).toContainText("e2e-backup-provider");
+
+	await page.getByRole("tab", { name: "Tenants" }).click();
+	const tenant = `e2e-tenant-${suffix}`;
+	await page.getByRole("button", { name: "Add tenant" }).click();
+	await page.getByLabel("Tenant ID").fill(tenant);
+	await page.getByLabel("Owner").fill("E2E Owner");
+	await page.getByLabel("Daily quota").fill("2000");
+	await page.getByRole("button", { name: "Save tenant" }).click();
+	const tenantRow = page.getByRole("row", { name: new RegExp(tenant) });
+	await expect(tenantRow).toBeVisible();
+	await tenantRow.getByRole("button", { name: `Edit ${tenant}` }).click();
+	await page.getByLabel("Tenant status").selectOption("Inactive");
+	await page.getByRole("button", { name: "Save tenant" }).click();
+	await expect(page.getByRole("row", { name: new RegExp(`${tenant}.*Inactive`) })).toBeVisible();
+
+	await page.getByRole("tab", { name: "API Keys" }).click();
+	await page.getByRole("button", { name: "Issue API key" }).click();
+	await page.getByLabel("API key tenant").fill(tenant);
+	await page.getByLabel("Scope").fill("gateway:invoke");
+	await page.getByRole("button", { name: "Create API key" }).click();
+	await expect(page.getByText("Copy this key now. It will not be shown again.")).toBeVisible();
+	const adminSecret = await page.locator(".management-secret code").innerText();
+	expect(adminSecret.startsWith("vx_admin_")).toBe(true);
+	await page.getByRole("tab", { name: "Audit" }).click();
+	await page.getByRole("tab", { name: "API Keys" }).click();
+	await expect(page.getByText(adminSecret, { exact: true })).toHaveCount(0);
+	const apiKeyRow = page.getByRole("row", { name: new RegExp(tenant) });
+	await expect(apiKeyRow).toContainText("...");
+	page.once("dialog", (dialog) => dialog.accept());
+	await apiKeyRow.getByRole("button", { name: /Revoke key-/ }).click();
+	await expect(page.getByRole("row", { name: new RegExp(tenant) })).toHaveCount(0);
+
+	await page.getByRole("tab", { name: "Audit" }).click();
+	await page.getByLabel("Search audit events").fill(tenant);
+	await expect(page.getByRole("cell", { name: new RegExp(tenant) }).first()).toBeVisible();
+	const auditDownload = page.waitForEvent("download");
+	await page.getByRole("button", { name: "Export audit CSV" }).click();
+	expect((await auditDownload).suggestedFilename()).toBe("veloxmesh-audit.csv");
+
+	await page.getByRole("tab", { name: "Routing" }).click();
+	routingRow = page.getByRole("row", { name: new RegExp(policy) });
+	page.once("dialog", (dialog) => dialog.accept());
+	await routingRow.getByRole("button", { name: `Delete ${policy}` }).click();
+	await expect(page.getByRole("row", { name: new RegExp(policy) })).toHaveCount(0);
+
+	await page.getByRole("tab", { name: "Settings" }).click();
+	await expect(page.getByText("Settings are local to the Dashboard BFF", { exact: true })).toBeVisible();
+	await page.getByLabel("Default provider").fill("e2e-provider");
+	await page.getByLabel("Default model").fill("e2e/model");
+	await page.getByLabel("Request timeout seconds").fill("45");
+	await page.getByLabel("Data retention days").fill("60");
+	await page.getByRole("button", { name: "Save settings" }).click();
+	await expect(page.locator(".operation-notice")).toContainText("Settings saved");
+	await page.reload();
+	await expect(page.getByLabel("Default provider")).toHaveValue("e2e-provider");
+	await expect(page.getByLabel("Data retention days")).toHaveValue("60");
+});
+
+test("system management exposes loading error retry empty and responsive states", async ({ page }) => {
+	await loginAdmin(page);
+	let routingAttempts = 0;
+	let releaseFailure!: () => void;
+	let signalIntercepted!: () => void;
+	const failureGate = new Promise<void>((resolve) => { releaseFailure = resolve; });
+	const intercepted = new Promise<void>((resolve) => { signalIntercepted = resolve; });
+	await page.route("**/bff/admin/routing", async (route) => {
+		routingAttempts += 1;
+		if (routingAttempts <= 2) {
+			signalIntercepted();
+			await failureGate;
+			await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "management data unavailable" }) });
+			return;
+		}
+		await route.continue();
+	});
+
+	await page.getByRole("navigation", { name: "Admin navigation" }).getByRole("button", { name: "System Management" }).click();
+	await intercepted;
+	await expect(page.getByText("Loading configuration", { exact: true })).toBeVisible();
+	releaseFailure();
+	await expect(page.getByRole("alert")).toContainText("management data unavailable");
+	await page.getByRole("button", { name: "Retry" }).click();
+	await expect(page.getByText("VeloxMesh Admin API is not connected", { exact: true })).toBeVisible();
+	await page.route("**/bff/admin/routing", async (route) => {
+		if (route.request().method() === "POST") {
+			await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "routing save failed" }) });
+			return;
+		}
+		await route.continue();
+	});
+	await page.getByRole("button", { name: "Add routing rule" }).click();
+	await page.getByLabel("Policy").fill("unsaved-route");
+	await page.getByLabel("Selector").fill("latency-aware");
+	await page.getByLabel("Target").fill("provider-a");
+	await page.getByRole("button", { name: "Save routing rule" }).click();
+	await expect(page.getByRole("alert")).toContainText("routing save failed");
+	await expect(page.getByLabel("Policy")).toHaveValue("unsaved-route");
+	await page.getByRole("button", { name: "Cancel create" }).click();
+
+	await page.getByPlaceholder("Filter rows").fill("no-such-routing-rule");
+	await expect(page.getByText("No routing rules", { exact: true })).toBeVisible();
+
+	await page.setViewportSize({ width: 390, height: 844 });
+	const mobileLayout = await page.evaluate(() => ({
+		bodyOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+		panelWidth: document.querySelector(".management-panel")?.getBoundingClientRect().width ?? 0
+	}));
+	expect(mobileLayout.bodyOverflow).toBeLessThanOrEqual(1);
+	expect(mobileLayout.panelWidth).toBeLessThanOrEqual(390);
+});
+
 test("customer cannot open admin UI or API", async ({ page }) => {
 	await registerCustomer(page, `${Date.now()}`);
 	await expect(page.getByText("No requests have been recorded for this tenant.")).toBeVisible();
@@ -148,7 +337,7 @@ test("customer cannot open admin UI or API", async ({ page }) => {
 	const secret = await page.locator(".secret-callout code").innerText();
 	expect(secret.startsWith("vx_live_")).toBe(true);
 	await page.getByRole("button", { name: "Dismiss" }).click();
-	await expect(page.getByRole("cell", { name: /vx_live\.\.\./ })).toBeVisible();
+	await expect(page.getByRole("cell", { name: /vx_live_\.\.\./ })).toBeVisible();
 	await expect(page.getByText(secret, { exact: true })).toHaveCount(0);
   await page.goto("/#benchmarks");
   await expect(page.getByText("No permission", { exact: true })).toBeVisible();
@@ -236,15 +425,24 @@ test("Customer states, responsive layouts, refresh, and logout meet acceptance c
 	const sessionCookie = (await page.context().cookies()).find((cookie) => cookie.name === "veloxmesh_session");
 	expect(sessionCookie).toBeTruthy();
 
-	await page.route("**/bff/customer/summary", async (route) => {
-		const response = await route.fetch();
-		await new Promise((resolve) => setTimeout(resolve, 700));
-		await route.fulfill({ response });
+	let releaseSummaryRequest!: () => void;
+	let markSummaryIntercepted!: () => void;
+	const summaryRequestGate = new Promise<void>((resolve) => {
+		releaseSummaryRequest = resolve;
 	});
+	const summaryIntercepted = new Promise<void>((resolve) => {
+		markSummaryIntercepted = resolve;
+	});
+	await page.route("**/bff/customer/summary", async (route) => {
+		markSummaryIntercepted();
+		await summaryRequestGate;
+		await route.continue();
+	}, { times: 1 });
 	const delayedSummary = page.waitForResponse((response) => response.url().includes("/bff/customer/summary") && response.status() === 200);
-	const reload = page.reload();
-	await expect(page.getByText("Loading dashboard data", { exact: true }).first()).toBeVisible();
-	await reload;
+	await page.getByRole("button", { name: "Refresh" }).click();
+	await summaryIntercepted;
+	await expect(page.locator("main.workspace[aria-busy='true']")).toBeVisible();
+	releaseSummaryRequest();
 	await delayedSummary;
 	await page.unroute("**/bff/customer/summary");
 	await expect(page.getByRole("heading", { name: "Customer Home" })).toBeVisible();

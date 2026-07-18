@@ -1,74 +1,128 @@
-# VeloxMesh Benchmark Closed-Loop Runbook
+# VeloxMesh Request-Level Benchmark Closed-Loop Runbook
 
 ## Data Flow
 
 ```text
-MMLU / LMSYS JSONL
+MMLU / LMSYS dataset
+  -> request_level_benchmark.py
   -> VeloxMesh Gateway /v1/chat/completions
   -> configured Provider / model
-  -> summary.json + latency.csv + responses.jsonl + failures
-  -> Redis key veloxmesh:benchmarks
-  -> GET /bff/admin/benchmarks
+  -> canonical request rows + recomputed summary + ZIP report
+  -> publish_request_level_results.py
+  -> Redis keys veloxmesh:benchmarks and veloxmesh:benchmark_requests
+  -> Go BFF Admin endpoints
   -> Admin Dashboard / Benchmarks
-  -> Export CSV / Export Report
+  -> raw CSV and complete ZIP report
 ```
 
-All aggregate layers use the same `BenchmarkRun` contract and `runId`. Missing measurements remain `null`; failed or partial runs stay visible and are never converted into successful comparison data.
+The Dashboard never calls a model directly. The runner sends model requests only through VeloxMesh Gateway. Failed, timed out, and partial attempts remain visible and participate in the recomputed rates.
+
+## Stable Methods
+
+| Method ID | Display name |
+|---|---|
+| `local_baseline` | Local Baseline |
+| `gateway` | Our Gateway Method |
+| `improved_model` | Improved Model |
+| `gateway_improved_model` | Our Gateway + Improved Model |
+
+Never label a public or unchanged model as `improved_model`. Use that method only after the model owner supplies the real service contract and version.
+
+## Register An Improved Model
+
+Set secrets only in the current process environment, then run the Gateway registration verifier:
+
+```powershell
+cd dashboard
+$env:VELOXMESH_ADMIN_API_KEY = "runtime-admin-key"
+$env:VELOXMESH_DATA_API_KEY = "runtime-data-key"
+$env:IMPROVED_MODEL_API_KEY = "runtime-provider-key"
+
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File scripts\benchmark\register-improved-model.ps1 `
+  -GatewayUrl http://127.0.0.1:18080 `
+  -ProviderId improved-model `
+  -BaseUrl https://model-service.example/v1 `
+  -ModelId improved-model-id `
+  -ModelVersion v1 `
+  -TimeoutSeconds 30
+```
+
+The command must verify Gateway health, Provider registration, `/v1/models`, and a minimal `/v1/chat/completions` request. Its output contains identifiers and verification state only, never credentials.
 
 ## Run A Small Closed-Loop Test
 
-Run from the capstone workspace in Windows PowerShell:
+Run from the repository root in Windows PowerShell:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File dashboard\scripts\test-scenarios\run-real-gateway-dashboard-flow.ps1 `
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File dashboard\scripts\test-scenarios\run-real-gateway-dashboard-flow.ps1 `
   -GatewayUrl http://127.0.0.1:18080 `
-  -Model openrouter/nvidia/nemotron-3-super-120b-a12b:free `
-  -Provider openai-compatible `
+  -Model improved-model-id `
+  -ModelVersion v1 `
+  -Provider improved-model `
+  -MethodId improved_model `
   -Concurrency 1 `
   -RequestRate 0.05 `
   -TimeoutSeconds 120
 ```
 
-The script runs the two five-item datasets by default, writes report directories, publishes the canonical summaries to Redis, and returns a non-zero exit code when any request is invalid or failed. Publication still occurs so the Dashboard can show the real failure state.
+The script uses the two five-item datasets by default, writes one complete report directory per dataset, and publishes both aggregate and request-level records to Redis. It returns a non-zero exit code if any attempt is invalid or failed, while still publishing the failure evidence for Dashboard inspection.
 
-## Verified Run: 2026-07-16
+For a four-method comparison, repeat the run with all four stable method IDs while keeping dataset, request count, concurrency, request rate, warm-up, repeats, timeout, and measurement environment equivalent.
 
-Report root:
+## Export Contract
 
-`VeloxMesh/reports/dashboard-closed-loop-20260716`
+Every canonical request row contains:
 
-| Dataset | Run ID | Requests | Success | Status | Error |
-|---|---|---:|---:|---|---|
-| MMLU | `20260716T073418-mmlu_5` | 5 | 0% | failed | `no_healthy_provider` (5) |
-| LMSYS | `20260716T073418-lmsys_5` | 5 | 0% | failed | `no_healthy_provider` (5) |
+`run_id`, `request_id`, `dataset`, `row_index`, `method_id`, `method`, `provider`, `model`, `model_version`, `route`, `started_at`, `ended_at`, `latency_ms`, `ttft_ms`, token counts, `status`, `http_status`, `error_type`, `timeout`, `retry_count`, and `cache_hit`.
 
-Redis publication succeeded with two rows. The BFF returned:
+The Admin BFF exposes:
 
-- `source`: `redis`
-- Redis status: `connected`
-- Run IDs: `20260716T073418-mmlu_5`, `20260716T073418-lmsys_5`
-- Statuses: `failed`, `failed`
+- `GET /bff/admin/benchmarks/raw.csv`
+- `GET /bff/admin/benchmarks/export.zip`
 
-The Admin Dashboard at `http://127.0.0.1:5173/` displayed both rows as `BFF / Redis live data`, including the same run IDs, model, raw paths, status, partial-data flag, and rates.
+The ZIP includes `report.html`, `metadata.json`, `summary.csv`, `raw_requests.csv`, `errors_and_timeouts.csv`, and four SVG charts under `charts/`. The HTML Appendix contains field definitions, bounded error samples, and raw file references. Full request rows stay in CSV instead of being embedded in HTML.
+
+All aggregates are recomputed from canonical requests. The CSV data-row count must equal the actual request-attempt count, and the Dashboard count, `summary.csv`, and HTML summary must agree.
 
 ## Verification Commands
 
 ```powershell
-cd VeloxMesh\scripts
-python -m unittest -v test_run_gateway_dataset.py test_publish_benchmark_results.py
-
-cd ..\..\dashboard
-$env:GOCACHE="$PWD\.gocache"
-$env:GOTMPDIR="$PWD\.gotmp"
+cd dashboard
+python -m unittest -v scripts\benchmark\test_request_level_benchmark.py
+python -m py_compile scripts\benchmark\request_level_benchmark.py scripts\benchmark\publish_request_level_results.py
 go test ./...
 
 cd web\admin-console
 npm.cmd test
 npm.cmd run build
+npm.cmd run test:e2e
 ```
 
 ## Acceptance Gates
 
-Do not run 20, 100, or full datasets until a stable Provider passes both five-item datasets with non-empty model content and at least 95% success. A full comparison additionally requires at least two complete passed methods using the same dataset and comparable settings.
+Do not run 20, 100, or full datasets until a stable Provider passes both five-item datasets with non-empty model content and at least 95% success. Do not start the full comparison until the real improved-model contract is registered and verified through Gateway.
 
-The current closed-loop integration is working, but the 2026-07-16 model benchmark is not passed because the Gateway reported no healthy upstream Provider.
+Before a 20,000-row run, verify that all four methods use comparable settings, every row has a request ID, the export ZIP is complete, the summary can be recalculated from `raw_requests.csv`, and no artifact contains an API key.
+# Configuration application verification
+
+Provider and Routing mutations in production mode are not considered complete after an HTTP write alone. The BFF writes through the VeloxMesh Admin API, reads the saved revision back, then verifies the live data plane through `/v1/models` or a one-token `/v1/chat/completions` request.
+
+Configure both server-side credentials before starting the BFF:
+
+```text
+VELOXMESH_ADMIN_API_KEY=replace_with_gateway_admin_key
+VELOXMESH_DATA_API_KEY=replace_with_gateway_data_plane_key
+```
+
+The browser never receives either key. Mutation responses contain an `application` object whose `state` is one of:
+
+- `verified`: revision readback and live request evidence both match.
+- `applied`: the Gateway confirmed runtime activation; live verification has not yet completed.
+- `warning`: the configuration is persisted, but runtime activation or live verification is incomplete. Read `message` before proceeding.
+- `failed`: persistence, runtime activation, or revision readback failed. Do not treat this as success.
+
+The evidence fields are `revision`, `providerId`, `route`, and `requestId`. Retry verification without another configuration write by calling `POST /bff/admin/runtime/verify` with `resource`, `target`, `revision`, and optional `model`.
+
+Audit records use the same operation request ID and include actor, action, target, outcome, and revision. They must never include an Admin key, data-plane key, provider secret, authorization header, or raw prompt.
