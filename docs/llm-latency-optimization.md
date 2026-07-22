@@ -11,16 +11,43 @@ The project is designed for teams that want one stable entry point for model acc
 
 ```mermaid
 flowchart LR
-    App["Application or agent"] --> HTTP["VeloxMesh HTTP API"]
-    HTTP --> Gateway["Gateway service"]
-    Gateway --> Pipeline["Input/output pipeline"]
-    Gateway --> Cache["Semantic cache (optional)"]
-    Gateway --> Router["Health-aware router"]
-    Gateway --> Scheduler["Scheduler runner (optional)"]
-    Router --> Providers["LLM providers"]
-    Scheduler --> Providers
-    Gateway --> State["Control state and usage records"]
-    Gateway --> Metrics["Metrics, traces, logs"]
+    App["Application or agent"]
+
+    subgraph Core["CORE · default request path"]
+        direction LR
+        HTTP["VeloxMesh HTTP API"] --> Gateway["Gateway service"]
+        Gateway --> Pipeline["Input/output pipeline"]
+        Gateway --> Router["Health-aware router"]
+        Router --> Providers["LLM providers"]
+        Gateway --> State["Control state and usage records"]
+        Gateway --> Metrics["Metrics, traces, logs"]
+    end
+
+    App --> HTTP
+
+    subgraph Optional["OPTIONAL · independent attachment"]
+        direction TB
+        Cache["Semantic cache (optional)"]
+        Scheduler["Scheduler runner (optional)"]
+    end
+
+    Gateway -. "optional cache lookup" .-> Cache
+    Cache -. "miss: continue to routing" .-> Router
+    Router -. "optional queueing" .-> Scheduler
+    Scheduler -. "execute provider call" .-> Providers
+
+    Legend["Legend: solid links / blue box = core · dashed links / orange box = optional"]
+
+    classDef external fill:#f8fafc,stroke:#64748b,color:#0f172a;
+    classDef core fill:#eff6ff,stroke:#2563eb,stroke-width:1.5px,color:#0f172a;
+    classDef optional fill:#fff7ed,stroke:#c2410c,stroke-width:2px,stroke-dasharray:5 5,color:#7c2d12;
+    classDef legend fill:#ffffff,stroke:#94a3b8,color:#334155;
+    class App external;
+    class HTTP,Gateway,Pipeline,Router,Providers,State,Metrics core;
+    class Cache,Scheduler optional;
+    class Legend legend;
+    style Core fill:#eff6ff,stroke:#2563eb,stroke-width:2px;
+    style Optional fill:#fff7ed,stroke:#c2410c,stroke-width:2px,stroke-dasharray:6 4;
 ```
 
 ## Scheduler Module
@@ -40,13 +67,25 @@ The heuristic scorer estimates latency from request kind, token estimates, model
 ```mermaid
 flowchart TD
     Request["LLM request"] --> Features["Extract safe features"]
-    Features --> Enrich["Optional semantic-neighbor enrichment"]
-    Enrich --> Score["Score task"]
+    Features --> Score["Score task"]
+
+    subgraph OptionalEnrichment["OPTIONAL ENHANCEMENT · default off"]
+        Enrich["Semantic-neighbor enrichment (optional)"]
+    end
+
+    Features -. "optional historical-neighbor signal" .-> Enrich
+    Enrich -. "enriched scoring features" .-> Score
     Score --> Guard["Queue guard: soft and hard limits"]
     Guard --> Queue["Memory or Redis sorted queue"]
     Queue --> Pop["Pop lowest score"]
     Pop --> ProviderCall["Execute provider call"]
     ProviderCall --> Evidence["Record wait, latency, outcome"]
+
+    classDef core fill:#eff6ff,stroke:#2563eb,stroke-width:1.5px,color:#0f172a;
+    classDef optional fill:#fff7ed,stroke:#c2410c,stroke-width:2px,stroke-dasharray:5 5,color:#7c2d12;
+    class Request,Features,Score,Guard,Queue,Pop,ProviderCall,Evidence core;
+    class Enrich optional;
+    style OptionalEnrichment fill:#fff7ed,stroke:#c2410c,stroke-width:2px,stroke-dasharray:6 4;
 ```
 
 ## Deployment and Architecture
@@ -70,27 +109,52 @@ Major runtime components are:
 
 ```mermaid
 flowchart TB
-    Client["Client"] --> DataAPI["Gateway data API"]
-    Admin["Admin user"] --> AdminAPI["Admin API"]
+    Client["Client"]
+    Admin["Admin user"]
 
-    DataAPI --> Service["Gateway service"]
-    AdminAPI --> Control["Control state services"]
+    subgraph Core["CORE · default request path"]
+        direction TB
+        DataAPI["Gateway data API"] --> Service["Gateway service"]
+        AdminAPI["Admin API"] --> Control["Control state services"]
+        Service --> Pipeline["Input/output pipeline"]
+        Service --> Admission["Admission and limits"]
+        Service --> Routing["Provider routing"]
+        Routing --> ProviderA["Provider A"]
+        Routing --> ProviderB["Provider B"]
+        Control --> DB["SQLite or PostgreSQL"]
+        Service --> HotState["Redis or local hot state"]
+        Service --> Observability["Prometheus and OpenTelemetry"]
+    end
 
-    Service --> Pipeline["Input/output pipeline"]
-    Service --> Admission["Admission and limits"]
-    Service --> CacheLookup["Semantic cache lookup"]
-    Service --> Routing["Provider routing"]
-    Service --> Scheduling["Scheduler runner"]
+    Client --> DataAPI
+    Admin --> AdminAPI
 
-    Routing --> ProviderA["Provider A"]
-    Routing --> ProviderB["Provider B"]
-    Scheduling --> ProviderA
-    Scheduling --> ProviderB
+    subgraph Optional["OPTIONAL · independent attachment"]
+        direction TB
+        CacheLookup["Semantic cache lookup (optional)"]
+        Vector["Vector / repository search (optional)"]
+        Scheduling["Scheduler runner (optional)"]
+    end
 
-    Control --> DB["SQLite or PostgreSQL"]
-    Service --> HotState["Redis or local hot state"]
-    CacheLookup --> Vector["LanceDB, Qdrant, Redis VSS, or pgvector"]
-    Service --> Observability["Prometheus and OpenTelemetry"]
+    Service -. "optional cache lookup" .-> CacheLookup
+    CacheLookup -. "candidate search" .-> Vector
+    CacheLookup -. "miss: continue to routing" .-> Routing
+    Routing -. "optional queueing" .-> Scheduling
+    Scheduling -. "execute provider call" .-> ProviderA
+    Scheduling -. "execute provider call" .-> ProviderB
+
+    Legend["Legend: solid links / blue box = core · dashed links / orange box = optional"]
+
+    classDef external fill:#f8fafc,stroke:#64748b,color:#0f172a;
+    classDef core fill:#eff6ff,stroke:#2563eb,stroke-width:1.5px,color:#0f172a;
+    classDef optional fill:#fff7ed,stroke:#c2410c,stroke-width:2px,stroke-dasharray:5 5,color:#7c2d12;
+    classDef legend fill:#ffffff,stroke:#94a3b8,color:#334155;
+    class Client,Admin external;
+    class DataAPI,AdminAPI,Service,Control,Pipeline,Admission,Routing,ProviderA,ProviderB,DB,HotState,Observability core;
+    class CacheLookup,Vector,Scheduling optional;
+    class Legend legend;
+    style Core fill:#eff6ff,stroke:#2563eb,stroke-width:2px;
+    style Optional fill:#fff7ed,stroke:#c2410c,stroke-width:2px,stroke-dasharray:6 4;
 ```
 
 Architecturally, the latency-oriented design favors fast degradation. If Redis is unavailable, scheduler queueing can fall back to memory at startup. If scheduler scoring is disabled, busy, slow, timed out, or behind an open breaker, VeloxMesh falls back to FIFO or heuristic behavior instead of blocking the LLM call path.
