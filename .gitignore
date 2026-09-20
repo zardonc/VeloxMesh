@@ -31,6 +31,10 @@ veloxmesh
 node_modules/
 OPENCODE.jsonc
 
+# Python bytecode caches
+__pycache__/
+*.pyc
+
 # Local Test Configs
 tests/config.json
 /veloxmesh-test.db
