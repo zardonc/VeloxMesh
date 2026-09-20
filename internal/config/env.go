@@ -6,11 +6,14 @@ import (
 )
 
 const (
-	defaultSemanticCacheVectorDimension = 1536
-	defaultPGVectorIndexType            = "hnsw"
-	defaultPGVectorHNSWM                = 16
-	defaultPGVectorHNSWEFConstruction   = 64
-	defaultPGVectorSearchEF             = 40
+	defaultSemanticCacheVectorDimension   = 1536
+	defaultPGVectorIndexType              = "hnsw"
+	defaultPGVectorHNSWM                  = 16
+	defaultPGVectorHNSWEFConstruction     = 64
+	defaultPGVectorSearchEF               = 40
+	defaultSLAPromotionCandidateWindow    = 32
+	defaultSemanticNeighborInputMaxChars  = 16000
+	defaultSemanticNeighborEmbeddingModel = "text-embedding-3-small"
 )
 
 func getEnv(key, fallback string) string {
@@ -28,6 +31,18 @@ func getEnvInt(key string, fallback int) int {
 	parsed, err := strconv.Atoi(value)
 	if err != nil {
 		return -1
+	}
+	return parsed
+}
+
+func getEnvFloat(key string, fallback float64) float64 {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return fallback
+	}
+	parsed, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return fallback
 	}
 	return parsed
 }

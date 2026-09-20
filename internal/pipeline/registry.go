@@ -2,7 +2,6 @@ package pipeline
 
 import (
 	"context"
-	"fmt"
 
 	"veloxmesh/internal/llm"
 )
@@ -27,7 +26,6 @@ type Handler interface {
 	ProcessResponse(ctx context.Context, scope RequestScope, state *RunState, resp *llm.LLMResponse, config RuleConfig) error
 }
 
-var ErrFilterBlock = fmt.Errorf("request blocked by semantic filter")
 
 // Registry holds all available handlers.
 type Registry struct {

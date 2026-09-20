@@ -23,9 +23,10 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
 	type proxyMessage struct {
-		Role      llm.Role        `json:"role"`
-		Content   json.RawMessage `json:"content,omitempty"`
-		ToolCalls []llm.ToolCall  `json:"tool_calls,omitempty"`
+		Role       llm.Role        `json:"role"`
+		Content    json.RawMessage `json:"content,omitempty"`
+		ToolCalls  []llm.ToolCall  `json:"tool_calls,omitempty"`
+		ToolCallID string          `json:"tool_call_id,omitempty"`
 	}
 
 	type proxyReq struct {
@@ -54,8 +55,9 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 
 	for _, pm := range pReq.Messages {
 		m := llm.Message{
-			Role:      pm.Role,
-			ToolCalls: pm.ToolCalls,
+			Role:       pm.Role,
+			ToolCalls:  pm.ToolCalls,
+			ToolCallID: pm.ToolCallID,
 		}
 		if len(pm.Content) > 0 {
 			if pm.Content[0] == '"' {
@@ -73,8 +75,8 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, msg := range req.Messages {
-		if msg.Role != llm.RoleSystem && msg.Role != llm.RoleUser && msg.Role != llm.RoleAssistant {
-			sendError(w, "invalid_request", "Invalid message role", http.StatusBadRequest)
+		if err := validateMessageRole(msg); err != "" {
+			sendError(w, "invalid_request", err, http.StatusBadRequest)
 			return
 		}
 	}
@@ -92,16 +94,14 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		Stream:        req.Stream,
 		PriorityClass: priority,
 		RouteOverride: routeOverride,
+		Tools:         req.Tools,
+		ToolChoice:    req.ToolChoice,
 	}
 
 	if req.Stream {
 		ch, respMeta, err := h.service.HandleChatCompletionStream(r.Context(), llmReq)
 		if err != nil {
-			if gwErr, ok := err.(*errors.GatewayError); ok {
-				sendGatewayError(w, gwErr)
-			} else {
-				sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
-			}
+			sendGatewayError(w, errors.TranslateError(err))
 			return
 		}
 
@@ -113,7 +113,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cache-Hit", "false")
 		w.Header().Set("X-Cache-Level", "none")
 		w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
-		w.Header().Set("X-Queue-Wait-Ms", "0")
+		w.Header().Set("X-Queue-Wait-Ms", fmt.Sprintf("%d", respMeta.QueueWaitMs))
 		if respMeta.Strategy != "" {
 			w.Header().Set("X-Routing-Strategy", respMeta.Strategy)
 		}
@@ -141,14 +141,25 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 
 		encoder := json.NewEncoder(w)
 		first := true
+		sentDone := false
+		sawError := false
 
 		for event := range ch {
 			if event.Error != nil {
+				sawError = true
+				fmt.Fprintf(w, "event: error\n")
+				fmt.Fprintf(w, "data: ")
+				_ = encoder.Encode(errors.TranslateError(event.Error))
+				fmt.Fprintf(w, "\n")
+				fmt.Fprintf(w, "data: [DONE]\n\n")
+				flusher.Flush()
+				sentDone = true
 				break
 			}
 			if event.Done {
 				fmt.Fprintf(w, "data: [DONE]\n\n")
 				flusher.Flush()
+				sentDone = true
 				break
 			}
 
@@ -186,17 +197,17 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "\n")
 			flusher.Flush()
 		}
+		if !sentDone && !sawError {
+			fmt.Fprintf(w, "data: [DONE]\n\n")
+			flusher.Flush()
+		}
 
 		return
 	}
 
 	resp, err := h.service.HandleChatCompletion(r.Context(), llmReq)
 	if err != nil {
-		if gwErr, ok := err.(*errors.GatewayError); ok {
-			sendGatewayError(w, gwErr)
-		} else {
-			sendError(w, "provider_error", fmt.Sprintf("Upstream error: %v", err), http.StatusBadGateway)
-		}
+		sendGatewayError(w, errors.TranslateError(err))
 		return
 	}
 
@@ -213,7 +224,7 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Cache-Level", "none")
 	}
 	w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
-	w.Header().Set("X-Queue-Wait-Ms", "0")
+	w.Header().Set("X-Queue-Wait-Ms", fmt.Sprintf("%d", resp.QueueWaitMs))
 	if resp.Strategy != "" {
 		w.Header().Set("X-Routing-Strategy", resp.Strategy)
 	}
@@ -232,11 +243,26 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		Created: time.Now().Unix(),
 		Model:   resp.Model,
 		Choices: resp.Choices,
+		Usage:   resp.Usage,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(openAIResp)
+}
+
+func validateMessageRole(msg llm.Message) string {
+	switch msg.Role {
+	case llm.RoleSystem, llm.RoleUser, llm.RoleAssistant:
+		return ""
+	case llm.RoleTool:
+		if msg.ToolCallID == "" {
+			return "Tool messages require tool_call_id"
+		}
+		return ""
+	default:
+		return "Invalid message role"
+	}
 }
 
 func sendError(w http.ResponseWriter, code, message string, status int) {

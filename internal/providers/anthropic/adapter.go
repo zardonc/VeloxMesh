@@ -257,7 +257,18 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 				FinishReason: finishReason,
 			},
 		},
+		Usage: usageFromAnthropic(resp.Usage),
 	}, nil
+}
+
+func usageFromAnthropic(usage anthropic.Usage) *llm.Usage {
+	prompt := int(usage.InputTokens + usage.CacheCreationInputTokens + usage.CacheReadInputTokens)
+	completion := int(usage.OutputTokens)
+	return &llm.Usage{
+		PromptTokens:     prompt,
+		CompletionTokens: completion,
+		TotalTokens:      prompt + completion,
+	}
 }
 
 func (a *Adapter) mapError(err error) error {

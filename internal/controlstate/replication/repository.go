@@ -107,6 +107,14 @@ func (r *replicatedRepository) SessionBlacklist() controlstate.SessionBlacklistR
 	return &sessionBlacklistRepo{underlying: r.underlying.SessionBlacklist(), r: r}
 }
 
+func (r *replicatedRepository) SchedulerTrainingSamples() controlstate.SchedulerTrainingSampleRepository {
+	return r.underlying.SchedulerTrainingSamples()
+}
+
+func (r *replicatedRepository) SchedulerQualityRollups() controlstate.SchedulerQualityRollupRepository {
+	return r.underlying.SchedulerQualityRollups()
+}
+
 func (r *replicatedRepository) BeginTx(ctx context.Context) (controlstate.Transaction, error) {
 	if !r.coord.IsWritable() {
 		return nil, ErrWriteNotWritable

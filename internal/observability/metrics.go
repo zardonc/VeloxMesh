@@ -13,6 +13,27 @@ type Metrics interface {
 	RecordRoutingStrategy(strategy string)
 	RecordHealthStatus(provider string, status string)
 	RecordRequestOutcome(reqID string, provider string, model string, strategy string, status int, errorCategory string, cacheResult string, latencyMs float64)
+	RecordQueueDepth(backend string, priority string, depth int64)
+	IncQueueAdmission(backend string, priority string, outcome string, reason string)
+	RecordTaskWait(priority string, waitMs float64)
+	RecordSchedulerCall(result string, latencyMs float64)
+	IncSchedulerError(reason string)
+	RecordSchedulerBreakerState(state string)
+	IncPriorityDowngrade(reason string, from string, to string)
+	IncSchedulerClassificationSource(source string)
+	RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, mape float64)
+	RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, waitMs float64)
+	RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, latencyMs float64)
+	IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string)
+	IncSchedulerAnomalyStatus(schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string)
+	IncSchedulerRolloutAlert(reason string)
+	IncSchedulerTaskLockSkip(backend string, reason string)
+	IncSchedulerSLAPromotion(policyID string, tenantClass string, modelClass string, requestKind string, priority string, outcome string)
+	IncSemanticNeighborAttempt(result string)
+	IncSemanticNeighborTimeout()
+	IncSemanticNeighborError(reason string)
+	IncSemanticNeighborFallback(reason string)
+	IncSemanticNeighborCoverage(level string)
 }
 
 type StubMetrics struct {
@@ -39,8 +60,37 @@ func (m *StubMetrics) RecordRoutingStrategy(strategy string) {}
 func (m *StubMetrics) RecordHealthStatus(provider string, status string) {}
 
 func (m *StubMetrics) RecordRequestOutcome(reqID string, provider string, model string, strategy string, status int, errorCategory string, cacheResult string, latencyMs float64) {
-	// Log the outcome securely without dumping raw response bodies or prompts.
+	// Log the outcome securely without dumping raw request or response bodies.
 }
+
+func (m *StubMetrics) RecordQueueDepth(backend string, priority string, depth int64) {}
+func (m *StubMetrics) IncQueueAdmission(backend string, priority string, outcome string, reason string) {
+}
+func (m *StubMetrics) RecordTaskWait(priority string, waitMs float64)             {}
+func (m *StubMetrics) RecordSchedulerCall(result string, latencyMs float64)       {}
+func (m *StubMetrics) IncSchedulerError(reason string)                            {}
+func (m *StubMetrics) RecordSchedulerBreakerState(state string)                   {}
+func (m *StubMetrics) IncPriorityDowngrade(reason string, from string, to string) {}
+func (m *StubMetrics) IncSchedulerClassificationSource(source string)             {}
+func (m *StubMetrics) RecordSchedulerPredictionMAPE(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, mape float64) {
+}
+func (m *StubMetrics) RecordSchedulerComparisonWait(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, waitMs float64) {
+}
+func (m *StubMetrics) RecordSchedulerComparisonCall(schedulerType string, schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string, latencyMs float64) {
+}
+func (m *StubMetrics) IncSchedulerComparisonError(schedulerType string, schedulerVersion string, taskType string) {
+}
+func (m *StubMetrics) IncSchedulerAnomalyStatus(schedulerVersion string, taskType string, coverageLevel string, anomalyStatus string) {
+}
+func (m *StubMetrics) IncSchedulerRolloutAlert(reason string)                 {}
+func (m *StubMetrics) IncSchedulerTaskLockSkip(backend string, reason string) {}
+func (m *StubMetrics) IncSchedulerSLAPromotion(policyID string, tenantClass string, modelClass string, requestKind string, priority string, outcome string) {
+}
+func (m *StubMetrics) IncSemanticNeighborAttempt(result string)  {}
+func (m *StubMetrics) IncSemanticNeighborTimeout()               {}
+func (m *StubMetrics) IncSemanticNeighborError(reason string)    {}
+func (m *StubMetrics) IncSemanticNeighborFallback(reason string) {}
+func (m *StubMetrics) IncSemanticNeighborCoverage(level string)  {}
 
 // Global metrics instance for Phase 1/2
 var DefaultMetrics Metrics = NewStubMetrics()

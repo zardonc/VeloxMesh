@@ -1,0 +1,26 @@
+input:
+  rules:
+    filter:
+      enabled: false
+    pii:
+      enabled: false
+    rewrite:
+      enabled: false
+    rtk:
+      enabled: false
+    headroom:
+      enabled: false
+    caveman:
+      enabled: false
+    ponytail:
+      enabled: false
+output:
+  rules:
+    caveman:
+      enabled: false
+    ponytail:
+      enabled: false
+    filter:
+      enabled: false
+    pii:
+      enabled: false

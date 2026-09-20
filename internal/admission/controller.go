@@ -12,6 +12,7 @@ import (
 	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/routing"
+	"veloxmesh/internal/scheduler"
 )
 
 type ReleaseFunc func()
@@ -32,13 +33,13 @@ func NewPassThroughController() *PassThroughController {
 }
 
 func (c *PassThroughController) Admit(ctx context.Context, req *llm.LLMRequest, route routing.RoutingDecision) (ReleaseFunc, AdmissionDecision, error) {
-	priority := strings.ToLower(req.PriorityClass)
-	if priority == "" {
-		priority = "interactive"
+	rawPriority := strings.ToLower(req.PriorityClass)
+	if rawPriority == "" {
+		rawPriority = "normal"
 	}
-
-	if priority != "interactive" && priority != "batch" && priority != "background" {
-		return nil, AdmissionDecision{}, fmt.Errorf("invalid priority class: %s", priority)
+	priority := string(scheduler.NormalizePriority(rawPriority))
+	if priority == "" {
+		return nil, AdmissionDecision{}, fmt.Errorf("invalid priority class: %s", rawPriority)
 	}
 
 	// Phase 1: Pass-through admission, wait is 0, release does nothing.
@@ -58,13 +59,13 @@ func NewLimitAdmissionController(repo controlstate.Repository, limiter hotstate.
 }
 
 func (c *LimitAdmissionController) Admit(ctx context.Context, req *llm.LLMRequest, route routing.RoutingDecision) (ReleaseFunc, AdmissionDecision, error) {
-	priority := strings.ToLower(req.PriorityClass)
-	if priority == "" {
-		priority = "interactive"
+	rawPriority := strings.ToLower(req.PriorityClass)
+	if rawPriority == "" {
+		rawPriority = "normal"
 	}
-
-	if priority != "interactive" && priority != "batch" && priority != "background" {
-		return nil, AdmissionDecision{}, fmt.Errorf("invalid priority class: %s", priority)
+	priority := string(scheduler.NormalizePriority(rawPriority))
+	if priority == "" {
+		return nil, AdmissionDecision{}, fmt.Errorf("invalid priority class: %s", rawPriority)
 	}
 
 	identity := middleware.GetAuthIdentity(ctx)
@@ -79,9 +80,11 @@ func (c *LimitAdmissionController) Admit(ctx context.Context, req *llm.LLMReques
 		}, nil
 	}
 
-
-
-	if identity.CreditBalance <= 0 {
+	creditBalance, err := c.currentCreditBalance(ctx, identity)
+	if err != nil {
+		return nil, AdmissionDecision{}, err
+	}
+	if creditBalance <= 0 {
 		err := errors.NewGatewayError("insufficient_credits", "Insufficient credits for request", http.StatusTooManyRequests)
 		err.Headers = map[string]string{
 			"X-RateLimit-Remaining-Tokens": "0",
@@ -99,10 +102,13 @@ func (c *LimitAdmissionController) Admit(ctx context.Context, req *llm.LLMReques
 			if !rule.Enabled {
 				continue
 			}
+			if rule.Dimension != controlstate.DimensionRPM {
+				return nil, AdmissionDecision{}, unsupportedLimitDimension(rule.Dimension)
+			}
 			windowDuration := parseWindow(rule.Window)
 			// Avoid circular dependency by manually namespacing or using hotstate.NamespacedKey
 			key := fmt.Sprintf("limit:api_key:%s:%s", rule.Dimension, identity.ID)
-			
+
 			_, allowed, err := c.limiter.CheckAndIncrement(ctx, key, rule.Limit, windowDuration)
 			if err != nil {
 				return nil, AdmissionDecision{}, fmt.Errorf("limiter unavailable: %w", err)
@@ -124,9 +130,12 @@ func (c *LimitAdmissionController) Admit(ctx context.Context, req *llm.LLMReques
 				if !rule.Enabled {
 					continue
 				}
+				if rule.Dimension != controlstate.DimensionRPM {
+					return nil, AdmissionDecision{}, unsupportedLimitDimension(rule.Dimension)
+				}
 				windowDuration := parseWindow(rule.Window)
 				key := fmt.Sprintf("limit:upstream:%s:%s", rule.Dimension, route.ProviderID)
-				
+
 				_, allowed, err := c.limiter.CheckAndIncrement(ctx, key, rule.Limit, windowDuration)
 				if err != nil {
 					return nil, AdmissionDecision{}, fmt.Errorf("limiter unavailable: %w", err)
@@ -144,6 +153,24 @@ func (c *LimitAdmissionController) Admit(ctx context.Context, req *llm.LLMReques
 		PriorityClass: priority,
 		QueueWaitMs:   0,
 	}, nil
+}
+
+func (c *LimitAdmissionController) currentCreditBalance(ctx context.Context, identity *middleware.AuthIdentity) (int64, error) {
+	if identity.TokenHash == "" || c.repo == nil || c.repo.APIKeys() == nil {
+		return identity.CreditBalance, nil
+	}
+	keyRecord, err := c.repo.APIKeys().GetByHash(ctx, identity.TokenHash)
+	if err != nil {
+		return 0, fmt.Errorf("failed to refresh api key identity: %w", err)
+	}
+	if keyRecord == nil || !keyRecord.Enabled {
+		return 0, errors.NewGatewayError("invalid_api_key", "Invalid API key", http.StatusUnauthorized)
+	}
+	return keyRecord.CreditBalance, nil
+}
+
+func unsupportedLimitDimension(dimension controlstate.LimitRuleDimension) error {
+	return errors.NewGatewayError("unsupported_limit_dimension", fmt.Sprintf("limit dimension %s is not enforced by admission", dimension), http.StatusInternalServerError)
 }
 
 func parseWindow(w controlstate.LimitRuleWindow) time.Duration {

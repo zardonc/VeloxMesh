@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"veloxmesh/internal/postgresconn"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -44,7 +45,12 @@ func Migrate(ctx context.Context, opts Options) (MigrationReport, error) {
 	}
 	defer source.Close()
 
-	target, err := pgxpool.New(ctx, opts.PostgresDSN)
+	cfg, err := postgresconn.PoolConfig(opts.PostgresDSN)
+	if err != nil {
+		return MigrationReport{}, err
+	}
+	postgresconn.WarnPlaintextCredentials(nil, "controlstate_migration", cfg)
+	target, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return MigrationReport{}, err
 	}

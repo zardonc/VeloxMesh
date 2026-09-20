@@ -3,6 +3,7 @@ package gateway_test
 import (
 	"context"
 	stdlib_errors "errors"
+	"net/http"
 	"testing"
 	"time"
 
@@ -17,18 +18,24 @@ import (
 	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
+	"veloxmesh/internal/scheduler"
 )
 
 type mockAdapter struct {
 	id        string
+	models    []string
 	err       error
 	lastModel string
+	resp      *llm.LLMResponse
 }
 
 func (m *mockAdapter) ID() string {
 	return m.id
 }
 func (m *mockAdapter) Models() []string {
+	if len(m.models) > 0 {
+		return append([]string(nil), m.models...)
+	}
 	return []string{"gpt-4o"}
 }
 func (m *mockAdapter) Capabilities() providers.CapabilitySet {
@@ -41,6 +48,9 @@ func (m *mockAdapter) Capabilities() providers.CapabilitySet {
 }
 func (m *mockAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	m.lastModel = req.Model
+	if m.resp != nil {
+		return m.resp, m.err
+	}
 	return &llm.LLMResponse{}, m.err
 }
 func (m *mockAdapter) HealthCheck(ctx context.Context) providers.HealthStatus {
@@ -116,6 +126,38 @@ func TestService_HandleChatCompletion_UsesComboUpstreamModel(t *testing.T) {
 	}
 	if resp.Model != "fast-combo" {
 		t.Fatalf("expected client-facing combo model to stay fast-combo, got %q", resp.Model)
+	}
+}
+
+func TestService_HandleChatCompletion_FusionUsesGatewayControlsAndResponseRules(t *testing.T) {
+	cfg := pipeline.DefaultSemanticPipelineConfig()
+	cfg.Rules[pipeline.RulePII] = pipeline.RuleConfig{Enabled: true}
+	store := health.NewInMemoryStore()
+	for _, providerID := range []string{"p1", "p2", "judge"} {
+		store.EnsureProvider(providerID, 3, 1)
+	}
+
+	p1 := &mockAdapter{id: "p1", models: []string{"member-a"}, err: errors.NewGatewayError(errors.ProviderUnavailable, "offline", 503)}
+	p2 := &mockAdapter{id: "p2", models: []string{"member-b"}, resp: textResponse("member ok")}
+	judge := &mockAdapter{id: "judge", models: []string{"judge-model"}, resp: textResponse("Final {{PII_EMAIL_0}}")}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2, judge}, []providers.Combo{
+		{ID: "fusion-combo", Name: "fusion-combo", Strategy: "fusion", Members: []string{"member-a", "member-b"}, Judge: "judge-model"},
+	})
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), staticRuleResolver{cfg: cfg}, nil)
+
+	resp, err := svc.HandleChatCompletion(context.Background(), &llm.LLMRequest{
+		Model: "fusion-combo", RequestID: "req-1",
+		Messages: []llm.Message{{Role: llm.RoleUser, Content: "email me at test@example.com"}},
+	})
+	if err != nil {
+		t.Fatalf("HandleChatCompletion: %v", err)
+	}
+	if got := resp.Choices[0].Message.Content; got != "Final test@example.com" {
+		t.Fatalf("expected restored fusion response, got %q", got)
+	}
+	if failures := store.Snapshot("p1").ConsecutiveFailures; failures != 1 {
+		t.Fatalf("expected failed fusion member health update, got %d", failures)
 	}
 }
 
@@ -272,6 +314,7 @@ type mockRepoWithUsage struct {
 	controlstate.Repository
 	logCalled    bool
 	settleCalled bool
+	lastRecord   *controlstate.UsageRecord
 }
 
 func (m *mockRepoWithUsage) Usage() controlstate.UsageRepository {
@@ -280,6 +323,8 @@ func (m *mockRepoWithUsage) Usage() controlstate.UsageRepository {
 
 func (m *mockRepoWithUsage) Settle(ctx context.Context, usage *controlstate.UsageRecord) error {
 	m.settleCalled = true
+	record := *usage
+	m.lastRecord = &record
 	usage.CreditsConsumed = new(int64)
 	*usage.CreditsConsumed = 10
 	return nil
@@ -289,7 +334,7 @@ type mockAdapterWithUsage struct {
 	id string
 }
 
-func (m *mockAdapterWithUsage) ID() string { return m.id }
+func (m *mockAdapterWithUsage) ID() string       { return m.id }
 func (m *mockAdapterWithUsage) Models() []string { return []string{"gpt-4o"} }
 func (m *mockAdapterWithUsage) Capabilities() providers.CapabilitySet {
 	return providers.CapabilitySet{
@@ -302,7 +347,9 @@ func (m *mockAdapterWithUsage) Capabilities() providers.CapabilitySet {
 func (m *mockAdapterWithUsage) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
 	return &llm.LLMResponse{Usage: &llm.Usage{TotalTokens: 10}}, nil
 }
-func (m *mockAdapterWithUsage) HealthCheck(ctx context.Context) providers.HealthStatus { return providers.HealthStatus{} }
+func (m *mockAdapterWithUsage) HealthCheck(ctx context.Context) providers.HealthStatus {
+	return providers.HealthStatus{}
+}
 
 func TestService_CostAggregation(t *testing.T) {
 	ctx := context.Background()
@@ -335,4 +382,354 @@ func TestService_CostAggregation(t *testing.T) {
 	if !agg.Called {
 		t.Errorf("expected AggregateCost to be called")
 	}
+}
+
+func TestService_HandleChatCompletion_WithSchedulerRunner(t *testing.T) {
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+
+	p1 := &mockAdapter{
+		id: "p1",
+		resp: &llm.LLMResponse{Choices: []llm.Choice{{
+			Index:   0,
+			Message: llm.Message{Role: llm.RoleAssistant, Content: "ok"},
+		}}},
+	}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), nil, nil)
+	svc.SetSchedulerRunner(newTestSchedulerRunner())
+
+	resp, err := svc.HandleChatCompletion(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1"})
+	if err != nil {
+		t.Fatalf("HandleChatCompletion: %v", err)
+	}
+	if resp.Provider != "p1" || resp.Model != "gpt-4o" || len(resp.Choices) != 1 {
+		t.Fatalf("unexpected response: %#v", resp)
+	}
+}
+
+func TestService_HandleChatCompletionSchedulerAdmissionErrors(t *testing.T) {
+	tests := []struct {
+		name   string
+		guard  scheduler.QueueGuard
+		queued int
+		code   string
+		status int
+	}{
+		{
+			name:   "soft backpressure",
+			guard:  scheduler.QueueGuard{SoftLimit: 1, HardLimit: 2},
+			queued: 1,
+			code:   errors.SchedulerBackpressure,
+			status: http.StatusTooManyRequests,
+		},
+		{
+			name:   "hard full",
+			guard:  scheduler.QueueGuard{SoftLimit: 1, HardLimit: 2},
+			queued: 2,
+			code:   errors.SchedulerQueueFull,
+			status: http.StatusServiceUnavailable,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store := health.NewInMemoryStore()
+			store.EnsureProvider("p1", 3, 1)
+			p1 := &mockAdapter{id: "p1"}
+			registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+			router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+			svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), nil, nil)
+			svc.SetSchedulerRunner(newQueuedSchedulerRunner(t, tt.guard, tt.queued))
+
+			_, err := svc.HandleChatCompletion(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1"})
+			var gwErr *errors.GatewayError
+			if !stdlib_errors.As(err, &gwErr) {
+				t.Fatalf("expected GatewayError, got %v", err)
+			}
+			if gwErr.Code != tt.code || gwErr.HTTPStatus != tt.status {
+				t.Fatalf("expected %s/%d, got %s/%d", tt.code, tt.status, gwErr.Code, gwErr.HTTPStatus)
+			}
+			if failures := store.Snapshot("p1").ConsecutiveFailures; failures != 0 {
+				t.Fatalf("scheduler admission error affected provider health: failures=%d", failures)
+			}
+		})
+	}
+}
+
+func TestService_HandleChatCompletionSchedulerQueueUnavailable(t *testing.T) {
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	p1 := &mockAdapter{id: "p1"}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), nil, nil)
+	svc.SetSchedulerRunner(newLostTaskSchedulerRunner())
+
+	_, err := svc.HandleChatCompletion(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1"})
+	var gwErr *errors.GatewayError
+	if !stdlib_errors.As(err, &gwErr) {
+		t.Fatalf("expected GatewayError, got %v", err)
+	}
+	if gwErr.Code != errors.SchedulerQueueUnavailable || gwErr.HTTPStatus != http.StatusServiceUnavailable {
+		t.Fatalf("expected scheduler queue unavailable 503, got %s/%d", gwErr.Code, gwErr.HTTPStatus)
+	}
+	if failures := store.Snapshot("p1").ConsecutiveFailures; failures != 0 {
+		t.Fatalf("scheduler queue error affected provider health: failures=%d", failures)
+	}
+}
+
+func TestService_HandleChatCompletionStream_WithSchedulerRunner(t *testing.T) {
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+
+	p1 := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), nil, nil)
+	svc.SetSchedulerRunner(newTestSchedulerRunner())
+
+	ch, meta, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1", Stream: true})
+	if err != nil {
+		t.Fatalf("HandleChatCompletionStream: %v", err)
+	}
+	if meta.Provider != "p1" || meta.Model != "gpt-4o" {
+		t.Fatalf("unexpected metadata: %#v", meta)
+	}
+	seenDone := false
+	for event := range ch {
+		if event.Done {
+			seenDone = true
+		}
+	}
+	if !seenDone {
+		t.Fatalf("expected stream done event")
+	}
+}
+
+func TestService_HandleChatCompletionStream_UsesLastUsageChunk(t *testing.T) {
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	repo := &mockRepoWithUsage{}
+	p1 := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}, events: []llm.StreamEvent{
+		{DeltaContent: "a", Usage: &llm.Usage{PromptTokens: 1, CompletionTokens: 1, TotalTokens: 2}},
+		{DeltaContent: "b", Usage: &llm.Usage{PromptTokens: 2, CompletionTokens: 3, TotalTokens: 5}},
+		{Done: true},
+	}}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, repo, nil, pipeline.DefaultRegistry(), nil, nil)
+
+	ch, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1", Stream: true})
+	if err != nil {
+		t.Fatalf("HandleChatCompletionStream: %v", err)
+	}
+	for range ch {
+	}
+	if repo.lastRecord == nil || repo.lastRecord.TotalTokens != 5 {
+		t.Fatalf("expected final usage chunk to settle, got %#v", repo.lastRecord)
+	}
+}
+
+func TestService_HandleChatCompletionStream_BuffersResponseRules(t *testing.T) {
+	cfg := pipeline.DefaultSemanticPipelineConfig()
+	cfg.Rules[pipeline.RulePII] = pipeline.RuleConfig{Enabled: true}
+	p1 := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}, events: []llm.StreamEvent{
+		{DeltaContent: "Stored {{PII_EMAIL_0}}", Usage: &llm.Usage{CompletionTokens: 2}},
+		{Done: true},
+	}}
+	svc := newStreamRuleTestService(t, p1, cfg)
+
+	ch, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{
+		Model: "gpt-4o", RequestID: "req-1", Stream: true,
+		Messages: []llm.Message{{Role: llm.RoleUser, Content: "email me at test@example.com"}},
+	})
+	if err != nil {
+		t.Fatalf("HandleChatCompletionStream: %v", err)
+	}
+	if got := collectStreamText(ch); got != "Stored test@example.com" {
+		t.Fatalf("expected restored stream text, got %q", got)
+	}
+}
+
+func TestService_HandleChatCompletionStream_SkipsResponseRulesForToolCalls(t *testing.T) {
+	cfg := pipeline.DefaultSemanticPipelineConfig()
+	cfg.Rules[pipeline.RulePII] = pipeline.RuleConfig{Enabled: true}
+	p1 := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}, events: []llm.StreamEvent{
+		{DeltaContent: "{{PII_EMAIL_0}}", ToolCalls: []llm.ToolCallChunk{{}}},
+		{Done: true},
+	}}
+	svc := newStreamRuleTestService(t, p1, cfg)
+
+	ch, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{
+		Model: "gpt-4o", RequestID: "req-1", Stream: true,
+		Messages: []llm.Message{{Role: llm.RoleUser, Content: "email me at test@example.com"}},
+	})
+	if err != nil {
+		t.Fatalf("HandleChatCompletionStream: %v", err)
+	}
+	text := ""
+	toolCalls := 0
+	for event := range ch {
+		text += event.DeltaContent
+		toolCalls += len(event.ToolCalls)
+	}
+	if text != "{{PII_EMAIL_0}}" || toolCalls != 1 {
+		t.Fatalf("expected original tool-call stream, text=%q toolCalls=%d", text, toolCalls)
+	}
+}
+
+func TestService_HandleChatCompletionStream_ResponseRuleBlockDoesNotAffectProviderHealth(t *testing.T) {
+	cfg := pipeline.DefaultSemanticPipelineConfig()
+	cfg.Rules[pipeline.RuleFilter] = pipeline.RuleConfig{Enabled: true, Options: map[string]interface{}{"response_action": "block"}}
+	p1 := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}}
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), staticRuleResolver{cfg: cfg}, nil)
+
+	_, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{Model: "gpt-4o", RequestID: "req-1", Stream: true})
+	var gwErr *errors.GatewayError
+	if !stdlib_errors.As(err, &gwErr) || gwErr.Code != "policy_blocked" {
+		t.Fatalf("expected policy_blocked, got %v", err)
+	}
+	if failures := store.Snapshot("p1").ConsecutiveFailures; failures != 0 {
+		t.Fatalf("policy block affected provider health: failures=%d", failures)
+	}
+}
+
+func TestService_HandleChatCompletionStream_FusionBuffersResponseRules(t *testing.T) {
+	cfg := pipeline.DefaultSemanticPipelineConfig()
+	cfg.Rules[pipeline.RulePII] = pipeline.RuleConfig{Enabled: true}
+	store := health.NewInMemoryStore()
+	for _, providerID := range []string{"p1", "p2", "judge"} {
+		store.EnsureProvider(providerID, 3, 1)
+	}
+
+	p1 := &mockAdapter{id: "p1", models: []string{"member-a"}, resp: textResponse("member a")}
+	p2 := &mockAdapter{id: "p2", models: []string{"member-b"}, resp: textResponse("member b")}
+	judge := &mockStreamAdapter{
+		mockAdapter: mockAdapter{id: "judge", models: []string{"judge-model"}},
+		events: []llm.StreamEvent{
+			{DeltaContent: "Stream {{PII_EMAIL_0}}", Usage: &llm.Usage{CompletionTokens: 2}},
+			{Done: true},
+		},
+	}
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2, judge}, []providers.Combo{
+		{ID: "fusion-combo", Name: "fusion-combo", Strategy: "fusion", Members: []string{"member-a", "member-b"}, Judge: "judge-model"},
+	})
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	svc := gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), staticRuleResolver{cfg: cfg}, nil)
+
+	ch, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{
+		Model: "fusion-combo", RequestID: "req-1", Stream: true,
+		Messages: []llm.Message{{Role: llm.RoleUser, Content: "email me at test@example.com"}},
+	})
+	if err != nil {
+		t.Fatalf("HandleChatCompletionStream: %v", err)
+	}
+	if got := collectStreamText(ch); got != "Stream test@example.com" {
+		t.Fatalf("expected restored fusion stream, got %q", got)
+	}
+}
+
+type mockStreamAdapter struct {
+	mockAdapter
+	events []llm.StreamEvent
+}
+
+func (m *mockStreamAdapter) Stream(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, error) {
+	events := m.events
+	if events == nil {
+		events = []llm.StreamEvent{{DeltaContent: "ok"}, {Done: true}}
+	}
+	ch := make(chan llm.StreamEvent, len(events))
+	for _, event := range events {
+		ch <- event
+	}
+	close(ch)
+	return ch, nil
+}
+
+type staticRuleResolver struct {
+	cfg *pipeline.SemanticPipelineConfig
+}
+
+func (r staticRuleResolver) GetGlobalDefaults(context.Context) (*pipeline.SemanticPipelineConfig, error) {
+	return r.cfg, nil
+}
+
+func (r staticRuleResolver) GetUserConfig(context.Context, string) (*pipeline.SemanticPipelineConfig, error) {
+	return nil, nil
+}
+
+func newStreamRuleTestService(t *testing.T, adapter *mockStreamAdapter, cfg *pipeline.SemanticPipelineConfig) *gateway.Service {
+	t.Helper()
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{adapter}, nil)
+	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	return gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), staticRuleResolver{cfg: cfg}, nil)
+}
+
+func collectStreamText(ch <-chan llm.StreamEvent) string {
+	text := ""
+	for event := range ch {
+		text += event.DeltaContent
+	}
+	return text
+}
+
+func textResponse(content string) *llm.LLMResponse {
+	return &llm.LLMResponse{
+		Choices: []llm.Choice{{Message: llm.Message{Role: llm.RoleAssistant, Content: content}}},
+		Usage:   &llm.Usage{PromptTokens: 1, CompletionTokens: 1, TotalTokens: 2},
+	}
+}
+
+func newTestSchedulerRunner() *scheduler.SynchronousRunner {
+	registry := scheduler.NewResultRegistry()
+	queue := scheduler.NewMemoryQueue()
+	intake := &scheduler.TaskIntake{
+		Queue: queue, Scorer: scheduler.FIFOScorer{Reason: "disabled"}, Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{Default: scheduler.PriorityNormal, Max: scheduler.PriorityHigh},
+		Backend:  "memory",
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+	return scheduler.NewSynchronousRunner(intake, executor, registry)
+}
+
+func newQueuedSchedulerRunner(t *testing.T, guard scheduler.QueueGuard, queued int) *scheduler.SynchronousRunner {
+	t.Helper()
+	registry := scheduler.NewResultRegistry()
+	queue := scheduler.NewMemoryQueue()
+	for i := 0; i < queued; i++ {
+		if err := queue.Push(context.Background(), scheduler.QueueItem{TaskID: "queued-" + string(rune('a'+i)), Score: 1}); err != nil {
+			t.Fatalf("Push: %v", err)
+		}
+	}
+	intake := &scheduler.TaskIntake{
+		Queue: queue, Guard: guard, Scorer: scheduler.FIFOScorer{Reason: "disabled"}, Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{Default: scheduler.PriorityNormal, Max: scheduler.PriorityHigh},
+		Backend:  "memory", ThrottleWait: time.Millisecond,
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+	return scheduler.NewSynchronousRunner(intake, executor, registry)
+}
+
+func newLostTaskSchedulerRunner() *scheduler.SynchronousRunner {
+	registry := scheduler.NewResultRegistry()
+	intakeQueue := scheduler.NewMemoryQueue()
+	executorQueue := scheduler.NewMemoryQueue()
+	intake := &scheduler.TaskIntake{
+		Queue: intakeQueue, Scorer: scheduler.FIFOScorer{Reason: "disabled"}, Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{Default: scheduler.PriorityNormal, Max: scheduler.PriorityHigh},
+		Backend:  "memory",
+	}
+	executor := &scheduler.Executor{Queue: executorQueue, Registry: registry}
+	return scheduler.NewSynchronousRunner(intake, executor, registry)
 }

@@ -29,21 +29,44 @@ type RuleConfig struct {
 }
 
 type SemanticPipelineConfig struct {
+	Rules  map[RuleName]RuleConfig `yaml:"rules" json:"rules"`
+	Input  PipelineStageConfig     `yaml:"input" json:"input"`
+	Output PipelineStageConfig     `yaml:"output" json:"output"`
+}
+
+type PipelineStageConfig struct {
 	Rules map[RuleName]RuleConfig `yaml:"rules" json:"rules"`
 }
 
 func DefaultSemanticPipelineConfig() *SemanticPipelineConfig {
 	cfg := &SemanticPipelineConfig{
-		Rules: make(map[RuleName]RuleConfig),
-	}
-	for _, name := range AllRuleNames {
-		cfg.Rules[name] = RuleConfig{Enabled: false}
+		Rules:  defaultRuleMap(),
+		Input:  PipelineStageConfig{Rules: map[RuleName]RuleConfig{}},
+		Output: PipelineStageConfig{Rules: map[RuleName]RuleConfig{}},
 	}
 	return cfg
 }
 
+func defaultRuleMap() map[RuleName]RuleConfig {
+	rules := make(map[RuleName]RuleConfig)
+	for _, name := range AllRuleNames {
+		rules[name] = RuleConfig{Enabled: false}
+	}
+	return rules
+}
+
 func (c *SemanticPipelineConfig) Validate() error {
-	for name, rule := range c.Rules {
+	c.applyDefaults()
+	for _, rules := range []map[RuleName]RuleConfig{c.Rules, c.Input.Rules, c.Output.Rules} {
+		if err := validateRules(rules); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateRules(rules map[RuleName]RuleConfig) error {
+	for name, rule := range rules {
 		valid := false
 		for _, validName := range AllRuleNames {
 			if name == validName {
@@ -64,8 +87,8 @@ func (c *SemanticPipelineConfig) Validate() error {
 		}
 	}
 
-	caveman := c.Rules[RuleCaveman]
-	ponytail := c.Rules[RulePonytail]
+	caveman := rules[RuleCaveman]
+	ponytail := rules[RulePonytail]
 	if caveman.Enabled && ponytail.Enabled {
 		return fmt.Errorf("caveman and ponytail cannot be enabled simultaneously")
 	}
@@ -73,12 +96,18 @@ func (c *SemanticPipelineConfig) Validate() error {
 	return nil
 }
 
+func (c *SemanticPipelineConfig) applyDefaults() {
+	if c.Rules == nil {
+		c.Rules = defaultRuleMap()
+	}
+}
+
 func (c *SemanticPipelineConfig) CanRewriteRequestText(name RuleName) bool {
 	if name != RuleCaveman && name != RulePonytail {
 		return false
 	}
-	rule, ok := c.Rules[name]
-	if !ok || !rule.Enabled {
+	rule := c.RequestRule(name)
+	if !rule.Enabled {
 		return false
 	}
 	opt, exists := rule.Options["rewrite_request_text"]
@@ -89,21 +118,52 @@ func (c *SemanticPipelineConfig) CanRewriteRequestText(name RuleName) bool {
 	return isBool && b
 }
 
+func (c *SemanticPipelineConfig) RequestRule(name RuleName) RuleConfig {
+	c.applyDefaults()
+	rule := c.Rules[name]
+	stage, ok := c.Input.Rules[name]
+	if ok {
+		rule = stage
+	}
+	return rule
+}
+
+func (c *SemanticPipelineConfig) ResponseRule(name RuleName) RuleConfig {
+	c.applyDefaults()
+	rule := c.Rules[name]
+	stage, ok := c.Output.Rules[name]
+	if ok {
+		rule = stage
+	}
+	return rule
+}
+
 func ResolveSemanticRuleConfig(global, user *SemanticPipelineConfig) *SemanticPipelineConfig {
 	resolved := DefaultSemanticPipelineConfig()
 
 	if global != nil {
-		for name, rule := range global.Rules {
-			resolved.Rules[name] = rule
-		}
+		mergePipelineConfig(resolved, global)
 	}
 	if user != nil {
-		for name, rule := range user.Rules {
-			resolved.Rules[name] = rule
-		}
+		mergePipelineConfig(resolved, user)
 	}
 
 	return resolved
+}
+
+func mergePipelineConfig(dst, src *SemanticPipelineConfig) {
+	src.applyDefaults()
+	for name, rule := range src.Rules {
+		dst.Rules[name] = rule
+		dst.Input.Rules[name] = rule
+		dst.Output.Rules[name] = rule
+	}
+	for name, rule := range src.Input.Rules {
+		dst.Input.Rules[name] = rule
+	}
+	for name, rule := range src.Output.Rules {
+		dst.Output.Rules[name] = rule
+	}
 }
 
 func LoadSemanticPipelineConfigFile(path string) (*SemanticPipelineConfig, error) {

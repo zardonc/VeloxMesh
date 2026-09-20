@@ -10,19 +10,20 @@ import (
 )
 
 type RoutingDecision struct {
-	ProviderID      string
-	Strategy        string
-	ComboID         string
-	UpstreamModel   string
-	IsFusion        bool
-	FusionProviders []FusionProvider
-	FusionJudge     string
+	ProviderID            string
+	Strategy              string
+	ComboID               string
+	UpstreamModel         string
+	IsFusion              bool
+	FusionProviders       []FusionProvider
+	FusionJudge           string
 	CompositeScoreSummary *CompositeScoreSummary
 }
 
 type FusionProvider struct {
-	Adapter providers.ProviderAdapter
-	Model   string
+	ProviderID string
+	Adapter    providers.ProviderAdapter
+	Model      string
 }
 
 type Router interface {
@@ -33,8 +34,8 @@ type Router interface {
 }
 
 type HealthAwareRouter struct {
-	registry    *providers.Registry
-	healthStore health.Store
+	registry     *providers.Registry
+	healthStore  health.Store
 	strategy     string
 	rrCounter    uint64
 	compositeCfg *CompositeConfig
@@ -166,15 +167,15 @@ func (r *HealthAwareRouter) selectCombo(ctx context.Context, req *llm.LLMRequest
 
 	case "capacity-auto-switch":
 		requiresStream, requiresTools, requiresImage := extractRequirements(req)
-		
+
 		// Two passes: First pass requires capabilities. Second pass is fallback.
 		// Wait, if it requires tools, a model without tools will definitely fail, so maybe only strict filtering?
 		// "prioritize combo members that satisfy the request capability first, then fall back through remaining eligible members in combo order."
-		
+
 		// First pass: Try to find a healthy member that strictly satisfies the requirements
 		for _, member := range combo.Members {
 			eligible := r.registry.EligibleProviders(member, providers.OperationChatCompletions)
-			
+
 			// Filter eligible providers by capabilities
 			var capableProviders []providers.ModelProvider
 			for _, ep := range eligible {
@@ -215,7 +216,7 @@ func (r *HealthAwareRouter) selectCombo(ctx context.Context, req *llm.LLMRequest
 				}, nil
 			}
 		}
-		
+
 		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
 
 	case "fusion":
@@ -229,7 +230,7 @@ func (r *HealthAwareRouter) selectCombo(ctx context.Context, req *llm.LLMRequest
 				if selected == nil {
 					selected = r.selectRoundRobin(healthyProviders)
 				}
-				fusionProviders = append(fusionProviders, FusionProvider{Adapter: selected, Model: member})
+				fusionProviders = append(fusionProviders, FusionProvider{ProviderID: selected.ID(), Adapter: selected, Model: member})
 			}
 		}
 		if len(fusionProviders) == 0 {

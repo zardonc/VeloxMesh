@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"log/slog"
+	"strings"
 	"time"
 
 	"veloxmesh/internal/cache"
@@ -40,14 +41,11 @@ func newSemanticCacheService(ctx context.Context, cfg *config.Config, logger *sl
 }
 
 func newVectorAdapter(ctx context.Context, cfg *config.Config, logger *slog.Logger) storage.VectorAdapter {
-	switch cfg.SemanticCacheVectorStore {
+	store := strings.ToLower(strings.TrimSpace(cfg.SemanticCacheVectorStore))
+	switch store {
 	case "lancedb":
-		adapter, err := storage.NewLanceDBVectorAdapter("data/lancedb")
-		if err == nil {
-			return adapter
-		}
-		logger.Warn("failed to initialize LanceDB (Plan 3 Edge only); vector capabilities degraded", "error", err)
-		return storage.NewDegradedVectorAdapter()
+		adapter, _ := newLanceDBVectorAdapter(logger, true)
+		return adapter
 	case "qdrant":
 		return newQdrantVectorAdapter(ctx, cfg, logger)
 	case "pgvector":
@@ -63,8 +61,21 @@ func newVectorAdapter(ctx context.Context, cfg *config.Config, logger *slog.Logg
 		logger.Warn("failed to initialize pgvector; vector capabilities degraded", "error", err)
 		return storage.NewDegradedVectorAdapter()
 	default:
-		return storage.NewNoopVectorAdapter()
+		adapter, _ := newLanceDBVectorAdapter(logger, false)
+		return adapter
 	}
+}
+
+func newLanceDBVectorAdapter(logger *slog.Logger, explicit bool) (storage.VectorAdapter, bool) {
+	adapter, err := storage.NewLanceDBVectorAdapter("data/lancedb")
+	if err == nil {
+		return adapter, true
+	}
+	if explicit {
+		logger.Warn("failed to initialize LanceDB; vector capabilities degraded", "error", err)
+		return storage.NewDegradedVectorAdapter(), true
+	}
+	return storage.NewNoopVectorAdapter(), false
 }
 
 func newQdrantVectorAdapter(ctx context.Context, cfg *config.Config, logger *slog.Logger) storage.VectorAdapter {
@@ -73,6 +84,10 @@ func newQdrantVectorAdapter(ctx context.Context, cfg *config.Config, logger *slo
 		return adapter
 	}
 	logger.Warn("failed to initialize Qdrant; evaluating fallback", "error", err)
+	if fallback, ok := newLanceDBVectorAdapter(logger, false); ok {
+		logger.Info("activated LanceDB fallback for vector store")
+		return fallback
+	}
 	if !cfg.RedisEnabled {
 		return storage.NewDegradedVectorAdapter()
 	}

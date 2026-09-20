@@ -204,6 +204,11 @@ func TestAdapter_Complete(t *testing.T) {
 			if choice.FinishReason != tt.expectedReason {
 				t.Errorf("expected finish reason %q, got %q", tt.expectedReason, choice.FinishReason)
 			}
+			if tt.name == "successful text completion with end_turn" {
+				if resp.Usage == nil || resp.Usage.PromptTokens != 10 || resp.Usage.CompletionTokens != 5 || resp.Usage.TotalTokens != 15 {
+					t.Fatalf("usage not mapped: %#v", resp.Usage)
+				}
+			}
 		})
 	}
 }

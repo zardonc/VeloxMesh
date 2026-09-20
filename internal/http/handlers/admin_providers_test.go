@@ -19,11 +19,15 @@ type mockAdminRepo struct {
 	provRepo  *mockProvRepo
 	idemRepo  controlstate.IdempotencyRepository
 	auditRepo controlstate.AuditRepository
+	quality   controlstate.SchedulerQualityRollupRepository
 }
 
 func (m *mockAdminRepo) Providers() controlstate.ProviderRepository      { return m.provRepo }
 func (m *mockAdminRepo) Idempotency() controlstate.IdempotencyRepository { return m.idemRepo }
 func (m *mockAdminRepo) Audit() controlstate.AuditRepository             { return m.auditRepo }
+func (m *mockAdminRepo) SchedulerQualityRollups() controlstate.SchedulerQualityRollupRepository {
+	return m.quality
+}
 func (m *mockAdminRepo) BeginTx(ctx context.Context) (controlstate.Transaction, error) {
 	return &mockTx{}, nil
 }

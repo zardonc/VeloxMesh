@@ -1,16 +1,16 @@
 package http
 
 import (
+	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"veloxmesh/internal/coordination"
 	"veloxmesh/internal/config"
+	"veloxmesh/internal/coordination"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/hotstate"
 	"veloxmesh/internal/observability"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func TestMetricsRouteIsScrapeable(t *testing.T) {
@@ -19,7 +19,7 @@ func TestMetricsRouteIsScrapeable(t *testing.T) {
 	// Create isolated registry
 	reg := prometheus.NewRegistry()
 	m := observability.NewPrometheusMetrics(reg)
-	
+
 	// Temporarily override global gatherer so promhttp.Handler() uses our registry if we were to configure it.
 	// Actually, the default promhttp.Handler() uses prometheus.DefaultGatherer.
 	// Since we can't easily mock DefaultGatherer for just this test without risking side effects,
@@ -31,7 +31,7 @@ func TestMetricsRouteIsScrapeable(t *testing.T) {
 	m.RecordRequestOutcome("req-1", "openai", "gpt-4", "test", 200, "", "none", 100)
 
 	svc := gateway.NewService(nil, nil, nil, false, 1, nil, nil, nil, nil, nil)
-	r := NewRouter(cfg, svc, nil, nil, nil, hotstate.NewLocalHotState(), nil, coordination.NewNoopCoordinator(), nil)
+	r := NewRouter(cfg, svc, nil, nil, nil, nil, hotstate.NewLocalHotState(), nil, coordination.NewNoopCoordinator(), nil)
 
 	req, _ := http.NewRequest("GET", "/metrics", nil)
 	rr := httptest.NewRecorder()

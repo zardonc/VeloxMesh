@@ -1,0 +1,3 @@
+{"id":"compare-001","model":"{{MODEL}}","messages":[{"role":"user","content":"Reply exactly: onnx ok"}],"temperature":0,"max_tokens":8}
+{"id":"compare-002","model":"{{MODEL}}","messages":[{"role":"user","content":"Reply exactly: heuristic ok"}],"temperature":0,"max_tokens":8}
+{"id":"compare-003","model":"{{MODEL}}","messages":[{"role":"user","content":"Reply exactly: compare ok"}],"temperature":0,"max_tokens":8}

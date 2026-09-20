@@ -82,6 +82,11 @@ func TestAdapter_Complete(t *testing.T) {
 						"finishReason": "STOP",
 					},
 				},
+				"usageMetadata": map[string]any{
+					"promptTokenCount":     4,
+					"candidatesTokenCount": 6,
+					"totalTokenCount":      10,
+				},
 			},
 			expectedText:   "Hi there!",
 			expectedReason: "stop",
@@ -223,6 +228,11 @@ func TestAdapter_Complete(t *testing.T) {
 
 			if choice.FinishReason != tt.expectedReason {
 				t.Errorf("expected finish reason %q, got %q", tt.expectedReason, choice.FinishReason)
+			}
+			if tt.name == "successful text completion" {
+				if resp.Usage == nil || resp.Usage.PromptTokens != 4 || resp.Usage.CompletionTokens != 6 || resp.Usage.TotalTokens != 10 {
+					t.Fatalf("usage not mapped: %#v", resp.Usage)
+				}
 			}
 		})
 	}

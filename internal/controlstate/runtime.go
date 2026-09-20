@@ -116,7 +116,15 @@ func (m *RuntimeProviderManager) Start(ctx context.Context) {
 }
 
 func (m *RuntimeProviderManager) ActivateStatic(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter) error {
-	return m.activateInternal(providersCfg, adapters, nil, nil, nil, nil)
+	var semRules *SemanticRuleSnapshot
+	if m.cfg.SemanticPipelineConfigFile != "" {
+		global, err := pipeline.LoadSemanticPipelineConfigFile(m.cfg.SemanticPipelineConfigFile)
+		if err != nil {
+			return err
+		}
+		semRules = &SemanticRuleSnapshot{Global: global}
+	}
+	return m.activateInternal(providersCfg, adapters, nil, nil, semRules, nil)
 }
 
 func (m *RuntimeProviderManager) activateInternal(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter, rCfg *RoutingConfig, combos []providers.Combo, semRules *SemanticRuleSnapshot, compCfg *routing.CompositeConfig) error {

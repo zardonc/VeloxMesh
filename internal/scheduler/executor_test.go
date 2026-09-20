@@ -1,0 +1,270 @@
+package scheduler_test
+
+import (
+	"context"
+	"errors"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"testing"
+	"time"
+
+	"veloxmesh/internal/llm"
+	"veloxmesh/internal/scheduler"
+)
+
+// slowQueue Backend adds a delay between popping the item and returning it,
+// maximizing the chance of hitting the MarkRunning race condition.
+type slowQueue struct {
+	backend scheduler.QueueBackend
+}
+
+func (q *slowQueue) Push(ctx context.Context, item scheduler.QueueItem) error {
+	return q.backend.Push(ctx, item)
+}
+
+func (q *slowQueue) PeekMin(ctx context.Context, limit int) ([]scheduler.QueueItem, error) {
+	return q.backend.PeekMin(ctx, limit)
+}
+
+func (q *slowQueue) PopMin(ctx context.Context) (scheduler.QueueItem, error) {
+	item, err := q.backend.PopMin(ctx)
+	if err == nil {
+		// Delay to allow another goroutine to check queue length or call RunOne
+		// BEFORE the original goroutine can call MarkRunning.
+		time.Sleep(10 * time.Millisecond)
+	}
+	return item, err
+}
+
+func (q *slowQueue) Remove(ctx context.Context, taskID string) error {
+	return q.backend.Remove(ctx, taskID)
+}
+
+func (q *slowQueue) Len(ctx context.Context) (int64, error) {
+	return q.backend.Len(ctx)
+}
+
+func TestExecutorRaceCondition(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	queue := &slowQueue{backend: scheduler.NewMemoryQueue()}
+	registry := scheduler.NewResultRegistry()
+	scorer := scheduler.FIFOScorer{Reason: "test"}
+	intake := &scheduler.TaskIntake{
+		Queue:    queue,
+		Guard:    scheduler.QueueGuard{SoftLimit: 100, HardLimit: 100},
+		Scorer:   scorer,
+		Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{},
+	}
+	executor := &scheduler.Executor{
+		Queue:    queue,
+		Registry: registry,
+	}
+
+	// Concurrency 2 is required to trigger the race condition
+	runner := scheduler.NewSynchronousRunnerWithConcurrency(intake, executor, registry, 2)
+
+	var successCount int32
+	var wg sync.WaitGroup
+
+	// Run 10 concurrent requests
+	numRequests := 10
+	wg.Add(numRequests)
+
+	for i := 0; i < numRequests; i++ {
+		go func(id int) {
+			defer wg.Done()
+			req := &llm.LLMRequest{
+				RequestID: "test-req-" + string(rune(id)),
+			}
+			_, err := runner.RunChat(ctx, req, func(ctx context.Context, r *llm.LLMRequest) (*llm.LLMResponse, error) {
+				// Simulate some work
+				time.Sleep(20 * time.Millisecond)
+				return &llm.LLMResponse{}, nil
+			})
+			if err != nil {
+				if errors.Is(err, scheduler.ErrQueueEmpty) {
+					t.Errorf("Race condition triggered: task dropped with ErrQueueEmpty")
+				} else {
+					t.Errorf("Unexpected error: %v", err)
+				}
+			} else {
+				atomic.AddInt32(&successCount, 1)
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	if successCount != int32(numRequests) {
+		t.Fatalf("Expected %d successes, got %d", numRequests, successCount)
+	}
+}
+
+func TestExecutorRunOneDeliversPanicToTaskOwner(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	queue := scheduler.NewMemoryQueue()
+	registry := scheduler.NewResultRegistry()
+	task := scheduler.Task{ID: "panic-task", Feature: scheduler.TaskFeature{TaskID: "panic-task"}}
+	if err := registry.RegisterTask(task, func(context.Context) scheduler.TaskResult {
+		panic("boom")
+	}); err != nil {
+		t.Fatalf("RegisterTask: %v", err)
+	}
+	if err := queue.Push(ctx, scheduler.QueueItem{TaskID: task.ID, Score: 1}); err != nil {
+		t.Fatalf("Push: %v", err)
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+
+	if err := executor.RunOne(ctx); err != nil {
+		t.Fatalf("RunOne should deliver panic to owner, got %v", err)
+	}
+	result, err := registry.Wait(ctx, task.ID)
+	if err != nil {
+		t.Fatalf("Wait: %v", err)
+	}
+	if result.Error == nil || !strings.Contains(result.Error.Error(), "boom") {
+		t.Fatalf("panic was not delivered to owner: %#v", result)
+	}
+}
+
+func TestExecutorRunOneUsesRegisteredTaskContext(t *testing.T) {
+	queue := scheduler.NewMemoryQueue()
+	registry := scheduler.NewResultRegistry()
+	scorer := scheduler.FIFOScorer{Reason: "test"}
+	intake := &scheduler.TaskIntake{
+		Queue:    queue,
+		Guard:    scheduler.QueueGuard{SoftLimit: 100, HardLimit: 100},
+		Scorer:   scorer,
+		Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{},
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+	ownerCtx := context.WithValue(context.Background(), contextKey("owner"), "task-owner")
+	started := make(chan context.Context, 1)
+	release := make(chan struct{})
+	task, err := intake.Submit(ownerCtx, &llm.LLMRequest{RequestID: "task-b"}, func(ctx context.Context) scheduler.TaskResult {
+		started <- ctx
+		select {
+		case <-ctx.Done():
+			return scheduler.TaskResult{Error: ctx.Err()}
+		case <-release:
+			return scheduler.TaskResult{Response: ctx.Value(contextKey("owner"))}
+		}
+	})
+	if err != nil {
+		t.Fatalf("Submit: %v", err)
+	}
+	waiterCtx, cancelWaiter := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() {
+		done <- executor.RunOne(waiterCtx)
+	}()
+	taskCtx := <-started
+	cancelWaiter()
+	select {
+	case <-taskCtx.Done():
+		t.Fatalf("waiter cancellation reached task context: %v", taskCtx.Err())
+	case <-time.After(20 * time.Millisecond):
+	}
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatalf("RunOne: %v", err)
+	}
+	result, err := registry.Wait(context.Background(), task.ID)
+	if err != nil {
+		t.Fatalf("Wait: %v", err)
+	}
+	if result.Error != nil || result.Response != "task-owner" {
+		t.Fatalf("unexpected task result: %#v", result)
+	}
+}
+
+func TestSynchronousRunnerRunChatUnregistersCompletedTask(t *testing.T) {
+	runner := newTestSynchronousRunner()
+	req := &llm.LLMRequest{RequestID: "repeat"}
+	respond := func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error) {
+		return &llm.LLMResponse{}, nil
+	}
+
+	if _, err := runner.RunChat(context.Background(), req, respond); err != nil {
+		t.Fatalf("first RunChat: %v", err)
+	}
+	if _, err := runner.RunChat(context.Background(), req, respond); err != nil {
+		t.Fatalf("second RunChat reused completed task ID: %v", err)
+	}
+}
+
+func TestSynchronousRunnerRunChatUnregistersFailedTask(t *testing.T) {
+	runner := newTestSynchronousRunner()
+	req := &llm.LLMRequest{RequestID: "repeat-error"}
+	providerErr := errors.New("provider failed")
+
+	_, err := runner.RunChat(context.Background(), req, func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error) {
+		return nil, providerErr
+	})
+	if !errors.Is(err, providerErr) {
+		t.Fatalf("expected provider error, got %v", err)
+	}
+	if _, err := runner.RunChat(context.Background(), req, func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error) {
+		return &llm.LLMResponse{}, nil
+	}); err != nil {
+		t.Fatalf("RunChat did not unregister failed task: %v", err)
+	}
+}
+
+func TestSynchronousRunnerRunChatCancelsProviderWithOwnerContext(t *testing.T) {
+	runner := newTestSynchronousRunner()
+	ctx, cancel := context.WithCancel(context.Background())
+	started := make(chan struct{})
+	release := make(chan struct{})
+	done := make(chan error, 1)
+
+	go func() {
+		_, err := runner.RunChat(ctx, &llm.LLMRequest{RequestID: "cancel-provider"}, func(runCtx context.Context, _ *llm.LLMRequest) (*llm.LLMResponse, error) {
+			close(started)
+			select {
+			case <-runCtx.Done():
+				return nil, runCtx.Err()
+			case <-release:
+				return &llm.LLMResponse{}, nil
+			}
+		})
+		done <- err
+	}()
+
+	<-started
+	cancel()
+	select {
+	case err := <-done:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("expected context cancellation, got %v", err)
+		}
+	case <-time.After(200 * time.Millisecond):
+		close(release)
+		t.Fatalf("provider did not observe owner context cancellation")
+	}
+}
+
+func newTestSynchronousRunner() *scheduler.SynchronousRunner {
+	queue := scheduler.NewMemoryQueue()
+	registry := scheduler.NewResultRegistry()
+	intake := &scheduler.TaskIntake{
+		Queue:    queue,
+		Guard:    scheduler.QueueGuard{SoftLimit: 100, HardLimit: 100},
+		Scorer:   scheduler.FIFOScorer{Reason: "test"},
+		Registry: registry,
+		Priority: scheduler.NewPriorityResolver(nil),
+		Policy:   scheduler.PriorityPolicy{},
+	}
+	executor := &scheduler.Executor{Queue: queue, Registry: registry}
+	return scheduler.NewSynchronousRunner(intake, executor, registry)
+}
+
+type contextKey string

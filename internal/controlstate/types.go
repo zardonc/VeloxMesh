@@ -82,15 +82,15 @@ type ComboFilter struct {
 }
 
 type RoutingConfig struct {
-	ID              string    `json:"id"`
-	Strategy        string    `json:"strategy"`
-	DefaultProvider string    `json:"default_provider"`
-	FallbackEnabled bool      `json:"fallback_enabled"`
+	ID              string                  `json:"id"`
+	Strategy        string                  `json:"strategy"`
+	DefaultProvider string                  `json:"default_provider"`
+	FallbackEnabled bool                    `json:"fallback_enabled"`
 	MaxAttempts     int                     `json:"max_attempts"`
 	Composite       *CompositeRoutingConfig `json:"composite,omitempty"`
 	Revision        int64                   `json:"revision"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	CreatedAt       time.Time               `json:"created_at"`
+	UpdatedAt       time.Time               `json:"updated_at"`
 }
 
 type CompositeRoutingConfig struct {
@@ -211,4 +211,71 @@ type FallbackLogRecord struct {
 	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type SchedulerTrainingSample struct {
+	ID                       string    `json:"id"`
+	TaskID                   string    `json:"task_id"`
+	ModelClass               string    `json:"model_class"`
+	EstimatedInputTokens     int64     `json:"estimated_input_tokens"`
+	EstimatedOutputTokens    int64     `json:"estimated_output_tokens"`
+	Stream                   bool      `json:"stream"`
+	Priority                 string    `json:"priority"`
+	TimeoutClass             string    `json:"timeout_class"`
+	EnqueueTimeMs            int64     `json:"enqueue_time_ms"`
+	RequestKind              string    `json:"request_kind"`
+	RouteHint                string    `json:"route_hint"`
+	HasToolCalls             bool      `json:"has_tool_calls"`
+	ToolCallDepth            int32     `json:"tool_call_depth"`
+	TurnCount                int32     `json:"turn_count"`
+	Multimodal               bool      `json:"multimodal"`
+	QuestionCount            int32     `json:"question_count"`
+	CodeBlockCount           int32     `json:"code_block_count"`
+	EnumerationHint          bool      `json:"enumeration_hint"`
+	InstructionVerbCount     int32     `json:"instruction_verb_count"`
+	MaxSentenceLengthBucket  int32     `json:"max_sentence_length_bucket"`
+	VocabularyRichnessBucket int32     `json:"vocabulary_richness_bucket"`
+	ConfidenceHint           float64   `json:"confidence_hint"`
+	UncertaintyHint          float64   `json:"uncertainty_hint"`
+	NeighborCount            int64     `json:"neighbor_count"`
+	LatencyP50Ms             int64     `json:"latency_p50_ms"`
+	LatencyP90Ms             int64     `json:"latency_p90_ms"`
+	LatencyStddevMs          float64   `json:"latency_stddev_ms"`
+	OutputTokensP70          int64     `json:"output_tokens_p70"`
+	SuccessRate              float64   `json:"success_rate"`
+	TimeoutRate              float64   `json:"timeout_rate"`
+	CoverageLevel            string    `json:"coverage_level"`
+	CoverageRatio            float64   `json:"coverage_ratio"`
+	ActualLatencyMs          int64     `json:"actual_latency_ms"`
+	InputTokens              int64     `json:"input_tokens"`
+	OutputTokens             int64     `json:"output_tokens"`
+	Outcome                  string    `json:"outcome"`
+	ProviderClass            string    `json:"provider_class"`
+	SchedulerVersion         string    `json:"scheduler_version"`
+	CompletedAt              time.Time `json:"completed_at"`
+	CreatedAt                time.Time `json:"created_at"`
+}
+
+type SchedulerQualityRollup struct {
+	BucketStart               time.Time `json:"bucket_start"`
+	BucketEnd                 time.Time `json:"bucket_end"`
+	SchedulerType             string    `json:"scheduler_type"`
+	SchedulerVersion          string    `json:"scheduler_version"`
+	TaskType                  string    `json:"task_type"`
+	CoverageLevel             string    `json:"coverage_level"`
+	ModelClass                string    `json:"model_class"`
+	SampleCount               int64     `json:"sample_count"`
+	MAPESum                   float64   `json:"mape_sum"`
+	MAPEAvg                   float64   `json:"mape_avg"`
+	WaitMSSum                 float64   `json:"wait_ms_sum"`
+	WaitMSAvg                 float64   `json:"wait_ms_avg"`
+	SchedulerCallLatencyMSSum float64   `json:"scheduler_call_latency_ms_sum"`
+	SchedulerCallLatencyMSAvg float64   `json:"scheduler_call_latency_ms_avg"`
+	ErrorCount                int64     `json:"error_count"`
+	ConfidenceSum             float64   `json:"confidence_sum"`
+	ConfidenceAvg             float64   `json:"confidence_avg"`
+	AnomalyCount              int64     `json:"anomaly_count"`
+	AnomalyRate               float64   `json:"anomaly_rate"`
+	AnomalyUnavailableCount   int64     `json:"anomaly_unavailable_count"`
+	SafeSampleIDs             []string  `json:"safe_sample_ids"`
 }

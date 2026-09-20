@@ -1,5 +1,146 @@
 # Milestones
 
+## v7.7 Scheduler Hardening + Plan 3 Vector Compatibility (Shipped: 2026-07-08)
+
+**Delivered:** Scheduler queue hardening and Plan 3 vector compatibility, with memory queueing as the default, explicit node-scoped Redis queueing, fallback recovery reads, and Plan 3 LanceDB/Qdrant guidance.
+
+**Phases completed:** 23-25 (3 phases, 3 plans total)
+
+**Key accomplishments:**
+
+- Made in-memory Scheduler queueing the default for unset, `auto`, and `memory` backend values.
+- Kept Redis Scheduler queueing explicit and scoped queue keys to the gateway node ID.
+- Updated `FallbackQueue` behavior so Redis recovery does not strand memory fallback tasks.
+- Documented Plan 3 as single-node `App + SQLite + LanceDB/Qdrant`, with LanceDB default and explicit Qdrant selection.
+- Preserved Qdrant semantic-cache and semantic-neighbor compatibility while keeping LanceDB runtime validation documented as a known local-environment limit.
+- Updated runbooks, README, `.env.example`, phase verification, Nyquist validation, and milestone audit evidence.
+
+**Validation:**
+
+- Phase 23, Phase 24, and Phase 25 verification passed.
+- v7.7 milestone audit passed.
+- `go test -timeout 60s ./...` passed.
+- `go build ./...` passed.
+
+**Known deferred work:**
+
+- LanceDB runtime validation remains deferred until a local environment can run LanceDB.
+- LanceDB/Qdrant data migration remains future scope.
+- Distributed Scheduler queue execution across gateway nodes remains future scope.
+
+**Archived:**
+
+- `.planning/milestones/v7.7-ROADMAP.md`
+- `.planning/milestones/v7.7-REQUIREMENTS.md`
+- `.planning/milestones/v7.7-MILESTONE-AUDIT.md`
+
+**What's next:** Start the next milestone around BFF/Admin Console, scheduler automation, or another gateway priority.
+
+---
+
+## v7.6 Scheduler 1.0 + Config System Unification (Shipped: 2026-07-06)
+
+**Phases completed:** 3 phases, 7 plans, 22 tasks
+
+**Key accomplishments:**
+
+- Nested ControlState, Redis, and Cache config with legacy flat JSON aliases and component override files
+- Bounded scheduler execution slots with Redis SET NX task locks and QueueGuard admission metrics
+- Semantic-neighbor embedding input caps with explicit Qdrant collection startup checks and fail-open app wiring
+- Admin scheduler status and in-memory SLA rules APIs with sanitized audit evidence
+- Safe scheduler training export plus precise semantic-neighbor sample hydration
+- Configurable semantic-neighbor embedding model, narrow heuristic overrides, and SchedulerType quality attribution
+- Scheduler 1.0 runbook, safe nested config examples, vector-backend guidance, and Phase 22 UAT evidence
+
+**Archived:**
+
+- `.planning/milestones/v7.6-ROADMAP.md`
+- `.planning/milestones/v7.6-REQUIREMENTS.md`
+- `.planning/milestones/v7.6-MILESTONE-AUDIT.md`
+
+---
+
+## v7.5 Scheduler Enhancements (Shipped: 2026-07-05)
+
+**Phases completed:** 3 phases, 10 plans, 28 tasks
+
+**Key accomplishments:**
+
+- Scheduler TaskFeature payloads now carry bounded semantic-neighbor aggregate fields with disabled-by-default config controls
+- Gateway intake now enriches safe scheduler features from completed training-sample neighbors and fails open with sanitized metrics
+- Semantic-neighbor aggregates now persist through training samples, offline feature preparation, and ONNX artifact compatibility without changing heuristic scoring
+- Offline scheduler training now publishes conservative anomaly thresholds in normal ONNX artifact manifests.
+- ONNX scoring now treats out-of-distribution tasks conservatively by lowering confidence and raising uncertainty.
+- Scheduler quality rollups now compare anomaly behavior by scheduler version, task type, and coverage level.
+- Model-neutral scheduler prediction with a real Python ONNX Runtime worker and predictive scoring policy
+- Disabled-by-default SLA promotion policy config with JSON/env loading and enabled-only rule validation.
+- Bounded SLA promotion reorders eligible queued tasks through existing memory/Redis score replacement without priority escalation.
+- Sanitized SLA promotion metrics and durable audit evidence for promoted, blocked, disabled, not-eligible, and error outcomes.
+
+---
+
+## v7.4 Gateway Scheduler (Shipped: 2026-07-04)
+
+**Delivered:** Completed the optional Gateway Scheduler path while preserving the OpenAI-compatible data-plane contract and FIFO fallback behavior.
+
+**Phases completed:** 14-16 (10 plans, 30 tasks)
+
+**Key accomplishments:**
+
+- Added disabled-by-default scheduler integration with gRPC `BatchScoreTasks`, 15ms timeout, circuit-breaker protection, and FIFO fallback.
+- Added Redis ZSET task-id-only queueing with an in-memory single-node fallback.
+- Added trusted priority resolution, tenant quota downgrade behavior, static virtual deadline scoring, and heuristic service metrics.
+- Added safe opt-in scheduler training feedback, offline `uv` tooling, checked ONNX artifacts, and startup-loaded ONNX scheduler mode.
+- Added weighted heuristic/ONNX rollout, quality rollups, operator alerts, and authenticated runtime rollback controls.
+
+**Validation:**
+
+- Phase 14, Phase 15, and Phase 16 retroactive validations passed.
+- Go scheduler/control-state/app suites passed with `-timeout 60s`; scheduler training `uv run pytest` passed.
+
+**Archived:**
+
+- `.planning/milestones/v7.4-ROADMAP.md`
+- `.planning/milestones/v7.4-REQUIREMENTS.md`
+- `.planning/milestones/v7.4-MILESTONE-AUDIT.md`
+
+**Known deferred work:**
+
+- BFF/Admin Console UI remains deferred.
+- Optional Qdrant semantic-neighbor features, anomaly detection, and tenant SLA waiting-time promotion remain future scheduler enhancements.
+
+**What's next:** Confirm the next milestone scope: scheduler hardening/enhancements, BFF/Admin Console, or another gateway priority.
+
+---
+
+## v7.3 PostgreSQL Compatibility (Shipped: 2026-07-03)
+
+**Delivered:** Added the PostgreSQL-compatible Plan 4 deployment path without changing the OpenAI-compatible data-plane contract.
+
+**Phases completed:** 13 (4 plans total)
+
+**Key accomplishments:**
+
+- Added PostgreSQL + pgvector deployment documentation, templates, and readiness behavior.
+- Closed PostgreSQL control-state compatibility gaps for active gateway capabilities.
+- Added pgvector semantic-cache/vector adapter behavior behind the storage boundary.
+- Added SQLite-to-PostgreSQL migration guidance/tooling and Plan 4 smoke verification.
+
+**Archived:**
+
+- `.planning/milestones/v7.3-ROADMAP.md`
+- `.planning/milestones/v7.3-REQUIREMENTS.md`
+- `.planning/milestones/v7.3-MILESTONE-AUDIT.md`
+
+**Known deferred work:**
+
+- BFF/Admin Console UI remains Phase 11 scope.
+- Full `LimitRule` unification across all scopes remains deferred.
+
+**What's next:** Define and plan v7.4 Gateway Scheduler.
+
+---
+
 ## v7.2 Multi-Node Coordination (Shipped: 2026-07-03)
 
 **Phases completed:** 1 phases, 5 plans, 0 tasks
@@ -34,6 +175,7 @@
 
 - `.planning/milestones/v7.1-ROADMAP.md`
 - `.planning/milestones/v7.1-REQUIREMENTS.md`
+- `.planning/milestones/v7.1-MILESTONE-AUDIT.md`
 
 **What's next:** Define the next milestone around Phase 12 multi-node coordination.
 

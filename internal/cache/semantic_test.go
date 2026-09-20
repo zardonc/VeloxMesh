@@ -44,9 +44,18 @@ func (m *mockEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest)
 	}, nil
 }
 
+type nilEmbedAdapter struct {
+	mockEmbedAdapter
+}
+
+func (m *nilEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
+	return nil, nil
+}
+
 type mockRepo struct {
-	entries []*controlstate.SemanticCacheEntry
-	hits    map[string]int
+	entries   []*controlstate.SemanticCacheEntry
+	hits      map[string]int
+	listCalls int
 }
 
 func (m *mockRepo) Store(ctx context.Context, entry *controlstate.SemanticCacheEntry) error {
@@ -55,6 +64,7 @@ func (m *mockRepo) Store(ctx context.Context, entry *controlstate.SemanticCacheE
 }
 
 func (m *mockRepo) ListCandidates(ctx context.Context, scope, model string) ([]*controlstate.SemanticCacheEntry, error) {
+	m.listCalls++
 	var res []*controlstate.SemanticCacheEntry
 	now := time.Now().UTC()
 	for _, e := range m.entries {
@@ -68,6 +78,16 @@ func (m *mockRepo) ListCandidates(ctx context.Context, scope, model string) ([]*
 		res[i], res[j] = res[j], res[i]
 	}
 	return res, nil
+}
+
+func (m *mockRepo) GetCandidate(ctx context.Context, id, scope, model string) (*controlstate.SemanticCacheEntry, error) {
+	now := time.Now().UTC()
+	for _, e := range m.entries {
+		if e.ID == id && e.Scope == scope && e.Model == model && e.Enabled && e.ExpiresAt.After(now) {
+			return e, nil
+		}
+	}
+	return nil, nil
 }
 
 func (m *mockRepo) RecordHit(ctx context.Context, id string) error {
@@ -194,6 +214,20 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 	}
 }
 
+func TestSemanticCacheService_NilEmbeddingResponseIsMiss(t *testing.T) {
+	svc := NewSemanticCacheService(SemanticCacheConfig{
+		Enabled: true, Threshold: 0.8, MaxCandidates: 10, TTL: time.Hour,
+	}, &mockRepo{hits: make(map[string]int)}, nil, &nilEmbedAdapter{})
+
+	entry, err := svc.Lookup(context.Background(), "scope-1", "gpt-4", "test")
+	if err != nil || entry != nil {
+		t.Fatalf("expected nil-response lookup miss, entry=%#v err=%v", entry, err)
+	}
+	if err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "test", `{}`, nil); err != nil {
+		t.Fatalf("expected nil-response store no-op, got %v", err)
+	}
+}
+
 func TestSecretSafe(t *testing.T) {
 	// A placeholder negative assertion: test won't run if it contains secrets.
 }
@@ -253,6 +287,9 @@ func TestSemanticCacheVectorMapsThroughRepository(t *testing.T) {
 	}
 	if entry == nil || entry.ID != "id-1" {
 		t.Fatalf("expected repository-backed vector hit, got %+v", entry)
+	}
+	if repo.listCalls != 0 {
+		t.Fatalf("vector lookup loaded all candidates %d times", repo.listCalls)
 	}
 	if repo.hits["id-1"] != 1 {
 		t.Fatalf("expected hit count recorded")

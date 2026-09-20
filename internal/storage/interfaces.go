@@ -34,6 +34,10 @@ type VectorAdapter interface {
 	Delete(ctx context.Context, collection string, filter map[string]interface{}) error
 }
 
+type VectorCollectionEnsurer interface {
+	EnsureCollection(ctx context.Context, collection string, dimension int) error
+}
+
 // SemanticCacheAdapter defines the interface for semantic caching operations.
 type SemanticCacheAdapter interface {
 	Lookup(ctx context.Context, scope, model string, text string) (*controlstate.SemanticCacheEntry, error)

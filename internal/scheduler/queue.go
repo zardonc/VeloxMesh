@@ -1,0 +1,27 @@
+package scheduler
+
+import (
+	"context"
+	"errors"
+)
+
+var (
+	ErrQueueFull         = errors.New("queue full")
+	ErrQueueBackpressure = errors.New("queue backpressure")
+	ErrQueueEmpty        = errors.New("queue empty")
+	ErrTaskNotFound      = errors.New("task not found")
+	ErrDuplicateTask     = errors.New("duplicate task")
+)
+
+type QueueItem struct {
+	TaskID string
+	Score  float64
+}
+
+type QueueBackend interface {
+	Push(ctx context.Context, item QueueItem) error
+	PeekMin(ctx context.Context, limit int) ([]QueueItem, error)
+	PopMin(ctx context.Context) (QueueItem, error)
+	Remove(ctx context.Context, taskID string) error
+	Len(ctx context.Context) (int64, error)
+}

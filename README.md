@@ -87,14 +87,14 @@ VeloxMesh is useful when you want to:
 Optional services:
 
 - Redis Stack for distributed hot state and Redis VSS fallback
-- Qdrant for vector-backed semantic cache
+- Qdrant for vector-backed semantic cache when explicitly configured
 
 ### 2. Configure Environment
 
-Copy the example environment file:
+Copy the local example environment file:
 
 ```bash
-cp .env.example .env
+cp deploy/env/local.example.env .env
 ```
 
 Set at least:
@@ -106,11 +106,16 @@ OPENAI_PRIMARY_API_KEY=your-provider-key
 
 For local development, the default gateway address is `:8080`.
 
-For the PostgreSQL/pgvector deployment option, use the dedicated example instead:
+For local development against PostgreSQL/pgvector, use the dedicated local example:
 
 ```bash
-cp .env.postgres.example .env
-docker compose -f docker-compose.postgres.yml up -d
+cp deploy/env/local.postgres.example.env .env
+```
+
+For Docker-based PostgreSQL, use the unified deployment profile:
+
+```bash
+sh deploy/scripts/veloxmesh-up.sh postgres
 ```
 
 Replace all placeholder passwords, DSNs, encryption keys, and provider keys before running the gateway.
@@ -121,15 +126,36 @@ Replace all placeholder passwords, DSNs, encryption keys, and provider keys befo
 make run
 ```
 
-### 4. Docker Deployment
+### 4. One-command Docker Deployment
 
-Docker deployment is planned but not available yet. The intended flow will be:
+For a single-host deployment, use Docker Compose v2 and run the installer as
+the current user (without `sudo`):
 
 ```bash
-docker compose up
+# Default simple profile; creates ./VeloxMesh in the current directory.
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sh -s -- \
+  --provider-api-key "<provider-api-key>" \
+  --provider-base-url "https://api.example.com/v1" \
+  --provider-model "example-model"
+
+# Optional profiles: full, compare, or postgres.
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/install.sh | sh -s -- \
+  --profile full \
+  --provider-api-key "<provider-api-key>" \
+  --provider-base-url "https://api.example.com/v1" \
+  --provider-model "example-model"
 ```
 
-For now, use `make run` for local development. Dockerfile and Compose files will be added later.
+The installer downloads deployment files, generates local credentials, copies
+the bundled test scripts and datasets, builds the images, and starts Compose.
+It does not generate a real provider API key. Edit `VeloxMesh/env/veloxmesh.env`
+for provider keys or other local settings; for multiple providers, each
+`providers[].auth.api_key_env` name in the app config must have a matching
+variable in that file. Re-running preserves same-profile local configuration;
+uninstall first or use another `--install-dir` to change profiles.
+
+Profiles and the complete deployment, UI, testing, and uninstall instructions
+are in [deploy/README.md](deploy/README.md).
 
 ### 5. Check Health
 
@@ -178,10 +204,27 @@ Common settings:
 | `REDIS_ENABLED` | Enable Redis-backed hot state |
 | `REDIS_ADDR` | Redis server address |
 | `QDRANT_ADDR` | Qdrant server address for vector features |
+| `SCHEDULER_ENABLED` | Optional Scheduler scoring path; disabled by default |
+| `SCHEDULER_QUEUE_BACKEND` | Scheduler queue backend; `auto`/empty defaults to memory, `redis` is explicit and node-scoped |
+| `SCHEDULER_CONFIG_FILE` | Optional scheduler component config file |
+| `CACHE_CONFIG_FILE` | Optional cache/vector component config file |
+| `SEMANTIC_PIPELINE_CONFIG_FILE` | Optional input/output rule pipeline config file |
 
 Keep secrets in environment variables or local secret stores. Do not commit real provider keys.
 
-PostgreSQL settings live in `.env.postgres.example` so the default example stays focused on the SQLite-first local path.
+For multiple providers, define each provider key using the exact environment
+variable name referenced by its `auth.api_key_env` configuration field.
+
+PostgreSQL settings live in `deploy/env/local.postgres.example.env` for local app runs and `deploy/env/postgres.example.env` for Docker Compose.
+
+### Deployment Plans
+
+| Plan | Components | Notes |
+| --- | --- | --- |
+| Plan 1 | App + SQLite + Redis Stack + Qdrant | Stable enhanced deployment. Redis remains for hot state, rate/config coordination, aggregation paths, and extension room. |
+| Plan 3 | App + SQLite + LanceDB or Qdrant | Single-node only. LanceDB is the default when no vector store is configured; Qdrant is used only when explicitly configured. |
+
+Scheduler queueing defaults to in-memory for Plan 1 and Plan 3. Set `SCHEDULER_QUEUE_BACKEND=redis` only when Redis is enabled and a node-scoped Redis queue is desired.
 
 ### PostgreSQL Migration And Smoke
 
@@ -226,6 +269,37 @@ make vet
 
 Some integration tests require local services such as Redis Stack or Qdrant. Set the related environment variables before running those tests.
 
+The installed Docker deployment also includes smoke, concurrent, and scheduler
+rollout dataset runners:
+
+```bash
+cd VeloxMesh
+sh scripts/test-simple-smoke.sh       # 3 sequential smoke requests
+sh scripts/test-full-concurrent.sh    # full dataset with concurrency 8
+sh scripts/test-compare-rollout.sh    # ONNX rollout 100, 0, and 50
+```
+
+Each runner writes a timestamped report under `VeloxMesh/reports/`.
+
+To stop containers and remove the installed directory while keeping named
+volumes:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zardonc/VeloxMesh/main/deploy/uninstall.sh | sh -s -- --yes
+```
+
+Add `--volumes` only when the local persistent data should also be deleted.
+
+## Scheduler Training
+
+Offline scheduler model tooling lives under `tools/scheduler_training` and is run with `uv`. It exports safe completed samples, trains/evaluates the P70 output-token predictor, and publishes versioned runtime artifacts containing only `model.onnx` and `manifest.json`.
+
+## Scheduler Rollout
+
+Set `SCHEDULER_ONNX_ROLLOUT_PERCENT=0` to keep ONNX traffic off at startup. During runtime, authenticated admins can set `onnx_rollout_percent` to `0` with `PATCH /admin/scheduler/rollout` to roll ONNX traffic back to heuristic while leaving scheduler services running for diagnostics. The emergency FIFO bypass remains the existing `SCHEDULER_ENABLED=false` configuration.
+
+For deployment, degradation, admin API, and Qdrant/pgvector semantic-neighbor guidance, see [Scheduler 1.0 Operator Runbook](docs/scheduler-1.0-runbook.md).
+
 ## Technology Snapshot
 
 VeloxMesh is primarily built with:
@@ -234,6 +308,7 @@ VeloxMesh is primarily built with:
 - `chi` for HTTP routing
 - SQLite for durable local control state
 - Redis Stack for hot state, coordination, and selected vector fallback paths
-- Qdrant for vector-backed semantic cache workflows
+- LanceDB as the embedded Plan 3 vector default when available
+- Qdrant for explicitly configured vector-backed semantic cache workflows
 
 These dependencies support the gateway experience; most users can start with the basic Go service and add Redis or vector storage only when their deployment needs it.

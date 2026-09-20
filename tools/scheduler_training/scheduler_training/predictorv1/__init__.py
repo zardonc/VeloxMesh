@@ -1,0 +1,2 @@
+"""Generated predictor protocol bindings."""
+

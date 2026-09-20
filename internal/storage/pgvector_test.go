@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"veloxmesh/internal/testenv"
 )
 
@@ -35,11 +36,29 @@ func TestPGVectorMetadataAllowlist(t *testing.T) {
 	}
 }
 
+func TestPostgresDSNControlsTLSInPGXClient(t *testing.T) {
+	tlsConfig, err := pgconn.ParseConfig("postgres://user:pass@localhost:5432/db?sslmode=require")
+	if err != nil {
+		t.Fatalf("parse TLS postgres DSN: %v", err)
+	}
+	if tlsConfig.TLSConfig == nil {
+		t.Fatalf("sslmode=require should enable TLS in pgx config")
+	}
+
+	plainConfig, err := pgconn.ParseConfig("postgres://user:pass@localhost:5432/db?sslmode=disable")
+	if err != nil {
+		t.Fatalf("parse plaintext postgres DSN: %v", err)
+	}
+	if plainConfig.TLSConfig != nil {
+		t.Fatalf("sslmode=disable should leave TLS disabled in pgx config")
+	}
+}
+
 func TestPGVectorMigrationAndSearch(t *testing.T) {
 	testenv.Load()
 	dsn := os.Getenv("POSTGRES_TEST_DSN")
 	if dsn == "" {
-		t.Skip("Skipping pgvector integration test because POSTGRES_TEST_DSN is not set")
+		t.Fatalf("POSTGRES_TEST_DSN is required for real pgvector tests")
 	}
 	ctx := context.Background()
 	adapter, err := NewPGVectorAdapter(ctx, dsn, PGVectorOptions{
@@ -72,6 +91,30 @@ func TestPGVectorMigrationAndSearch(t *testing.T) {
 	}
 	if _, ok := results[0]["prompt"]; ok {
 		t.Fatalf("raw prompt leaked into search metadata")
+	}
+}
+
+func TestPGVectorEnsureCollectionUsesRealSchema(t *testing.T) {
+	testenv.Load()
+	dsn := os.Getenv("POSTGRES_TEST_DSN")
+	if dsn == "" {
+		t.Fatalf("POSTGRES_TEST_DSN is required for real pgvector tests")
+	}
+	ctx := context.Background()
+	adapter, err := NewPGVectorAdapter(ctx, dsn, PGVectorOptions{
+		Dimension:          1536,
+		HNSWM:              16,
+		HNSWEFConstruction: 64,
+		SearchEF:           40,
+	})
+	if err != nil {
+		t.Fatalf("new pgvector adapter: %v", err)
+	}
+	if err := adapter.EnsureCollection(ctx, "scheduler_training_samples", 1536); err != nil {
+		t.Fatalf("ensure pgvector collection: %v", err)
+	}
+	if err := adapter.EnsureCollection(ctx, "scheduler_training_samples", 3); err == nil {
+		t.Fatalf("expected pgvector dimension mismatch")
 	}
 }
 

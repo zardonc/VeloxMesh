@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"veloxmesh/internal/redisconn"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -22,11 +23,12 @@ func NewRedisClient(ctx context.Context, addr, password string, db int, namespac
 		return nil, errors.New("redis namespace must be configured")
 	}
 
-	client := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       db,
-	})
+	opts, err := redisconn.Options(addr, password, db)
+	if err != nil {
+		return nil, err
+	}
+	redisconn.WarnPlaintextCredentials(nil, "hotstate", opts)
+	client := redis.NewClient(opts)
 
 	if err := client.Ping(ctx).Err(); err != nil {
 		client.Close()
@@ -152,7 +154,7 @@ func (s *redisSubscription) Close() error {
 }
 
 func (r *RedisClient) GetBytes(ctx context.Context, key string) ([]byte, error) {
-	val, err := r.client.Get(ctx, key).Bytes()
+	val, err := r.client.Get(ctx, NamespacedKey(r.namespace, "bytes", key)).Bytes()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, ErrCacheMiss
@@ -163,11 +165,11 @@ func (r *RedisClient) GetBytes(ctx context.Context, key string) ([]byte, error) 
 }
 
 func (r *RedisClient) SetBytes(ctx context.Context, key string, data []byte, ttl time.Duration) error {
-	return r.client.Set(ctx, key, data, ttl).Err()
+	return r.client.Set(ctx, NamespacedKey(r.namespace, "bytes", key), data, ttl).Err()
 }
 
 func (r *RedisClient) Delete(ctx context.Context, key string) error {
-	return r.client.Del(ctx, key).Err()
+	return r.client.Del(ctx, NamespacedKey(r.namespace, "bytes", key)).Err()
 }
 
 var checkAndIncScript = redis.NewScript(`
@@ -184,22 +186,22 @@ return {tonumber(current), 1}
 `)
 
 func (r *RedisClient) CheckAndIncrement(ctx context.Context, key string, limit int64, window time.Duration) (int64, bool, error) {
-	res, err := checkAndIncScript.Run(ctx, r.client, []string{key}, limit, window.Milliseconds()).Result()
+	res, err := checkAndIncScript.Run(ctx, r.client, []string{NamespacedKey(r.namespace, "limit", key)}, limit, window.Milliseconds()).Result()
 	if err != nil {
 		return 0, false, err
 	}
-	
+
 	vals, ok := res.([]interface{})
 	if !ok || len(vals) != 2 {
 		return 0, false, fmt.Errorf("unexpected script result type: %T", res)
 	}
-	
+
 	count, ok1 := vals[0].(int64)
 	allowedInt, ok2 := vals[1].(int64)
 	if !ok1 || !ok2 {
 		return 0, false, fmt.Errorf("unexpected script return values")
 	}
-	
+
 	return count, allowedInt == 1, nil
 }
 

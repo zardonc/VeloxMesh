@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"veloxmesh/internal/postgresconn"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -22,13 +23,19 @@ type PGVectorAdapter struct {
 	pool      *pgxpool.Pool
 	dimension int
 	searchEF  int
+	opts      PGVectorOptions
 }
 
 func NewPGVectorAdapter(ctx context.Context, dsn string, opts PGVectorOptions) (*PGVectorAdapter, error) {
 	if opts.Dimension < 1 {
 		return nil, errors.New("pgvector dimension must be >= 1")
 	}
-	pool, err := pgxpool.New(ctx, dsn)
+	cfg, err := postgresconn.PoolConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+	postgresconn.WarnPlaintextCredentials(nil, "pgvector", cfg)
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -36,6 +43,7 @@ func NewPGVectorAdapter(ctx context.Context, dsn string, opts PGVectorOptions) (
 		pool:      pool,
 		dimension: opts.Dimension,
 		searchEF:  opts.SearchEF,
+		opts:      opts,
 	}
 	if err := adapter.ensureSchema(ctx, opts); err != nil {
 		pool.Close()
@@ -153,6 +161,16 @@ func (p *PGVectorAdapter) ensureSchema(ctx context.Context, opts PGVectorOptions
 			ON semantic_cache_vectors USING hnsw (embedding vector_cosine_ops)
 			WITH (m = %d, ef_construction = %d);`, opts.Dimension, m, ef))
 	return err
+}
+
+func (p *PGVectorAdapter) EnsureCollection(ctx context.Context, collection string, dimension int) error {
+	if dimension < 1 {
+		return errors.New("pgvector collection dimension must be >= 1")
+	}
+	if dimension != p.dimension {
+		return fmt.Errorf("pgvector dimension mismatch: got %d, want %d", dimension, p.dimension)
+	}
+	return p.ensureSchema(ctx, p.opts)
 }
 
 func (p *PGVectorAdapter) validateVector(vector []float32) error {

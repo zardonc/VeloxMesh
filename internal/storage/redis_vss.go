@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
+	"veloxmesh/internal/redisconn"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -21,11 +23,12 @@ func NewRedisVSSVectorAdapter(ctx context.Context, addr, password string, db int
 		return nil, errors.New("redis namespace must be configured")
 	}
 
-	client := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       db,
-	})
+	opts, err := redisconn.Options(addr, password, db)
+	if err != nil {
+		return nil, err
+	}
+	redisconn.WarnPlaintextCredentials(nil, "redis_vss", opts)
+	client := redis.NewClient(opts)
 
 	if err := client.Ping(ctx).Err(); err != nil {
 		client.Close()
@@ -38,7 +41,7 @@ func NewRedisVSSVectorAdapter(ctx context.Context, addr, password string, db int
 		client.Close()
 		return nil, fmt.Errorf("failed to list redis modules: %w", err)
 	}
-	
+
 	searchFound := false
 	if mods, ok := modules.([]interface{}); ok {
 		for _, m := range mods {
@@ -96,7 +99,7 @@ func (r *RedisVSSVectorAdapter) ensureIndex(ctx context.Context, collection stri
 
 	// Create index
 	prefix := fmt.Sprintf("%s:vss:%s:", r.namespace, collection)
-	
+
 	args := []interface{}{
 		"FT.CREATE", idx,
 		"ON", "HASH",
@@ -107,7 +110,7 @@ func (r *RedisVSSVectorAdapter) ensureIndex(ctx context.Context, collection stri
 		"model", "TAG",
 		"id", "TAG",
 	}
-	
+
 	if err := r.client.Do(ctx, args...).Err(); err != nil {
 		return fmt.Errorf("failed to create redis vector index: %w", err)
 	}
@@ -133,7 +136,7 @@ func (r *RedisVSSVectorAdapter) Insert(ctx context.Context, collection string, v
 		}
 
 		key := r.key(collection, id)
-		
+
 		vecBytes := make([]byte, len(vec)*4)
 		for j, v := range vec {
 			bits := math.Float32bits(v)
@@ -147,7 +150,7 @@ func (r *RedisVSSVectorAdapter) Insert(ctx context.Context, collection string, v
 			"vec": vecBytes,
 			"id":  id,
 		}
-		
+
 		if i < len(metadata) {
 			for k, v := range metadata[i] {
 				switch val := v.(type) {
@@ -158,21 +161,24 @@ func (r *RedisVSSVectorAdapter) Insert(ctx context.Context, collection string, v
 				}
 			}
 		}
-		
+
 		pipe.HSet(ctx, key, fields)
 	}
-	
+
 	_, err := pipe.Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to insert vectors into redis vss: %w", err)
 	}
-	
+
 	return nil
 }
 
 func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error) {
+	if limit < 1 {
+		limit = 1
+	}
 	idx := r.indexName(collection)
-	
+
 	vecBytes := make([]byte, len(query)*4)
 	for j, v := range query {
 		bits := math.Float32bits(v)
@@ -184,7 +190,7 @@ func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, q
 
 	// FT.SEARCH idx "*=>[KNN limit @vec $query_vec AS dist]" PARAMS 2 query_vec <bytes> DIALECT 2
 	knnQuery := fmt.Sprintf("*=>[KNN %d @vec $query_vec AS dist]", limit)
-	
+
 	res, err := r.client.Do(ctx, "FT.SEARCH", idx, knnQuery, "PARAMS", "2", "query_vec", vecBytes, "DIALECT", "2").Result()
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "unknown index name") {
@@ -214,7 +220,9 @@ func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, q
 			if extra, ok := doc["extra_attributes"].(map[interface{}]interface{}); ok {
 				for k, v := range extra {
 					kStr := fmt.Sprintf("%v", k)
-					if kStr != "vec" && kStr != "dist" {
+					if kStr == "dist" {
+						setRedisVSSScore(meta, v)
+					} else if kStr != "vec" {
 						if vBytes, isBytes := v.([]byte); isBytes {
 							meta[kStr] = string(vBytes)
 						} else {
@@ -242,7 +250,7 @@ func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, q
 			if !ok {
 				continue
 			}
-			
+
 			meta := make(map[string]interface{})
 			for j := 0; j < len(props); j += 2 {
 				if j+1 >= len(props) {
@@ -253,12 +261,16 @@ func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, q
 				if ok1 && ok2 {
 					k := string(kBytes)
 					v := string(vBytes)
-					if k != "vec" && k != "dist" {
+					if k == "dist" {
+						setRedisVSSScore(meta, vBytes)
+					} else if k != "vec" {
 						meta[k] = v
 					}
 				} else if kStr, ok1Str := props[j].(string); ok1Str {
 					if vStr, ok2Str := props[j+1].(string); ok2Str {
-						if kStr != "vec" && kStr != "dist" {
+						if kStr == "dist" {
+							setRedisVSSScore(meta, vStr)
+						} else if kStr != "vec" {
 							meta[kStr] = vStr
 						}
 					}
@@ -271,6 +283,31 @@ func (r *RedisVSSVectorAdapter) Search(ctx context.Context, collection string, q
 	return results, nil
 }
 
+func setRedisVSSScore(meta map[string]interface{}, dist interface{}) {
+	value, ok := redisVSSFloat(dist)
+	if !ok {
+		return
+	}
+	meta["score"] = 1 - value
+}
+
+func redisVSSFloat(value interface{}) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case float32:
+		return float64(typed), true
+	case string:
+		parsed, err := strconv.ParseFloat(typed, 64)
+		return parsed, err == nil
+	case []byte:
+		parsed, err := strconv.ParseFloat(string(typed), 64)
+		return parsed, err == nil
+	default:
+		return 0, false
+	}
+}
+
 func (r *RedisVSSVectorAdapter) Ping(ctx context.Context) error {
 	return r.client.Ping(ctx).Err()
 }
@@ -281,7 +318,7 @@ func (r *RedisVSSVectorAdapter) Delete(ctx context.Context, collection string, f
 		key := r.key(collection, id)
 		return r.client.Del(ctx, key).Err()
 	}
-	
+
 	// If a scope is provided, we might be able to search and delete
 	if scope, ok := filter["scope"].(string); ok && scope != "" {
 		idx := r.indexName(collection)
@@ -292,12 +329,12 @@ func (r *RedisVSSVectorAdapter) Delete(ctx context.Context, collection string, f
 			}
 			return fmt.Errorf("failed to search for deletion: %w", err)
 		}
-		
+
 		resSlice, ok := res.([]interface{})
 		if !ok || len(resSlice) <= 1 {
 			return nil
 		}
-		
+
 		pipe := r.client.Pipeline()
 		for i := 1; i < len(resSlice); i++ {
 			if keyBytes, ok := resSlice[i].([]byte); ok {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 	"veloxmesh/internal/llm"
+	verrors "veloxmesh/internal/errors"
 )
 
 type mockOrderHandler struct {
@@ -130,7 +131,7 @@ func TestPipelineFilterBlock(t *testing.T) {
 	registry.Register(&mockOrderHandler{
 		name:       RuleFilter,
 		orderLog:   &orderLog,
-		errToThrow: ErrFilterBlock,
+		errToThrow: verrors.ErrPolicyBlocked,
 	})
 	registry.Register(&mockOrderHandler{
 		name:     RulePII,
@@ -147,11 +148,42 @@ func TestPipelineFilterBlock(t *testing.T) {
 	state := &RunState{PIIMappings: make(map[string]string)}
 
 	err := p.ProcessRequest(ctx, scope, state, &llm.LLMRequest{})
-	if err == nil || !errors.Is(err, ErrFilterBlock) {
-		t.Fatalf("expected ErrFilterBlock, got %v", err)
+	if err == nil || !errors.Is(err, verrors.ErrPolicyBlocked) {
+		t.Fatalf("expected ErrPolicyBlocked, got %v", err)
 	}
 
 	if len(orderLog) != 1 || orderLog[0] != RuleFilter {
 		t.Errorf("expected execution to stop at filter, got %v", orderLog)
+	}
+}
+
+func TestPipelineUsesSeparateInputAndOutputRules(t *testing.T) {
+	registry := NewRegistry()
+	var orderLog []RuleName
+	for _, h := range []RuleName{RulePII, RuleFilter} {
+		registry.Register(&mockOrderHandler{name: h, orderLog: &orderLog})
+	}
+
+	cfg := DefaultSemanticPipelineConfig()
+	cfg.Input.Rules[RulePII] = RuleConfig{Enabled: true}
+	cfg.Output.Rules[RuleFilter] = RuleConfig{Enabled: true}
+	p := New(registry, cfg)
+	ctx := context.Background()
+	scope := RequestScope{UserID: "u1", RequestID: "r1"}
+	state := &RunState{PIIMappings: make(map[string]string)}
+
+	if err := p.ProcessRequest(ctx, scope, state, &llm.LLMRequest{}); err != nil {
+		t.Fatalf("ProcessRequest: %v", err)
+	}
+	if len(orderLog) != 1 || orderLog[0] != RulePII {
+		t.Fatalf("expected only input pii, got %v", orderLog)
+	}
+
+	orderLog = nil
+	if err := p.ProcessResponse(ctx, scope, state, &llm.LLMResponse{}); err != nil {
+		t.Fatalf("ProcessResponse: %v", err)
+	}
+	if len(orderLog) != 1 || orderLog[0] != RuleFilter {
+		t.Fatalf("expected only output filter, got %v", orderLog)
 	}
 }

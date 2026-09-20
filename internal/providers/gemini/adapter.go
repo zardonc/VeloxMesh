@@ -237,7 +237,25 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 				FinishReason: finishReason,
 			},
 		},
+		Usage: usageFromGemini(resp.UsageMetadata),
 	}, nil
+}
+
+func usageFromGemini(usage *genai.GenerateContentResponseUsageMetadata) *llm.Usage {
+	if usage == nil {
+		return nil
+	}
+	prompt := int(usage.PromptTokenCount + usage.ToolUsePromptTokenCount)
+	completion := int(usage.CandidatesTokenCount + usage.ThoughtsTokenCount)
+	total := int(usage.TotalTokenCount)
+	if total == 0 {
+		total = prompt + completion
+	}
+	return &llm.Usage{
+		PromptTokens:     prompt,
+		CompletionTokens: completion,
+		TotalTokens:      total,
+	}
 }
 
 func (a *Adapter) mapError(err error) error {
