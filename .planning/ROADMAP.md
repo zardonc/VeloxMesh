@@ -1,8 +1,8 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Updated:** 2026-07-10
-**Current focus:** Phase 26 - Scheduler Scoring Backpressure Hardening complete
+**Updated:** 2026-09-20
+**Current focus:** Phase 27 - Stream Terminal and Settlement Consistency planning
 
 ## Overview
 
@@ -12,6 +12,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 
 ## Milestones
 
+- [ ] **v7.9 Gateway Protocol Correctness** - Phase 27 (planning)
 - [x] **v7.8 Scheduler Scoring Backpressure Hardening** - Phase 26 (shipped 2026-07-10)
 - [x] **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** - Phases 23-25 (shipped 2026-07-08; archive: `.planning/milestones/v7.7-ROADMAP.md`)
 - [x] **v7.6 Scheduler 1.0 + Config** - Phases 20-22 (shipped 2026-07-06; archive: `.planning/milestones/v7.6-ROADMAP.md`)
@@ -23,7 +24,40 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - [x] **v7.0 Plan 1 Foundation** - Phases 7-9 (shipped 2026-06-30; archive: `.planning/milestones/v7.0-ROADMAP.md`)
 - [x] **v5** - Phases 5-6 (shipped 2026-06-29)
 - [x] **v4** - Phases 1-4 (shipped 2026-06-23; archive: `.planning/milestones/v4-ROADMAP.md`)
-- [ ] **Future milestones** - BFF/Admin Console or another gateway priority
+- [ ] **Future milestones** - Tool calling, semantic-cache latency, staged timeouts, or BFF/Admin Console
+
+## Planned v7.9 Phase
+
+| Phase | Name | Goal | Requirements | Status |
+|-------|------|------|--------------|--------|
+| 27 | Stream Terminal and Settlement Consistency | Unify stream terminal classification and exactly-once finalization across ordinary, buffered, and Fusion paths without adding hot-path I/O. | TERM-01..08 | Planning |
+
+### Phase 27: Stream Terminal and Settlement Consistency
+
+**Goal:** Make every streaming request end with one authoritative terminal outcome that drives client output, provider health, circuit breaker, observability, admission release, and usage settlement consistently.
+
+**Depends on:** Phase 4 streaming/usage foundations, Phase 6 Fusion streaming, and Phase 10 observability.
+
+**Requirements:** TERM-01, TERM-02, TERM-03, TERM-04, TERM-05, TERM-06, TERM-07, TERM-08.
+
+**Estimated implementation:** 6.5 engineer-days (critical path: 5.5 engineer-days), excluding review latency and real-provider soak time.
+
+**Success criteria:**
+
+1. Done and clean EOF complete successfully; provider errors retain their mapped category; policy rejection and client cancellation do not damage provider health.
+2. Every terminal side effect is observable exactly once across ordinary, buffered, and Fusion streams.
+3. Only successful completed streams settle client usage; missing final Usage is recorded as `missing_usage`; failure and cancellation never debit the client.
+4. SSE output contains one terminal sequence, and downstream write failure stops forwarding and releases resources.
+5. Focused benchmarks or allocation-aware tests show no new external I/O and no material per-chunk regression.
+
+**Plans:**
+
+1. `27-01` P0 — Unified terminal model and exactly-once finalizer contract (Wave 1, 1.0 day).
+2. `27-02` P0 — Ordinary, buffered, and Fusion lifecycle closure through that contract (Wave 2, 1.5 days).
+3. `27-03` P0 — Request cancellation and checked SSE output (Wave 3, 1.0 day).
+4. `27-04` P0 — Outcome-gated Usage settlement and observable persistence failure (Wave 3, 1.0 day).
+5. `27-06` P1 — Fusion consistency verification only; no aggregation, routing, or Judge change (Wave 4, 0.5 day).
+6. `27-05` P0 — Cross-layer terminal regression matrix and phase-gate evidence (Wave 5, 1.5 days).
 
 ## Planned v7.8 Phase
 
@@ -51,6 +85,9 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 ## Future Milestones
 
 - **Phase 11: BFF Layer & Admin Console** - JWT authentication, role-based access control, session management, and Admin Console foundation. Depends on Phase 7.
+- **Tool calling protocol completion** - Complete tool schema, tool-call fragment, result correlation, Usage, and finish-reason mappings.
+- **Semantic-cache latency hardening** - Configurable embedding path, short read budget, bounded asynchronous write path, and failure isolation.
+- **Stage timeout and cancellation hardening** - Connect, first-byte, stream-idle, and total-duration budgets with explicit retry eligibility.
 - **Scheduler automation** - optional automatic ONNX rollout changes after explicit operator opt-in.
 
 ## Notes
@@ -65,4 +102,4 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - Config unification in v7.6 is backward-compatible: existing ENV variables remain valid; nested struct grouping is the new preferred form.
 
 ---
-*Roadmap refreshed: 2026-07-10 - Phase 26 shipped*
+*Roadmap refreshed: 2026-09-20 - Phase 27 planning started*

@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.8
-milestone_name: Phase
-status: complete
-last_updated: "2026-07-10"
-last_activity: 2026-07-10 -- Phase 26 scheduler bug fixes completed
+milestone: v7.9
+milestone_name: Gateway Protocol Correctness
+status: planning
+last_updated: "2026-09-20"
+last_activity: 2026-09-20 -- Phase 27 six-work-package implementation and verification plans completed
 progress:
-  total_phases: 21
+  total_phases: 22
   completed_phases: 19
   total_plans: 57
   completed_plans: 57
-  percent: 90
+  percent: 86
 ---
 
 ## Project Reference
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 26 — scheduler-scoring-backpressure-hardening complete
+**Current focus:** Phase 27 — stream-terminal-settlement-consistency planning
 
 ## Current Implementation State
 
@@ -61,7 +61,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 
 ## Planned Next
 
-1. Start the next milestone with `$gsd-new-milestone`.
+1. Review and approve the six Phase 27 implementation plans.
+2. Execute only after explicit authorization with `$gsd-execute-phase 27`.
 
 ## Useful Commands
 
@@ -71,14 +72,15 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 
 ## Current Position
 
-Phase: 26 (scheduler-scoring-backpressure-hardening) — COMPLETE
-Plan: 3 of 3
-Status: Phase complete — verified
-Last activity: 2026-07-10 -- Phase 26 scheduler bug fixes completed
+Phase: 27 (stream-terminal-settlement-consistency) — PLANNING
+Plan: 0 of 6
+Status: Scope locked; six executable work-package plans ready for review
+Last activity: 2026-09-20 -- 27-01 through 27-06 plans completed with P0/P1 ordering and test matrices
 
 ## Operator Next Steps
 
-- Start the next milestone with `$gsd-new-milestone` when ready.
+- Review generated Phase 27 plans and verification results.
+- Do not modify production code or deploy until the plan is approved.
 
 ## Deferred Items
 
