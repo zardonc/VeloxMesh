@@ -2,6 +2,8 @@ package gateway
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"reflect"
 	"sync"
 	"sync/atomic"
@@ -25,6 +27,53 @@ var terminalLifecycleOrder = []string{
 type terminalCallbackRecorder struct {
 	order    []string
 	outcomes []terminalOutcome
+}
+
+func TestClassifyTerminal(t *testing.T) {
+	usage := &llm.Usage{PromptTokens: 2, CompletionTokens: 3, TotalTokens: 5}
+	tests := []struct {
+		name         string
+		err          error
+		kind         terminalOutcomeKind
+		status       int
+		healthImpact bool
+		expectUsage  bool
+		expectDiag   bool
+	}{
+		{name: "clean eof", kind: terminalCompleted, status: http.StatusOK, expectUsage: true},
+		{
+			name: "retryable provider error", err: gatewayErrors.NewGatewayError(gatewayErrors.ProviderUnavailable, "unavailable", http.StatusServiceUnavailable),
+			kind: terminalProviderError, status: http.StatusServiceUnavailable, healthImpact: true, expectUsage: true, expectDiag: true,
+		},
+		{
+			name: "non retryable provider error", err: gatewayErrors.NewGatewayError(gatewayErrors.ProviderInvalidRequest, "invalid", http.StatusBadRequest),
+			kind: terminalProviderError, status: http.StatusBadRequest, expectUsage: true, expectDiag: true,
+		},
+		{name: "client cancellation", err: context.Canceled, kind: terminalClientCancelled, status: 499, expectUsage: true, expectDiag: true},
+		{name: "policy rejection", err: gatewayErrors.ErrPolicyBlocked, kind: terminalPolicyRejected, status: http.StatusForbidden, expectUsage: true, expectDiag: true},
+		{
+			name: "unknown internal error", err: errors.New("opaque failure"), kind: terminalInternalAbnormal,
+			status: http.StatusBadGateway, healthImpact: true, expectUsage: true, expectDiag: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			outcome := classifyTerminal(tt.err, usage)
+			if outcome.kind != tt.kind || outcome.client.httpStatus != tt.status {
+				t.Fatalf("outcome=%#v, want kind=%q status=%d", outcome, tt.kind, tt.status)
+			}
+			if outcome.affectsProviderHealth != tt.healthImpact || outcome.hasUsage != tt.expectUsage {
+				t.Fatalf("outcome=%#v, want health=%t usage=%t", outcome, tt.healthImpact, tt.expectUsage)
+			}
+			if (outcome.diagnosticCause != nil) != tt.expectDiag {
+				t.Fatalf("diagnostic presence=%t, want %t", outcome.diagnosticCause != nil, tt.expectDiag)
+			}
+			if outcome.hasUsage && outcome.usage != *usage {
+				t.Fatalf("usage=%#v, want %#v", outcome.usage, *usage)
+			}
+		})
+	}
 }
 
 func TestTerminalFinalizerFirstCandidateWins(t *testing.T) {
