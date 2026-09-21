@@ -4,6 +4,7 @@ import (
 	"context"
 	stdlibErrors "errors"
 	"net/http"
+	"sync"
 
 	gatewayErrors "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
@@ -119,4 +120,57 @@ func isProviderTerminalError(code string) bool {
 	default:
 		return false
 	}
+}
+
+type terminalCallback func(terminalOutcome)
+
+type terminalFinalizerOptions struct {
+	providerHealth         terminalCallback
+	circuitBreaker         terminalCallback
+	metrics                terminalCallback
+	traceClose             terminalCallback
+	settlementDecision     terminalCallback
+	admissionRelease       terminalCallback
+	clientTerminalEmission terminalCallback
+}
+
+type terminalFinalizer struct {
+	mu        sync.Mutex
+	completed bool
+	callbacks terminalFinalizerOptions
+}
+
+func newTerminalFinalizer(options terminalFinalizerOptions) *terminalFinalizer {
+	return &terminalFinalizer{callbacks: options}
+}
+
+// Submit applies callbacks only to the first pre-classified terminal outcome.
+func (f *terminalFinalizer) Submit(outcome terminalOutcome) bool {
+	f.mu.Lock()
+	if f.completed {
+		f.mu.Unlock()
+		return false
+	}
+	f.completed = true
+	f.mu.Unlock()
+
+	f.run(outcome)
+	return true
+}
+
+func (f *terminalFinalizer) run(outcome terminalOutcome) {
+	runTerminalCallback(f.callbacks.providerHealth, outcome)
+	runTerminalCallback(f.callbacks.circuitBreaker, outcome)
+	runTerminalCallback(f.callbacks.metrics, outcome)
+	runTerminalCallback(f.callbacks.traceClose, outcome)
+	runTerminalCallback(f.callbacks.settlementDecision, outcome)
+	runTerminalCallback(f.callbacks.admissionRelease, outcome)
+	runTerminalCallback(f.callbacks.clientTerminalEmission, outcome)
+}
+
+func runTerminalCallback(callback terminalCallback, outcome terminalOutcome) {
+	if callback == nil {
+		return
+	}
+	callback(outcome)
 }
