@@ -272,11 +272,11 @@ func (s *Service) executeFusionStream(ctx context.Context, req *llm.LLMRequest, 
 		result.finishError(err)
 		return nil, fmt.Errorf("judge model failed: %w", err)
 	}
-	result.events = addFusionUsageToStream(streamCh, promptTokens, completionTokens)
+	result.events = addFusionUsageToStream(ctx, streamCh, promptTokens, completionTokens)
 	return result, nil
 }
 
-func addFusionUsageToStream(streamCh <-chan llm.StreamEvent, promptTokens, completionTokens int) <-chan llm.StreamEvent {
+func addFusionUsageToStream(ctx context.Context, streamCh <-chan llm.StreamEvent, promptTokens, completionTokens int) <-chan llm.StreamEvent {
 	outCh := make(chan llm.StreamEvent)
 	go func() {
 		defer close(outCh)
@@ -288,7 +288,9 @@ func addFusionUsageToStream(streamCh <-chan llm.StreamEvent, promptTokens, compl
 				usage.TotalTokens = usage.PromptTokens + usage.CompletionTokens
 				event.Usage = &usage
 			}
-			outCh <- event
+			if !forwardStreamEvent(ctx, outCh, event) {
+				return
+			}
 		}
 	}()
 	return outCh
@@ -321,7 +323,10 @@ func (r *fusionStreamResult) forward() <-chan llm.StreamEvent {
 				r.finish(streamFinishInput{usage: result.finalUsage, ttft: result.ttft})
 				terminalSeen = true
 			}
-			outCh <- event
+			if !forwardStreamEvent(r.ctx, outCh, event) {
+				result.streamErr = context.Canceled
+				break
+			}
 		}
 		if result.streamErr == nil && r.ctx.Err() != nil {
 			result.streamErr = r.ctx.Err()
@@ -358,7 +363,7 @@ func (s *Service) bufferFusionStreamWithResponseRules(r *fusionStreamResult, p *
 		return nil, nil, result.streamErr
 	}
 	if result.hasToolCalls {
-		return replayStreamEvents(result.events), r.respMeta, nil
+		return replayStreamEvents(r.ctx, result.events), r.respMeta, nil
 	}
 	return singleTextStream(r.respMeta.Choices, result.finalUsage), r.respMeta, nil
 }

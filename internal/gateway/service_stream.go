@@ -216,7 +216,10 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 				if event.Done {
 					terminal.complete(nil, finalUsage, ttft)
 				}
-				outCh <- event
+				if !forwardStreamEvent(ctx, outCh, event) {
+					streamErr = context.Canceled
+					break
+				}
 			}
 			if streamErr == nil && ctx.Err() != nil {
 				streamErr = ctx.Err()
@@ -283,7 +286,7 @@ func (s *Service) bufferStreamWithResponseRules(in streamRuleContext) (<-chan ll
 		return nil, nil, result.streamErr
 	}
 	if result.hasToolCalls {
-		return replayStreamEvents(result.events), in.respMeta, nil
+		return replayStreamEvents(in.ctx, result.events), in.respMeta, nil
 	}
 	return singleTextStream(in.respMeta.Choices, result.finalUsage), in.respMeta, nil
 }
@@ -344,15 +347,26 @@ func (s *Service) finishStreamRequest(f streamFinish) {
 	}
 }
 
-func replayStreamEvents(events []llm.StreamEvent) <-chan llm.StreamEvent {
+func replayStreamEvents(ctx context.Context, events []llm.StreamEvent) <-chan llm.StreamEvent {
 	out := make(chan llm.StreamEvent)
 	go func() {
 		defer close(out)
 		for _, event := range events {
-			out <- event
+			if !forwardStreamEvent(ctx, out, event) {
+				return
+			}
 		}
 	}()
 	return out
+}
+
+func forwardStreamEvent(ctx context.Context, out chan<- llm.StreamEvent, event llm.StreamEvent) bool {
+	select {
+	case out <- event:
+		return true
+	case <-ctx.Done():
+		return false
+	}
 }
 
 func drainStream(ch <-chan llm.StreamEvent) {

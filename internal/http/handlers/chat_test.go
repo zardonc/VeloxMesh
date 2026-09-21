@@ -114,7 +114,7 @@ func TestChatCompletionsPassesToolFieldsAndReturnsUsage(t *testing.T) {
 	}
 }
 
-func TestChatCompletionsStreamAddsDoneWhenChannelCloses(t *testing.T) {
+func TestChatCompletionsStreamDoesNotAddDoneWhenChannelCloses(t *testing.T) {
 	adapter := &closeOnlyStreamAdapter{}
 	store := health.NewInMemoryStore()
 	store.EnsureProvider("p1", 3, 1)
@@ -132,12 +132,12 @@ func TestChatCompletionsStreamAddsDoneWhenChannelCloses(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d: %s", rec.Code, rec.Body.String())
 	}
-	if !bytes.Contains(rec.Body.Bytes(), []byte("data: [DONE]")) {
-		t.Fatalf("missing done frame: %s", rec.Body.String())
+	if bytes.Contains(rec.Body.Bytes(), []byte("data: [DONE]")) {
+		t.Fatalf("unexpected done frame after bare channel close: %s", rec.Body.String())
 	}
 }
 
-func TestChatCompletionsStreamReportsErrorThenDone(t *testing.T) {
+func TestChatCompletionsStreamSuppressesCancelledTerminalOutput(t *testing.T) {
 	adapter := &errorStreamAdapter{}
 	store := health.NewInMemoryStore()
 	store.EnsureProvider("p1", 3, 1)
@@ -155,7 +155,7 @@ func TestChatCompletionsStreamReportsErrorThenDone(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d: %s", rec.Code, rec.Body.String())
 	}
-	if !bytes.Contains(rec.Body.Bytes(), []byte("event: error")) || !bytes.Contains(rec.Body.Bytes(), []byte("data: [DONE]")) {
-		t.Fatalf("missing error or done frame: %s", rec.Body.String())
+	if bytes.Contains(rec.Body.Bytes(), []byte("event: error")) || bytes.Contains(rec.Body.Bytes(), []byte("data: [DONE]")) {
+		t.Fatalf("unexpected terminal output for cancellation: %s", rec.Body.String())
 	}
 }
