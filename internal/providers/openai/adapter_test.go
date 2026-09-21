@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	gatewayErr "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
@@ -395,6 +396,36 @@ func TestAdapter_StreamTreatsEOFAsDone(t *testing.T) {
 	}
 	if !done {
 		t.Fatalf("expected done event on EOF")
+	}
+}
+
+func TestAdapter_StreamCancellationClosesUpstreamResponse(t *testing.T) {
+	started := make(chan struct{})
+	upstreamCancelled := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.WriteHeader(http.StatusOK)
+		w.(http.Flusher).Flush()
+		close(started)
+		<-request.Context().Done()
+		close(upstreamCancelled)
+	}))
+	defer server.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	events, err := NewAdapter("test-openai", server.URL, "test-key", "gpt-4").Stream(ctx, &llm.LLMRequest{Model: "gpt-4"})
+	if err != nil {
+		t.Fatalf("Stream: %v", err)
+	}
+	<-started
+	cancel()
+	for range events {
+	}
+
+	select {
+	case <-upstreamCancelled:
+	case <-time.After(time.Second):
+		t.Fatal("upstream request did not observe cancellation")
 	}
 }
 

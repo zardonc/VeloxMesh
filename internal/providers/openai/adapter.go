@@ -138,6 +138,9 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 
 	resp, err := a.client.Do(httpReq)
 	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return nil, ctxErr
+		}
 		if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
 			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
 		}
@@ -236,6 +239,9 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 
 	resp, err := a.client.Do(httpReq)
 	if err != nil {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
 		if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
 			return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
 		}
@@ -271,13 +277,14 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 	go func() {
 		defer close(ch)
 		defer resp.Body.Close()
+		stopClose := context.AfterFunc(ctx, func() { _ = resp.Body.Close() })
+		defer stopClose()
 
 		reader := bufio.NewReader(resp.Body)
 		sawEvent := false
 		for {
 			select {
 			case <-ctx.Done():
-				ch <- llm.StreamEvent{Error: ctx.Err()}
 				return
 			default:
 			}
@@ -288,13 +295,13 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 				if strings.HasPrefix(lineStr, "data:") {
 					data := strings.TrimSpace(strings.TrimPrefix(lineStr, "data:"))
 					if data == "[DONE]" {
-						ch <- llm.StreamEvent{Done: true, Provider: a.id, Model: req.Model}
+						sendStreamEvent(ctx, ch, llm.StreamEvent{Done: true, Provider: a.id, Model: req.Model})
 						return
 					}
 
 					var chunk streamChunk
 					if err := json.Unmarshal([]byte(data), &chunk); err != nil {
-						ch <- llm.StreamEvent{Error: gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Malformed JSON from provider stream", http.StatusBadGateway)}
+						sendStreamEvent(ctx, ch, llm.StreamEvent{Error: gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Malformed JSON from provider stream", http.StatusBadGateway)})
 						return
 					}
 
@@ -317,22 +324,36 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 						}
 					}
 
-					ch <- event
+					if !sendStreamEvent(ctx, ch, event) {
+						return
+					}
 					sawEvent = true
 				}
 			}
 			if readErr != nil {
-				if sawEvent || errors.Is(readErr, io.EOF) || errors.Is(readErr, io.ErrUnexpectedEOF) {
-					ch <- llm.StreamEvent{Done: true, Provider: a.id, Model: req.Model}
+				if ctx.Err() != nil {
 					return
 				}
-				ch <- llm.StreamEvent{Error: readErr}
+				if sawEvent || errors.Is(readErr, io.EOF) || errors.Is(readErr, io.ErrUnexpectedEOF) {
+					sendStreamEvent(ctx, ch, llm.StreamEvent{Done: true, Provider: a.id, Model: req.Model})
+					return
+				}
+				sendStreamEvent(ctx, ch, llm.StreamEvent{Error: readErr})
 				return
 			}
 		}
 	}()
 
 	return ch, nil
+}
+
+func sendStreamEvent(ctx context.Context, ch chan<- llm.StreamEvent, event llm.StreamEvent) bool {
+	select {
+	case ch <- event:
+		return true
+	case <-ctx.Done():
+		return false
+	}
 }
 
 func (a *Adapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
