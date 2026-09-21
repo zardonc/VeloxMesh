@@ -65,6 +65,9 @@ const (
 // AffectsProviderHealth determines whether a given error should count as a provider failure
 // that increments consecutive failure counters and causes health degradation.
 func AffectsProviderHealth(err error) bool {
+	if errors.Is(err, context.Canceled) {
+		return false
+	}
 	if err == nil {
 		return false
 	}
@@ -76,7 +79,7 @@ func AffectsProviderHealth(err error) bool {
 	}
 
 	switch gwErr.Code {
-	case ProviderInvalidRequest:
+	case ProviderInvalidRequest, ErrPolicyBlocked.Code:
 		// Invalid requests caused by client input should not poison provider health
 		return false
 	case SchedulerBackpressure, SchedulerQueueFull, SchedulerQueueUnavailable:
