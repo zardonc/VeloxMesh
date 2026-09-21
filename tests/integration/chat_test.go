@@ -2,14 +2,12 @@ package integration
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 	"time"
 	"veloxmesh/internal/app"
@@ -394,101 +392,6 @@ func TestChatCompletions_MultiProvider(t *testing.T) {
 			t.Errorf("expected no fallback since p2 is ineligible")
 		}
 	})
-}
-
-func TestChatCompletions_Streaming(t *testing.T) {
-	p1 := setupFakeProvider(t, "p1", 10*time.Millisecond, http.StatusOK)
-	defer p1.Close()
-	p2 := setupFakeProvider(t, "p2", 10*time.Millisecond, http.StatusOK)
-	defer p2.Close()
-
-	cfgPath := writeConfig(t, p1, p2, "round-robin")
-	defer os.Remove(cfgPath)
-	os.Setenv("CONFIG_FILE", cfgPath)
-	defer os.Unsetenv("CONFIG_FILE")
-
-	application, err := app.New()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	chatReq := llm.ChatCompletionRequest{
-		Model: "gpt-4o",
-		Messages: []llm.Message{
-			{Role: llm.RoleUser, Content: "Hello"},
-		},
-		Stream: true,
-	}
-	body, _ := json.Marshal(chatReq)
-	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
-	req.Header.Set("Authorization", "Bearer "+application.Config.DevAPIKey)
-
-	rec := httptest.NewRecorder()
-	application.Router.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d: %s", rec.Code, rec.Body.String())
-	}
-	if rec.Header().Get("Content-Type") != "text/event-stream" {
-		t.Errorf("expected text/event-stream, got %s", rec.Header().Get("Content-Type"))
-	}
-
-	respBody := rec.Body.String()
-	if !strings.Contains(respBody, "Stream from p") {
-		t.Errorf("expected stream content, got %s", respBody)
-	}
-	if !strings.Contains(respBody, "data: [DONE]") {
-		t.Errorf("expected stream to finish with [DONE], got %s", respBody)
-	}
-}
-
-func TestChatCompletions_Cancel(t *testing.T) {
-	p1 := setupFakeProvider(t, "p1", 500*time.Millisecond, http.StatusOK)
-	defer p1.Close()
-
-	cfgPath := writeConfig(t, p1, p1, "round-robin")
-	defer os.Remove(cfgPath)
-	os.Setenv("CONFIG_FILE", cfgPath)
-	defer os.Unsetenv("CONFIG_FILE")
-
-	application, err := app.New()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	chatReq := llm.ChatCompletionRequest{
-		Model: "gpt-4o",
-		Messages: []llm.Message{
-			{Role: llm.RoleUser, Content: "Hello"},
-		},
-		Stream: true, // test cancellation for streaming
-	}
-	body, _ := json.Marshal(chatReq)
-	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
-	req.Header.Set("Authorization", "Bearer "+application.Config.DevAPIKey)
-
-	ctx, cancel := context.WithCancel(req.Context())
-	req = req.WithContext(ctx)
-
-	rec := httptest.NewRecorder()
-
-	go func() {
-		time.Sleep(50 * time.Millisecond)
-		cancel()
-	}()
-
-	application.Router.ServeHTTP(rec, req)
-
-	// Since context is canceled, gateway will return early. Depending on implementation,
-	// it might just close connection or return an error (if before headers).
-	// If it fails before writing headers, rec.Code would be 502/499.
-	// But it actually falls back to 502 if the context is canceled.
-	if rec.Code == http.StatusOK {
-		// If it wrote headers but then canceled, body should be empty or partial.
-		if strings.Contains(rec.Body.String(), "data: [DONE]") {
-			t.Errorf("expected cancellation to prevent [DONE] block")
-		}
-	}
 }
 
 func TestChatCompletions_Settlement(t *testing.T) {

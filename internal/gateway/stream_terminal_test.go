@@ -13,6 +13,8 @@ import (
 	"veloxmesh/internal/llm"
 )
 
+const repeatedTerminalCandidates = 128
+
 var terminalLifecycleOrder = []string{
 	"classification",
 	"provider_health",
@@ -156,6 +158,25 @@ func TestTerminalFinalizerConcurrentSubmit(t *testing.T) {
 		if count != 1 {
 			t.Fatalf("callback count=%d, want 1", count)
 		}
+	}
+}
+
+func TestTerminalFinalizerRepeatedCandidatesRemainSinglePass(t *testing.T) {
+	var callbackCount atomic.Int32
+	finalizer := newTerminalFinalizer(terminalFinalizerOptions{
+		providerHealth: func(terminalOutcome) { callbackCount.Add(1) },
+	})
+	completed := classifyTerminal(nil, &llm.Usage{TotalTokens: 1})
+	if !finalizer.Submit(completed) {
+		t.Fatal("first terminal outcome was rejected")
+	}
+	for range repeatedTerminalCandidates {
+		if finalizer.Submit(completed) {
+			t.Fatal("repeated terminal outcome was accepted")
+		}
+	}
+	if callbackCount.Load() != 1 {
+		t.Fatalf("callback count=%d, want 1", callbackCount.Load())
 	}
 }
 
