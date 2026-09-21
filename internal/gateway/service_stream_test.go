@@ -32,6 +32,11 @@ type controlledStreamAdapter struct {
 	events <-chan llm.StreamEvent
 }
 
+const (
+	benchmarkStreamChunkCount = 64
+	benchmarkStreamPayload    = "stream benchmark payload"
+)
+
 func (a *controlledStreamAdapter) Stream(context.Context, *llm.LLMRequest) (<-chan llm.StreamEvent, error) {
 	return a.events, nil
 }
@@ -159,6 +164,32 @@ func TestService_HandleChatCompletionStreamTerminalCancellationReleasesOnce(t *t
 	snapshot := store.Snapshot("p1")
 	if controller.releases.Load() != 1 || snapshot.TotalFailures != 0 || snapshot.TotalSuccesses != 1 {
 		t.Fatalf("release=%d snapshot=%#v", controller.releases.Load(), snapshot)
+	}
+}
+
+func BenchmarkServiceHandleChatCompletionStream(b *testing.B) {
+	events := make([]llm.StreamEvent, benchmarkStreamChunkCount+1)
+	for i := range benchmarkStreamChunkCount {
+		events[i] = llm.StreamEvent{DeltaContent: benchmarkStreamPayload}
+	}
+	events[benchmarkStreamChunkCount] = llm.StreamEvent{Done: true}
+
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	adapter := &mockStreamAdapter{mockAdapter: mockAdapter{id: "p1"}, events: events}
+	svc := newStreamTerminalTestService(b, adapter, store, admission.NewPassThroughController())
+	req := &llm.LLMRequest{Model: "gpt-4o", RequestID: "benchmark-stream", Stream: true}
+
+	b.ReportAllocs()
+	b.SetBytes(int64(benchmarkStreamChunkCount * len(benchmarkStreamPayload)))
+	b.ResetTimer()
+	for range b.N {
+		ch, _, err := svc.HandleChatCompletionStream(context.Background(), req)
+		if err != nil {
+			b.Fatal(err)
+		}
+		for range ch {
+		}
 	}
 }
 
@@ -362,7 +393,7 @@ func newStreamRuleTestService(t *testing.T, adapter *mockStreamAdapter, cfg *pip
 	return gateway.NewService(router, admission.NewPassThroughController(), store, false, 1, nil, nil, pipeline.DefaultRegistry(), staticRuleResolver{cfg: cfg}, nil)
 }
 
-func newStreamTerminalTestService(t *testing.T, adapter providers.ProviderAdapter, store health.Store, controller admission.Controller) *gateway.Service {
+func newStreamTerminalTestService(t testing.TB, adapter providers.ProviderAdapter, store health.Store, controller admission.Controller) *gateway.Service {
 	t.Helper()
 	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{adapter}, nil)
 	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)

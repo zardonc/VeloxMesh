@@ -15,6 +15,7 @@ date: 2026-09-21
 - Added integration coverage for compatible successful SSE output, client cancellation without a `[DONE]` frame, and unauthenticated streaming requests.
 - Added an OpenAI adapter cancellation regression. It closes a blocked upstream response body when the request context ends, so cancellation can interrupt `ReadBytes` and stop stream forwarding.
 - Captured JSON test output and required concrete `pass` events, preventing a no-match `-run` selection from being reported as success.
+- Added `BenchmarkServiceHandleChatCompletionStream`, a deterministic 64-event in-memory gateway-stream benchmark that reports allocation and throughput without a provider, database, or network dependency.
 
 ## Matrix Evidence
 
@@ -26,7 +27,7 @@ date: 2026-09-21
 | E-07 | Handler | `TestChatCompletionsStreamCancelsRequestAfterWriteFailure` and terminal-write failure coverage reject later output. |
 | B-05 | Unit | `TestTerminalFinalizerRepeatedCandidatesRemainSinglePass` verifies the first terminal candidate remains the only accepted candidate. |
 | AUTH-05 | Integration | `TestChatCompletionsStreamingRequiresAuthorization` rejects unauthenticated streaming without terminal output. |
-| PF-05 | Unit | The bounded 128-candidate finalizer regression asserts one callback and performs no external I/O or goroutine creation. |
+| PF-05 | Gateway benchmark and unit | The 128-candidate finalizer regression proves one terminal callback; the 64-event stream benchmark measures the complete local forwarding path. |
 
 ## Verification
 
@@ -40,6 +41,7 @@ Passed focused commands:
 - `go vet ./internal/gateway ./internal/http/handlers ./internal/providers/openai ./tests/integration`
 - JSON-selected gateway matrix tests emitted passing test events for classifier, finalizer, settlement, and Fusion terminal cases.
 - JSON-selected handler and integration matrix tests emitted passing test events for successful streams, provider failures, cancellation, writer failures, and authorization denial.
+- `go test -timeout 60s ./internal/gateway -run '^$' -bench '^BenchmarkServiceHandleChatCompletionStream$' -benchmem -benchtime=200ms -count=5` passed. Across five runs, the 64-event stream measured 30.1–34.7 microseconds/op, 38 allocations/op, and 44.2–51.0 MB/s. The benchmark fixture uses only in-memory adapters and no repository or external I/O.
 
 File-size verification:
 
