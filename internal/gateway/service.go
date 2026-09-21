@@ -68,56 +68,6 @@ func (s *Service) SetSchedulerRunner(runner *scheduler.SynchronousRunner) {
 	s.schedulerRunner = runner
 }
 
-func (s *Service) settle(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, usage *llm.Usage, latency time.Duration) {
-	if s.repo == nil {
-		return
-	}
-
-	model := req.Model
-	if decision.UpstreamModel != "" {
-		model = decision.UpstreamModel
-	}
-
-	record := &controlstate.UsageRecord{
-		ID:         req.RequestID,
-		ProviderID: decision.ProviderID,
-		Model:      model,
-		DurationMs: latency.Milliseconds(),
-		Timestamp:  time.Now().UTC(),
-	}
-
-	if usage != nil {
-		record.PromptTokens = usage.PromptTokens
-		record.ResponseTokens = usage.CompletionTokens
-		record.TotalTokens = usage.TotalTokens
-	} else {
-		record.Status = controlstate.SettlementStatusMissingUsage
-	}
-
-	if identity := middleware.GetAuthIdentity(ctx); identity != nil && identity.ID != "dev-key" && identity.ID != "admin-key" {
-		record.APIKeyID = &identity.ID
-	}
-
-	if record.Status == controlstate.SettlementStatusMissingUsage {
-		_ = s.repo.Usage().Log(context.Background(), record)
-		return
-	}
-
-	_ = s.repo.Settle(context.Background(), record)
-
-	// After successful SQLite settlement, aggregate cost in Redis if available
-	if s.costAggregator != nil && record.CreditsConsumed != nil {
-		apiKey := "anonymous"
-		if record.APIKeyID != nil {
-			apiKey = *record.APIKeyID
-		}
-		if err := s.costAggregator.AggregateCost(context.Background(), record.ProviderID, record.Model, apiKey, *record.CreditsConsumed); err != nil {
-			// Log but do not fail the request or hide the SQLite success
-			// observability logger could be used here. For now just swallow to fulfill D-05
-		}
-	}
-}
-
 func (s *Service) HealthStore() health.Store {
 	return s.healthStore
 }
@@ -270,7 +220,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 				}
 				return nil, err
 			}
-			s.settle(ctx, req, decision, resp.Usage, latency)
+			s.settleCompleted(ctx, req, decision, resp.Usage, latency)
 			return resp, nil
 		}
 
@@ -386,7 +336,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, 200)
 		observability.DefaultMetrics.RecordProviderLatency(decision.ProviderID, float64(latency.Milliseconds()))
 
-		s.settle(ctx, req, decision, resp.Usage, latency)
+		s.settleCompleted(ctx, req, decision, resp.Usage, latency)
 
 		// Cache Store
 		if s.semanticCache != nil && !req.Stream && req.RouteOverride == "" && identityScope != "" && identityScope != "admin-key" {

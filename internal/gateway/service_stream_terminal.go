@@ -94,10 +94,10 @@ func (t *streamTerminalState) recordTrace(outcome terminalOutcome) {
 }
 
 func (t *streamTerminalState) recordSettlement(outcome terminalOutcome) {
-	if !t.config.settle || outcome.kind != terminalCompleted {
+	if !t.config.settle {
 		return
 	}
-	t.service.settle(t.config.ctx, t.config.req, t.config.settlementDecision, terminalUsage(outcome), t.latency())
+	t.service.settleTerminal(t.config.ctx, t.config.req, t.config.settlementDecision, outcome, t.latency())
 }
 
 func (t *streamTerminalState) releaseAdmission(terminalOutcome) {
