@@ -1,48 +1,73 @@
-package gateway_test
+package gateway
 
 import (
 	"context"
+	stderrors "errors"
 	"testing"
+	"time"
 
-	"veloxmesh/internal/admission"
-	"veloxmesh/internal/config"
-	"veloxmesh/internal/gateway"
+	gatewayerrors "veloxmesh/internal/errors"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/llm"
-	"veloxmesh/internal/pipeline"
-	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
 )
 
-func TestFusionStreamTerminalAdapterCompletesOnce(t *testing.T) {
-	controller := &countingAdmissionController{}
-	store := health.NewInMemoryStore()
-	for _, providerID := range []string{"p1", "p2", "judge"} {
-		store.EnsureProvider(providerID, 3, 1)
-	}
-	p1 := &mockAdapter{id: "p1", models: []string{"member-a"}, resp: textResponse("member a")}
-	p2 := &mockAdapter{id: "p2", models: []string{"member-b"}, resp: textResponse("member b")}
-	judge := &mockStreamAdapter{mockAdapter: mockAdapter{id: "judge", models: []string{"judge-model"}}}
-	registry := providers.NewRegistry(&config.Config{}, []providers.ProviderAdapter{p1, p2, judge}, []providers.Combo{
-		{ID: "fusion-combo", Name: "fusion-combo", Strategy: "fusion", Members: []string{"member-a", "member-b"}, Judge: "judge-model"},
-	})
-	router := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
-	svc := gateway.NewService(router, controller, store, false, 1, nil, nil, pipeline.DefaultRegistry(), nil, nil)
-
-	ch, _, err := svc.HandleChatCompletionStream(context.Background(), &llm.LLMRequest{Model: "fusion-combo", RequestID: "req-1", Stream: true})
-	if err != nil {
-		t.Fatalf("HandleChatCompletionStream: %v", err)
-	}
-	for range ch {
+func TestFusionTerminalUsesSharedOutcomeContract(t *testing.T) {
+	usage := &llm.Usage{PromptTokens: 3, CompletionTokens: 2, TotalTokens: 5}
+	tests := []struct {
+		name              string
+		err               error
+		settles           int
+		expectedSuccesses int
+		expectedFailures  int
+	}{
+		{name: "completed settles once", settles: 1, expectedSuccesses: 1},
+		{name: "provider error does not settle", err: gatewayerrors.NewGatewayError(gatewayerrors.ProviderUnavailable, "unavailable", 503), expectedFailures: 1},
+		{name: "client cancellation does not settle", err: context.Canceled, expectedSuccesses: 1},
+		{name: "policy rejection does not settle", err: gatewayerrors.ErrPolicyBlocked, expectedSuccesses: 1},
+		{name: "internal abnormal does not settle", err: stderrors.New("internal failure"), expectedFailures: 1},
 	}
 
-	if controller.releases.Load() != 3 {
-		t.Fatalf("release calls=%d, want 3 for two members and one judge", controller.releases.Load())
-	}
-	judgeSnapshot := store.Snapshot("judge")
-	if judgeSnapshot.TotalSuccesses != 1 || judgeSnapshot.TotalFailures != 0 {
-		t.Fatalf("judge snapshot=%#v", judgeSnapshot)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			repo := testSettlementRepo()
+			store := health.NewInMemoryStore()
+			store.EnsureProvider("judge", 3, 1)
+			store.BeginRequest("judge")
+			service := newSettlementService(repo, nil)
+			service.healthStore = store
+			service.cb = NewCircuitBreaker(CircuitBreakerConfig{})
+			releases := 0
+			response := &llm.LLMResponse{}
+			terminal := service.newFusionStreamTerminal(fusionStreamTerminalConfig{
+				ctx:           context.Background(),
+				req:           settlementRequest(),
+				comboDecision: routing.RoutingDecision{ProviderID: "fusion-combo", Strategy: "fusion"},
+				judgeDecision: routing.RoutingDecision{ProviderID: "judge", Strategy: "fusion"},
+				response:      response,
+				start:         time.Now(),
+				release:       func() { releases++ },
+			})
+
+			terminal.complete(test.err, usage, 0)
+			terminal.complete(context.Canceled, usage, 0)
+
+			snapshot := store.Snapshot("judge")
+			if releases != 1 {
+				t.Fatalf("release calls=%d, want 1", releases)
+			}
+			if snapshot.TotalSuccesses != test.expectedSuccesses || snapshot.TotalFailures != test.expectedFailures {
+				t.Fatalf("judge snapshot=%#v", snapshot)
+			}
+			if repo.settleCalls != test.settles {
+				t.Fatalf("settlement calls=%d, want %d", repo.settleCalls, test.settles)
+			}
+			if test.settles == 1 && repo.settled[0].ProviderID != "fusion-combo" {
+				t.Fatalf("settlement provider=%q, want fusion-combo", repo.settled[0].ProviderID)
+			}
+			if response.Usage == nil || response.Usage.TotalTokens != usage.TotalTokens {
+				t.Fatalf("terminal usage was not retained: %#v", response.Usage)
+			}
+		})
 	}
 }
-
-var _ admission.Controller = (*countingAdmissionController)(nil)
