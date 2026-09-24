@@ -3,6 +3,7 @@ package routing
 import (
 	"context"
 	"sync/atomic"
+
 	"veloxmesh/internal/errors"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/llm"
@@ -58,78 +59,70 @@ func (r *HealthAwareRouter) SelectExcluding(ctx context.Context, req *llm.LLMReq
 	if !r.registry.HasConfiguredProviders() {
 		return nil, RoutingDecision{}, errors.ErrNoActiveProviderConfig
 	}
-
 	if req.RouteOverride != "" {
-		return r.selectOverride(req.RouteOverride, req.Model)
+		return r.selectOverride(req.RouteOverride, req)
 	}
-
-	combo, isCombo := r.registry.ModelCatalog().GetCombo(req.Model)
-	if isCombo {
+	if combo, ok := r.registry.ModelCatalog().GetCombo(req.Model); ok {
 		return r.selectCombo(ctx, req, combo, excluded)
 	}
+	return r.selectProvider(req, excluded)
+}
 
+func (r *HealthAwareRouter) selectProvider(req *llm.LLMRequest, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error) {
 	eligible := r.registry.EligibleProviders(req.Model, providers.OperationChatCompletions)
 	if len(eligible) == 0 {
 		return nil, RoutingDecision{}, errors.ErrNoEligibleProvider
 	}
-
-	healthyProviders := r.getHealthyProviders(eligible, excluded)
+	capable := filterCandidates(eligible, req)
+	if len(capable) == 0 {
+		return nil, RoutingDecision{}, capabilityError(req)
+	}
+	healthyProviders := r.getHealthyProviders(capable, excluded)
 	if len(healthyProviders) == 0 {
 		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
 	}
+	return r.selectWithStrategy(healthyProviders, req)
+}
 
-	var selected providers.ProviderAdapter
+func (r *HealthAwareRouter) selectWithStrategy(candidates []providers.ProviderAdapter, req *llm.LLMRequest) (providers.ProviderAdapter, RoutingDecision, error) {
 	strategyUsed := r.strategy
-
+	var selected providers.ProviderAdapter
 	switch r.strategy {
 	case "least-latency":
-		selected = r.selectLeastLatency(healthyProviders)
+		selected = r.selectLeastLatency(candidates)
 		if selected == nil {
-			// Cold start fallback
-			selected = r.selectRoundRobin(healthyProviders)
+			selected = r.selectRoundRobin(candidates)
 			strategyUsed = "least-latency-cold-start-rr"
 		}
 	case "round-robin":
-		selected = r.selectRoundRobin(healthyProviders)
+		selected = r.selectRoundRobin(candidates)
 	case "composite-score":
-		cfg := DefaultCompositeConfig()
-		if r.compositeCfg != nil {
-			cfg = *r.compositeCfg
-		}
-		sel, summary, err := SelectComposite(healthyProviders, r.healthStore, req, cfg)
-		if err != nil {
-			if err == errors.ErrCompositeScoreBelowThreshold && sel != nil {
-				return sel, RoutingDecision{
-					ProviderID:            sel.ID(),
-					Strategy:              "composite-score",
-					CompositeScoreSummary: &summary,
-				}, err
-			}
-			return nil, RoutingDecision{}, err
-		}
-		return sel, RoutingDecision{
-			ProviderID:            sel.ID(),
-			Strategy:              "composite-score",
-			CompositeScoreSummary: &summary,
-		}, nil
+		return r.selectComposite(candidates, req)
 	default:
-		// Default to round-robin if unknown
-		selected = r.selectRoundRobin(healthyProviders)
+		selected = r.selectRoundRobin(candidates)
 		strategyUsed = "round-robin-fallback"
 	}
+	return selected, RoutingDecision{ProviderID: selected.ID(), Strategy: strategyUsed}, nil
+}
 
-	return selected, RoutingDecision{
-		ProviderID: selected.ID(),
-		Strategy:   strategyUsed,
-	}, nil
+func (r *HealthAwareRouter) selectComposite(candidates []providers.ProviderAdapter, req *llm.LLMRequest) (providers.ProviderAdapter, RoutingDecision, error) {
+	cfg := DefaultCompositeConfig()
+	if r.compositeCfg != nil {
+		cfg = *r.compositeCfg
+	}
+	selected, summary, err := SelectComposite(candidates, r.healthStore, req, cfg)
+	if err != nil && (err != errors.ErrCompositeScoreBelowThreshold || selected == nil) {
+		return nil, RoutingDecision{}, err
+	}
+	decision := RoutingDecision{ProviderID: selected.ID(), Strategy: "composite-score", CompositeScoreSummary: &summary}
+	return selected, decision, err
 }
 
 func extractRequirements(req *llm.LLMRequest) (requiresStream, requiresTools, requiresImage bool) {
 	requiresStream = req.Stream
-	requiresTools = len(req.Tools) > 0
-
-	for _, msg := range req.Messages {
-		for _, part := range msg.MultiContent {
+	requiresTools = req.ToolRequirements.UsesProtocol()
+	for _, message := range req.Messages {
+		for _, part := range message.MultiContent {
 			if part.Type == llm.ContentTypeImageURL {
 				requiresImage = true
 				break
@@ -140,174 +133,181 @@ func extractRequirements(req *llm.LLMRequest) (requiresStream, requiresTools, re
 }
 
 func (r *HealthAwareRouter) selectCombo(ctx context.Context, req *llm.LLMRequest, combo *providers.Combo, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error) {
+	if combo.Strategy == "fusion" && req.ToolRequirements.UsesProtocol() {
+		return nil, RoutingDecision{}, unsupportedToolCallingError()
+	}
 	switch combo.Strategy {
 	case "round-robin":
-		// round-robin across members
-		count := atomic.AddUint64(&r.rrCounter, 1)
-		idx := (count - 1) % uint64(len(combo.Members))
-		targetModel := combo.Members[idx]
+		return r.selectRoundRobinCombo(req, combo, excluded)
+	case "capacity-auto-switch":
+		return r.selectCapacityCombo(req, combo, excluded)
+	case "fusion":
+		return r.selectFusionCombo(ctx, req, combo, excluded)
+	default:
+		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
+	}
+}
 
-		eligible := r.registry.EligibleProviders(targetModel, providers.OperationChatCompletions)
-		healthyProviders := r.getHealthyProviders(eligible, excluded)
-		if len(healthyProviders) == 0 {
-			return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
+func (r *HealthAwareRouter) selectRoundRobinCombo(req *llm.LLMRequest, combo *providers.Combo, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error) {
+	if req.ToolRequirements.UsesProtocol() && !r.comboMembersSupport(combo, req) {
+		return nil, RoutingDecision{}, capabilityError(req)
+	}
+	count := atomic.AddUint64(&r.rrCounter, 1)
+	targetModel := combo.Members[(count-1)%uint64(len(combo.Members))]
+	eligible := r.registry.EligibleProviders(targetModel, providers.OperationChatCompletions)
+	healthyProviders := r.getHealthyProviders(filterCandidates(eligible, req), excluded)
+	if len(healthyProviders) == 0 {
+		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
+	}
+	selected := r.selectLeastLatency(healthyProviders)
+	if selected == nil {
+		selected = r.selectRoundRobin(healthyProviders)
+	}
+	return selected, RoutingDecision{ProviderID: selected.ID(), Strategy: "combo:round-robin", ComboID: combo.ID, UpstreamModel: targetModel}, nil
+}
+
+func (r *HealthAwareRouter) selectCapacityCombo(req *llm.LLMRequest, combo *providers.Combo, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error) {
+	foundCapable := false
+	for _, member := range combo.Members {
+		eligible := r.registry.EligibleProviders(member, providers.OperationChatCompletions)
+		capable := filterCandidates(eligible, req)
+		if len(capable) == 0 {
+			continue
 		}
-
+		foundCapable = true
+		healthyProviders := r.getHealthyProviders(capable, excluded)
+		if len(healthyProviders) == 0 {
+			continue
+		}
 		selected := r.selectLeastLatency(healthyProviders)
 		if selected == nil {
 			selected = r.selectRoundRobin(healthyProviders)
 		}
-
-		return selected, RoutingDecision{
-			ProviderID:    selected.ID(),
-			Strategy:      "combo:round-robin",
-			ComboID:       combo.ID,
-			UpstreamModel: targetModel,
-		}, nil
-
-	case "capacity-auto-switch":
-		requiresStream, requiresTools, requiresImage := extractRequirements(req)
-
-		// Two passes: First pass requires capabilities. Second pass is fallback.
-		// Wait, if it requires tools, a model without tools will definitely fail, so maybe only strict filtering?
-		// "prioritize combo members that satisfy the request capability first, then fall back through remaining eligible members in combo order."
-
-		// First pass: Try to find a healthy member that strictly satisfies the requirements
-		for _, member := range combo.Members {
-			eligible := r.registry.EligibleProviders(member, providers.OperationChatCompletions)
-
-			// Filter eligible providers by capabilities
-			var capableProviders []providers.ModelProvider
-			for _, ep := range eligible {
-				if ep.Capabilities.SatisfiesRequirements(requiresStream, requiresTools, requiresImage) {
-					capableProviders = append(capableProviders, ep)
-				}
-			}
-
-			healthyProviders := r.getHealthyProviders(capableProviders, excluded)
-			if len(healthyProviders) > 0 {
-				selected := r.selectLeastLatency(healthyProviders)
-				if selected == nil {
-					selected = r.selectRoundRobin(healthyProviders)
-				}
-				return selected, RoutingDecision{
-					ProviderID:    selected.ID(),
-					Strategy:      "combo:capacity-auto-switch",
-					ComboID:       combo.ID,
-					UpstreamModel: member,
-				}, nil
-			}
-		}
-
-		// Second pass (Fallback): Ignore capability matching, just find a healthy member
-		for _, member := range combo.Members {
-			eligible := r.registry.EligibleProviders(member, providers.OperationChatCompletions)
-			healthyProviders := r.getHealthyProviders(eligible, excluded)
-			if len(healthyProviders) > 0 {
-				selected := r.selectLeastLatency(healthyProviders)
-				if selected == nil {
-					selected = r.selectRoundRobin(healthyProviders)
-				}
-				return selected, RoutingDecision{
-					ProviderID:    selected.ID(),
-					Strategy:      "combo:capacity-auto-switch",
-					ComboID:       combo.ID,
-					UpstreamModel: member,
-				}, nil
-			}
-		}
-
-		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
-
-	case "fusion":
-		// Fusion requires multiple providers
-		var fusionProviders []FusionProvider
-		for _, member := range combo.Members {
-			eligible := r.registry.EligibleProviders(member, providers.OperationChatCompletions)
-			healthyProviders := r.getHealthyProviders(eligible, excluded) // should we exclude for fusion? yes, if one failed. Actually fusion handles its own partial failures typically, but let's respect excluded.
-			if len(healthyProviders) > 0 {
-				selected := r.selectLeastLatency(healthyProviders)
-				if selected == nil {
-					selected = r.selectRoundRobin(healthyProviders)
-				}
-				fusionProviders = append(fusionProviders, FusionProvider{ProviderID: selected.ID(), Adapter: selected, Model: member})
-			}
-		}
-		if len(fusionProviders) == 0 {
-			return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
-		}
-
-		return nil, RoutingDecision{
-			ProviderID:      "fusion-ensemble",
-			Strategy:        "combo:fusion",
-			ComboID:         combo.ID,
-			IsFusion:        true,
-			FusionProviders: fusionProviders,
-			FusionJudge:     combo.Judge,
-		}, nil
-
-	default:
-		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider // or unsupported strategy
+		return selected, RoutingDecision{ProviderID: selected.ID(), Strategy: "combo:capacity-auto-switch", ComboID: combo.ID, UpstreamModel: member}, nil
 	}
+	if !foundCapable {
+		return nil, RoutingDecision{}, capabilityError(req)
+	}
+	return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
+}
+
+func (r *HealthAwareRouter) selectFusionCombo(ctx context.Context, req *llm.LLMRequest, combo *providers.Combo, excluded map[string]bool) (providers.ProviderAdapter, RoutingDecision, error) {
+	fusionProviders := make([]FusionProvider, 0, len(combo.Members))
+	for _, member := range combo.Members {
+		eligible := r.registry.EligibleProviders(member, providers.OperationChatCompletions)
+		healthyProviders := r.getHealthyProviders(filterCandidates(eligible, req), excluded)
+		if len(healthyProviders) == 0 {
+			continue
+		}
+		selected := r.selectLeastLatency(healthyProviders)
+		if selected == nil {
+			selected = r.selectRoundRobin(healthyProviders)
+		}
+		fusionProviders = append(fusionProviders, FusionProvider{ProviderID: selected.ID(), Adapter: selected, Model: member})
+	}
+	if len(fusionProviders) == 0 {
+		return nil, RoutingDecision{}, errors.ErrNoHealthyProvider
+	}
+	return nil, RoutingDecision{ProviderID: "fusion-ensemble", Strategy: "combo:fusion", ComboID: combo.ID, IsFusion: true, FusionProviders: fusionProviders, FusionJudge: combo.Judge}, nil
+}
+
+func (r *HealthAwareRouter) comboMembersSupport(combo *providers.Combo, req *llm.LLMRequest) bool {
+	for _, member := range combo.Members {
+		eligible := r.registry.EligibleProviders(member, providers.OperationChatCompletions)
+		if len(eligible) == 0 || len(filterCandidates(eligible, req)) != len(eligible) {
+			return false
+		}
+	}
+	return true
+}
+
+func filterCandidates(eligible []providers.ModelProvider, req *llm.LLMRequest) []providers.ModelProvider {
+	requiresStream, _, requiresImage := extractRequirements(req)
+	capable := make([]providers.ModelProvider, 0, len(eligible))
+	for _, candidate := range eligible {
+		if !candidate.Capabilities.SatisfiesRequirements(requiresStream, false, requiresImage) {
+			continue
+		}
+		if candidate.Capabilities.SupportsToolProtocol(req.ToolRequirements, req.Stream) {
+			capable = append(capable, candidate)
+		}
+	}
+	return capable
+}
+
+func unsupportedToolProtocolError(requirements llm.ToolProtocolRequirements) *errors.GatewayError {
+	if requirements.HasExplicitChoice {
+		return errors.NewGatewayError(errors.UnsupportedToolChoice, "requested provider/model does not support the requested tool choice", 400)
+	}
+	return unsupportedToolCallingError()
+}
+
+func unsupportedToolCallingError() *errors.GatewayError {
+	return errors.NewGatewayError(errors.UnsupportedToolCalling, "requested provider/model does not support tool calling", 400)
+}
+func capabilityError(req *llm.LLMRequest) error {
+	if req.ToolRequirements.UsesProtocol() {
+		return unsupportedToolProtocolError(req.ToolRequirements)
+	}
+	return errors.ErrNoEligibleProvider
 }
 
 func (r *HealthAwareRouter) getHealthyProviders(eligible []providers.ModelProvider, excluded map[string]bool) []providers.ProviderAdapter {
-	var healthy []providers.ProviderAdapter
-	for _, pInfo := range eligible {
-		if excluded != nil && excluded[pInfo.ProviderID] {
+	healthy := make([]providers.ProviderAdapter, 0, len(eligible))
+	for _, provider := range eligible {
+		if excluded != nil && excluded[provider.ProviderID] {
 			continue
 		}
-		snap := r.healthStore.Snapshot(pInfo.ProviderID)
-		if snap.Status != health.StatusUnhealthy {
-			if adapter, err := r.registry.Get(pInfo.ProviderID); err == nil {
-				healthy = append(healthy, adapter)
-			}
+		snapshot := r.healthStore.Snapshot(provider.ProviderID)
+		if snapshot.Status == health.StatusUnhealthy {
+			continue
+		}
+		adapter, err := r.registry.Get(provider.ProviderID)
+		if err == nil {
+			healthy = append(healthy, adapter)
 		}
 	}
 	return healthy
 }
 
-func (r *HealthAwareRouter) selectOverride(providerID string, model string) (providers.ProviderAdapter, RoutingDecision, error) {
+func (r *HealthAwareRouter) selectOverride(providerID string, req *llm.LLMRequest) (providers.ProviderAdapter, RoutingDecision, error) {
 	adapter, err := r.registry.Get(providerID)
 	if err != nil {
 		return nil, RoutingDecision{}, errors.ErrUnknownProviderOverride
 	}
-
-	if !r.registry.ProviderSupports(providerID, model, providers.OperationChatCompletions) {
+	catalog := r.registry.ModelCatalog()
+	if !catalog.ProviderSupports(providerID, req.Model, providers.OperationChatCompletions) {
 		return nil, RoutingDecision{}, errors.ErrIneligibleProviderOverride
 	}
-
-	snap := r.healthStore.Snapshot(providerID)
-	if snap.Status == health.StatusUnhealthy {
+	capabilities, found := catalog.ProviderCapabilities(providerID, req.Model)
+	requiresStream, _, requiresImage := extractRequirements(req)
+	if !found || !capabilities.SatisfiesRequirements(requiresStream, false, requiresImage) {
+		return nil, RoutingDecision{}, errors.ErrIneligibleProviderOverride
+	}
+	if !capabilities.SupportsToolProtocol(req.ToolRequirements, req.Stream) {
+		return nil, RoutingDecision{}, capabilityError(req)
+	}
+	if r.healthStore.Snapshot(providerID).Status == health.StatusUnhealthy {
 		return nil, RoutingDecision{}, errors.ErrUnhealthyProviderOverride
 	}
-
-	return adapter, RoutingDecision{
-		ProviderID: adapter.ID(),
-		Strategy:   "override",
-	}, nil
+	return adapter, RoutingDecision{ProviderID: adapter.ID(), Strategy: "override"}, nil
 }
 
 func (r *HealthAwareRouter) selectRoundRobin(candidates []providers.ProviderAdapter) providers.ProviderAdapter {
 	count := atomic.AddUint64(&r.rrCounter, 1)
-	idx := (count - 1) % uint64(len(candidates))
-	return candidates[idx]
+	return candidates[(count-1)%uint64(len(candidates))]
 }
 
 func (r *HealthAwareRouter) selectLeastLatency(candidates []providers.ProviderAdapter) providers.ProviderAdapter {
 	var best providers.ProviderAdapter
 	var lowestLatency int64 = -1
-
-	for _, p := range candidates {
-		snap := r.healthStore.Snapshot(p.ID())
-		if snap.EWMALatency > 0 {
-			if lowestLatency == -1 || int64(snap.EWMALatency) < lowestLatency {
-				lowestLatency = int64(snap.EWMALatency)
-				best = p
-			}
+	for _, candidate := range candidates {
+		latency := int64(r.healthStore.Snapshot(candidate.ID()).EWMALatency)
+		if latency > 0 && (lowestLatency == -1 || latency < lowestLatency) {
+			lowestLatency = latency
+			best = candidate
 		}
 	}
-
 	return best
 }
 

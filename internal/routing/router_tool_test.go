@@ -2,7 +2,6 @@ package routing_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"veloxmesh/internal/config"
@@ -37,6 +36,7 @@ func (a *toolSpyAdapter) HealthCheck(context.Context) providers.HealthStatus {
 
 type toolProtocolFixture struct {
 	definitions bool
+	assistant   bool
 	results     bool
 	streaming   bool
 	choices     map[string]bool
@@ -49,7 +49,7 @@ func TestHealthAwareRouter_ToolProtocolFiltersAutomaticCandidates(t *testing.T) 
 			compatible := newToolSpyAdapter("compatible", "shared", tc.supports)
 			router := newToolRouter(t, "round-robin", nil, incompatible, compatible)
 
-			adapter, _, err := router.Select(context.Background(), tc.req)
+			adapter, _, err := router.SelectExcluding(context.Background(), tc.req, map[string]bool{})
 			if err != nil {
 				t.Fatalf("Select() error = %v", err)
 			}
@@ -78,10 +78,19 @@ func automaticToolCases() []automaticToolCase {
 		{name: "required choice", req: toolRequest(explicitChoice(llm.ToolChoiceRequired)), missing: fixtureWithChoice("required", false), supports: fixtureWithChoice("required", true)},
 		{name: "named function choice", req: toolRequest(explicitChoice(llm.ToolChoiceNamed)), missing: fixtureWithChoice("named", false), supports: fixtureWithChoice("named", true)},
 		{name: "tool results", req: toolRequest(llm.ToolProtocolRequirements{HasDefinitions: true, HasToolResult: true}), missing: fixtureWithResults(false), supports: fixtureWithResults(true)},
+		{name: "assistant tool calls", req: toolRequest(llm.ToolProtocolRequirements{HasAssistantToolCall: true}), missing: fixtureWithAssistant(false), supports: fixtureWithAssistant(true)},
 		{name: "streamed tool deltas", req: streamToolRequest(), missing: fixtureWithoutStreaming(), supports: full},
 	}
 }
 
+func TestHealthAwareRouter_ToolProtocolRejectsExhaustedCandidatesBeforeIO(t *testing.T) {
+	adapter := newToolSpyAdapter("incompatible", "shared", fixtureWithChoice("auto", false))
+	router := newToolRouter(t, "round-robin", nil, adapter)
+
+	_, _, err := router.SelectExcluding(context.Background(), toolRequest(explicitChoice(llm.ToolChoiceAuto)), map[string]bool{})
+	assertGatewayCode(t, err, gatewayerrors.UnsupportedToolChoice)
+	assertNoUpstreamCalls(t, adapter)
+}
 func TestHealthAwareRouter_ToolProtocolRejectsExplicitOverridesBeforeIO(t *testing.T) {
 	choiceAdapter := newToolSpyAdapter("choice", "shared", fixtureWithChoice("named", false))
 	choiceReq := toolRequest(explicitChoice(llm.ToolChoiceNamed))
@@ -105,7 +114,9 @@ func TestHealthAwareRouter_ToolProtocolDoesNotBypassComboSelection(t *testing.T)
 		combo := providers.Combo{ID: "capacity", Name: "combo", Strategy: "capacity-auto-switch", Members: []string{"first-model", "second-model"}}
 		router := newToolRouter(t, "round-robin", []providers.Combo{combo}, first, second)
 
-		_, _, err := router.Select(context.Background(), toolRequest(explicitChoice(llm.ToolChoiceRequired)))
+		req := toolRequest(explicitChoice(llm.ToolChoiceRequired))
+		req.Model = combo.Name
+		_, _, err := router.Select(context.Background(), req)
 		assertGatewayCode(t, err, gatewayerrors.UnsupportedToolChoice)
 		assertNoUpstreamCalls(t, first, second)
 	})
@@ -116,7 +127,9 @@ func TestHealthAwareRouter_ToolProtocolDoesNotBypassComboSelection(t *testing.T)
 		combo := providers.Combo{ID: "round-robin", Name: "combo", Strategy: "round-robin", Members: []string{"first-model", "second-model"}}
 		router := newToolRouter(t, "round-robin", []providers.Combo{combo}, first, second)
 
-		_, _, err := router.Select(context.Background(), toolRequest(explicitChoice(llm.ToolChoiceAuto)))
+		req := toolRequest(explicitChoice(llm.ToolChoiceAuto))
+		req.Model = combo.Name
+		_, _, err := router.Select(context.Background(), req)
 		assertGatewayCode(t, err, gatewayerrors.UnsupportedToolChoice)
 		assertNoUpstreamCalls(t, first, second)
 	})
@@ -129,6 +142,7 @@ func TestHealthAwareRouter_ToolProtocolRejectsFusionBeforeIO(t *testing.T) {
 		combo := providers.Combo{ID: "fusion", Name: "combo", Strategy: "fusion", Members: []string{"first-model", "second-model"}, Judge: "judge"}
 		router := newToolRouter(t, "round-robin", []providers.Combo{combo}, first, second)
 
+		req.Model = combo.Name
 		_, decision, err := router.Select(context.Background(), req)
 		assertGatewayCode(t, err, gatewayerrors.UnsupportedToolCalling)
 		if decision.IsFusion {
@@ -186,88 +200,38 @@ func newToolSpyAdapter(id, model string, fixture toolProtocolFixture) *toolSpyAd
 }
 
 func capabilitySet(fixture toolProtocolFixture) providers.CapabilitySet {
-	capabilities := providers.CapabilitySet{
+	return providers.CapabilitySet{
 		ProviderType:        providers.ProviderTypeOpenAICompatible,
 		SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
 		InputModalities:     []providers.Modality{providers.ModalityText},
 		OutputModalities:    []providers.Modality{providers.ModalityText},
 		Streaming:           true,
 		ToolCalling:         true,
-	}
-	setProtocolCapability(&capabilities, fixture)
-	return capabilities
-}
-
-func setProtocolCapability(capabilities *providers.CapabilitySet, fixture toolProtocolFixture) {
-	value := reflect.ValueOf(capabilities).Elem().FieldByName("ToolProtocol")
-	if !value.IsValid() {
-		return
-	}
-	if value.Kind() == reflect.Pointer {
-		value.Set(reflect.New(value.Type().Elem()))
-		value = value.Elem()
-	}
-	setBoolean(value, "Definitions", fixture.definitions)
-	setBoolean(value, "ToolResults", fixture.results)
-	setBoolean(value, "Streaming", fixture.streaming)
-	setChoiceModes(value, fixture.choices)
-}
-
-func setBoolean(value reflect.Value, field string, supported bool) {
-	target := value.FieldByName(field)
-	if target.IsValid() && target.CanSet() {
-		target.SetBool(supported)
+		ToolProtocol: providers.ToolProtocolCapability{
+			Definitions:        fixture.definitions,
+			AssistantToolCalls: fixture.assistant,
+			ToolResults:        fixture.results,
+			StreamingDeltas:    fixture.streaming,
+			ChoiceModes:        toolChoiceModes(fixture.choices),
+		},
 	}
 }
 
-func setChoiceModes(value reflect.Value, choices map[string]bool) {
-	target := value.FieldByName("ChoiceModes")
-	if !target.IsValid() || !target.CanSet() {
-		return
-	}
-	modes := reflect.MakeMapWithSize(target.Type(), len(choices))
+func toolChoiceModes(choices map[string]bool) map[providers.ToolChoiceCapabilityMode]bool {
+	modes := make(map[providers.ToolChoiceCapabilityMode]bool, len(choices))
 	for choice, supported := range choices {
-		key := reflect.ValueOf(choice).Convert(target.Type().Key())
-		modes.SetMapIndex(key, reflect.ValueOf(supported))
+		modes[providers.ToolChoiceCapabilityMode(choice)] = supported
 	}
-	target.Set(modes)
+	return modes
 }
 
 func mutateChoiceSupport(capabilities *providers.CapabilitySet, choice string, supported bool) {
-	value := reflect.ValueOf(capabilities).Elem().FieldByName("ToolProtocol")
-	if !value.IsValid() {
-		return
-	}
-	if value.Kind() == reflect.Pointer {
-		value = value.Elem()
-	}
-	choices := value.FieldByName("ChoiceModes")
-	if choices.IsValid() && !choices.IsNil() {
-		key := reflect.ValueOf(choice).Convert(choices.Type().Key())
-		choices.SetMapIndex(key, reflect.ValueOf(supported))
-	}
+	capabilities.ToolProtocol.ChoiceModes[providers.ToolChoiceCapabilityMode(choice)] = supported
 }
 
 func toolChoiceSupported(capabilities providers.CapabilitySet, choice string) bool {
-	value := reflect.ValueOf(capabilities).FieldByName("ToolProtocol")
-	if !value.IsValid() {
-		return false
-	}
-	if value.Kind() == reflect.Pointer {
-		if value.IsNil() {
-			return false
-		}
-		value = value.Elem()
-	}
-	choices := value.FieldByName("ChoiceModes")
-	if !choices.IsValid() || choices.IsNil() {
-		return false
-	}
-	key := reflect.ValueOf(choice).Convert(choices.Type().Key())
-	result := choices.MapIndex(key)
-	return result.IsValid() && result.Bool()
+	return capabilities.ToolProtocol.ChoiceModes[providers.ToolChoiceCapabilityMode(choice)]
 }
-
 func toolRequest(requirements llm.ToolProtocolRequirements) *llm.LLMRequest {
 	return &llm.LLMRequest{Model: "shared", ToolRequirements: requirements}
 }
@@ -277,21 +241,24 @@ func explicitChoice(mode llm.ToolChoiceMode) llm.ToolProtocolRequirements {
 }
 
 func fullToolProtocolFixture() toolProtocolFixture {
-	return toolProtocolFixture{definitions: true, results: true, streaming: true, choices: allChoices()}
+	return toolProtocolFixture{definitions: true, assistant: true, results: true, streaming: true, choices: allChoices()}
 }
 
 func fixtureWithChoice(choice string, supported bool) toolProtocolFixture {
 	choices := allChoices()
 	choices[choice] = supported
-	return toolProtocolFixture{definitions: true, results: true, streaming: true, choices: choices}
+	return toolProtocolFixture{definitions: true, assistant: true, results: true, streaming: true, choices: choices}
 }
 
 func fixtureWithResults(supported bool) toolProtocolFixture {
-	return toolProtocolFixture{definitions: true, results: supported, streaming: true, choices: allChoices()}
+	return toolProtocolFixture{definitions: true, assistant: true, results: supported, streaming: true, choices: allChoices()}
+}
+func fixtureWithAssistant(supported bool) toolProtocolFixture {
+	return toolProtocolFixture{definitions: true, assistant: supported, results: true, streaming: true, choices: allChoices()}
 }
 
 func fixtureWithoutStreaming() toolProtocolFixture {
-	return toolProtocolFixture{definitions: true, results: true, choices: allChoices()}
+	return toolProtocolFixture{definitions: true, assistant: true, results: true, choices: allChoices()}
 }
 
 func allChoices() map[string]bool {
