@@ -31,6 +31,7 @@ func (a *captureChatAdapter) Capabilities() providers.CapabilitySet {
 		SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
 		InputModalities:     []providers.Modality{providers.ModalityText},
 		OutputModalities:    []providers.Modality{providers.ModalityText},
+		ToolCalling:         true,
 	}
 }
 func (a *captureChatAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
@@ -85,6 +86,7 @@ func TestChatCompletionsPassesToolFieldsAndReturnsUsage(t *testing.T) {
 		"model":"gpt-4o",
 		"messages":[
 			{"role":"user","content":"call a tool"},
+			{"role":"assistant","tool_calls":[{"id":"call_1","type":"function","function":{"name":"lookup","arguments":"{}"}}]},
 			{"role":"tool","tool_call_id":"call_1","content":"{\"ok\":true}"}
 		],
 		"tools":[{"type":"function","function":{"name":"lookup","parameters":{"type":"object"}}}],
@@ -101,7 +103,7 @@ func TestChatCompletionsPassesToolFieldsAndReturnsUsage(t *testing.T) {
 	if adapter.last == nil || len(adapter.last.Tools) != 1 || adapter.last.ToolChoice == nil {
 		t.Fatalf("tool fields were not forwarded: %#v", adapter.last)
 	}
-	if got := adapter.last.Messages[1].ToolCallID; got != "call_1" {
+	if got := adapter.last.Messages[2].ToolCallID; got != "call_1" {
 		t.Fatalf("tool_call_id not forwarded: %q", got)
 	}
 
