@@ -1,5 +1,7 @@
 package llm
 
+import "encoding/json"
+
 type Role string
 
 const (
@@ -42,9 +44,9 @@ const (
 )
 
 type Function struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Parameters  any    `json:"parameters,omitempty"` // Usually JSON Schema
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	Parameters  json.RawMessage `json:"parameters,omitempty"`
 }
 
 type Tool struct {
@@ -76,26 +78,27 @@ type FunctionCallChunk struct {
 }
 
 type ChatCompletionRequest struct {
-	Model       string    `json:"model"`
-	Messages    []Message `json:"messages"`
-	Temperature *float64  `json:"temperature,omitempty"`
-	MaxTokens   *int      `json:"max_tokens,omitempty"`
-	Stream      bool      `json:"stream,omitempty"`
-	Tools       []Tool    `json:"tools,omitempty"`
-	ToolChoice  any       `json:"tool_choice,omitempty"`
+	Model       string      `json:"model"`
+	Messages    []Message   `json:"messages"`
+	Temperature *float64    `json:"temperature,omitempty"`
+	MaxTokens   *int        `json:"max_tokens,omitempty"`
+	Stream      bool        `json:"stream,omitempty"`
+	Tools       []Tool      `json:"tools,omitempty"`
+	ToolChoice  *ToolChoice `json:"tool_choice,omitempty"`
 }
 
 type LLMRequest struct {
-	RequestID     string
-	Model         string
-	Messages      []Message
-	Temperature   *float64
-	MaxTokens     *int
-	Stream        bool
-	PriorityClass string
-	RouteOverride string
-	Tools         []Tool
-	ToolChoice    any
+	RequestID        string
+	Model            string
+	Messages         []Message
+	Temperature      *float64
+	MaxTokens        *int
+	Stream           bool
+	PriorityClass    string
+	RouteOverride    string
+	Tools            []Tool
+	ToolChoice       *ToolChoice
+	ToolRequirements ToolProtocolRequirements
 }
 
 type Choice struct {

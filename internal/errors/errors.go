@@ -26,6 +26,16 @@ func NewGatewayError(code, message string, httpStatus int) *GatewayError {
 	}
 }
 
+const (
+	InvalidRequest         = "invalid_request"
+	UnsupportedToolCalling = "unsupported_tool_calling"
+	UnsupportedToolChoice  = "unsupported_tool_choice"
+)
+
+func NewInvalidToolProtocolRequest() *GatewayError {
+	return NewGatewayError(InvalidRequest, "invalid tool protocol request", 400)
+}
+
 // Common routing errors
 var (
 	ErrNoHealthyProvider            = NewGatewayError("no_healthy_provider", "no healthy providers available", 503)
@@ -79,7 +89,7 @@ func AffectsProviderHealth(err error) bool {
 	}
 
 	switch gwErr.Code {
-	case ProviderInvalidRequest, ErrPolicyBlocked.Code:
+	case ProviderInvalidRequest, InvalidRequest, UnsupportedToolCalling, UnsupportedToolChoice, ErrPolicyBlocked.Code:
 		// Invalid requests caused by client input should not poison provider health
 		return false
 	case SchedulerBackpressure, SchedulerQueueFull, SchedulerQueueUnavailable:
