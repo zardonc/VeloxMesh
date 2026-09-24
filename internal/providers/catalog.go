@@ -123,6 +123,20 @@ func (c *ModelCatalog) ProviderSupports(providerID string, model string, operati
 	return false
 }
 
+// ProviderCapabilities returns the effective snapshot for one provider and model.
+func (c *ModelCatalog) ProviderCapabilities(providerID string, model string) (CapabilitySet, bool) {
+	entry, ok := c.entries[model]
+	if !ok {
+		return CapabilitySet{}, false
+	}
+	for _, provider := range entry.Providers {
+		if provider.ProviderID == providerID {
+			return provider.Capabilities.Clone(), true
+		}
+	}
+	return CapabilitySet{}, false
+}
+
 func (c *ModelCatalog) DefaultModel(providerID string) (string, bool) {
 	for _, modelID := range c.models {
 		for _, p := range c.entries[modelID].Providers {

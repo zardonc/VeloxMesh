@@ -32,6 +32,12 @@ type ToolProtocolRequirements struct {
 	HasToolResult        bool
 }
 
+// UsesProtocol reports whether the normalized request requires tool protocol support.
+func (requirements ToolProtocolRequirements) UsesProtocol() bool {
+	return requirements.HasDefinitions || requirements.HasExplicitChoice ||
+		requirements.HasAssistantToolCall || requirements.HasToolResult
+}
+
 func (choice ToolChoice) MarshalJSON() ([]byte, error) {
 	switch choice.Mode {
 	case ToolChoiceAuto, ToolChoiceNone, ToolChoiceRequired:

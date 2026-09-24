@@ -65,12 +65,22 @@ func (a *Adapter) Models() []string {
 
 func (a *Adapter) Capabilities() providers.CapabilitySet {
 	return providers.CapabilitySet{
-		ProviderType:         providers.ProviderTypeAnthropic,
-		SupportedOperations:  []providers.Operation{providers.OperationChatCompletions},
-		InputModalities:      []providers.Modality{providers.ModalityText},
-		OutputModalities:     []providers.Modality{providers.ModalityText},
-		Streaming:            true,
-		ToolCalling:          true,
+		ProviderType:        providers.ProviderTypeAnthropic,
+		SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+		InputModalities:     []providers.Modality{providers.ModalityText},
+		OutputModalities:    []providers.Modality{providers.ModalityText},
+		Streaming:           true,
+		ToolCalling:         true,
+		ToolProtocol: providers.ToolProtocolCapability{
+			Definitions: true,
+			ChoiceModes: map[providers.ToolChoiceCapabilityMode]bool{
+				providers.ToolChoiceCapabilityOmitted:  false,
+				providers.ToolChoiceCapabilityAuto:     false,
+				providers.ToolChoiceCapabilityNone:     false,
+				providers.ToolChoiceCapabilityRequired: false,
+				providers.ToolChoiceCapabilityNamed:    false,
+			},
+		},
 		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
 	}
 }

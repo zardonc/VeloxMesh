@@ -63,12 +63,25 @@ func (a *Adapter) Models() []string {
 
 func (a *Adapter) Capabilities() providers.CapabilitySet {
 	return providers.CapabilitySet{
-		ProviderType:         providers.ProviderTypeOpenAICompatible,
-		SupportedOperations:  []providers.Operation{providers.OperationChatCompletions},
-		InputModalities:      []providers.Modality{providers.ModalityText},
-		OutputModalities:     []providers.Modality{providers.ModalityText},
-		Streaming:            true,
-		ToolCalling:          true,
+		ProviderType:        providers.ProviderTypeOpenAICompatible,
+		SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+		InputModalities:     []providers.Modality{providers.ModalityText},
+		OutputModalities:    []providers.Modality{providers.ModalityText},
+		Streaming:           true,
+		ToolCalling:         true,
+		ToolProtocol: providers.ToolProtocolCapability{
+			Definitions:        true,
+			AssistantToolCalls: true,
+			ToolResults:        true,
+			StreamingDeltas:    true,
+			ChoiceModes: map[providers.ToolChoiceCapabilityMode]bool{
+				providers.ToolChoiceCapabilityOmitted:  true,
+				providers.ToolChoiceCapabilityAuto:     true,
+				providers.ToolChoiceCapabilityNone:     true,
+				providers.ToolChoiceCapabilityRequired: true,
+				providers.ToolChoiceCapabilityNamed:    true,
+			},
+		},
 		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
 	}
 }
