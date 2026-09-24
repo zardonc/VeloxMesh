@@ -1,8 +1,8 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Updated:** 2026-09-20
-**Current focus:** Phase 27 - Stream Terminal and Settlement Consistency planning
+**Updated:** 2026-09-23
+**Current focus:** Phase 28 - Tool Calling Protocol Completion planning complete; execution pending authorization
 
 ## Overview
 
@@ -12,7 +12,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 
 ## Milestones
 
-- [ ] **v7.9 Gateway Protocol Correctness** - Phase 27 (planning)
+- [ ] **v7.9 Gateway Protocol Correctness** - Phase 27 verified; Phase 28 planned, pending execution authorization
 - [x] **v7.8 Scheduler Scoring Backpressure Hardening** - Phase 26 (shipped 2026-07-10)
 - [x] **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** - Phases 23-25 (shipped 2026-07-08; archive: `.planning/milestones/v7.7-ROADMAP.md`)
 - [x] **v7.6 Scheduler 1.0 + Config** - Phases 20-22 (shipped 2026-07-06; archive: `.planning/milestones/v7.6-ROADMAP.md`)
@@ -59,6 +59,27 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 5. `27-06` P1 — Fusion consistency verification only; no aggregation, routing, or Judge change (Wave 4, 0.5 day).
 6. `27-05` P0 — Cross-layer terminal regression matrix and phase-gate evidence (Wave 5, 1.5 days).
 
+### Phase 28: Tool Calling Protocol Completion
+
+**Goal:** Complete the `/v1/chat/completions` tool-calling protocol end to end so OpenAI-compatible, Anthropic, and Gemini preserve one strict public contract across validated requests, capability-aware routing, non-stream and stream responses, and multi-turn tool-result continuation while Phase 27 remains the sole terminal and Usage-settlement owner.
+**Requirements:** TOOL-F01
+**Depends on:** Phase 27
+**Plans:** 7 plans
+
+Plans:
+
+- [ ] `28-01-PLAN.md` — Define and enforce the normalized public tool protocol at the HTTP boundary
+- [ ] `28-02-PLAN.md` — Add capability-aware routing, explicit OPT-OUT, Fusion rejection, and fallback safety
+- [ ] `28-03-PLAN.md` — Build the shared streaming shadow state machine and cross-provider contract harness
+- [ ] `28-04-PLAN.md` — Complete OpenAI-compatible non-stream and streaming tool adaptation
+- [ ] `28-05-PLAN.md` — Complete Anthropic non-stream and streaming tool adaptation
+- [ ] `28-06-PLAN.md` — Complete Gemini non-stream and streaming tool adaptation
+- [ ] `28-07-PLAN.md` — Gateway Integration, Observability, and Phase Gate
+
+**Cross-cutting constraints:**
+
+- D-29 through D-33: Pinned SDK behavior is rechecked, deterministic shared/provider fixtures are the evidence, all Go test commands use a 60-second timeout, and no dependency is upgraded.
+
 ## Planned v7.8 Phase
 
 | Phase | Name | Goal | Requirements | Status |
@@ -102,4 +123,4 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - Config unification in v7.6 is backward-compatible: existing ENV variables remain valid; nested struct grouping is the new preferred form.
 
 ---
-*Roadmap refreshed: 2026-09-20 - Phase 27 planning started*
+*Roadmap refreshed: 2026-09-23 - Phase 28 planning reviewed; execution not started*

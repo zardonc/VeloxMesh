@@ -1,16 +1,21 @@
 ---
-gsd_state_version: 1.0
+gsd_state_version: "1.0"
 milestone: v7.9
-milestone_name: Gateway Protocol Correctness
-status: planning
-last_updated: "2026-09-20"
-last_activity: 2026-09-20 -- Phase 27 six-work-package implementation and verification plans completed
+milestone_name: Phase
+current_phase: 28
+current_phase_name: tool-calling-protocol-completion
+status: ready_to_execute
+stopped_at: Phase 28 planning completed; awaiting explicit execution authorization
+last_updated: "2026-09-23T23:05:08.811Z"
+last_activity: 2026-09-23
+last_activity_desc: Phase 28 seven plans passed the second planning review; no product implementation started
+state_head: 4705afe5193db9a09a47b9762d74e9cd60d5d349
 progress:
-  total_phases: 22
+  total_phases: 2
   completed_phases: 19
-  total_plans: 57
+  total_plans: 13
   completed_plans: 57
-  percent: 86
+  percent: 0
 ---
 
 ## Project Reference
@@ -19,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 27 — stream-terminal-settlement-consistency planning
+**Current focus:** Phase 28 — tool-calling-protocol-completion planning complete; implementation pending authorization
 
 ## Current Implementation State
 
@@ -61,8 +66,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 
 ## Planned Next
 
-1. Review and approve the six Phase 27 implementation plans.
-2. Execute only after explicit authorization with `$gsd-execute-phase 27`.
+1. Review the seven Phase 28 implementation plans and the coverage contract.
+2. Execute only after explicit authorization with `$gsd-execute-phase 28`.
 
 ## Useful Commands
 
@@ -72,14 +77,14 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 
 ## Current Position
 
-Phase: 27 (stream-terminal-settlement-consistency) — PLANNING
-Plan: 0 of 6
-Status: Scope locked; six executable work-package plans ready for review
-Last activity: 2026-09-20 -- 27-01 through 27-06 plans completed with P0/P1 ordering and test matrices
+Phase: 28 (tool-calling-protocol-completion) — READY TO EXECUTE
+Plan: 0 of 7
+Status: Phase 28 planning checks passed; execution requires explicit authorization
+Last activity: 2026-09-23 -- seven Phase 28 plans and TOOL-F01 coverage checked; no product tests run
 
 ## Operator Next Steps
 
-- Review generated Phase 27 plans and verification results.
+- Review generated Phase 28 plans and the completed Phase 27 verification as their prerequisite.
 - Do not modify production code or deploy until the plan is approved.
 
 ## Deferred Items
@@ -106,3 +111,15 @@ Items acknowledged at v7.0 close:
 | Phase 19 P02 | 18 min | 3 tasks | 17 files |
 | Phase 19 P03 | 16 min | 3 tasks | 6 files |
 | Phase 22 P01 | 20 min | 4 tasks | 8 files |
+
+## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 28 added: Tool Calling Protocol Completion
+
+## Session
+
+**Last session:** 2026-09-22T18:31:13.866Z
+**Stopped at:** Phase 28 context gathered
+**Resume file:** .planning/phases/28-tool-calling-protocol-completion/28-CONTEXT.md

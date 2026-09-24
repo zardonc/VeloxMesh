@@ -22,9 +22,12 @@
 - [ ] **TERM-07**: Contract tests cover ordinary, buffered, and Fusion paths across normal, error, boundary, authorization, compatibility, and cancellation scenarios without changing the existing OpenAI-compatible endpoint contract.
 - [ ] **TERM-08**: The finalization design adds no external I/O or storage lookup to the per-chunk hot path and shows no material regression in focused stream throughput/latency verification.
 
+### Tool Calling Protocol
+
+- [ ] **TOOL-F01**: Complete internal and provider mappings for `tools`, `tool_choice`, tool-call fragments, and `tool_call_id`.
+
 ## Future Requirements
 
-- **TOOL-F01**: Complete internal and provider mappings for `tools`, `tool_choice`, tool-call fragments, and `tool_call_id`.
 - **CACHE-F01**: Remove fixed embedding assumptions and bound semantic-cache read/write latency.
 - **TIMEOUT-F01**: Unify connection, first-byte, stream-idle, and total-duration timeouts plus retry eligibility.
 - **CONSOLE-F01**: Add a lightweight control-plane Console for configuration and latency diagnosis.
@@ -51,11 +54,12 @@
 | TERM-06 | Phase 27 | Planned |
 | TERM-07 | Phase 27 | Planned |
 | TERM-08 | Phase 27 | Planned |
+| TOOL-F01 | Phase 28 | Planned |
 
 **Coverage:**
 
-- v7.9 requirements: 8 total
-- Mapped to phases: 8
+- v7.9 requirements: 9 total
+- Mapped to phases: 9
 - Unmapped: 0
 - Complete: 0
 
