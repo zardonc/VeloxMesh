@@ -149,3 +149,25 @@ func assertToolContractProviderError(t *testing.T, err error) {
 		t.Fatalf("provider payload leaked into error: %q", gatewayErr.Message)
 	}
 }
+
+func TestToolContractRejectsMissingDefinitionsOrToolHistory(t *testing.T) {
+	fixtureCalls := 0
+	fixture := ToolContractFixture{
+		Complete: func(context.Context, *llm.LLMRequest) (*llm.LLMResponse, error) {
+			fixtureCalls++
+			return &llm.LLMResponse{Choices: []llm.Choice{{FinishReason: "stop"}}}, nil
+		},
+	}
+	request := &llm.LLMRequest{
+		Model:    "offline-model",
+		Messages: []llm.Message{{Role: llm.RoleUser, Content: "call lookup"}},
+	}
+	observed := make([]ToolContractCompletion, 0, 1)
+	err := RunToolContract(context.Background(), fixture, ToolContractCase{
+		Name: "missing-tool-context", Request: request, ExpectedErrorCode: gatewayerrors.ProviderBadResponse,
+	}, func(completion ToolContractCompletion) { observed = append(observed, completion) })
+	assertToolContractProviderError(t, err)
+	if fixtureCalls != 0 || len(observed) != 1 || observed[0].Err == nil {
+		t.Fatalf("fixture calls=%d completion=%#v", fixtureCalls, observed)
+	}
+}
