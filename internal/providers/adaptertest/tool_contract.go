@@ -90,7 +90,7 @@ func runToolStream(ctx context.Context, stream func(context.Context, *llm.LLMReq
 }
 
 func invalidToolRequest(request *llm.LLMRequest) bool {
-	return request == nil || len(request.Tools) == 0 || !validToolChoice(request.ToolChoice) || !hasToolHistory(request.Messages)
+	return request == nil || len(request.Tools) == 0 || !validToolChoice(request.ToolChoice) || !validToolHistory(request.Messages)
 }
 
 func validToolChoice(choice *llm.ToolChoice) bool {
@@ -107,7 +107,7 @@ func validToolChoice(choice *llm.ToolChoice) bool {
 	}
 }
 
-func hasToolHistory(messages []llm.Message) bool {
+func validToolHistory(messages []llm.Message) bool {
 	callIDs := make(map[string]struct{})
 	for _, message := range messages {
 		if message.Role != llm.RoleAssistant {
@@ -120,13 +120,14 @@ func hasToolHistory(messages []llm.Message) bool {
 		}
 	}
 	for _, message := range messages {
-		if message.Role == llm.RoleTool {
-			if _, ok := callIDs[message.ToolCallID]; ok {
-				return true
-			}
+		if message.Role != llm.RoleTool {
+			continue
+		}
+		if _, ok := callIDs[message.ToolCallID]; !ok {
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 func verifyToolContract(contract ToolContractCase, finishReason string, runErr error) error {
