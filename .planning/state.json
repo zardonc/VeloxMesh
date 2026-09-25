@@ -4,9 +4,9 @@
   "milestone": "v7.9 — Phase",
   "phases": [],
   "next": {
-    "command": "/gsd:progress --next",
-    "label": "Review Phase 28 plans before authorized execution",
-    "reason": "Phase 28 has seven reviewed plans; product implementation has not started"
+    "command": "/gsd:progress",
+    "label": "Show progress",
+    "reason": "Unsure of state — showing progress"
   },
-  "updated_at": "2026-09-23T23:05:08.900Z"
+  "updated_at": "2026-09-25T00:58:09.458Z"
 }

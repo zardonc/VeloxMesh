@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +20,9 @@ import (
 )
 
 func (s *Service) executeFusion(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision) (*llm.LLMResponse, time.Duration, error) {
+	if err := rejectFusionToolProtocol(req); err != nil {
+		return nil, 0, err
+	}
 	if len(decision.FusionProviders) == 0 {
 		return nil, 0, errors.NewGatewayError("fusion_no_providers", "No healthy providers available for fusion", 503)
 	}
@@ -203,6 +207,9 @@ type streamFinishInput struct {
 }
 
 func (s *Service) executeFusionStream(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, rt *observability.RequestTrace) (*fusionStreamResult, error) {
+	if err := rejectFusionToolProtocol(req); err != nil {
+		return nil, err
+	}
 	if len(decision.FusionProviders) == 0 {
 		return nil, errors.NewGatewayError("fusion_no_providers", "No healthy providers available for fusion", 503)
 	}
@@ -377,4 +384,11 @@ func (r *fusionStreamResult) finish(in streamFinishInput) {
 	r.done.Do(func() {
 		r.terminal.complete(in.streamErr, in.usage, in.ttft)
 	})
+}
+
+func rejectFusionToolProtocol(req *llm.LLMRequest) error {
+	if req != nil && req.ToolRequirements.UsesProtocol() {
+		return errors.NewGatewayError(errors.UnsupportedToolCalling, "Fusion does not support tool protocol requests", http.StatusBadRequest)
+	}
+	return nil
 }

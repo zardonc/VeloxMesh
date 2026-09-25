@@ -253,3 +253,18 @@ func forbiddenMetricLabels(t *testing.T, labels map[string]string) {
 		}
 	}
 }
+
+func TestPrometheusRequestOutcomeDoesNotExposeToolPayload(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	metrics := NewPrometheusMetrics(reg)
+	payload := `{"tool_calls":[{"id":"call-secret","function":{"arguments":"sensitive"}}]}`
+
+	metrics.RecordRequestOutcome(payload, "openai", "gpt-4o", "round-robin", 200, "", "none", 1)
+	labels := labelsForMetric(t, reg, "veloxmesh_request_outcome_total")
+	for name, value := range labels[0] {
+		if value == payload || name == "request_id" || name == "tool_calls" {
+			t.Fatalf("tool payload leaked into metric labels: %#v", labels[0])
+		}
+	}
+	forbiddenMetricLabels(t, labels[0])
+}

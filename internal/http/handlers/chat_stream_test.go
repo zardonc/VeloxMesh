@@ -199,3 +199,28 @@ func TestChatCompletionsStreamStopsAfterRequestCancellation(t *testing.T) {
 		t.Fatalf("request cancellation wrote stream bytes: %s", rec.Body.String())
 	}
 }
+
+func TestToolStreamImmediate(t *testing.T) {
+	index, callID, toolType, name, arguments := 0, "call-1", llm.ToolTypeFunction, "lookup", `{"city":"Paris"}`
+	adapter := &terminalStreamAdapter{events: []llm.StreamEvent{
+		{ToolCalls: []llm.ToolCallChunk{{Index: &index, ID: &callID, Type: &toolType, Function: &llm.FunctionCallChunk{Name: &name, Arguments: &arguments}}}},
+		{FinishReason: "tool_calls"},
+		{Done: true},
+	}}
+	recorder := httptest.NewRecorder()
+	newStreamHandler(adapter).ServeHTTP(recorder, newToolStreamRequest())
+
+	body := recorder.Body.String()
+	toolIndex := bytes.Index([]byte(body), []byte(`"tool_calls"`))
+	finishIndex := bytes.Index([]byte(body), []byte(`"finish_reason":"tool_calls"`))
+	if toolIndex < 0 || finishIndex <= toolIndex || bytes.Count([]byte(body), []byte("data: [DONE]")) != 1 {
+		t.Fatalf("tool SSE sequence=%s", body)
+	}
+}
+
+func newToolStreamRequest() *http.Request {
+	body := `{"model":"gpt-4o","stream":true,"messages":[{"role":"user","content":"lookup"}],"tools":[{"type":"function","function":{"name":"lookup","parameters":{"type":"object"}}}],"tool_choice":"auto"}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewBufferString(body))
+	req.Header.Set(middleware.RequestIDHeader, "req-tool-stream")
+	return req
+}

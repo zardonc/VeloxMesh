@@ -3,12 +3,15 @@ package gateway
 import (
 	"context"
 	stderrors "errors"
+	"net/http"
 	"testing"
 	"time"
 
+	"veloxmesh/internal/admission"
 	gatewayerrors "veloxmesh/internal/errors"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/llm"
+	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/routing"
 )
 
@@ -69,5 +72,40 @@ func TestFusionTerminalUsesSharedOutcomeContract(t *testing.T) {
 				t.Fatalf("terminal usage was not retained: %#v", response.Usage)
 			}
 		})
+	}
+}
+
+func TestFusionRejectsToolProtocolBeforeProviderIO(t *testing.T) {
+	service := NewService(nil, admission.NewPassThroughController(), health.NewInMemoryStore(), false, 1, nil, nil, pipeline.DefaultRegistry(), nil, nil)
+	requirements := []struct {
+		name  string
+		value llm.ToolProtocolRequirements
+	}{
+		{name: "definitions", value: llm.ToolProtocolRequirements{HasDefinitions: true}},
+		{name: "choice", value: llm.ToolProtocolRequirements{HasExplicitChoice: true}},
+		{name: "assistant call", value: llm.ToolProtocolRequirements{HasAssistantToolCall: true}},
+		{name: "tool result", value: llm.ToolProtocolRequirements{HasToolResult: true}},
+	}
+	for _, requirement := range requirements {
+		t.Run(requirement.name, func(t *testing.T) {
+			request := &llm.LLMRequest{ToolRequirements: requirement.value}
+			assertFusionToolProtocolError(t, func() error {
+				_, _, err := service.executeFusion(context.Background(), request, routing.RoutingDecision{})
+				return err
+			})
+			assertFusionToolProtocolError(t, func() error {
+				_, err := service.executeFusionStream(context.Background(), request, routing.RoutingDecision{}, nil)
+				return err
+			})
+		})
+	}
+}
+
+func assertFusionToolProtocolError(t *testing.T, execute func() error) {
+	t.Helper()
+	err := execute()
+	gatewayErr, ok := err.(*gatewayerrors.GatewayError)
+	if !ok || gatewayErr.Code != gatewayerrors.UnsupportedToolCalling || gatewayErr.HTTPStatus != http.StatusBadRequest {
+		t.Fatalf("error=%v, want unsupported tool calling HTTP 400", err)
 	}
 }

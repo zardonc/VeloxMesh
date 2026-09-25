@@ -60,6 +60,8 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		return nil, nil, err
 	}
 
+	usesToolProtocol := req.ToolRequirements.UsesProtocol()
+
 	for attempts < maxAllowedAttempts {
 
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
@@ -80,15 +82,17 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 			if err != nil {
 				return nil, nil, err
 			}
-			if p.HasResponseRulesEnabled() {
+			if p.HasResponseRulesEnabled() && !usesToolProtocol {
 				return s.bufferFusionStreamWithResponseRules(result, p, scope, state)
 			}
-			if err := p.ProcessResponse(ctx, scope, state, result.respMeta); err != nil {
-				result.finishError(err)
-				if err == replication.ErrWriteNotWritable {
-					return nil, nil, errors.ErrServiceNotWritable
+			if !usesToolProtocol {
+				if err := p.ProcessResponse(ctx, scope, state, result.respMeta); err != nil {
+					result.finishError(err)
+					if err == replication.ErrWriteNotWritable {
+						return nil, nil, errors.ErrServiceNotWritable
+					}
+					return nil, nil, err
 				}
-				return nil, nil, err
 			}
 			return result.forward(), result.respMeta, nil
 		}
@@ -167,7 +171,7 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 		}
 		terminal.setResponse(respMeta)
 
-		if p.HasResponseRulesEnabled() {
+		if p.HasResponseRulesEnabled() && !usesToolProtocol {
 			return s.bufferStreamWithResponseRules(streamRuleContext{
 				ctx: ctx, req: req, decision: decision, respMeta: respMeta, pipeline: p,
 				scope: scope, state: state, events: ch, start: start, release: release,
@@ -175,20 +179,22 @@ func (s *Service) HandleChatCompletionStream(ctx context.Context, req *llm.LLMRe
 			})
 		}
 
-		if err := p.ProcessResponse(ctx, scope, state, respMeta); err != nil {
-			go drainStream(ch)
-			s.finishStreamRequest(streamFinish{
-				streamRuleContext: streamRuleContext{
-					ctx: ctx, req: req, decision: decision, respMeta: respMeta, pipeline: p,
-					scope: scope, state: state, events: ch, start: start, release: release,
-					attempts: attempts, trace: rt, terminal: terminal,
-				},
-				streamErr: err,
-			})
-			if err == replication.ErrWriteNotWritable {
-				return nil, nil, errors.ErrServiceNotWritable
+		if !usesToolProtocol {
+			if err := p.ProcessResponse(ctx, scope, state, respMeta); err != nil {
+				go drainStream(ch)
+				s.finishStreamRequest(streamFinish{
+					streamRuleContext: streamRuleContext{
+						ctx: ctx, req: req, decision: decision, respMeta: respMeta, pipeline: p,
+						scope: scope, state: state, events: ch, start: start, release: release,
+						attempts: attempts, trace: rt, terminal: terminal,
+					},
+					streamErr: err,
+				})
+				if err == replication.ErrWriteNotWritable {
+					return nil, nil, errors.ErrServiceNotWritable
+				}
+				return nil, nil, err
 			}
-			return nil, nil, err
 		}
 
 		outCh := make(chan llm.StreamEvent)

@@ -132,8 +132,10 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		return nil, err
 	}
 
+	usesToolProtocol := req.ToolRequirements.UsesProtocol()
+
 	// 1. Cache Lookup
-	if s.semanticCache != nil && !req.Stream && req.RouteOverride == "" && identityScope != "" && identityScope != "admin-key" {
+	if s.semanticCache != nil && !usesToolProtocol && !req.Stream && req.RouteOverride == "" && identityScope != "" && identityScope != "admin-key" {
 		b, _ := json.Marshal(req.Messages)
 		text := string(b)
 		entry, err := s.semanticCache.Lookup(ctx, identityScope, req.Model, text)
@@ -186,7 +188,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 	var reqTextForStore string
 	cacheResult := "none"
-	if s.semanticCache != nil && !req.Stream {
+	if s.semanticCache != nil && !usesToolProtocol && !req.Stream {
 		b, _ := json.Marshal(req.Messages)
 		reqTextForStore = string(b)
 		if identityScope != "" && identityScope != "admin-key" && req.RouteOverride == "" {
@@ -339,7 +341,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		s.settleCompleted(ctx, req, decision, resp.Usage, latency)
 
 		// Cache Store
-		if s.semanticCache != nil && !req.Stream && req.RouteOverride == "" && identityScope != "" && identityScope != "admin-key" {
+		if s.semanticCache != nil && !usesToolProtocol && !req.Stream && req.RouteOverride == "" && identityScope != "" && identityScope != "admin-key" {
 			// Only cache if there's a valid choice
 			if len(resp.Choices) > 0 {
 				bResp, _ := json.Marshal(resp.Choices)

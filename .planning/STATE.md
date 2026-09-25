@@ -5,17 +5,17 @@ milestone_name: Phase
 current_phase: 28
 current_phase_name: tool-calling-protocol-completion
 status: ready_to_execute
-stopped_at: Phase 28 planning completed; awaiting explicit execution authorization
-last_updated: "2026-09-23T23:05:08.811Z"
-last_activity: 2026-09-23
-last_activity_desc: Phase 28 seven plans passed the second planning review; no product implementation started
-state_head: 4705afe5193db9a09a47b9762d74e9cd60d5d349
+stopped_at: Completed 28-03-PLAN.md
+last_updated: "2026-09-25T00:58:50.957Z"
+last_activity: 2026-09-25
+last_activity_desc: Phase 28 Plan 03 completed with offline stream-state and harness verification
+state_head: 6118ddabff507df44be1c88d642c01e248f03669
 progress:
   total_phases: 2
   completed_phases: 19
   total_plans: 13
   completed_plans: 57
-  percent: 0
+  percent: 100
 ---
 
 ## Project Reference
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 28 — tool-calling-protocol-completion planning complete; implementation pending authorization
+**Current focus:** Phase 28 — tool-calling-protocol-completion implementation in progress; Plans 01-03 are complete.
 
 ## Current Implementation State
 
@@ -66,8 +66,7 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 
 ## Planned Next
 
-1. Review the seven Phase 28 implementation plans and the coverage contract.
-2. Execute only after explicit authorization with `$gsd-execute-phase 28`.
+1. Execute Phase 28 Plan 04 after reviewing the Plan 03 stream-state and harness seam.
 
 ## Useful Commands
 
@@ -78,14 +77,14 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 ## Current Position
 
 Phase: 28 (tool-calling-protocol-completion) — READY TO EXECUTE
-Plan: 0 of 7
-Status: Phase 28 planning checks passed; execution requires explicit authorization
-Last activity: 2026-09-23 -- seven Phase 28 plans and TOOL-F01 coverage checked; no product tests run
+Plan: 3 of 7
+Status: Plans 01-03 committed; Plan 04 is next.
+Last activity: 2026-09-25 -- Plan 03 stream-state and harness tests passed offline.
 
 ## Operator Next Steps
 
-- Review generated Phase 28 plans and the completed Phase 27 verification as their prerequisite.
-- Do not modify production code or deploy until the plan is approved.
+- Review the Plan 03 stream-state and harness seams before executing Plan 04.
+- Do not deploy until the remaining Phase 28 provider plans and phase gate are complete.
 
 ## Deferred Items
 
@@ -111,6 +110,13 @@ Items acknowledged at v7.0 close:
 | Phase 19 P02 | 18 min | 3 tasks | 17 files |
 | Phase 19 P03 | 16 min | 3 tasks | 6 files |
 | Phase 22 P01 | 20 min | 4 tasks | 8 files |
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 28 P01 | 17min | 3 tasks | 7 files |
+| Phase 28 P02 | 37m | 3 tasks | 8 files |
+| Phase 28-tool-calling-protocol-completion P03 | 16min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -120,6 +126,21 @@ Items acknowledged at v7.0 close:
 
 ## Session
 
-**Last session:** 2026-09-22T18:31:13.866Z
-**Stopped at:** Phase 28 context gathered
-**Resume file:** .planning/phases/28-tool-calling-protocol-completion/28-CONTEXT.md
+**Last session:** 2026-09-25T00:58:50.907Z
+**Stopped at:** Completed 28-03-PLAN.md
+**Resume file:** None
+
+## Decisions
+
+- [Phase 28]: Use nil *ToolChoice for omission and a closed mode union for explicit choices.
+- [Phase 28]: Normalize tool protocol once at the HTTP boundary and pass ToolProtocolRequirements downstream.
+- [Phase 28]: Treat schemas, arguments, and results as opaque data; reject invalid structure before routing.
+- [Phase 28]: Use a fail-closed per-model ToolProtocolCapability snapshot with explicit choice mode support.
+- [Phase 28]: Preflight normalized tool requirements in every router branch and reject Fusion before decision construction.
+- [Phase 28]: Tool-call shadow state remains side-effect free; Phase 27 retains all terminal ownership.
+- [Phase 28]: Arguments stay opaque until completion and are capped per unfinished call.
+- [Phase 28]: The shared harness accepts first-turn tool requests and validates supplied tool-result history.
+
+### Blockers
+
+None.

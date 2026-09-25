@@ -44,6 +44,7 @@ func (m *mockAdapter) Capabilities() providers.CapabilitySet {
 		SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
 		InputModalities:     []providers.Modality{providers.ModalityText},
 		OutputModalities:    []providers.Modality{providers.ModalityText},
+		Streaming:           true,
 	}
 }
 func (m *mockAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {

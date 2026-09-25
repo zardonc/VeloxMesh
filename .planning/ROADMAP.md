@@ -64,9 +64,17 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 **Goal:** Complete the `/v1/chat/completions` tool-calling protocol end to end so OpenAI-compatible, Anthropic, and Gemini preserve one strict public contract across validated requests, capability-aware routing, non-stream and stream responses, and multi-turn tool-result continuation while Phase 27 remains the sole terminal and Usage-settlement owner.
 **Requirements:** TOOL-F01
 **Depends on:** Phase 27
-**Plans:** 7 plans
+**Plans:** 3/7 plans executed
 
 Plans:
+
+- [x] 28-01-PLAN.md
+- [x] 28-02-PLAN.md
+- [x] 28-03-PLAN.md
+- [ ] 28-04-PLAN.md
+- [ ] 28-05-PLAN.md
+- [ ] 28-06-PLAN.md
+- [ ] 28-07-PLAN.md
 
 - [ ] `28-01-PLAN.md` — Define and enforce the normalized public tool protocol at the HTTP boundary
 - [ ] `28-02-PLAN.md` — Add capability-aware routing, explicit OPT-OUT, Fusion rejection, and fallback safety
