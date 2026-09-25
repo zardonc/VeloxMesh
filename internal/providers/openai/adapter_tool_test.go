@@ -47,6 +47,32 @@ func TestToolRequestPreservesDefinitionsChoicesAndHistory(t *testing.T) {
 	}
 }
 
+func TestToolContractStream(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		_, _ = w.Write([]byte(streamData(toolDelta("call-provider", testToolName, "{\"city\":\"Paris\"}", "tool_calls")) + "data: [DONE]\n\n"))
+	}))
+	defer server.Close()
+
+	adapter := NewAdapter("openai-test", server.URL, "", "gpt-4")
+	err := adaptertest.RunToolContract(context.Background(), adaptertest.ToolContractFixture{
+		Stream: func(ctx context.Context, request *llm.LLMRequest) ([]llm.StreamEvent, error) {
+			stream, err := adapter.Stream(ctx, request)
+			if err != nil {
+				return nil, err
+			}
+			events := make([]llm.StreamEvent, 0)
+			for event := range stream {
+				events = append(events, event)
+			}
+			return events, nil
+		},
+	}, adaptertest.ToolContractCase{Name: "stream tool call", Request: toolRequest(nil), Stream: true, ExpectedFinishReason: "tool_calls"}, func(adaptertest.ToolContractCompletion) {})
+	if err != nil {
+		t.Fatalf("RunToolContract() error = %v", err)
+	}
+}
+
 func TestToolContractComplete(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte(toolCompletion("call-provider", "tool_calls", "{\"city\":\"Paris\"}", 1)))
@@ -68,12 +94,28 @@ func TestToolContractComplete(t *testing.T) {
 	}
 }
 
+func TestToolCompleteGeneratesMissingProviderID(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(toolCompletion("", "tool_calls", "{\"city\":\"Paris\"}", 1)))
+	}))
+	defer server.Close()
+
+	adapter := NewAdapter("openai-test", server.URL, "", "gpt-4")
+	adapter.generateToolCallID = func() string { return "call-generated" }
+	response, err := adapter.Complete(context.Background(), toolRequest(nil))
+	if err != nil {
+		t.Fatalf("Complete() error = %v", err)
+	}
+	if got := response.Choices[0].Message.ToolCalls[0].ID; got != "call-generated" {
+		t.Fatalf("generated tool call ID = %q", got)
+	}
+}
+
 func TestToolCompleteRejectsMalformedProviderCalls(t *testing.T) {
 	cases := []struct {
 		name string
 		body string
 	}{
-		{name: "missing ID", body: toolCompletion("", "tool_calls", "{\"city\":\"Paris\"}", 1)},
 		{name: "duplicate ID", body: toolCompletion("call-1", "tool_calls", "{\"city\":\"Paris\"}", 2)},
 		{name: "invalid arguments", body: toolCompletion("call-1", "tool_calls", "{not-json}", 1)},
 		{name: "finish conflict", body: toolCompletion("call-1", "stop", "{\"city\":\"Paris\"}", 1)},
