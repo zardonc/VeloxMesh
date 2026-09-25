@@ -24,43 +24,27 @@ type Adapter struct {
 	generateToolCallID func() string
 }
 
-type adapterConfig struct {
-	id        string
-	baseURL   string
-	apiKey    string
-	modelsStr string
+type AdapterConfig struct {
+	ID        string
+	BaseURL   string
+	APIKey    string
+	ModelsCSV string
 }
 
-func NewAdapter(values ...string) providers.ProviderAdapter {
-	config := adapterConfigFrom(values)
-	opts := []option.RequestOption{option.WithAPIKey(config.apiKey)}
-	if config.baseURL != "" {
-		opts = append(opts, option.WithBaseURL(config.baseURL))
+func NewAdapter(config AdapterConfig) providers.ProviderAdapter {
+	opts := []option.RequestOption{option.WithAPIKey(config.APIKey)}
+	if config.BaseURL != "" {
+		opts = append(opts, option.WithBaseURL(config.BaseURL))
 	}
 	client := anthropic.NewClient(opts...)
-	models := configuredModels(config.modelsStr)
+	models := configuredModels(config.ModelsCSV)
 	defaultModel := ""
 	if len(models) > 0 {
 		defaultModel = models[0]
 	}
-	return &Adapter{id: config.id, client: &client, models: models, defaultModel: defaultModel, generateToolCallID: opaqueToolCallID}
+	return &Adapter{id: config.ID, client: &client, models: models, defaultModel: defaultModel, generateToolCallID: opaqueToolCallID}
 }
 
-func adapterConfigFrom(values []string) adapterConfig {
-	return adapterConfig{
-		id:        adapterArgument(values, 0),
-		baseURL:   adapterArgument(values, 1),
-		apiKey:    adapterArgument(values, 2),
-		modelsStr: adapterArgument(values, 3),
-	}
-}
-
-func adapterArgument(values []string, index int) string {
-	if index >= len(values) {
-		return ""
-	}
-	return values[index]
-}
 func configuredModels(modelsStr string) []string {
 	models := make([]string, 0)
 	for _, model := range strings.Split(modelsStr, ",") {

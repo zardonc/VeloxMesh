@@ -206,7 +206,7 @@ func (m *RuntimeProviderManager) ActivateProviderSet(ctx context.Context, record
 	// We need to fetch combos from repo or registry? Wait, if we fetch them from Registry, we can't easily retrieve them.
 	// Let's just pull them from the snapshot's Registry if possible.
 	var combos []providers.Combo
-	
+
 	snap := m.Snapshot()
 	if snap != nil {
 		rCfg = snap.RoutingConfig
@@ -391,7 +391,7 @@ func BuildProviderAdapters(records []*ProviderRecord, decryptedSecrets map[strin
 		case "openai-compatible":
 			adapter = openai.NewAdapter(r.ID, r.BaseURL, apiKey, modelsCSV)
 		case "anthropic":
-			adapter = anthropic.NewAdapter(r.ID, r.BaseURL, apiKey, modelsCSV)
+			adapter = anthropic.NewAdapter(anthropic.AdapterConfig{ID: r.ID, BaseURL: r.BaseURL, APIKey: apiKey, ModelsCSV: modelsCSV})
 		case "gemini":
 			adapter = gemini.NewAdapter(r.ID, r.BaseURL, apiKey, modelsCSV)
 		default:

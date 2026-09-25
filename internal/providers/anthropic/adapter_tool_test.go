@@ -251,7 +251,7 @@ func TestToolContractCompleteAndStream(t *testing.T) {
 	}
 }
 func newToolAdapter(server *httptest.Server) *Adapter {
-	return NewAdapter("anthropic-test", server.URL+"/", "test-key", "claude-test").(*Adapter)
+	return NewAdapter(AdapterConfig{ID: "anthropic-test", BaseURL: server.URL + "/", APIKey: "test-key", ModelsCSV: "claude-test"}).(*Adapter)
 }
 
 func anthropicToolRequest(choice *llm.ToolChoice) *llm.LLMRequest {

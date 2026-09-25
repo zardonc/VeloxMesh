@@ -316,7 +316,7 @@ func New() (*App, error) {
 			case "openai-compatible":
 				adapters = append(adapters, openai.NewAdapter(p.ID, p.BaseURL, p.ResolveAPIKey(), strings.Join(p.Models, ",")))
 			case "anthropic":
-				adapters = append(adapters, anthropic.NewAdapter(p.ID, p.BaseURL, p.ResolveAPIKey(), strings.Join(p.Models, ",")))
+				adapters = append(adapters, anthropic.NewAdapter(anthropic.AdapterConfig{ID: p.ID, BaseURL: p.BaseURL, APIKey: p.ResolveAPIKey(), ModelsCSV: strings.Join(p.Models, ",")}))
 			case "gemini":
 				adapters = append(adapters, gemini.NewAdapter(p.ID, p.BaseURL, p.ResolveAPIKey(), strings.Join(p.Models, ",")))
 			}
