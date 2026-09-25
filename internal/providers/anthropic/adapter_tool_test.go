@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -160,10 +161,14 @@ func TestToolStreamEmitsPartialJSONAndRejectsUnsafeLifecycle(t *testing.T) {
 func TestToolStreamDeliversFirstFragmentBeforeProviderCloses(t *testing.T) {
 	firstWritten := make(chan struct{})
 	release := make(chan struct{})
+	var releaseOnce sync.Once
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		flusher := w.(http.Flusher)
-		_, _ = w.Write([]byte(anthropicEvent("content_block_start", map[string]any{"index": 0, "content_block": map[string]any{"type": "tool_use", "id": "call-1", "name": anthropicToolName, "input": map[string]any{}}})))
+		_, _ = w.Write([]byte(anthropicStream(
+			anthropicEvent("message_start", map[string]any{"message": map[string]any{"usage": map[string]any{"input_tokens": 1}}}),
+			anthropicEvent("content_block_start", map[string]any{"index": 0, "content_block": map[string]any{"type": "tool_use", "id": "call-1", "name": anthropicToolName, "input": map[string]any{}}}),
+		)))
 		flusher.Flush()
 		close(firstWritten)
 		<-release
@@ -175,30 +180,43 @@ func TestToolStreamDeliversFirstFragmentBeforeProviderCloses(t *testing.T) {
 		)))
 	}))
 	defer server.Close()
+	defer releaseOnce.Do(func() { close(release) })
 
-	stream, err := newToolAdapter(server).Stream(context.Background(), anthropicToolRequest(nil))
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	stream, err := newToolAdapter(server).Stream(ctx, anthropicToolRequest(nil))
 	if err != nil {
 		t.Fatalf("Stream() error = %v", err)
 	}
 	<-firstWritten
-	select {
-	case event := <-stream:
-		if len(event.ToolCalls) != 1 || event.ToolCalls[0].ID == nil || *event.ToolCalls[0].ID != "call-1" {
-			t.Fatalf("first event = %#v", event)
+	deadline := time.After(time.Second)
+	for {
+		select {
+		case event := <-stream:
+			if len(event.ToolCalls) == 0 {
+				continue
+			}
+			if event.ToolCalls[0].ID == nil || *event.ToolCalls[0].ID != "call-1" {
+				t.Fatalf("first tool event = %#v", event)
+			}
+			releaseOnce.Do(func() { close(release) })
+			for range stream {
+			}
+			return
+		case <-deadline:
+			t.Fatal("first tool fragment was buffered until the provider body closed")
 		}
-	case <-time.After(time.Second):
-		t.Fatal("first tool fragment was buffered until the provider body closed")
-	}
-	close(release)
-	for range stream {
 	}
 }
-
 func TestToolContractCompleteAndStream(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Accept") == "text/event-stream" {
+		defer r.Body.Close()
+		var request map[string]any
+		_ = json.NewDecoder(r.Body).Decode(&request)
+		if streaming, _ := request["stream"].(bool); streaming {
 			w.Header().Set("Content-Type", "text/event-stream")
 			_, _ = w.Write([]byte(anthropicStream(
+				anthropicEvent("message_start", map[string]any{"message": map[string]any{"usage": map[string]any{"input_tokens": 1}}}),
 				anthropicEvent("content_block_start", map[string]any{"index": 0, "content_block": map[string]any{"type": "tool_use", "id": "call-1", "name": anthropicToolName, "input": map[string]any{}}}),
 				anthropicEvent("content_block_delta", map[string]any{"index": 0, "delta": map[string]any{"type": "input_json_delta", "partial_json": "{}"}}),
 				anthropicEvent("content_block_stop", map[string]any{"index": 0}),
@@ -232,7 +250,6 @@ func TestToolContractCompleteAndStream(t *testing.T) {
 		}
 	}
 }
-
 func newToolAdapter(server *httptest.Server) *Adapter {
 	return NewAdapter("anthropic-test", server.URL+"/", "test-key", "claude-test").(*Adapter)
 }
@@ -313,7 +330,11 @@ func toolChoiceName(choice *llm.ToolChoice) string {
 func toolCompletion(id, stopReason, arguments string) map[string]any {
 	var input any
 	_ = json.Unmarshal([]byte(arguments), &input)
-	return toolCompletionWithBlocks(stopReason, []map[string]any{{"type": "tool_use", "id": id, "name": anthropicToolName, "input": input}})
+	block := map[string]any{"type": "tool_use", "name": anthropicToolName, "input": input}
+	if id != "" {
+		block["id"] = id
+	}
+	return toolCompletionWithBlocks(stopReason, []map[string]any{block})
 }
 
 func toolCompletionWithBlocks(stopReason string, blocks []map[string]any) map[string]any {
