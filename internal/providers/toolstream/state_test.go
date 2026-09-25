@@ -294,3 +294,17 @@ func assertProviderBadResponse(t *testing.T, err error) {
 		t.Fatalf("raw payload leaked into error: %q", gatewayErr.Message)
 	}
 }
+
+func TestToolStreamBoundsUnfinishedArgumentBuffers(t *testing.T) {
+	state := New(Config{GenerateID: func() string { return "generated" }, MaxArgumentBytes: 4})
+	index := 0
+	name := "lookup"
+	toolType := llm.ToolTypeFunction
+	state, _, err := state.Apply(llm.ToolCallChunk{Index: &index, Type: &toolType, Function: &llm.FunctionCallChunk{Name: &name}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fragment := "12345"
+	_, _, err = state.Apply(llm.ToolCallChunk{Index: &index, Function: &llm.FunctionCallChunk{Arguments: &fragment}})
+	assertProviderBadResponse(t, err)
+}

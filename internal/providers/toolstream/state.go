@@ -11,17 +11,22 @@ import (
 	"veloxmesh/internal/llm"
 )
 
-const toolCallsFinishReason = "tool_calls"
+const (
+	toolCallsFinishReason  = "tool_calls"
+	defaultMaxArgumentSize = 1024 * 1024
+)
 
 type Config struct {
-	GenerateID func() string
+	GenerateID       func() string
+	MaxArgumentBytes int
 }
 
 type State struct {
-	calls      map[int]callState
-	ids        map[string]int
-	finished   bool
-	generateID func() string
+	calls            map[int]callState
+	ids              map[string]int
+	finished         bool
+	generateID       func() string
+	maxArgumentBytes int
 }
 
 type callState struct {
@@ -38,9 +43,10 @@ type Completion struct {
 
 func New(config Config) State {
 	return State{
-		calls:      make(map[int]callState),
-		ids:        make(map[string]int),
-		generateID: config.GenerateID,
+		calls:            make(map[int]callState),
+		ids:              make(map[string]int),
+		generateID:       config.GenerateID,
+		maxArgumentBytes: argumentLimit(config),
 	}
 }
 
@@ -99,6 +105,9 @@ func (state State) applyNew(index int, chunk llm.ToolCallChunk) (State, llm.Tool
 	if _, used := state.ids[id]; used {
 		return state, llm.ToolCallChunk{}, protocolError()
 	}
+	if exceedsArgumentLimit(state.maxArgumentBytes, 0, len(arguments)) {
+		return state, llm.ToolCallChunk{}, protocolError()
+	}
 
 	next := state.copy()
 	next.calls[index] = callState{id: id, name: name, arguments: arguments}
@@ -111,8 +120,13 @@ func (state State) applyExisting(index int, call callState, chunk llm.ToolCallCh
 		return state, llm.ToolCallChunk{}, protocolError()
 	}
 
+	arguments := fragment(chunk.Function)
+	if exceedsArgumentLimit(state.maxArgumentBytes, len(call.arguments), len(arguments)) {
+		return state, llm.ToolCallChunk{}, protocolError()
+	}
+
 	next := state.copy()
-	if arguments := fragment(chunk.Function); arguments != "" {
+	if arguments != "" {
 		call.arguments += arguments
 		next.calls[index] = call
 	}
@@ -151,12 +165,24 @@ func (state State) callID(id *string) (string, error) {
 	return generated, nil
 }
 
+func argumentLimit(config Config) int {
+	if config.MaxArgumentBytes > 0 {
+		return config.MaxArgumentBytes
+	}
+	return defaultMaxArgumentSize
+}
+
+func exceedsArgumentLimit(limit, existing, addition int) bool {
+	return existing > limit || addition > limit-existing
+}
+
 func (state State) copy() State {
 	return State{
-		calls:      cloneCalls(state.calls),
-		ids:        cloneIDs(state.ids),
-		finished:   state.finished,
-		generateID: state.generateID,
+		calls:            cloneCalls(state.calls),
+		ids:              cloneIDs(state.ids),
+		finished:         state.finished,
+		generateID:       state.generateID,
+		maxArgumentBytes: state.maxArgumentBytes,
 	}
 }
 
@@ -265,6 +291,7 @@ func opaqueChunk(index int, chunk llm.ToolCallChunk) llm.ToolCallChunk {
 	}
 	return emitted
 }
+
 func fragment(function *llm.FunctionCallChunk) string {
 	if function == nil || function.Arguments == nil {
 		return ""
@@ -281,11 +308,7 @@ func chunkArguments(function *llm.FunctionCallChunk) *string {
 }
 
 func isCompleteJSON(arguments string) bool {
-	return len(arguments) > 0 && jsonValid(arguments)
-}
-
-func jsonValid(arguments string) bool {
-	return json.Valid([]byte(arguments))
+	return len(arguments) > 0 && json.Valid([]byte(arguments))
 }
 
 func cloneCalls(calls map[int]callState) map[int]callState {
