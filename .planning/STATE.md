@@ -1,15 +1,14 @@
 ---
 gsd_state_version: "1.0"
 milestone: v7.9
-milestone_name: Phase
+milestone_name: Phases
 current_phase: 28
-current_phase_name: tool-calling-protocol-completion
-status: ready_to_execute
-stopped_at: Completed 28-03-PLAN.md
-last_updated: "2026-09-25T00:58:50.957Z"
+status: completed
+stopped_at: Phase 28 complete — all phases complete
+last_updated: "2026-09-25T05:35:27.330Z"
 last_activity: 2026-09-25
-last_activity_desc: Phase 28 Plan 03 completed with offline stream-state and harness verification
-state_head: 6118ddabff507df44be1c88d642c01e248f03669
+last_activity_desc: Phase 28 complete
+state_head: 8468a8207a60353d3fde976eb4de46a43901df3e
 progress:
   total_phases: 2
   completed_phases: 19
@@ -20,11 +19,11 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-07-10)
+See: `.planning/PROJECT.md` (updated 2026-09-25)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 28 — tool-calling-protocol-completion implementation in progress; Plans 01-03 are complete.
+**Current focus:** v7.9 is complete: Phases 27 and 28 are verified; no deployment has been performed.
 
 ## Current Implementation State
 
@@ -44,6 +43,8 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 - Phase 24 Plan 3 Vector Compatibility (v7.7) is implemented, verified, and shipped.
 - Phase 25 Runbooks and Verification (v7.7) is implemented, verified, and shipped.
 - Phase 26 Scheduler Scoring Backpressure Hardening (v7.8) is implemented, verified, and shipped.
+- Phase 27 Stream Terminal and Settlement Consistency (v7.9) is implemented and verified.
+- Phase 28 Tool Calling Protocol Completion (v7.9) is implemented and verified.
 
 ## Completed
 
@@ -63,10 +64,12 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 - Phase 24: Plan 3 Vector Compatibility
 - Phase 25: Runbooks and Verification
 - Phase 26: Scheduler Scoring Backpressure Hardening
+- Phase 27: Stream Terminal and Settlement Consistency (v7.9) verified
+- Phase 28: Tool Calling Protocol Completion (v7.9) verified
 
 ## Planned Next
 
-1. Execute Phase 28 Plan 04 after reviewing the Plan 03 stream-state and harness seam.
+1. Start the next milestone after selecting scope; deferred candidates are semantic-cache latency hardening, staged timeouts/cancellation, BFF/Admin Console, or Scheduler automation.
 
 ## Useful Commands
 
@@ -76,15 +79,15 @@ See: `.planning/PROJECT.md` (updated 2026-07-10)
 
 ## Current Position
 
-Phase: 28 (tool-calling-protocol-completion) — READY TO EXECUTE
-Plan: 3 of 7
-Status: Plans 01-03 committed; Plan 04 is next.
-Last activity: 2026-09-25 -- Plan 03 stream-state and harness tests passed offline.
+Phase: 28
+Plan: Not started
+Status: All phases complete
+Last activity: 2026-09-24 — Phase 28 complete
 
 ## Operator Next Steps
 
-- Review the Plan 03 stream-state and harness seams before executing Plan 04.
-- Do not deploy until the remaining Phase 28 provider plans and phase gate are complete.
+- Review the v7.9 milestone outcome and start the next milestone when scope is selected.
+- Deployment remains separate; no deployment authorization was received.
 
 ## Deferred Items
 
@@ -126,8 +129,8 @@ Items acknowledged at v7.0 close:
 
 ## Session
 
-**Last session:** 2026-09-25T00:58:50.907Z
-**Stopped at:** Completed 28-03-PLAN.md
+**Last session:** 2026-09-25T05:23:54.940Z
+**Stopped at:** Phase 28 complete — all phases complete
 **Resume file:** None
 
 ## Decisions

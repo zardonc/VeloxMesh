@@ -1,6 +1,6 @@
 ---
 phase: 27-stream-terminal-settlement-consistency
-verified: 2026-09-21T22:51:04Z
+verified: 2026-09-25T05:14:53Z
 status: passed
 score: 5/5 must-haves verified
 covered_files:
@@ -41,7 +41,7 @@ covered_files:
   - internal/providers/openai/adapter_test.go
   - tests/integration/chat_stream_test.go
   - tests/integration/chat_test.go
-covered_digest: "v1:sha256:4a489f0c7c16c3a66a521b48bc9ed69388b1d0df3338ebbee413ad7bb2124eee"
+covered_digest: "v1:sha256:30d233b614d6b349c9e8fe1286a577c34c7b09686063d1634b93f044e5c83b10"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -58,9 +58,9 @@ gaps: []
 # Phase 27: Stream Terminal and Settlement Consistency Verification Report
 
 **Phase Goal:** Every streaming request ends with one authoritative terminal outcome driving client output, provider health, circuit breaker, observability, admission release, and usage settlement consistently.
-**Verified:** 2026-09-21T22:51:04Z
+**Verified:** 2026-09-25T05:14:53Z
 **Status:** `passed` - all Phase 27 verification gates satisfied in the provisioned test environment.
-**Re-verification:** Yes - performance evidence refreshed after `a60ef7e`.
+**Re-verification:** Yes - coverage fingerprint refreshed after the final Phase 28 source and planning updates; the fresh full repository suite and `go vet ./...` passed in the configured test environment.
 
 ## Goal Achievement
 
@@ -162,5 +162,5 @@ Phase 27's terminal classification, one-shot lifecycle, cancellation/write-failu
 
 ---
 
-_Verified: 2026-09-21T22:51:04Z_
+_Verified: 2026-09-25T05:14:53Z_
 _Verifier: the agent (gsd-verifier)_

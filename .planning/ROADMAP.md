@@ -1,8 +1,8 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Updated:** 2026-09-23
-**Current focus:** Phase 28 - Tool Calling Protocol Completion planning complete; execution pending authorization
+**Updated:** 2026-09-25
+**Current focus:** v7.9 Gateway Protocol Correctness complete and verified; no deployment recorded
 
 ## Overview
 
@@ -12,7 +12,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 
 ## Milestones
 
-- [ ] **v7.9 Gateway Protocol Correctness** - Phase 27 verified; Phase 28 planned, pending execution authorization
+- [x] **v7.9 Gateway Protocol Correctness** - Phases 27-28 verified 2026-09-25; no deployment recorded
 - [x] **v7.8 Scheduler Scoring Backpressure Hardening** - Phase 26 (shipped 2026-07-10)
 - [x] **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** - Phases 23-25 (shipped 2026-07-08; archive: `.planning/milestones/v7.7-ROADMAP.md`)
 - [x] **v7.6 Scheduler 1.0 + Config** - Phases 20-22 (shipped 2026-07-06; archive: `.planning/milestones/v7.6-ROADMAP.md`)
@@ -24,13 +24,14 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - [x] **v7.0 Plan 1 Foundation** - Phases 7-9 (shipped 2026-06-30; archive: `.planning/milestones/v7.0-ROADMAP.md`)
 - [x] **v5** - Phases 5-6 (shipped 2026-06-29)
 - [x] **v4** - Phases 1-4 (shipped 2026-06-23; archive: `.planning/milestones/v4-ROADMAP.md`)
-- [ ] **Future milestones** - Tool calling, semantic-cache latency, staged timeouts, or BFF/Admin Console
+- [ ] **Future milestones** - Semantic-cache latency, staged timeouts, BFF/Admin Console, or Scheduler automation
 
-## Planned v7.9 Phase
+## Completed v7.9 Phases
 
 | Phase | Name | Goal | Requirements | Status |
 |-------|------|------|--------------|--------|
-| 27 | Stream Terminal and Settlement Consistency | Unify stream terminal classification and exactly-once finalization across ordinary, buffered, and Fusion paths without adding hot-path I/O. | TERM-01..08 | Planning |
+| 27 | Stream Terminal and Settlement Consistency | Unify stream terminal classification and exactly-once finalization across ordinary, buffered, and Fusion paths without adding hot-path I/O. | TERM-01..08 | Verified |
+| 28 | Tool Calling Protocol Completion | Complete strict OpenAI-compatible tool protocol handling across validation, routing, gateway, provider adapters, streaming state, and observability. | TOOL-F01 | Complete    |
 
 ### Phase 27: Stream Terminal and Settlement Consistency
 
@@ -64,31 +65,33 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 **Goal:** Complete the `/v1/chat/completions` tool-calling protocol end to end so OpenAI-compatible, Anthropic, and Gemini preserve one strict public contract across validated requests, capability-aware routing, non-stream and stream responses, and multi-turn tool-result continuation while Phase 27 remains the sole terminal and Usage-settlement owner.
 **Requirements:** TOOL-F01
 **Depends on:** Phase 27
-**Plans:** 3/7 plans executed
+**Plans:** 7/7 plans complete
+
+**Verification:** Passed 2026-09-25; see `.planning/phases/28-tool-calling-protocol-completion/28-VERIFICATION.md`.
 
 Plans:
 
 - [x] 28-01-PLAN.md
 - [x] 28-02-PLAN.md
 - [x] 28-03-PLAN.md
-- [ ] 28-04-PLAN.md
-- [ ] 28-05-PLAN.md
-- [ ] 28-06-PLAN.md
-- [ ] 28-07-PLAN.md
+- [x] 28-04-PLAN.md
+- [x] 28-05-PLAN.md
+- [x] 28-06-PLAN.md
+- [x] 28-07-PLAN.md
 
-- [ ] `28-01-PLAN.md` — Define and enforce the normalized public tool protocol at the HTTP boundary
-- [ ] `28-02-PLAN.md` — Add capability-aware routing, explicit OPT-OUT, Fusion rejection, and fallback safety
-- [ ] `28-03-PLAN.md` — Build the shared streaming shadow state machine and cross-provider contract harness
-- [ ] `28-04-PLAN.md` — Complete OpenAI-compatible non-stream and streaming tool adaptation
-- [ ] `28-05-PLAN.md` — Complete Anthropic non-stream and streaming tool adaptation
-- [ ] `28-06-PLAN.md` — Complete Gemini non-stream and streaming tool adaptation
-- [ ] `28-07-PLAN.md` — Gateway Integration, Observability, and Phase Gate
+- [x] `28-01-PLAN.md` — Define and enforce the normalized public tool protocol at the HTTP boundary
+- [x] `28-02-PLAN.md` — Add capability-aware routing, explicit OPT-OUT, Fusion rejection, and fallback safety
+- [x] `28-03-PLAN.md` — Build the shared streaming shadow state machine and cross-provider contract harness
+- [x] `28-04-PLAN.md` — Complete OpenAI-compatible non-stream and streaming tool adaptation
+- [x] `28-05-PLAN.md` — Complete Anthropic non-stream and streaming tool adaptation
+- [x] `28-06-PLAN.md` — Complete Gemini non-stream and streaming tool adaptation
+- [x] `28-07-PLAN.md` — Gateway Integration, Observability, and Phase Gate
 
 **Cross-cutting constraints:**
 
 - D-29 through D-33: Pinned SDK behavior is rechecked, deterministic shared/provider fixtures are the evidence, all Go test commands use a 60-second timeout, and no dependency is upgraded.
 
-## Planned v7.8 Phase
+## Shipped v7.8 Phase
 
 | Phase | Name | Goal | Requirements | Status |
 |-------|------|------|--------------|--------|
@@ -114,7 +117,6 @@ Plans:
 ## Future Milestones
 
 - **Phase 11: BFF Layer & Admin Console** - JWT authentication, role-based access control, session management, and Admin Console foundation. Depends on Phase 7.
-- **Tool calling protocol completion** - Complete tool schema, tool-call fragment, result correlation, Usage, and finish-reason mappings.
 - **Semantic-cache latency hardening** - Configurable embedding path, short read budget, bounded asynchronous write path, and failure isolation.
 - **Stage timeout and cancellation hardening** - Connect, first-byte, stream-idle, and total-duration budgets with explicit retry eligibility.
 - **Scheduler automation** - optional automatic ONNX rollout changes after explicit operator opt-in.
@@ -131,4 +133,4 @@ Plans:
 - Config unification in v7.6 is backward-compatible: existing ENV variables remain valid; nested struct grouping is the new preferred form.
 
 ---
-*Roadmap refreshed: 2026-09-23 - Phase 28 planning reviewed; execution not started*
+*Roadmap refreshed: 2026-09-25 - v7.9 Phase 28 verified; milestone complete, deployment not performed*
