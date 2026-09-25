@@ -393,7 +393,7 @@ func BuildProviderAdapters(records []*ProviderRecord, decryptedSecrets map[strin
 		case "anthropic":
 			adapter = anthropic.NewAdapter(anthropic.AdapterConfig{ID: r.ID, BaseURL: r.BaseURL, APIKey: apiKey, ModelsCSV: modelsCSV})
 		case "gemini":
-			adapter = gemini.NewAdapter(r.ID, r.BaseURL, apiKey, modelsCSV)
+			adapter = gemini.NewAdapter(gemini.AdapterConfig{ID: r.ID, BaseURL: r.BaseURL, APIKey: apiKey, ModelsCSV: modelsCSV})
 		default:
 			return nil, fmt.Errorf("unknown provider type: %s", r.Type)
 		}

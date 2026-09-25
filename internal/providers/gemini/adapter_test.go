@@ -14,7 +14,7 @@ import (
 )
 
 func TestAdapter_Capabilities(t *testing.T) {
-	adapter := NewAdapter("gemini-1", "https://example.test/", "test-key", "gemini-1.5-pro")
+	adapter := NewAdapter(AdapterConfig{ID: "gemini-1", BaseURL: "https://example.test/", APIKey: "test-key", ModelsCSV: "gemini-1.5-pro"})
 	caps := adapter.Capabilities()
 
 	if caps.ProviderType != providers.ProviderTypeGemini {
@@ -192,7 +192,7 @@ func TestAdapter_Complete(t *testing.T) {
 			}))
 			defer server.Close()
 
-			adapter := NewAdapter("gemini-1", server.URL+"/", "test-key", "gemini-1.5-pro")
+			adapter := NewAdapter(AdapterConfig{ID: "gemini-1", BaseURL: server.URL + "/", APIKey: "test-key", ModelsCSV: "gemini-1.5-pro"})
 
 			resp, err := adapter.Complete(context.Background(), tt.request)
 
@@ -249,7 +249,7 @@ func TestAdapter_Conformance(t *testing.T) {
 	}))
 	defer server.Close()
 
-	adapter := NewAdapter("gemini-1", server.URL+"/", "test-key", "gemini-1.5-pro")
+	adapter := NewAdapter(AdapterConfig{ID: "gemini-1", BaseURL: server.URL + "/", APIKey: "test-key", ModelsCSV: "gemini-1.5-pro"})
 
 	spec := adaptertest.ConformanceSpec{
 		Adapter:        adapter,

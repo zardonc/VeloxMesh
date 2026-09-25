@@ -2,68 +2,71 @@ package gemini
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
-	"fmt"
+	"iter"
 	"net/http"
 	"os"
 	"strings"
 
 	"google.golang.org/genai"
+
 	gatewayErr "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/providers"
+	"veloxmesh/internal/providers/toolstream"
 )
 
 type Adapter struct {
-	id           string
-	client       *genai.Client
-	models       []string
-	defaultModel string
+	id                 string
+	client             *genai.Client
+	models             []string
+	defaultModel       string
+	generateToolCallID func() string
 }
 
-func NewAdapter(id, baseURL, apiKey, modelsStr string) providers.ProviderAdapter {
-	config := &genai.ClientConfig{
-		APIKey: apiKey,
-	}
-	if baseURL != "" {
-		config.HTTPOptions = genai.HTTPOptions{
-			BaseURL: baseURL,
-		}
-	}
-	client, _ := genai.NewClient(context.Background(), config)
+type AdapterConfig struct {
+	ID        string
+	BaseURL   string
+	APIKey    string
+	ModelsCSV string
+}
 
-	var models []string
-	for _, m := range strings.Split(modelsStr, ",") {
-		m = strings.TrimSpace(m)
-		if m != "" {
-			models = append(models, m)
-		}
+func NewAdapter(config AdapterConfig) providers.ProviderAdapter {
+	clientConfig := &genai.ClientConfig{APIKey: config.APIKey, Backend: genai.BackendGeminiAPI}
+	if config.BaseURL != "" {
+		clientConfig.HTTPOptions = genai.HTTPOptions{BaseURL: config.BaseURL}
 	}
-
-	defaultModel := ""
-	if len(models) > 0 {
-		defaultModel = models[0]
-	}
-
+	client, _ := genai.NewClient(context.Background(), clientConfig)
+	models := configuredModels(config.ModelsCSV)
 	return &Adapter{
-		id:           id,
-		client:       client,
-		models:       models,
-		defaultModel: defaultModel,
+		id:                 config.ID,
+		client:             client,
+		models:             models,
+		defaultModel:       firstModel(models),
+		generateToolCallID: opaqueToolCallID,
 	}
 }
 
-func (a *Adapter) ID() string {
-	return a.id
-}
-
-func (a *Adapter) Models() []string {
-	models := make([]string, len(a.models))
-	copy(models, a.models)
+func configuredModels(modelsCSV string) []string {
+	models := make([]string, 0)
+	for _, model := range strings.Split(modelsCSV, ",") {
+		if model = strings.TrimSpace(model); model != "" {
+			models = append(models, model)
+		}
+	}
 	return models
 }
+
+func firstModel(models []string) string {
+	if len(models) == 0 {
+		return ""
+	}
+	return models[0]
+}
+
+func (a *Adapter) ID() string { return a.id }
+
+func (a *Adapter) Models() []string { return append([]string(nil), a.models...) }
 
 func (a *Adapter) Capabilities() providers.CapabilitySet {
 	return providers.CapabilitySet{
@@ -74,109 +77,63 @@ func (a *Adapter) Capabilities() providers.CapabilitySet {
 		Streaming:           true,
 		ToolCalling:         true,
 		ToolProtocol: providers.ToolProtocolCapability{
-			Definitions: true,
+			Definitions:        true,
+			AssistantToolCalls: true,
+			ToolResults:        true,
+			StreamingDeltas:    true,
 			ChoiceModes: map[providers.ToolChoiceCapabilityMode]bool{
-				providers.ToolChoiceCapabilityOmitted:  false,
-				providers.ToolChoiceCapabilityAuto:     false,
-				providers.ToolChoiceCapabilityNone:     false,
-				providers.ToolChoiceCapabilityRequired: false,
-				providers.ToolChoiceCapabilityNamed:    false,
+				providers.ToolChoiceCapabilityOmitted:  true,
+				providers.ToolChoiceCapabilityAuto:     true,
+				providers.ToolChoiceCapabilityNone:     true,
+				providers.ToolChoiceCapabilityRequired: true,
+				providers.ToolChoiceCapabilityNamed:    true,
 			},
 		},
-		GenerationParameters: []providers.GenerationParameter{providers.GenerationParameterTemperature, providers.GenerationParameterMaxTokens},
+		GenerationParameters: []providers.GenerationParameter{
+			providers.GenerationParameterTemperature,
+			providers.GenerationParameterMaxTokens,
+		},
 	}
 }
 
-func (a *Adapter) HealthCheck(ctx context.Context) providers.HealthStatus {
+func (a *Adapter) HealthCheck(context.Context) providers.HealthStatus {
 	return providers.HealthStatus{Available: true, Message: "Gemini native health check not implemented"}
 }
 
 func (a *Adapter) buildParams(req *llm.LLMRequest) (string, []*genai.Content, *genai.GenerateContentConfig, error) {
-	model := req.Model
-	if model == "" {
-		model = a.defaultModel
+	contents, system, err := geminiContents(req.Messages)
+	if err != nil {
+		return "", nil, nil, err
 	}
-
-	var contents []*genai.Content
-	var systemInstruction *genai.Content
-
-	for _, msg := range req.Messages {
-		if msg.Role == llm.RoleSystem {
-			systemInstruction = &genai.Content{
-				Role: "system",
-				Parts: []*genai.Part{
-					{Text: msg.Content},
-				},
-			}
-			continue
-		}
-
-		role := "user"
-		if msg.Role == llm.RoleAssistant {
-			role = "model"
-		}
-
-		var parts []*genai.Part
-		if len(msg.MultiContent) > 0 {
-			for _, p := range msg.MultiContent {
-				if p.Type == llm.ContentTypeText {
-					parts = append(parts, &genai.Part{Text: p.Text})
-				} else if p.Type == llm.ContentTypeImageURL && p.ImageURL != nil {
-					if strings.HasPrefix(p.ImageURL.URL, "data:image/") {
-						arr := strings.SplitN(p.ImageURL.URL, ";base64,", 2)
-						if len(arr) == 2 {
-							mimeType := strings.TrimPrefix(arr[0], "data:")
-							dataBytes, _ := base64.StdEncoding.DecodeString(arr[1])
-							parts = append(parts, &genai.Part{
-								InlineData: &genai.Blob{
-									MIMEType: mimeType,
-									Data:     dataBytes,
-								},
-							})
-						}
-					}
-				}
-			}
-		} else {
-			parts = append(parts, &genai.Part{Text: msg.Content})
-		}
-
-		contents = append(contents, &genai.Content{
-			Role:  role,
-			Parts: parts,
-		})
+	functions := geminiFunctionDeclarations(req.Tools)
+	toolConfig, err := geminiToolConfig(req.ToolChoice, functions)
+	if err != nil {
+		return "", nil, nil, err
 	}
+	config := geminiGenerateConfig(req, system, toolConfig, functions)
+	return a.requestModel(req.Model), contents, config, nil
+}
 
-	var funcs []*genai.FunctionDeclaration
-	if len(req.Tools) > 0 {
-		for _, t := range req.Tools {
-			if t.Type == llm.ToolTypeFunction && t.Function != nil {
-				funcs = append(funcs, &genai.FunctionDeclaration{
-					Name:                 t.Function.Name,
-					Description:          t.Function.Description,
-					ParametersJsonSchema: t.Function.Parameters,
-				})
-			}
-		}
-	}
-
-	config := &genai.GenerateContentConfig{
-		SystemInstruction: systemInstruction,
-	}
-	if len(funcs) > 0 {
-		config.Tools = []*genai.Tool{
-			{FunctionDeclarations: funcs},
-		}
+func geminiGenerateConfig(req *llm.LLMRequest, system *genai.Content, toolConfig *genai.ToolConfig, functions []*genai.FunctionDeclaration) *genai.GenerateContentConfig {
+	config := &genai.GenerateContentConfig{SystemInstruction: system, ToolConfig: toolConfig}
+	if len(functions) > 0 {
+		config.Tools = []*genai.Tool{{FunctionDeclarations: functions}}
 	}
 	if req.Temperature != nil {
-		f := float32(*req.Temperature)
-		config.Temperature = &f
+		temperature := float32(*req.Temperature)
+		config.Temperature = &temperature
 	}
 	if req.MaxTokens != nil {
 		config.MaxOutputTokens = int32(*req.MaxTokens)
 	}
+	return config
+}
 
-	return model, contents, config, nil
+func (a *Adapter) requestModel(model string) string {
+	if model != "" {
+		return model
+	}
+	return a.defaultModel
 }
 
 func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
@@ -184,128 +141,23 @@ func (a *Adapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMRe
 	if err != nil {
 		return nil, err
 	}
-
-	resp, err := a.client.Models.GenerateContent(ctx, model, contents, config)
+	response, err := a.client.Models.GenerateContent(ctx, model, contents, config)
 	if err != nil {
 		return nil, a.mapError(err)
 	}
-
-	if len(resp.Candidates) == 0 {
-		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "No candidates returned from Gemini", http.StatusBadGateway)
+	if len(response.Candidates) == 0 {
+		return nil, invalidGeminiToolResponse()
 	}
-
-	candidate := resp.Candidates[0]
-	content := ""
-	var toolCalls []llm.ToolCall
-
-	if candidate.Content != nil {
-		for _, part := range candidate.Content.Parts {
-			if part.Text != "" {
-				content += part.Text
-			}
-			if part.FunctionCall != nil {
-				argsBytes, _ := json.Marshal(part.FunctionCall.Args)
-				toolCalls = append(toolCalls, llm.ToolCall{
-					ID:   fmt.Sprintf("call_%d", len(toolCalls)+1),
-					Type: llm.ToolTypeFunction,
-					Function: llm.FunctionCall{
-						Name:      part.FunctionCall.Name,
-						Arguments: string(argsBytes),
-					},
-				})
-			}
-		}
+	choice, err := geminiChoice(response.Candidates[geminiFirstCandidateIndex], a.generateToolCallID)
+	if err != nil {
+		return nil, err
 	}
-
-	if content == "" && len(toolCalls) == 0 && candidate.FinishReason != "SAFETY" && candidate.FinishReason != "RECITATION" && candidate.FinishReason != "OTHER" {
-		return nil, gatewayErr.NewGatewayError(gatewayErr.ProviderBadResponse, "Provider returned no valid output", http.StatusBadGateway)
-	}
-
-	finishReason := "stop"
-	if candidate.FinishReason != "" {
-		switch candidate.FinishReason {
-		case "STOP":
-			finishReason = "stop"
-		case "MAX_TOKENS":
-			finishReason = "length"
-		case "SAFETY", "RECITATION", "OTHER":
-			finishReason = strings.ToLower(string(candidate.FinishReason))
-		}
-	}
-
 	return &llm.LLMResponse{
 		Model:    model,
 		Provider: a.id,
-		Choices: []llm.Choice{
-			{
-				Index: 0,
-				Message: llm.Message{
-					Role:      llm.RoleAssistant,
-					Content:   content,
-					ToolCalls: toolCalls,
-				},
-				FinishReason: finishReason,
-			},
-		},
-		Usage: usageFromGemini(resp.UsageMetadata),
+		Choices:  []llm.Choice{choice},
+		Usage:    usageFromGemini(response.UsageMetadata),
 	}, nil
-}
-
-func usageFromGemini(usage *genai.GenerateContentResponseUsageMetadata) *llm.Usage {
-	if usage == nil {
-		return nil
-	}
-	prompt := int(usage.PromptTokenCount + usage.ToolUsePromptTokenCount)
-	completion := int(usage.CandidatesTokenCount + usage.ThoughtsTokenCount)
-	total := int(usage.TotalTokenCount)
-	if total == 0 {
-		total = prompt + completion
-	}
-	return &llm.Usage{
-		PromptTokens:     prompt,
-		CompletionTokens: completion,
-		TotalTokens:      total,
-	}
-}
-
-func (a *Adapter) mapError(err error) error {
-	var apiErr *genai.APIError
-	var apiErrVal genai.APIError
-	if errors.As(err, &apiErr) {
-		switch apiErr.Code {
-		case http.StatusUnauthorized, http.StatusForbidden:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderAuthError, "Gemini authentication failed", http.StatusBadGateway)
-		case http.StatusTooManyRequests:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderRateLimit, "Gemini rate limit exceeded", http.StatusBadGateway)
-		case http.StatusNotFound:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidModel, "Gemini model not found", http.StatusBadRequest)
-		case http.StatusBadRequest:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidRequest, "Invalid request to Gemini", http.StatusBadRequest)
-		case http.StatusRequestTimeout:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Gemini request timeout", http.StatusGatewayTimeout)
-		default:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderError, "Gemini API error", http.StatusBadGateway)
-		}
-	} else if errors.As(err, &apiErrVal) {
-		switch apiErrVal.Code {
-		case http.StatusUnauthorized, http.StatusForbidden:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderAuthError, "Gemini authentication failed", http.StatusBadGateway)
-		case http.StatusTooManyRequests:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderRateLimit, "Gemini rate limit exceeded", http.StatusBadGateway)
-		case http.StatusNotFound:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidModel, "Gemini model not found", http.StatusBadRequest)
-		case http.StatusBadRequest:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidRequest, "Invalid request to Gemini", http.StatusBadRequest)
-		case http.StatusRequestTimeout:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Gemini request timeout", http.StatusGatewayTimeout)
-		default:
-			return gatewayErr.NewGatewayError(gatewayErr.ProviderError, "Gemini API error", http.StatusBadGateway)
-		}
-	}
-	if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
-		return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
-	}
-	return gatewayErr.NewGatewayError(gatewayErr.ProviderUnavailable, "Failed to communicate with Gemini", http.StatusBadGateway)
 }
 
 func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.StreamEvent, error) {
@@ -313,77 +165,72 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 	if err != nil {
 		return nil, err
 	}
-
 	stream := a.client.Models.GenerateContentStream(ctx, model, contents, config)
-	ch := make(chan llm.StreamEvent)
+	output := make(chan llm.StreamEvent)
+	go a.forwardStream(stream, output)
+	return output, nil
+}
 
-	go func() {
-		defer close(ch)
-		var usage llm.Usage
-
-		toolCallIdx := 0
-
-		for resp, err := range stream {
-			if err != nil {
-				ch <- llm.StreamEvent{Error: a.mapError(err)}
-				return
-			}
-
-			if len(resp.Candidates) > 0 {
-				candidate := resp.Candidates[0]
-				if candidate.Content != nil {
-					for _, part := range candidate.Content.Parts {
-						if part.Text != "" {
-							ch <- llm.StreamEvent{DeltaContent: part.Text}
-						}
-						if part.FunctionCall != nil {
-							argsBytes, _ := json.Marshal(part.FunctionCall.Args)
-							idx := toolCallIdx
-							toolType := llm.ToolTypeFunction
-							id := fmt.Sprintf("call_%d", idx+1)
-							argsStr := string(argsBytes)
-							ch <- llm.StreamEvent{
-								ToolCalls: []llm.ToolCallChunk{
-									{
-										Index: &idx,
-										ID:    &id,
-										Type:  &toolType,
-										Function: &llm.FunctionCallChunk{
-											Name:      &part.FunctionCall.Name,
-											Arguments: &argsStr,
-										},
-									},
-								},
-							}
-							toolCallIdx++
-						}
-					}
-				}
-
-				if candidate.FinishReason != "" {
-					fr := "stop"
-					switch candidate.FinishReason {
-					case "STOP":
-						fr = "stop"
-					case "MAX_TOKENS":
-						fr = "length"
-					case "SAFETY", "RECITATION", "OTHER":
-						fr = strings.ToLower(string(candidate.FinishReason))
-					}
-					ch <- llm.StreamEvent{FinishReason: fr}
-				}
-			}
-
-			if resp.UsageMetadata != nil {
-				usage.PromptTokens = int(resp.UsageMetadata.PromptTokenCount)
-				usage.CompletionTokens = int(resp.UsageMetadata.CandidatesTokenCount)
-				usage.TotalTokens = int(resp.UsageMetadata.TotalTokenCount)
-				ch <- llm.StreamEvent{Usage: &usage}
-			}
+func (a *Adapter) forwardStream(stream iter.Seq2[*genai.GenerateContentResponse, error], output chan<- llm.StreamEvent) {
+	defer close(output)
+	state := geminiStreamState{tools: toolstream.New(toolstream.Config{GenerateID: a.generateToolCallID})}
+	for response, err := range stream {
+		if err != nil {
+			output <- llm.StreamEvent{Error: a.mapError(err)}
+			return
 		}
+		next, events, eventErr := geminiStreamEvents(state, response)
+		if eventErr != nil {
+			output <- llm.StreamEvent{Error: invalidGeminiToolResponse()}
+			return
+		}
+		state = next
+		for _, event := range events {
+			output <- event
+		}
+	}
+	if state.toolCount > 0 && !state.terminal {
+		output <- llm.StreamEvent{Error: invalidGeminiToolResponse()}
+		return
+	}
+	output <- llm.StreamEvent{Done: true}
+}
 
-		ch <- llm.StreamEvent{Done: true}
-	}()
+func (a *Adapter) mapError(err error) error {
+	if code, found := geminiAPIStatus(err); found {
+		return geminiStatusError(code)
+	}
+	if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
+		return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)
+	}
+	return gatewayErr.NewGatewayError(gatewayErr.ProviderUnavailable, "Failed to communicate with Gemini", http.StatusBadGateway)
+}
 
-	return ch, nil
+func geminiAPIStatus(err error) (int, bool) {
+	var pointer *genai.APIError
+	if errors.As(err, &pointer) {
+		return pointer.Code, true
+	}
+	var value genai.APIError
+	if errors.As(err, &value) {
+		return value.Code, true
+	}
+	return 0, false
+}
+
+func geminiStatusError(code int) error {
+	switch code {
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return gatewayErr.NewGatewayError(gatewayErr.ProviderAuthError, "Gemini authentication failed", http.StatusBadGateway)
+	case http.StatusTooManyRequests:
+		return gatewayErr.NewGatewayError(gatewayErr.ProviderRateLimit, "Gemini rate limit exceeded", http.StatusBadGateway)
+	case http.StatusNotFound:
+		return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidModel, "Gemini model not found", http.StatusBadRequest)
+	case http.StatusBadRequest:
+		return gatewayErr.NewGatewayError(gatewayErr.ProviderInvalidRequest, "Invalid request to Gemini", http.StatusBadRequest)
+	case http.StatusRequestTimeout:
+		return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Gemini request timeout", http.StatusGatewayTimeout)
+	default:
+		return gatewayErr.NewGatewayError(gatewayErr.ProviderError, "Gemini API error", http.StatusBadGateway)
+	}
 }

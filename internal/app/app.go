@@ -318,7 +318,7 @@ func New() (*App, error) {
 			case "anthropic":
 				adapters = append(adapters, anthropic.NewAdapter(anthropic.AdapterConfig{ID: p.ID, BaseURL: p.BaseURL, APIKey: p.ResolveAPIKey(), ModelsCSV: strings.Join(p.Models, ",")}))
 			case "gemini":
-				adapters = append(adapters, gemini.NewAdapter(p.ID, p.BaseURL, p.ResolveAPIKey(), strings.Join(p.Models, ",")))
+				adapters = append(adapters, gemini.NewAdapter(gemini.AdapterConfig{ID: p.ID, BaseURL: p.BaseURL, APIKey: p.ResolveAPIKey(), ModelsCSV: strings.Join(p.Models, ",")}))
 			}
 		}
 		if err := m.ActivateStatic(cfg.Providers, adapters); err != nil {

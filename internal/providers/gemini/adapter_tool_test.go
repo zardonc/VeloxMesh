@@ -254,7 +254,7 @@ func TestGeminiToolArgumentsRemainLossless(t *testing.T) {
 }
 
 func newGeminiToolAdapter(server *httptest.Server) *Adapter {
-	return NewAdapter("gemini", server.URL, "test-key", "gemini-2.5-flash").(*Adapter)
+	return NewAdapter(AdapterConfig{ID: "gemini", BaseURL: server.URL, APIKey: "test-key", ModelsCSV: "gemini-2.5-flash"}).(*Adapter)
 }
 
 func geminiToolRequest(choice *llm.ToolChoice) *llm.LLMRequest {
@@ -340,12 +340,13 @@ func writeGeminiJSON(t *testing.T, writer http.ResponseWriter, body map[string]a
 func assertGeminiRequest(t *testing.T, request map[string]any, wantMode string, wantNames []string, wantAbsent bool) {
 	t.Helper()
 	declarations := mapSlice(t, request["tools"], "tools")
-	schema := mapValue(t, mapValue(t, declarations[0], "functionDeclarations"), "parametersJsonSchema")
+	functions := mapSlice(t, declarations[0]["functionDeclarations"], "functionDeclarations")
+	schema := mapValue(t, functions[0]["parametersJsonSchema"], "parametersJsonSchema")
 	if schema["additionalProperties"] != false {
 		t.Errorf("schema additionalProperties = %#v, want false", schema["additionalProperties"])
 	}
-	properties := mapValue(t, schema, "properties")
-	city := mapValue(t, properties, "city")
+	properties := mapValue(t, schema["properties"], "properties")
+	city := mapValue(t, properties["city"], "city")
 	if city["type"] != "string" {
 		t.Errorf("schema city type = %#v, want string", city["type"])
 	}
@@ -358,12 +359,12 @@ func assertGeminiRequest(t *testing.T, request map[string]any, wantMode string, 
 		t.Errorf("assistant history role = %#v, want model", contents[1]["role"])
 	}
 	historyParts := mapSlice(t, contents[1]["parts"], "history parts")
-	historyCall := mapValue(t, historyParts[0], "functionCall")
+	historyCall := mapValue(t, historyParts[0]["functionCall"], "functionCall")
 	if historyCall["id"] != "call-history" {
 		t.Errorf("history call ID = %#v, want call-history", historyCall["id"])
 	}
 	resultParts := mapSlice(t, contents[2]["parts"], "result parts")
-	result := mapValue(t, resultParts[0], "functionResponse")
+	result := mapValue(t, resultParts[0]["functionResponse"], "functionResponse")
 	if result["id"] != "call-history" || result["name"] != "weather" {
 		t.Errorf("tool result = %#v, want correlated weather result", result)
 	}
@@ -375,9 +376,9 @@ func assertGeminiRequest(t *testing.T, request map[string]any, wantMode string, 
 		}
 		return
 	}
-	functionConfig := mapValue(t, mapValue(t, config, "functionCallingConfig"), "mode")
-	if functionConfig["value"] != wantMode {
-		t.Errorf("tool mode = %#v, want %q", functionConfig["value"], wantMode)
+	functionConfig := mapValue(t, mapValue(t, config, "toolConfig")["functionCallingConfig"], "functionCallingConfig")
+	if functionConfig["mode"] != wantMode {
+		t.Errorf("tool mode = %#v, want %q", functionConfig["mode"], wantMode)
 	}
 	if len(wantNames) == 0 {
 		if _, found := functionConfig["allowedFunctionNames"]; found {
