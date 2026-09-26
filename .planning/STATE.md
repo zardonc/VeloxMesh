@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v7.9
 milestone_name: Phases
 current_phase: 29
-current_phase_name: semantic-cache-latency-hardening
-status: completed
-stopped_at: Phase 29 plans drafted; milestone assignment and implementation checkpoints pending
-last_updated: "2026-09-26T03:34:40.448Z"
+current_phase_name: Semantic Cache Latency Hardening
+status: executing
+stopped_at: Completed 29-01-PLAN.md
+last_updated: "2026-09-26T04:45:27.413Z"
 last_activity: 2026-09-25
-last_activity_desc: Phase 28 complete
-state_head: 4a21e82a517fa8fd9646a96c89478a98fdc9b25e
+last_activity_desc: Phase 29 execution started
+state_head: f471376cfea067d77a30c747d2385982a0e1e61d
 progress:
   total_phases: 3
   completed_phases: 19
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-25)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** v7.9 is complete: Phases 27 and 28 are verified; no deployment has been performed.
+**Current focus:** Phase 29 — Semantic Cache Latency Hardening
 
 ## Current Implementation State
 
@@ -80,10 +80,10 @@ See: `.planning/PROJECT.md` (updated 2026-09-25)
 
 ## Current Position
 
-Phase: 29 (semantic-cache-latency-hardening) — READY TO EXECUTE
-Plan: Not started
-Status: All phases complete
-Last activity: 2026-09-24 — Phase 28 complete
+Phase: 29 (Semantic Cache Latency Hardening) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-09-25 — Phase 29 execution started
 
 ## Operator Next Steps
 
@@ -121,6 +121,7 @@ Items acknowledged at v7.0 close:
 | Phase 28 P01 | 17min | 3 tasks | 7 files |
 | Phase 28 P02 | 37m | 3 tasks | 8 files |
 | Phase 28-tool-calling-protocol-completion P03 | 16min | 3 tasks | 4 files |
+| Phase 29-semantic-cache-latency-hardening P01 | 1h | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -131,9 +132,9 @@ Items acknowledged at v7.0 close:
 
 ## Session
 
-**Last session:** 2026-09-26T03:34:40.386Z
-**Stopped at:** Phase 29 plans drafted; milestone assignment and implementation checkpoints pending
-**Resume file:** .planning/phases/29-semantic-cache-latency-hardening/29-OVERVIEW.md
+**Last session:** 2026-09-26T04:45:27.347Z
+**Stopped at:** Completed 29-01-PLAN.md
+**Resume file:** 29-02-PLAN.md
 
 ## Decisions
 
@@ -145,6 +146,7 @@ Items acknowledged at v7.0 close:
 - [Phase 28]: Tool-call shadow state remains side-effect free; Phase 27 retains all terminal ownership.
 - [Phase 28]: Arguments stay opaque until completion and are capped per unfinished call.
 - [Phase 28]: The shared harness accepts first-turn tool requests and validates supplied tool-result history.
+- [Phase 29]: Semantic cache eligibility is an opaque trusted FAQ profile keyed by database-authenticated API key ID, knowledge version, fixed prompt, generation settings, and embedding identity.
 
 ### Blockers
 
