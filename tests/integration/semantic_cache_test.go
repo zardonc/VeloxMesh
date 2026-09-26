@@ -23,7 +23,8 @@ import (
 )
 
 type mockEmbedAdapter struct {
-	id string
+	id    string
+	calls int
 }
 
 func (m *mockEmbedAdapter) ID() string       { return m.id }
@@ -50,6 +51,7 @@ func (m *mockEmbedAdapter) HealthCheck(ctx context.Context) providers.HealthStat
 	return providers.HealthStatus{}
 }
 func (m *mockEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
+	m.calls++
 	return &llm.EmbeddingResponse{
 		Data: []llm.Embedding{{Index: 0, Embedding: []float32{1.0, 0.0, 0.0}}},
 	}, nil
@@ -135,5 +137,31 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 	}
 	if rec2.Header().Get("X-Cache-Level") != "semantic" {
 		t.Errorf("req2 expected X-Cache-Level: semantic")
+	}
+}
+
+func TestSemanticCache_DevKeyBypassesCache(t *testing.T) {
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	cfg := &config.Config{DevAPIKey: "dev-key"}
+	p1 := &mockEmbedAdapter{id: "p1"}
+	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1}, nil)
+	route := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	semanticCacheSvc := cache.NewSemanticCacheService(cache.SemanticCacheConfig{
+		Enabled: true, Threshold: 0.9, MaxCandidates: 10, TTL: time.Hour,
+	}, &memorySemanticCacheRepo{}, nil, p1)
+	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc, pipeline.DefaultRegistry(), nil, nil)
+	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil, nil, nil, nil)
+	body, _ := json.Marshal(llm.ChatCompletionRequest{Model: "emb", Messages: []llm.Message{{Role: llm.RoleUser, Content: "FAQ"}}})
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer dev-key")
+	rec := httptest.NewRecorder()
+
+	appRouter.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status=%d, want %d", rec.Code, http.StatusOK)
+	}
+	if p1.calls != 0 {
+		t.Fatalf("embedding calls=%d, want 0 for development key", p1.calls)
 	}
 }

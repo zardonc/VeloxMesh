@@ -14,6 +14,7 @@ import (
 
 type mockEmbedAdapter struct {
 	embeddings map[string][]float32
+	models     []string
 }
 
 func (m *mockEmbedAdapter) ID() string       { return "mock" }
@@ -28,6 +29,7 @@ func (m *mockEmbedAdapter) Capabilities() providers.CapabilitySet {
 	return providers.CapabilitySet{SupportedOperations: []providers.Operation{providers.OperationEmbeddings}}
 }
 func (m *mockEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
+	m.models = append(m.models, req.Model)
 	if len(req.Input) == 0 {
 		return nil, errors.New("empty input")
 	}
@@ -225,6 +227,43 @@ func TestSemanticCacheService_NilEmbeddingResponseIsMiss(t *testing.T) {
 	}
 	if err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "test", `{}`, nil); err != nil {
 		t.Fatalf("expected nil-response store no-op, got %v", err)
+	}
+}
+
+func TestSemanticCacheRejectsWrongVectorLength(t *testing.T) {
+	repo := &mockRepo{hits: make(map[string]int)}
+	adapter := &mockEmbedAdapter{embeddings: map[string][]float32{
+		"answer":   {1, 0},
+		"question": {1, 0, 0},
+	}}
+	svc := NewSemanticCacheService(SemanticCacheConfig{
+		Enabled: true, Threshold: 0.8, MaxCandidates: 1, TTL: time.Hour,
+	}, repo, nil, adapter)
+
+	if err := svc.Store(context.Background(), "entry", "scope", "model", "answer", `{}`, nil); err != nil {
+		t.Fatalf("Store: %v", err)
+	}
+	entry, err := svc.Lookup(context.Background(), "scope", "model", "question")
+	if err != nil {
+		t.Fatalf("Lookup: %v", err)
+	}
+	if entry != nil {
+		t.Fatal("wrong-length embedding must be a cache miss")
+	}
+}
+
+func TestSemanticCacheUsesConfiguredEmbeddingModel(t *testing.T) {
+	repo := &mockRepo{hits: make(map[string]int)}
+	adapter := &mockEmbedAdapter{embeddings: map[string][]float32{"question": {1, 0}}}
+	svc := NewSemanticCacheService(SemanticCacheConfig{
+		Enabled: true, Threshold: 0.8, MaxCandidates: 1, TTL: time.Hour,
+	}, repo, nil, adapter)
+
+	if _, err := svc.Lookup(context.Background(), "scope", "model", "question"); err != nil {
+		t.Fatalf("Lookup: %v", err)
+	}
+	if len(adapter.models) != 1 || adapter.models[0] != "configured-embedding-model" {
+		t.Fatalf("embedding model=%v, want configured-embedding-model", adapter.models)
 	}
 }
 
