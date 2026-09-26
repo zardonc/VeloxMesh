@@ -107,7 +107,7 @@ func TestToolProtocolTracerBypassesSemanticCache(t *testing.T) {
 	}
 }
 
-func TestNoToolsRegressionUsesSemanticCache(t *testing.T) {
+func TestNoToolsWithoutTrustedProfileBypassesSemanticCache(t *testing.T) {
 	cacheSpy, embedder := &semanticCacheSpy{}, &embeddingSpy{}
 	service := newSemanticCacheTracerService(cacheSpy, embedder)
 	ctx := context.WithValue(context.Background(), middleware.AuthIdentityKey, &middleware.AuthIdentity{ID: "cache-user"})
@@ -118,14 +118,14 @@ func TestNoToolsRegressionUsesSemanticCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("HandleChatCompletion: %v", err)
 	}
-	if got := embedder.calls.Load(); got != 2 {
-		t.Fatalf("embedding calls=%d, want 2", got)
+	if got := embedder.calls.Load(); got != 0 {
+		t.Fatalf("embedding calls=%d, want 0", got)
 	}
-	if got := cacheSpy.lookups.Load(); got != 1 {
-		t.Fatalf("cache lookups=%d, want 1", got)
+	if got := cacheSpy.lookups.Load(); got != 0 {
+		t.Fatalf("cache lookups=%d, want 0", got)
 	}
-	if got := cacheSpy.stores.Load(); got != 1 {
-		t.Fatalf("cache stores=%d, want 1", got)
+	if got := cacheSpy.stores.Load(); got != 0 {
+		t.Fatalf("cache stores=%d, want 0", got)
 	}
 }
 

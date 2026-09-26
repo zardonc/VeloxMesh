@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 	"veloxmesh/internal/errors"
@@ -41,14 +42,14 @@ func NewChatHandler(svc *gateway.Service) *ChatHandler {
 
 func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	req, requirements, gatewayErr := decodeChatRequest(r)
+	req, requirements, cacheUnsafe, gatewayErr := decodeChatRequest(r)
 	if gatewayErr != nil {
 		sendGatewayError(w, gatewayErr)
 		return
 	}
 
 	reqID := middleware.GetReqID(r.Context())
-	llmReq := newLLMRequest(reqID, r, req, requirements)
+	llmReq := newLLMRequest(reqID, r, req, requirements, cacheUnsafe)
 	if req.Stream {
 		h.streamChatCompletions(w, r, llmReq, reqID, start)
 		return
@@ -62,38 +63,58 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	writeChatCompletionResponse(w, reqID, resp, time.Since(start))
 }
 
-func decodeChatRequest(r *http.Request) (llm.ChatCompletionRequest, llm.ToolProtocolRequirements, *errors.GatewayError) {
+func decodeChatRequest(r *http.Request) (llm.ChatCompletionRequest, llm.ToolProtocolRequirements, bool, *errors.GatewayError) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, errors.NewGatewayError("invalid_request", "Failed to parse JSON body", http.StatusBadRequest)
+	}
 	var proxyRequest chatProxyRequest
-	if err := json.NewDecoder(r.Body).Decode(&proxyRequest); err != nil {
-		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, errors.NewGatewayError("invalid_request", "Failed to parse JSON body", http.StatusBadRequest)
+	if err := json.Unmarshal(body, &proxyRequest); err != nil {
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, errors.NewGatewayError("invalid_request", "Failed to parse JSON body", http.StatusBadRequest)
 	}
 	if len(proxyRequest.Functions) > 0 || len(proxyRequest.FunctionCall) > 0 {
-		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, errors.NewInvalidToolProtocolRequest()
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, errors.NewInvalidToolProtocolRequest()
 	}
 	choice, gatewayErr := llm.ParseToolChoice(proxyRequest.ToolChoice)
 	if gatewayErr != nil {
-		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, gatewayErr
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, gatewayErr
 	}
 	messages, gatewayErr := decodeChatMessages(proxyRequest.Messages)
 	if gatewayErr != nil {
-		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, gatewayErr
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, gatewayErr
 	}
 	if len(messages) == 0 {
-		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, errors.NewGatewayError("invalid_request", "Messages array is required", http.StatusBadRequest)
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, errors.NewGatewayError("invalid_request", "Messages array is required", http.StatusBadRequest)
 	}
-	return llm.NormalizeToolProtocol(llm.ChatCompletionRequest{
+	request, requirements, gatewayErr := llm.NormalizeToolProtocol(llm.ChatCompletionRequest{
 		Model: proxyRequest.Model, Messages: messages, Temperature: proxyRequest.Temperature,
 		MaxTokens: proxyRequest.MaxTokens, Stream: proxyRequest.Stream, Tools: proxyRequest.Tools, ToolChoice: choice,
 	})
+	return request, requirements, hasUnknownChatFields(body), gatewayErr
 }
 
-func newLLMRequest(requestID string, r *http.Request, request llm.ChatCompletionRequest, requirements llm.ToolProtocolRequirements) *llm.LLMRequest {
+func newLLMRequest(requestID string, r *http.Request, request llm.ChatCompletionRequest, requirements llm.ToolProtocolRequirements, cacheUnsafe bool) *llm.LLMRequest {
 	return &llm.LLMRequest{
 		RequestID: requestID, Model: request.Model, Messages: request.Messages,
 		Temperature: request.Temperature, MaxTokens: request.MaxTokens, Stream: request.Stream,
 		PriorityClass: r.Header.Get("X-Priority"), RouteOverride: r.Header.Get("X-Route-To"),
-		Tools: request.Tools, ToolChoice: request.ToolChoice, ToolRequirements: requirements,
+		Tools: request.Tools, ToolChoice: request.ToolChoice, ToolRequirements: requirements, CacheUnsafe: cacheUnsafe,
 	}
+}
+
+func hasUnknownChatFields(body []byte) bool {
+	var fields map[string]json.RawMessage
+	if json.Unmarshal(body, &fields) != nil {
+		return true
+	}
+	for field := range fields {
+		switch field {
+		case "model", "messages", "temperature", "max_tokens", "stream", "tools", "tool_choice", "functions", "function_call":
+		default:
+			return true
+		}
+	}
+	return false
 }
 
 func writeChatCompletionResponse(w http.ResponseWriter, requestID string, response *llm.LLMResponse, duration time.Duration) {

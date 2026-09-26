@@ -128,12 +128,25 @@ type RedisConfig struct {
 }
 
 type CacheConfig struct {
-	Enabled         bool           `json:"enabled"`
-	Provider        string         `json:"provider"`
-	VectorStore     string         `json:"vector_store"`
-	VectorDimension int            `json:"vector_dimension"`
-	PGVector        PGVectorConfig `json:"pgvector"`
-	Qdrant          QdrantConfig   `json:"qdrant"`
+	Enabled         bool                 `json:"enabled"`
+	Provider        string               `json:"provider"`
+	EmbeddingModel  string               `json:"embedding_model"`
+	VectorStore     string               `json:"vector_store"`
+	VectorDimension int                  `json:"vector_dimension"`
+	TTL             string               `json:"ttl"`
+	Threshold       float32              `json:"threshold"`
+	MaxCandidates   int                  `json:"max_candidates"`
+	UseCases        []CacheUseCaseConfig `json:"use_cases"`
+	PGVector        PGVectorConfig       `json:"pgvector"`
+	Qdrant          QdrantConfig         `json:"qdrant"`
+}
+
+type CacheUseCaseConfig struct {
+	UseCaseID        string   `json:"use_case_id"`
+	APIKeyIDs        []string `json:"api_key_ids"`
+	KnowledgeVersion string   `json:"knowledge_version"`
+	TargetModel      string   `json:"target_model"`
+	SystemPrompt     string   `json:"system_prompt"`
 }
 
 type PGVectorConfig struct {

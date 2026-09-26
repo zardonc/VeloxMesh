@@ -99,6 +99,7 @@ type LLMRequest struct {
 	Tools            []Tool
 	ToolChoice       *ToolChoice
 	ToolRequirements ToolProtocolRequirements
+	CacheUnsafe      bool
 }
 
 type Choice struct {

@@ -14,7 +14,7 @@ import (
 )
 
 func newSemanticCacheService(ctx context.Context, cfg *config.Config, logger *slog.Logger, m *controlstate.RuntimeProviderManager, repo controlstate.Repository) *cache.SemanticCacheService {
-	if !cfg.SemanticCacheEnabled || repo == nil || cfg.SemanticCacheProvider == "" {
+	if !cfg.SemanticCacheEnabled || repo == nil || cfg.SemanticCacheProvider == "" || cfg.Cache.EmbeddingModel == "" || len(cfg.Cache.UseCases) == 0 {
 		return nil
 	}
 	snapshot := m.Snapshot()
@@ -33,11 +33,30 @@ func newSemanticCacheService(ctx context.Context, cfg *config.Config, logger *sl
 		return nil
 	}
 	return cache.NewSemanticCacheService(cache.SemanticCacheConfig{
-		Enabled:       true,
-		Threshold:     0.9,
-		MaxCandidates: 10,
-		TTL:           24 * time.Hour,
+		Enabled:         true,
+		Threshold:       cfg.Cache.Threshold,
+		MaxCandidates:   cfg.Cache.MaxCandidates,
+		TTL:             cacheTTL(cfg.Cache.TTL),
+		EmbeddingModel:  cfg.Cache.EmbeddingModel,
+		VectorDimension: cfg.Cache.VectorDimension,
+		UseCases:        cacheUseCases(cfg.Cache.UseCases),
 	}, repo.SemanticCache(), newVectorAdapter(ctx, cfg, logger), embedAdapter)
+}
+
+func cacheTTL(value string) time.Duration {
+	ttl, _ := time.ParseDuration(value)
+	return ttl
+}
+
+func cacheUseCases(useCases []config.CacheUseCaseConfig) []cache.SemanticCacheUseCase {
+	result := make([]cache.SemanticCacheUseCase, 0, len(useCases))
+	for _, useCase := range useCases {
+		result = append(result, cache.SemanticCacheUseCase{
+			APIKeyIDs: append([]string(nil), useCase.APIKeyIDs...), UseCaseID: useCase.UseCaseID,
+			KnowledgeVersion: useCase.KnowledgeVersion, TargetModel: useCase.TargetModel, SystemPrompt: useCase.SystemPrompt,
+		})
+	}
+	return result
 }
 
 func newVectorAdapter(ctx context.Context, cfg *config.Config, logger *slog.Logger) storage.VectorAdapter {

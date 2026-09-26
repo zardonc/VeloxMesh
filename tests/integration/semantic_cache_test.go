@@ -3,7 +3,10 @@ package integration
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,6 +16,7 @@ import (
 	"veloxmesh/internal/cache"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
+	controlsqlite "veloxmesh/internal/controlstate/sqlite"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
 	router "veloxmesh/internal/http"
@@ -81,13 +85,26 @@ func (m *memorySemanticCacheRepo) Disable(ctx context.Context, id string) error 
 
 func TestSemanticCache_CacheHeaders(t *testing.T) {
 	ctx := context.Background()
-	_ = ctx
+	repo, err := controlsqlite.Open(fmt.Sprintf("file:semantic-cache-%d?mode=memory&cache=shared", time.Now().UnixNano()))
+	if err != nil {
+		t.Fatalf("open test database: %v", err)
+	}
+	defer repo.Close()
+	if err := repo.Migrate(ctx); err != nil {
+		t.Fatalf("migrate test database: %v", err)
+	}
+	token := fmt.Sprintf("phase29-token-%d", time.Now().UnixNano())
+	keyHash := sha256.Sum256([]byte(token))
+	keyID := fmt.Sprintf("phase29-key-%d", time.Now().UnixNano())
+	if err := repo.APIKeys().Create(ctx, &controlstate.APIKeyRecord{
+		ID: keyID, Hash: hex.EncodeToString(keyHash[:]), Name: "phase29 cache test", Role: "user", Enabled: true, CreditBalance: 1,
+	}); err != nil {
+		t.Fatalf("create test API key: %v", err)
+	}
 	store := health.NewInMemoryStore()
 	store.EnsureProvider("p1", 3, 1)
 
-	cfg := &config.Config{
-		DevAPIKey: "dev-key",
-	}
+	cfg := &config.Config{}
 
 	p1 := &mockEmbedAdapter{id: "p1"}
 	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1}, nil)
@@ -95,24 +112,26 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 
 	cacheRepo := &memorySemanticCacheRepo{}
 	semanticCacheSvc := cache.NewSemanticCacheService(cache.SemanticCacheConfig{
-		Enabled:       true,
-		Threshold:     0.9,
-		MaxCandidates: 10,
-		TTL:           1 * time.Hour,
+		Enabled: true, Threshold: 0.9, MaxCandidates: 10, TTL: time.Hour,
+		EmbeddingModel: "emb", VectorDimension: 3,
+		UseCases: []cache.SemanticCacheUseCase{{
+			APIKeyIDs: []string{keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: "faq-v1", TargetModel: "emb", SystemPrompt: "Static FAQ only",
+		}},
 	}, cacheRepo, nil, p1)
 
 	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc, pipeline.DefaultRegistry(), nil, nil)
 
-	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil, nil, nil, nil)
+	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil, repo, nil, nil)
 
+	temperature, maxTokens := 0.0, 256
 	reqBody, _ := json.Marshal(llm.ChatCompletionRequest{
-		Model:    "emb",
-		Messages: []llm.Message{{Role: llm.RoleUser, Content: "Hello"}},
+		Model: "emb", Temperature: &temperature, MaxTokens: &maxTokens,
+		Messages: []llm.Message{{Role: llm.RoleSystem, Content: "Static FAQ only"}, {Role: llm.RoleUser, Content: "Hello"}},
 	})
 
 	// First Request - Miss
 	req1 := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(reqBody))
-	req1.Header.Set("Authorization", "Bearer dev-key")
+	req1.Header.Set("Authorization", "Bearer "+token)
 	rec1 := httptest.NewRecorder()
 	appRouter.ServeHTTP(rec1, req1)
 
@@ -125,7 +144,7 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 
 	// Second Request - Hit
 	req2 := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(reqBody))
-	req2.Header.Set("Authorization", "Bearer dev-key")
+	req2.Header.Set("Authorization", "Bearer "+token)
 	rec2 := httptest.NewRecorder()
 	appRouter.ServeHTTP(rec2, req2)
 

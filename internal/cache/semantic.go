@@ -2,7 +2,10 @@ package cache
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -15,10 +18,21 @@ import (
 )
 
 type SemanticCacheConfig struct {
-	Enabled       bool
-	Threshold     float32
-	MaxCandidates int
-	TTL           time.Duration
+	Enabled         bool
+	Threshold       float32
+	MaxCandidates   int
+	TTL             time.Duration
+	EmbeddingModel  string
+	VectorDimension int
+	UseCases        []SemanticCacheUseCase
+}
+
+type SemanticCacheUseCase struct {
+	APIKeyIDs        []string
+	UseCaseID        string
+	KnowledgeVersion string
+	TargetModel      string
+	SystemPrompt     string
 }
 
 type SemanticCacheService struct {
@@ -37,6 +51,43 @@ func NewSemanticCacheService(config SemanticCacheConfig, repo controlstate.Seman
 	}
 }
 
+func (s *SemanticCacheService) Eligible(identityID, role string, req *llm.LLMRequest) (string, bool) {
+	if !s.config.Enabled || role == "admin" || identityID == "" || !validCacheRequest(req) {
+		return "", false
+	}
+	for _, useCase := range s.config.UseCases {
+		if useCase.TargetModel == req.Model && useCase.SystemPrompt == req.Messages[0].Content && contains(useCase.APIKeyIDs, identityID) {
+			return cacheScope(identityID, useCase, s.config), true
+		}
+	}
+	return "", false
+}
+
+func validCacheRequest(req *llm.LLMRequest) bool {
+	if req == nil || req.CacheUnsafe || req.Stream || req.RouteOverride != "" || req.ToolRequirements.UsesProtocol() || len(req.Tools) != 0 || req.ToolChoice != nil {
+		return false
+	}
+	if req.Temperature == nil || *req.Temperature != 0 || req.MaxTokens == nil || *req.MaxTokens != 256 || len(req.Messages) != 2 {
+		return false
+	}
+	return req.Messages[0].Role == llm.RoleSystem && req.Messages[0].Content != "" && len(req.Messages[0].MultiContent) == 0 && len(req.Messages[0].ToolCalls) == 0 && req.Messages[0].ToolCallID == "" && req.Messages[1].Role == llm.RoleUser && req.Messages[1].Content != "" && len(req.Messages[1].MultiContent) == 0 && len(req.Messages[1].ToolCalls) == 0 && req.Messages[1].ToolCallID == ""
+}
+
+func cacheScope(identityID string, useCase SemanticCacheUseCase, config SemanticCacheConfig) string {
+	identity := strings.Join([]string{identityID, useCase.UseCaseID, useCase.KnowledgeVersion, useCase.TargetModel, useCase.SystemPrompt, config.EmbeddingModel, fmt.Sprint(config.VectorDimension), "temperature=0", "max_tokens=256"}, "\x00")
+	digest := sha256.Sum256([]byte(identity))
+	return hex.EncodeToString(digest[:])
+}
+
+func contains(values []string, value string) bool {
+	for _, candidate := range values {
+		if candidate == value {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, text string) (*controlstate.SemanticCacheEntry, error) {
 	if !s.config.Enabled || s.repo == nil || s.adapter == nil {
 		return nil, nil // Miss
@@ -44,7 +95,7 @@ func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, 
 
 	// 1. Embed input text
 	req := &llm.EmbeddingRequest{
-		Model: "text-embedding-3-small", // or whatever default model we use for embeddings, but this is provider specific. We should let adapter decide if it's not set.
+		Model: s.config.EmbeddingModel,
 		Input: []string{text},
 	}
 	// Let the adapter define the default model if needed, or we pass a generic one
@@ -53,6 +104,9 @@ func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, 
 		return nil, err // Miss due to error
 	}
 	inputVector := resp.Data[0].Embedding
+	if len(inputVector) != s.config.VectorDimension {
+		return nil, nil
+	}
 
 	// 2. If vector adapter is configured, use it for search
 	if s.vector != nil {
@@ -86,6 +140,9 @@ func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, 
 
 	for _, cand := range candidates {
 		candVector := bytesToFloats(cand.Vector)
+		if len(candVector) != s.config.VectorDimension {
+			continue
+		}
 		score := cosineSimilarity(inputVector, candVector)
 		if score > bestScore {
 			bestScore = score
@@ -93,7 +150,7 @@ func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, 
 		}
 	}
 
-	if bestScore >= s.config.Threshold {
+	if bestScore >= s.config.Threshold && bestMatch != nil && validCachedChoices(bestMatch.Response) {
 		// Record hit
 		_ = s.repo.RecordHit(ctx, bestMatch.ID)
 		return bestMatch, nil
@@ -108,7 +165,7 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 	}
 
 	req := &llm.EmbeddingRequest{
-		Model: "text-embedding-3-small",
+		Model: s.config.EmbeddingModel,
 		Input: []string{text},
 	}
 	resp, err := s.adapter.Embed(ctx, req)
@@ -116,6 +173,9 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 		return err
 	}
 	vector := resp.Data[0].Embedding
+	if len(vector) != s.config.VectorDimension {
+		return nil
+	}
 
 	entry := &controlstate.SemanticCacheEntry{
 		ID:        id,
@@ -132,10 +192,7 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 
 	if s.vector != nil {
 		meta := map[string]interface{}{
-			"id":       id,
-			"scope":    scope,
-			"model":    model,
-			"response": response,
+			"id": id,
 		}
 		if usageID != nil {
 			meta["usage_id"] = *usageID
@@ -169,7 +226,7 @@ func (s *SemanticCacheService) lookupVectorResult(ctx context.Context, scope, mo
 		if err != nil {
 			return nil, err
 		}
-		if entry != nil {
+		if entry != nil && validCachedChoices(entry.Response) {
 			_ = s.repo.RecordHit(ctx, entry.ID)
 			return entry, nil
 		}
@@ -177,8 +234,22 @@ func (s *SemanticCacheService) lookupVectorResult(ctx context.Context, scope, mo
 	return nil, nil
 }
 
+func validCachedChoices(response string) bool {
+	var choices []llm.Choice
+	if json.Unmarshal([]byte(response), &choices) != nil || len(choices) == 0 {
+		return false
+	}
+	for _, choice := range choices {
+		if choice.Message.Role != llm.RoleAssistant {
+			return false
+		}
+	}
+	return true
+}
+
 func vectorCollection(scope, model string) string {
-	return fmt.Sprintf("semantic_cache:%s:%s", safeCollectionPart(scope), safeCollectionPart(model))
+	digest := sha256.Sum256([]byte(scope + "\x00" + model))
+	return fmt.Sprintf("semantic_cache:%s", hex.EncodeToString(digest[:]))
 }
 
 func safeCollectionPart(value string) string {

@@ -76,12 +76,17 @@ type redisFileConfig struct {
 }
 
 type cacheFileConfig struct {
-	Enabled         *bool          `json:"enabled"`
-	Provider        string         `json:"provider"`
-	VectorStore     string         `json:"vector_store"`
-	VectorDimension *int           `json:"vector_dimension"`
-	PGVector        PGVectorConfig `json:"pgvector"`
-	Qdrant          QdrantConfig   `json:"qdrant"`
+	Enabled         *bool                 `json:"enabled"`
+	Provider        string                `json:"provider"`
+	EmbeddingModel  string                `json:"embedding_model"`
+	VectorStore     string                `json:"vector_store"`
+	VectorDimension *int                  `json:"vector_dimension"`
+	TTL             string                `json:"ttl"`
+	Threshold       *float32              `json:"threshold"`
+	MaxCandidates   *int                  `json:"max_candidates"`
+	UseCases        *[]CacheUseCaseConfig `json:"use_cases"`
+	PGVector        PGVectorConfig        `json:"pgvector"`
+	Qdrant          QdrantConfig          `json:"qdrant"`
 }
 
 type schedulerFileConfig struct {
@@ -242,8 +247,12 @@ func cacheConfigFromEnv() CacheConfig {
 	return CacheConfig{
 		Enabled:         getEnv("SEMANTIC_CACHE_ENABLED", "false") == "true",
 		Provider:        getEnv("SEMANTIC_CACHE_PROVIDER", ""),
+		EmbeddingModel:  getEnv("SEMANTIC_CACHE_EMBEDDING_MODEL", ""),
 		VectorStore:     getEnv("SEMANTIC_CACHE_VECTOR_STORE", ""),
 		VectorDimension: getEnvInt("SEMANTIC_CACHE_VECTOR_DIMENSION", defaultSemanticCacheVectorDimension),
+		TTL:             getEnv("SEMANTIC_CACHE_TTL", ""),
+		Threshold:       float32(getEnvFloat("SEMANTIC_CACHE_THRESHOLD", 0)),
+		MaxCandidates:   getEnvInt("SEMANTIC_CACHE_MAX_CANDIDATES", 0),
 		PGVector: PGVectorConfig{
 			IndexType:       getEnv("PGVECTOR_INDEX_TYPE", defaultPGVectorIndexType),
 			HNSWM:           getEnvInt("PGVECTOR_HNSW_M", defaultPGVectorHNSWM),
@@ -408,11 +417,26 @@ func mergeCacheConfig(dst *CacheConfig, src *cacheFileConfig) {
 	if src.Provider != "" {
 		dst.Provider = src.Provider
 	}
+	if src.EmbeddingModel != "" {
+		dst.EmbeddingModel = src.EmbeddingModel
+	}
 	if src.VectorStore != "" {
 		dst.VectorStore = src.VectorStore
 	}
 	if src.VectorDimension != nil {
 		dst.VectorDimension = *src.VectorDimension
+	}
+	if src.TTL != "" {
+		dst.TTL = src.TTL
+	}
+	if src.Threshold != nil {
+		dst.Threshold = *src.Threshold
+	}
+	if src.MaxCandidates != nil {
+		dst.MaxCandidates = *src.MaxCandidates
+	}
+	if src.UseCases != nil {
+		dst.UseCases = *src.UseCases
 	}
 	mergePGVectorConfig(&dst.PGVector, src.PGVector)
 	mergeQdrantConfig(&dst.Qdrant, src.Qdrant)

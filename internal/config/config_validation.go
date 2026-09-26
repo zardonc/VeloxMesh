@@ -98,6 +98,37 @@ func validateSemanticCacheConfig(c *Config) error {
 	if cache.VectorStore == "pgvector" && c.ControlState.DSN == "" {
 		return fmt.Errorf("control_state.dsn is required when semantic_cache_vector_store is pgvector")
 	}
+	if len(cache.UseCases) == 0 {
+		return nil
+	}
+	if cache.Provider == "" || cache.EmbeddingModel == "" {
+		return fmt.Errorf("semantic cache provider and embedding_model are required when enabled")
+	}
+	if cache.TTL == "" {
+		return fmt.Errorf("semantic cache ttl is required when enabled")
+	}
+	ttl, err := time.ParseDuration(cache.TTL)
+	if err != nil || ttl <= 0 {
+		return fmt.Errorf("semantic cache ttl must be a positive duration")
+	}
+	if cache.Threshold <= 0 || cache.Threshold > 1 || cache.MaxCandidates < 1 {
+		return fmt.Errorf("semantic cache threshold and max_candidates must be positive")
+	}
+	if err := validateCacheUseCases(cache.UseCases); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateCacheUseCases(useCases []CacheUseCaseConfig) error {
+	if len(useCases) == 0 {
+		return fmt.Errorf("semantic cache use_cases are required when enabled")
+	}
+	for _, useCase := range useCases {
+		if useCase.UseCaseID == "" || useCase.KnowledgeVersion == "" || useCase.TargetModel == "" || useCase.SystemPrompt == "" || len(useCase.APIKeyIDs) == 0 {
+			return fmt.Errorf("semantic cache use_case must define api_key_ids, use_case_id, knowledge_version, target_model, and system_prompt")
+		}
+	}
 	return nil
 }
 

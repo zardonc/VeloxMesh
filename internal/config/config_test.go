@@ -2,9 +2,11 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestConfigFallbackDefaults(t *testing.T) {
@@ -237,6 +239,31 @@ func TestConfigValidationFailures(t *testing.T) {
 				t.Errorf("expected error containing %q, got %q", tt.expectedErr, err.Error())
 			}
 		})
+	}
+}
+
+func TestCacheConfigRequiresACompleteTrustedProfile(t *testing.T) {
+	base := Config{Cache: CacheConfig{
+		Enabled:         true,
+		Provider:        "embedding-provider",
+		EmbeddingModel:  "configured-embedding-model",
+		VectorDimension: 3,
+		TTL:             "1h",
+		Threshold:       0.9,
+		MaxCandidates:   1,
+		PGVector:        PGVectorConfig{IndexType: "hnsw", HNSWM: 1, HNSWEFConstruct: 1, SearchEF: 1},
+		UseCases: []CacheUseCaseConfig{{
+			UseCaseID: "phase29-static-faq", APIKeyIDs: []string{fmt.Sprintf("test-key-%d", time.Now().UnixNano())},
+			KnowledgeVersion: "faq-v1", TargetModel: "faq-model", SystemPrompt: "Static FAQ only",
+		}},
+	}}
+	if err := validateSemanticCacheConfig(&base); err != nil {
+		t.Fatalf("valid trusted cache profile: %v", err)
+	}
+
+	base.Cache.EmbeddingModel = ""
+	if err := validateSemanticCacheConfig(&base); err == nil {
+		t.Fatal("enabled cache without embedding model must fail validation")
 	}
 }
 

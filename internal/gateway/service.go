@@ -133,12 +133,16 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	}
 
 	usesToolProtocol := req.ToolRequirements.UsesProtocol()
+	cacheScope, cacheEligible := "", false
+	if identity := middleware.GetAuthIdentity(ctx); s.semanticCache != nil && identity != nil {
+		cacheScope, cacheEligible = s.semanticCache.Eligible(identity.ID, identity.Role, req)
+	}
 
 	// 1. Cache Lookup
-	if s.semanticCache != nil && !usesToolProtocol && !req.Stream && req.RouteOverride == "" && identityScope != "" && identityScope != "admin-key" {
+	if cacheEligible && !usesToolProtocol {
 		b, _ := json.Marshal(req.Messages)
 		text := string(b)
-		entry, err := s.semanticCache.Lookup(ctx, identityScope, req.Model, text)
+		entry, err := s.semanticCache.Lookup(ctx, cacheScope, req.Model, text)
 		if err == nil && entry != nil {
 			// Cache hit
 			rt.RecordRouting("semantic_cache", "hit", "", "")
@@ -157,43 +161,44 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 			// create a minimal LLMResponse from cached response
 			var choices []llm.Choice
-			_ = json.Unmarshal([]byte(entry.Response), &choices)
+			if json.Unmarshal([]byte(entry.Response), &choices) != nil || len(choices) == 0 {
+				cacheEligible = false
+			} else {
 
-			resp := &llm.LLMResponse{
-				GatewayID:    req.RequestID,
-				Model:        req.Model,
-				Provider:     "cache",
-				Strategy:     "semantic_cache",
-				AttemptCount: 1,
-				FallbackUsed: false,
-				Choices:      choices,
-				Usage: &llm.Usage{
-					PromptTokens:     0,
-					CompletionTokens: 0,
-					TotalTokens:      0,
-				},
-				CacheHit:   true,
-				CacheLevel: "semantic",
-			}
-
-			if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
-				if err == replication.ErrWriteNotWritable {
-					return nil, errors.ErrServiceNotWritable
+				resp := &llm.LLMResponse{
+					GatewayID:    req.RequestID,
+					Model:        req.Model,
+					Provider:     "cache",
+					Strategy:     "semantic_cache",
+					AttemptCount: 1,
+					FallbackUsed: false,
+					Choices:      choices,
+					Usage: &llm.Usage{
+						PromptTokens:     0,
+						CompletionTokens: 0,
+						TotalTokens:      0,
+					},
+					CacheHit:   true,
+					CacheLevel: "semantic",
 				}
-				return nil, err
+
+				if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
+					if err == replication.ErrWriteNotWritable {
+						return nil, errors.ErrServiceNotWritable
+					}
+					return nil, err
+				}
+				return resp, nil
 			}
-			return resp, nil
 		}
 	}
 
 	var reqTextForStore string
 	cacheResult := "none"
-	if s.semanticCache != nil && !usesToolProtocol && !req.Stream {
+	if cacheEligible && !usesToolProtocol {
 		b, _ := json.Marshal(req.Messages)
 		reqTextForStore = string(b)
-		if identityScope != "" && identityScope != "admin-key" && req.RouteOverride == "" {
-			cacheResult = "miss"
-		}
+		cacheResult = "miss"
 	}
 
 	for attempts < maxAllowedAttempts {
@@ -341,12 +346,12 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		s.settleCompleted(ctx, req, decision, resp.Usage, latency)
 
 		// Cache Store
-		if s.semanticCache != nil && !usesToolProtocol && !req.Stream && req.RouteOverride == "" && identityScope != "" && identityScope != "admin-key" {
+		if cacheEligible && !usesToolProtocol {
 			// Only cache if there's a valid choice
 			if len(resp.Choices) > 0 {
 				bResp, _ := json.Marshal(resp.Choices)
 				usageID := req.RequestID // from settle
-				_ = s.semanticCache.Store(ctx, req.RequestID, identityScope, req.Model, reqTextForStore, string(bResp), &usageID)
+				_ = s.semanticCache.Store(ctx, req.RequestID, cacheScope, req.Model, reqTextForStore, string(bResp), &usageID)
 			}
 		}
 
