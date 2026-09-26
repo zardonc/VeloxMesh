@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-15
 **Updated:** 2026-09-25
-**Current focus:** v7.9 Gateway Protocol Correctness complete and verified; no deployment recorded
+**Current focus:** Phase 29 semantic-cache latency hardening planning; v7.9 verified, no deployment recorded
 
 ## Overview
 
@@ -90,6 +90,28 @@ Plans:
 **Cross-cutting constraints:**
 
 - D-29 through D-33: Pinned SDK behavior is rechecked, deterministic shared/provider fixtures are the evidence, all Go test commands use a 60-second timeout, and no dependency is upgraded.
+
+## Planned Next Phase
+
+### Phase 29: Semantic Cache Latency Hardening
+
+**Goal:** Make explicitly allowlisted semantic answer reuse safe and latency-bounded for non-streaming requests, with configurable embedding models, version/tenant isolation, asynchronous writes, and fail-open cache bypass that preserves primary forwarding.
+**Requirements:** CACHE-F01
+**Depends on:** Phase 28
+**Plans:** 0/3 plans executed
+
+Plans:
+**Wave 1**
+
+- [ ] 29-01-PLAN.md
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 29-02-PLAN.md
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 29-03-PLAN.md
 
 ## Shipped v7.8 Phase
 

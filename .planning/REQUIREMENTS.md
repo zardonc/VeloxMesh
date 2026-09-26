@@ -1,4 +1,4 @@
-# Requirements: VeloxMesh v7.9 Gateway Protocol Correctness
+# Requirements: VeloxMesh Gateway
 
 **Defined:** 2026-09-20
 **Core Value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
@@ -26,13 +26,16 @@
 
 - [x] **TOOL-F01**: Complete internal and provider mappings for `tools`, `tool_choice`, tool-call fragments, and `tool_call_id`.
 
+## Planned Next Phase
+
+- [ ] **CACHE-F01**: Remove fixed embedding assumptions and bound semantic-cache read/write latency, with default-off eligibility, version isolation, fault bypass, and full two-model gateway validation as specified in Phase 29 context.
+
 ## Future Requirements
 
-- **CACHE-F01**: Remove fixed embedding assumptions and bound semantic-cache read/write latency.
 - **TIMEOUT-F01**: Unify connection, first-byte, stream-idle, and total-duration timeouts plus retry eligibility.
 - **CONSOLE-F01**: Add a lightweight control-plane Console for configuration and latency diagnosis.
 
-## Out of Scope
+## v7.9 Out of Scope
 
 | Feature | Reason |
 |---------|--------|
@@ -55,6 +58,7 @@
 | TERM-07 | Phase 27 | Verified |
 | TERM-08 | Phase 27 | Verified |
 | TOOL-F01 | Phase 28 | Verified |
+| CACHE-F01 | Phase 29 | Planned |
 
 **Coverage:**
 
