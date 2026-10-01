@@ -1,0 +1,296 @@
+[
+  {
+    "file": "baseline-m0-low_hit-r1.jsonl",
+    "metadata": {
+      "count": 64,
+      "elapsed_ms": 37040.748,
+      "interval_ms": 500,
+      "max_concurrency": 4,
+      "mode": "low_hit",
+      "model": "openrouter/liquid/lfm-2.5-embedding-350m:free",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 63,
+    "failed": 1,
+    "hit_count": 0,
+    "actual_rps": 1.727826878658066,
+    "successful_rps": 1.7008295836790337,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.6138483218535433,
+    "full_response": {
+      "n": 63,
+      "p50_ms": 1809.452,
+      "p95_ms": 3415.618,
+      "p99_ms": 4773.275
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1809.452,
+      "p95_ms": 3592.999,
+      "p99_ms": 10000.306
+    },
+    "operations": {
+      "lookup_embedding": {
+        "n": 64,
+        "p50_ms": 99.956,
+        "p95_ms": 580.608,
+        "p99_ms": 3008.434,
+        "errors": 51,
+        "successful": {
+          "n": 13,
+          "p50_ms": 469,
+          "p95_ms": 604.416,
+          "p99_ms": 604.416
+        }
+      },
+      "store_embedding": {
+        "n": 63,
+        "p50_ms": 100.221,
+        "p95_ms": 732.973,
+        "p99_ms": 2183.455,
+        "errors": 43,
+        "successful": {
+          "n": 20,
+          "p50_ms": 492.739,
+          "p95_ms": 1119.271,
+          "p99_ms": 2183.455
+        }
+      },
+      "store_total": {
+        "n": 63,
+        "p50_ms": 100.222,
+        "p95_ms": 735.827,
+        "p99_ms": 2186.063,
+        "errors": 43,
+        "successful": {
+          "n": 20,
+          "p50_ms": 496.213,
+          "p95_ms": 1122.403,
+          "p99_ms": 2186.063
+        }
+      },
+      "vector_search": {
+        "n": 13,
+        "p50_ms": 1.655,
+        "p95_ms": 2.62,
+        "p99_ms": 2.62,
+        "errors": 3,
+        "successful": {
+          "n": 10,
+          "p50_ms": 1.655,
+          "p95_ms": 2.163,
+          "p99_ms": 2.163
+        }
+      },
+      "repo_write": {
+        "n": 20,
+        "p50_ms": 0.255,
+        "p95_ms": 0.455,
+        "p99_ms": 0.793,
+        "errors": 0,
+        "successful": {
+          "n": 20,
+          "p50_ms": 0.255,
+          "p95_ms": 0.455,
+          "p99_ms": 0.793
+        }
+      },
+      "vector_insert": {
+        "n": 20,
+        "p50_ms": 3.001,
+        "p95_ms": 9.114,
+        "p99_ms": 26.612,
+        "errors": 0,
+        "successful": {
+          "n": 20,
+          "p50_ms": 3.001,
+          "p95_ms": 9.114,
+          "p99_ms": 26.612
+        }
+      },
+      "repo_read": {
+        "n": 10,
+        "p50_ms": 0.482,
+        "p95_ms": 0.941,
+        "p99_ms": 0.941,
+        "errors": 0,
+        "successful": {
+          "n": 10,
+          "p50_ms": 0.482,
+          "p95_ms": 0.941,
+          "p99_ms": 0.941
+        }
+      }
+    }
+  },
+  {
+    "file": "baseline-m0-off-r1.jsonl",
+    "metadata": {
+      "count": 64,
+      "elapsed_ms": 32193.803,
+      "interval_ms": 500,
+      "max_concurrency": 4,
+      "mode": "off",
+      "model": "openrouter/liquid/lfm-2.5-embedding-350m:free",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 64,
+    "failed": 0,
+    "hit_count": 0,
+    "actual_rps": 1.9879602294888863,
+    "successful_rps": 1.9879602294888863,
+    "observed_concurrency": 4,
+    "average_concurrency": 2.9879629318723238,
+    "full_response": {
+      "n": 64,
+      "p50_ms": 1405.563,
+      "p95_ms": 2427.351,
+      "p99_ms": 3057.152
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1405.563,
+      "p95_ms": 2427.351,
+      "p99_ms": 3057.152
+    },
+    "operations": {}
+  },
+  {
+    "file": "baseline-m0-off-r2.jsonl",
+    "excluded": "empty output from failed dimension probe"
+  },
+  {
+    "file": "baseline-m1-low_hit-r1.jsonl",
+    "metadata": {
+      "count": 64,
+      "elapsed_ms": 38483.223,
+      "interval_ms": 500,
+      "max_concurrency": 4,
+      "mode": "low_hit",
+      "model": "openrouter/nvidia/nemotron-3-embed-1b:free",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 62,
+    "failed": 2,
+    "hit_count": 0,
+    "actual_rps": 1.6630623687626165,
+    "successful_rps": 1.6110916697387847,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.4708590286213816,
+    "full_response": {
+      "n": 62,
+      "p50_ms": 1679.129,
+      "p95_ms": 3317.548,
+      "p99_ms": 4313.887
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1747.643,
+      "p95_ms": 3761.026,
+      "p99_ms": 10001.805
+    },
+    "operations": {
+      "lookup_embedding": {
+        "n": 64,
+        "p50_ms": 98.754,
+        "p95_ms": 102.248,
+        "p99_ms": 627.52,
+        "errors": 61,
+        "successful": {
+          "n": 3,
+          "p50_ms": 519.448,
+          "p95_ms": 627.52,
+          "p99_ms": 627.52
+        }
+      },
+      "vector_search": {
+        "n": 3,
+        "p50_ms": 2.735,
+        "p95_ms": 3.779,
+        "p99_ms": 3.779,
+        "errors": 0,
+        "successful": {
+          "n": 3,
+          "p50_ms": 2.735,
+          "p95_ms": 3.779,
+          "p99_ms": 3.779
+        }
+      },
+      "repo_read": {
+        "n": 3,
+        "p50_ms": 0.437,
+        "p95_ms": 0.641,
+        "p99_ms": 0.641,
+        "errors": 0,
+        "successful": {
+          "n": 3,
+          "p50_ms": 0.437,
+          "p95_ms": 0.641,
+          "p99_ms": 0.641
+        }
+      },
+      "store_embedding": {
+        "n": 62,
+        "p50_ms": 59.021,
+        "p95_ms": 100.983,
+        "p99_ms": 759.199,
+        "errors": 62,
+        "successful": {
+          "n": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null
+        }
+      },
+      "store_total": {
+        "n": 62,
+        "p50_ms": 59.022,
+        "p95_ms": 100.988,
+        "p99_ms": 759.2,
+        "errors": 62,
+        "successful": {
+          "n": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null
+        }
+      }
+    }
+  },
+  {
+    "file": "baseline-m1-off-r1.jsonl",
+    "metadata": {
+      "count": 64,
+      "elapsed_ms": 41141.836,
+      "interval_ms": 500,
+      "max_concurrency": 4,
+      "mode": "off",
+      "model": "openrouter/nvidia/nemotron-3-embed-1b:free",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 64,
+    "failed": 0,
+    "hit_count": 0,
+    "actual_rps": 1.5555941645385003,
+    "successful_rps": 1.5555941645385003,
+    "observed_concurrency": 4,
+    "average_concurrency": 2.475342592877964,
+    "full_response": {
+      "n": 64,
+      "p50_ms": 1401.048,
+      "p95_ms": 2358.848,
+      "p99_ms": 9641.379
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1401.048,
+      "p95_ms": 2358.848,
+      "p99_ms": 9641.379
+    },
+    "operations": {}
+  }
+]
