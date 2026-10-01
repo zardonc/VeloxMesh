@@ -3,12 +3,7 @@
 package integration
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -23,58 +18,35 @@ import (
 	"veloxmesh/internal/storage"
 )
 
-type phase29GeminiAdapter struct {
-	providers.ProviderAdapter
-	baseURL string
-	apiKey  string
-	model   string
-	client  *http.Client
+func newPhase29GeminiAdapter(env map[string]string) providers.EmbedAdapter {
+	return gemini.NewAdapter(gemini.AdapterConfig{ID: "phase29-embedding", BaseURL: env["GEM_BASE_URL"], APIKey: env["GEM_PRIMARY_API_KEY"], ModelsCSV: env["GEM_EMBEDDING"]}).(providers.EmbedAdapter)
 }
 
-func newPhase29GeminiAdapter(env map[string]string) *phase29GeminiAdapter {
-	return &phase29GeminiAdapter{
-		ProviderAdapter: gemini.NewAdapter(gemini.AdapterConfig{ID: "phase29-embedding", BaseURL: env["GEM_BASE_URL"], APIKey: env["GEM_PRIMARY_API_KEY"], ModelsCSV: env["GEM_EMBEDDING"]}),
-		baseURL:         env["GEM_BASE_URL"], apiKey: env["GEM_PRIMARY_API_KEY"], model: env["GEM_EMBEDDING"], client: &http.Client{Timeout: 15 * time.Second},
-	}
-}
-
-func (a *phase29GeminiAdapter) Embed(ctx context.Context, input *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
-	if input == nil || len(input.Input) != 1 || input.Model != a.model {
-		return nil, fmt.Errorf("phase29 embedding requires one input and configured model")
-	}
-	model := strings.TrimPrefix(a.model, "gemini/")
-	body, err := json.Marshal(map[string]any{"content": map[string]any{"parts": []map[string]string{{"text": input.Input[0]}}}})
+func TestPhase29SANSModels(t *testing.T) {
+	env, err := godotenv.Read("../../.env.local")
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
-	endpoint := strings.TrimRight(a.baseURL, "/") + "/v1beta/models/" + model + ":embedContent"
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
-	if err != nil {
-		return nil, err
+	models := strings.Split(env["SANS_EMBEDDING"], ",")
+	if len(models) != 2 || models[0] == models[1] {
+		t.Fatal("two distinct configured SANS models required")
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-goog-api-key", a.apiKey)
-	resp, err := a.client.Do(req)
-	if err != nil {
-		return nil, err
+	adapter := openai.NewAdapter("sans-primary", env["SANS_BASE_URL"], env["SANS_PRIMARY_API_KEY"], env["SANS_EMBEDDING"])
+	for _, model := range models {
+		t.Run(model, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			defer cancel()
+			started := time.Now()
+			response, err := adapter.Embed(ctx, &llm.EmbeddingRequest{Model: model, Input: []string{"What are the support hours?"}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if response == nil || len(response.Data) != 1 || len(response.Data[0].Embedding) == 0 {
+				t.Fatal("invalid embedding response")
+			}
+			t.Logf("provider=sans-primary model=%s dimension=%d elapsed_ms=%d", model, len(response.Data[0].Embedding), time.Since(started).Milliseconds())
+		})
 	}
-	defer resp.Body.Close()
-	var payload struct {
-		Embedding struct {
-			Values []float32 `json:"values"`
-		} `json:"embedding"`
-		Error struct {
-			Code    int    `json:"code"`
-			Message string `json:"message"`
-		} `json:"error"`
-	}
-	if err := json.NewDecoder(io.LimitReader(resp.Body, 1024*1024)).Decode(&payload); err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK || len(payload.Embedding.Values) == 0 {
-		return nil, fmt.Errorf("gemini embedding status=%d code=%d message=%q", resp.StatusCode, payload.Error.Code, payload.Error.Message)
-	}
-	return &llm.EmbeddingResponse{Model: a.model, Data: []llm.Embedding{{Index: 0, Embedding: payload.Embedding.Values}}}, nil
 }
 
 func TestPhase29ProviderSmoke(t *testing.T) {

@@ -71,7 +71,7 @@ func (a *Adapter) Models() []string { return append([]string(nil), a.models...) 
 func (a *Adapter) Capabilities() providers.CapabilitySet {
 	return providers.CapabilitySet{
 		ProviderType:        providers.ProviderTypeGemini,
-		SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+		SupportedOperations: []providers.Operation{providers.OperationChatCompletions, providers.OperationEmbeddings},
 		InputModalities:     []providers.Modality{providers.ModalityText},
 		OutputModalities:    []providers.Modality{providers.ModalityText},
 		Streaming:           true,

@@ -20,7 +20,7 @@ func TestAdapter_Capabilities(t *testing.T) {
 	if caps.ProviderType != providers.ProviderTypeGemini {
 		t.Errorf("expected provider type %q, got %q", providers.ProviderTypeGemini, caps.ProviderType)
 	}
-	if len(caps.SupportedOperations) != 1 || caps.SupportedOperations[0] != providers.OperationChatCompletions {
+	if len(caps.SupportedOperations) != 2 || caps.SupportedOperations[0] != providers.OperationChatCompletions || caps.SupportedOperations[1] != providers.OperationEmbeddings {
 		t.Errorf("expected chat_completions operation, got %v", caps.SupportedOperations)
 	}
 	if len(caps.InputModalities) != 1 || caps.InputModalities[0] != providers.ModalityText {
@@ -257,7 +257,7 @@ func TestAdapter_Conformance(t *testing.T) {
 		ExpectedModels: []string{"gemini-1.5-pro"},
 		ExpectedCapabilities: providers.CapabilitySet{
 			ProviderType:        providers.ProviderTypeGemini,
-			SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+			SupportedOperations: []providers.Operation{providers.OperationChatCompletions, providers.OperationEmbeddings},
 			InputModalities:     []providers.Modality{providers.ModalityText},
 			OutputModalities:    []providers.Modality{providers.ModalityText},
 			Streaming:           true,
