@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-15
 **Updated:** 2026-09-25
-**Current focus:** Phase 29 semantic-cache latency hardening planning; v7.9 verified, no deployment recorded
+**Current focus:** Phase 29 offline Wave 2 verified; repeated baseline and two-model release gates pending exhausted external quota. No deployment recorded.
 
 ## Overview
 
@@ -98,18 +98,18 @@ Plans:
 **Goal:** Make explicitly allowlisted semantic answer reuse safe and latency-bounded for non-streaming requests, with configurable embedding models, version/tenant isolation, asynchronous writes, and fail-open cache bypass that preserves primary forwarding.
 **Requirements:** CACHE-F01
 **Depends on:** Phase 28
-**Plans:** 0/3 plans executed
+**Plans:** 2/3 plans executed; Phase 29 remains incomplete
 
 Plans:
 **Wave 1**
 
-- [ ] 29-01-PLAN.md
+- [x] 29-01-PLAN.md
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2** *(offline implementation verified; numeric release approval deferred)*
 
-- [ ] 29-02-PLAN.md
+- [x] 29-02-PLAN.md
 
-**Wave 3** *(blocked on Wave 2 completion)*
+**Wave 3** *(blocked on sustainable SANS test quota and final real-model/latency evidence)*
 
 - [ ] 29-03-PLAN.md
 

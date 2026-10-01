@@ -58,7 +58,7 @@
 | TERM-07 | Phase 27 | Verified |
 | TERM-08 | Phase 27 | Verified |
 | TOOL-F01 | Phase 28 | Verified |
-| CACHE-F01 | Phase 29 | Planned |
+| CACHE-F01 | Phase 29 | In progress; two-model and latency gates pending |
 
 **Coverage:**
 

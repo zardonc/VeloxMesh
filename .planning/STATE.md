@@ -5,11 +5,11 @@ milestone_name: Phases
 current_phase: 29
 current_phase_name: Semantic Cache Latency Hardening
 status: executing
-stopped_at: Completed 29-01-PLAN.md
-last_updated: "2026-09-26T04:45:27.413Z"
-last_activity: 2026-09-25
-last_activity_desc: Phase 29 execution started
-state_head: f471376cfea067d77a30c747d2385982a0e1e61d
+stopped_at: Completed offline 29-02; 29-03 external quota and release gates pending
+last_updated: "2026-10-01"
+last_activity: 2026-10-01
+last_activity_desc: Real application repairs and offline Wave 2 verified; SANS daily quota exhausted
+state_head: 77124712dfba563a9f745eb2efedcf601abf9f3d
 progress:
   total_phases: 3
   completed_phases: 19
@@ -81,13 +81,14 @@ See: `.planning/PROJECT.md` (updated 2026-09-25)
 ## Current Position
 
 Phase: 29 (Semantic Cache Latency Hardening) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
-Last activity: 2026-09-25 — Phase 29 execution started
+Plan: 3 of 3
+Status: Offline Wave 2 complete; live validation blocked by external SANS daily quota
+Last activity: 2026-10-01 — Full backend/race checks pass; 256 baseline attempts retained without release approval
 
 ## Operator Next Steps
 
-- Review the v7.9 milestone outcome and start the next milestone when scope is selected.
+- Restore sustainable quota for both configured SANS embedding models, then resume 29-03 from a committed-build repeated baseline and real gateway flows.
+- Review `29-EVIDENCE.md`; experimental bounds are not final approved parameters.
 - Deployment remains separate; no deployment authorization was received.
 
 ## Deferred Items
@@ -132,9 +133,9 @@ Items acknowledged at v7.0 close:
 
 ## Session
 
-**Last session:** 2026-09-26T04:45:27.347Z
-**Stopped at:** Completed 29-01-PLAN.md
-**Resume file:** 29-02-PLAN.md
+**Last session:** 2026-10-01
+**Stopped at:** Completed offline 29-02; 29-03 quota/latency/real-model gates pending
+**Resume file:** 29-03-PLAN.md
 
 ## Decisions
 
@@ -147,7 +148,11 @@ Items acknowledged at v7.0 close:
 - [Phase 28]: Arguments stay opaque until completion and are capped per unfinished call.
 - [Phase 28]: The shared harness accepts first-turn tool requests and validates supplied tool-result history.
 - [Phase 29]: Semantic cache eligibility is an opaque trusted FAQ profile keyed by database-authenticated API key ID, knowledge version, fixed prompt, generation settings, and embedding identity.
+- [Phase 29]: User authorized offline Wave 2 without final numeric approval; enabled cache bounds must be explicit. Isolation candidates are 100 ms / four reads / two workers / queue 32 / 2 s write / 1 s close, pending sustainable-load validation.
+- [Phase 29]: Production remains off with empty allowlist; no account credits were purchased. Native Gemini and real app/Qdrant paths are repaired.
 
 ### Blockers
 
-None.
+- Both SANS embedding models returned upstream HTTP 429 `free-models-per-day`; sustainable repeated baseline and two-model full gateway acceptance cannot proceed with the exhausted allowance.
+- Actual same-schedule pre-Wave-2 P95 ratios were approximately 1.407/1.406 with quota faults and mismatched achieved load; the 1.05 gate and final numeric approval remain open.
+- Production FAQ publisher, atomic version-switch procedure and deployment stop deadline are unconfirmed; production enablement requires separate approval.

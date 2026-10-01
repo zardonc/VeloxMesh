@@ -27,7 +27,7 @@ key-files:
 key-decisions:
   - "Only configured non-admin API-key IDs may use the test-only static FAQ profile."
   - "Knowledge version and embedding identity participate in an opaque cache scope."
-requirements-completed: [CACHE-F01]
+requirements-completed: []
 coverage:
   - id: D1
     description: Trusted FAQ cache profile bypasses development, admin, tool, and unprofiled requests.
