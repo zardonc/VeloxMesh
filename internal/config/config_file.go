@@ -85,6 +85,12 @@ type cacheFileConfig struct {
 	Threshold       *float32              `json:"threshold"`
 	MaxCandidates   *int                  `json:"max_candidates"`
 	UseCases        *[]CacheUseCaseConfig `json:"use_cases"`
+	ReadTimeout     string                `json:"read_timeout"`
+	ReadConcurrency *int                  `json:"read_concurrency"`
+	WriteTimeout    string                `json:"write_timeout"`
+	WriteWorkers    *int                  `json:"write_workers"`
+	QueueCapacity   *int                  `json:"queue_capacity"`
+	ShutdownGrace   string                `json:"shutdown_grace"`
 	PGVector        PGVectorConfig        `json:"pgvector"`
 	Qdrant          QdrantConfig          `json:"qdrant"`
 }
@@ -243,29 +249,6 @@ func redisConfigFromEnv() RedisConfig {
 	}
 }
 
-func cacheConfigFromEnv() CacheConfig {
-	return CacheConfig{
-		Enabled:         getEnv("SEMANTIC_CACHE_ENABLED", "false") == "true",
-		Provider:        getEnv("SEMANTIC_CACHE_PROVIDER", ""),
-		EmbeddingModel:  getEnv("SEMANTIC_CACHE_EMBEDDING_MODEL", ""),
-		VectorStore:     getEnv("SEMANTIC_CACHE_VECTOR_STORE", ""),
-		VectorDimension: getEnvInt("SEMANTIC_CACHE_VECTOR_DIMENSION", defaultSemanticCacheVectorDimension),
-		TTL:             getEnv("SEMANTIC_CACHE_TTL", ""),
-		Threshold:       float32(getEnvFloat("SEMANTIC_CACHE_THRESHOLD", 0)),
-		MaxCandidates:   getEnvInt("SEMANTIC_CACHE_MAX_CANDIDATES", 0),
-		PGVector: PGVectorConfig{
-			IndexType:       getEnv("PGVECTOR_INDEX_TYPE", defaultPGVectorIndexType),
-			HNSWM:           getEnvInt("PGVECTOR_HNSW_M", defaultPGVectorHNSWM),
-			HNSWEFConstruct: getEnvInt("PGVECTOR_HNSW_EF_CONSTRUCTION", defaultPGVectorHNSWEFConstruction),
-			SearchEF:        getEnvInt("PGVECTOR_SEARCH_EF", defaultPGVectorSearchEF),
-		},
-		Qdrant: QdrantConfig{
-			Addr:   getEnv("QDRANT_ADDR", ""),
-			APIKey: getEnv("QDRANT_API_KEY", ""),
-		},
-	}
-}
-
 func applyLegacyControlStateConfig(dst *ControlStateConfig, src fileConfig) {
 	if src.ControlStateBackend != "" {
 		dst.Backend = src.ControlStateBackend
@@ -404,65 +387,6 @@ func mergeRedisConfig(dst *RedisConfig, src *redisFileConfig) {
 	}
 	if src.DegradeToLocal != nil {
 		dst.DegradeToLocal = *src.DegradeToLocal
-	}
-}
-
-func mergeCacheConfig(dst *CacheConfig, src *cacheFileConfig) {
-	if src == nil {
-		return
-	}
-	if src.Enabled != nil {
-		dst.Enabled = *src.Enabled
-	}
-	if src.Provider != "" {
-		dst.Provider = src.Provider
-	}
-	if src.EmbeddingModel != "" {
-		dst.EmbeddingModel = src.EmbeddingModel
-	}
-	if src.VectorStore != "" {
-		dst.VectorStore = src.VectorStore
-	}
-	if src.VectorDimension != nil {
-		dst.VectorDimension = *src.VectorDimension
-	}
-	if src.TTL != "" {
-		dst.TTL = src.TTL
-	}
-	if src.Threshold != nil {
-		dst.Threshold = *src.Threshold
-	}
-	if src.MaxCandidates != nil {
-		dst.MaxCandidates = *src.MaxCandidates
-	}
-	if src.UseCases != nil {
-		dst.UseCases = *src.UseCases
-	}
-	mergePGVectorConfig(&dst.PGVector, src.PGVector)
-	mergeQdrantConfig(&dst.Qdrant, src.Qdrant)
-}
-
-func mergePGVectorConfig(dst *PGVectorConfig, src PGVectorConfig) {
-	if src.IndexType != "" {
-		dst.IndexType = src.IndexType
-	}
-	if src.HNSWM != 0 {
-		dst.HNSWM = src.HNSWM
-	}
-	if src.HNSWEFConstruct != 0 {
-		dst.HNSWEFConstruct = src.HNSWEFConstruct
-	}
-	if src.SearchEF != 0 {
-		dst.SearchEF = src.SearchEF
-	}
-}
-
-func mergeQdrantConfig(dst *QdrantConfig, src QdrantConfig) {
-	if src.Addr != "" {
-		dst.Addr = src.Addr
-	}
-	if src.APIKey != "" {
-		dst.APIKey = src.APIKey
 	}
 }
 

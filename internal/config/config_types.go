@@ -137,6 +137,12 @@ type CacheConfig struct {
 	Threshold       float32              `json:"threshold"`
 	MaxCandidates   int                  `json:"max_candidates"`
 	UseCases        []CacheUseCaseConfig `json:"use_cases"`
+	ReadTimeout     string               `json:"read_timeout"`
+	ReadConcurrency int                  `json:"read_concurrency"`
+	WriteTimeout    string               `json:"write_timeout"`
+	WriteWorkers    int                  `json:"write_workers"`
+	QueueCapacity   int                  `json:"queue_capacity"`
+	ShutdownGrace   string               `json:"shutdown_grace"`
 	PGVector        PGVectorConfig       `json:"pgvector"`
 	Qdrant          QdrantConfig         `json:"qdrant"`
 }

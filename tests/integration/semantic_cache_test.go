@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -27,8 +29,11 @@ import (
 )
 
 type mockEmbedAdapter struct {
-	id    string
-	calls int
+	id           string
+	calls        atomic.Int64
+	completions  atomic.Int64
+	storeStarted chan struct{}
+	releaseStore chan struct{}
 }
 
 func (m *mockEmbedAdapter) ID() string       { return m.id }
@@ -42,6 +47,7 @@ func (m *mockEmbedAdapter) Capabilities() providers.CapabilitySet {
 	}
 }
 func (m *mockEmbedAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+	m.completions.Add(1)
 	return &llm.LLMResponse{
 		Provider: m.id,
 		Model:    req.Model,
@@ -55,24 +61,45 @@ func (m *mockEmbedAdapter) HealthCheck(ctx context.Context) providers.HealthStat
 	return providers.HealthStatus{}
 }
 func (m *mockEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
-	m.calls++
+	if m.calls.Add(1) == 2 && m.storeStarted != nil {
+		close(m.storeStarted)
+		select {
+		case <-m.releaseStore:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
 	return &llm.EmbeddingResponse{
 		Data: []llm.Embedding{{Index: 0, Embedding: []float32{1.0, 0.0, 0.0}}},
 	}, nil
 }
 
 type memorySemanticCacheRepo struct {
+	mu      sync.RWMutex
 	entries []*controlstate.SemanticCacheEntry
+	stored  chan struct{}
 }
 
 func (m *memorySemanticCacheRepo) Store(ctx context.Context, entry *controlstate.SemanticCacheEntry) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.entries = append(m.entries, entry)
+	if m.stored != nil {
+		select {
+		case m.stored <- struct{}{}:
+		default:
+		}
+	}
 	return nil
 }
 func (m *memorySemanticCacheRepo) ListCandidates(ctx context.Context, scope, model string) ([]*controlstate.SemanticCacheEntry, error) {
-	return m.entries, nil
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return append([]*controlstate.SemanticCacheEntry(nil), m.entries...), nil
 }
 func (m *memorySemanticCacheRepo) GetCandidate(ctx context.Context, id, scope, model string) (*controlstate.SemanticCacheEntry, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, entry := range m.entries {
 		if entry.ID == id && entry.Scope == scope && entry.Model == model && entry.Enabled && entry.ExpiresAt.After(time.Now().UTC()) {
 			return entry, nil
@@ -106,18 +133,22 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 
 	cfg := &config.Config{}
 
-	p1 := &mockEmbedAdapter{id: "p1"}
+	p1 := &mockEmbedAdapter{id: "p1", storeStarted: make(chan struct{}), releaseStore: make(chan struct{})}
+	release := sync.OnceFunc(func() { close(p1.releaseStore) })
+	t.Cleanup(release)
 	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1}, nil)
 	route := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
 
-	cacheRepo := &memorySemanticCacheRepo{}
+	cacheRepo := &memorySemanticCacheRepo{stored: make(chan struct{}, 1)}
 	semanticCacheSvc := cache.NewSemanticCacheService(cache.SemanticCacheConfig{
 		Enabled: true, Threshold: 0.9, MaxCandidates: 10, TTL: time.Hour,
 		EmbeddingModel: "emb", VectorDimension: 3,
+		ReadTimeout: 100 * time.Millisecond, ReadConcurrency: 4, WriteTimeout: time.Second, WriteWorkers: 1, QueueCapacity: 2, ShutdownGrace: time.Second,
 		UseCases: []cache.SemanticCacheUseCase{{
 			APIKeyIDs: []string{keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: "faq-v1", TargetModel: "emb", SystemPrompt: "Static FAQ only",
 		}},
 	}, cacheRepo, nil, p1)
+	t.Cleanup(semanticCacheSvc.Close)
 
 	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc, pipeline.DefaultRegistry(), nil, nil)
 
@@ -133,7 +164,13 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 	req1 := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(reqBody))
 	req1.Header.Set("Authorization", "Bearer "+token)
 	rec1 := httptest.NewRecorder()
-	appRouter.ServeHTTP(rec1, req1)
+	completed := make(chan struct{})
+	go func() { appRouter.ServeHTTP(rec1, req1); close(completed) }()
+	select {
+	case <-completed:
+	case <-time.After(time.Second):
+		t.Fatal("foreground response waited for slow cache write")
+	}
 
 	if rec1.Code != http.StatusOK {
 		t.Fatalf("req1 expected 200, got %d", rec1.Code)
@@ -143,6 +180,17 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 	}
 
 	// Second Request - Hit
+	select {
+	case <-p1.storeStarted:
+	case <-time.After(time.Second):
+		t.Fatal("write worker did not start")
+	}
+	release()
+	select {
+	case <-cacheRepo.stored:
+	case <-time.After(time.Second):
+		t.Fatal("async cache write did not complete")
+	}
 	req2 := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(reqBody))
 	req2.Header.Set("Authorization", "Bearer "+token)
 	rec2 := httptest.NewRecorder()
@@ -156,6 +204,9 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 	}
 	if rec2.Header().Get("X-Cache-Level") != "semantic" {
 		t.Errorf("req2 expected X-Cache-Level: semantic")
+	}
+	if p1.completions.Load() != 1 {
+		t.Fatal("cache hit forwarded to primary again")
 	}
 }
 
@@ -180,7 +231,7 @@ func TestSemanticCache_DevKeyBypassesCache(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status=%d, want %d", rec.Code, http.StatusOK)
 	}
-	if p1.calls != 0 {
-		t.Fatalf("embedding calls=%d, want 0 for development key", p1.calls)
+	if p1.calls.Load() != 0 {
+		t.Fatalf("embedding calls=%d, want 0 for development key", p1.calls.Load())
 	}
 }

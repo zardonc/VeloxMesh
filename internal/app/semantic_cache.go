@@ -33,13 +33,17 @@ func newSemanticCacheService(ctx context.Context, cfg *config.Config, logger *sl
 		return nil
 	}
 	return cache.NewSemanticCacheService(cache.SemanticCacheConfig{
-		Enabled:         true,
-		Threshold:       cfg.Cache.Threshold,
-		MaxCandidates:   cfg.Cache.MaxCandidates,
-		TTL:             cacheTTL(cfg.Cache.TTL),
-		EmbeddingModel:  cfg.Cache.EmbeddingModel,
-		VectorDimension: cfg.Cache.VectorDimension,
-		UseCases:        cacheUseCases(cfg.Cache.UseCases),
+		Enabled:           true,
+		Threshold:         cfg.Cache.Threshold,
+		MaxCandidates:     cfg.Cache.MaxCandidates,
+		TTL:               cacheTTL(cfg.Cache.TTL),
+		EmbeddingModel:    cfg.Cache.EmbeddingModel,
+		EmbeddingProvider: cfg.Cache.Provider,
+		VectorDimension:   cfg.Cache.VectorDimension,
+		UseCases:          cacheUseCases(cfg.Cache.UseCases),
+		ReadTimeout:       cacheTTL(cfg.Cache.ReadTimeout), ReadConcurrency: cfg.Cache.ReadConcurrency,
+		WriteTimeout: cacheTTL(cfg.Cache.WriteTimeout), WriteWorkers: cfg.Cache.WriteWorkers,
+		QueueCapacity: cfg.Cache.QueueCapacity, ShutdownGrace: cacheTTL(cfg.Cache.ShutdownGrace),
 	}, repo.SemanticCache(), newVectorAdapter(ctx, cfg, logger), embedAdapter)
 }
 

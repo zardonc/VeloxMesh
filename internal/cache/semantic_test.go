@@ -217,11 +217,11 @@ func TestSemanticCacheService_NilEmbeddingResponseIsMiss(t *testing.T) {
 	}, &mockRepo{hits: make(map[string]int)}, nil, &nilEmbedAdapter{})
 
 	entry, err := svc.Lookup(context.Background(), "scope-1", "gpt-4", "test")
-	if err != nil || entry != nil {
+	if err == nil || entry != nil {
 		t.Fatalf("expected nil-response lookup miss, entry=%#v err=%v", entry, err)
 	}
-	if err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "test", `{}`, nil); err != nil {
-		t.Fatalf("expected nil-response store no-op, got %v", err)
+	if err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "test", `{}`, nil); err == nil {
+		t.Fatal("nil-response store must report its failure")
 	}
 }
 
@@ -239,10 +239,7 @@ func TestSemanticCacheRejectsWrongVectorLength(t *testing.T) {
 		t.Fatalf("Store: %v", err)
 	}
 	entry, err := svc.Lookup(context.Background(), "scope", "model", "question")
-	if err != nil {
-		t.Fatalf("Lookup: %v", err)
-	}
-	if entry != nil {
+	if entry != nil || err == nil {
 		t.Fatal("wrong-length embedding must be a cache miss")
 	}
 }

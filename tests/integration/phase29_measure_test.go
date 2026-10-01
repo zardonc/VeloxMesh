@@ -14,7 +14,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"strconv"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -125,14 +124,14 @@ type phase29VectorMeter struct {
 
 func (m *phase29VectorMeter) Search(ctx context.Context, collection string, query []float32, limit int) ([]map[string]interface{}, error) {
 	started := time.Now()
-	result, err := m.VectorAdapter.Search(ctx, strings.ReplaceAll(collection, ":", "_"), query, limit)
+	result, err := m.VectorAdapter.Search(ctx, collection, query, limit)
 	m.recorder.operation("vector_search", started, err)
 	return result, err
 }
 
 func (m *phase29VectorMeter) Insert(ctx context.Context, collection string, vectors [][]float32, metadata []map[string]interface{}) error {
 	started := time.Now()
-	err := m.VectorAdapter.Insert(ctx, strings.ReplaceAll(collection, ":", "_"), vectors, metadata)
+	err := m.VectorAdapter.Insert(ctx, collection, vectors, metadata)
 	m.recorder.operation("vector_insert", started, err)
 	return err
 }

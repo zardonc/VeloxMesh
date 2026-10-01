@@ -351,7 +351,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			if len(resp.Choices) > 0 {
 				bResp, _ := json.Marshal(resp.Choices)
 				usageID := req.RequestID // from settle
-				_ = s.semanticCache.Store(ctx, req.RequestID, cacheScope, req.Model, reqTextForStore, string(bResp), &usageID)
+				s.semanticCache.Enqueue(cache.CacheWrite{ID: req.RequestID, Scope: cacheScope, Model: req.Model, Text: reqTextForStore, Response: string(bResp), UsageID: &usageID})
 			}
 		}
 
