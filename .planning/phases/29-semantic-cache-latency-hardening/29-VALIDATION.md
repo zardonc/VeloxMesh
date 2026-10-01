@@ -53,6 +53,6 @@ created: "2026-09-25"
 - [ ] Negative false hits = 0; positive hit rate reported.
 - [ ] P95 ratio <= 1.05 under matched low-hit non-streaming load.
 - [ ] Both real embedding configurations pass full gateway-flow validation.
-- [ ] No secret/config values or raw request/answer payloads in tracked evidence.
+- [x] No credentials or raw runtime request/answer payloads in tracked evidence; model IDs/dimensions and explicit review candidates are retained as requested.
 
 2026-10-01: `29-EVIDENCE.md` and raw JSONL record repaired real application-path measurements, but SANS upstream daily quota stopped successful repeats. Offline oracle negatives pass; real-model quality, sustained capacity, final parameters and the 1.05 gate are not signed off. Production remains disabled.

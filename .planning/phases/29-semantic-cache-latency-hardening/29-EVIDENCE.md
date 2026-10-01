@@ -104,6 +104,8 @@ Still required for `29-03`: restore sustainable test quota; run both real models
 
 Raw diagnostic files in `measurements/app-baseline-20261001/`: four nonempty round-1 JSONL files contain **256 client attempts**, with operation records. `baseline-m0-off-r2.jsonl` is empty because the next dimension probe failed and is explicitly excluded. `summary.json` retains exact operation counts, failures and both success-only and attempt-level quantiles. Earlier conditional preflight artifacts remain unchanged.
 
+Cleanup completed: all three isolated containers were returned to their original stopped state, their volumes were retained, the task's SSH forwarding process was terminated, and temporary credential-reading transport helpers were removed. Remote redacted logs/results and the diagnostic binary remain available; no credentials were retained in them.
+
 Recompute without secrets:
 
 ```bash

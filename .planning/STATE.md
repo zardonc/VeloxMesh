@@ -12,10 +12,10 @@ last_activity_desc: Real application repairs and offline Wave 2 verified; SANS d
 state_head: 77124712dfba563a9f745eb2efedcf601abf9f3d
 progress:
   total_phases: 3
-  completed_phases: 19
+  completed_phases: 2
   total_plans: 16
-  completed_plans: 57
-  percent: 100
+  completed_plans: 15
+  percent: 93
 ---
 
 ## Project Reference
