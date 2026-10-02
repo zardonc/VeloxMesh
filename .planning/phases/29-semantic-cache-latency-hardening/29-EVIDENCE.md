@@ -1,6 +1,8 @@
 # Phase 29 evidence — 2026-10-01
 
-Phase 29 is **not complete**. Wave 1 and offline Wave 2 are implemented. The real application path is repaired and the full backend suite passes with the isolated dependencies running. Sustainable repeated baseline, tuned parameters, two-model semantic acceptance and the `1.05` latency gate remain unapproved. Production cache remains disabled and its allowlist remains empty; no production configuration was changed.
+Phase 29 is **not complete**. Wave 1 and offline Wave 2 are implemented. The requested local embedding model now passes the corrected real gateway semantic/version flow, embedding fault fallback and real queue burst; full backend tests pass. A real false hit was repaired by embedding only the isolated user question and versioning that representation. Corrected low-hit P95 ratios still fail at **1.143 / 1.511**; sustainable load, final parameters and the second real-model gate remain open. Production cache remains disabled and its allowlist remains empty; no production configuration was changed.
+
+Latest local-model method, code/binary provenance, all operation quantiles, raw sample counts and concrete review candidates: [29-LOCAL-MODEL-MEASUREMENT.md](29-LOCAL-MODEL-MEASUREMENT.md). The sections below preserve the earlier SANS diagnostic history and are not the latest local-model measurements.
 
 ## Real application repairs
 

@@ -5,11 +5,11 @@ milestone_name: Phases
 current_phase: 29
 current_phase_name: Semantic Cache Latency Hardening
 status: executing
-stopped_at: Completed offline 29-02; 29-03 external quota and release gates pending
+stopped_at: Local model gateway verified; 29-03 latency and second-model gates pending
 last_updated: "2026-10-01"
 last_activity: 2026-10-01
-last_activity_desc: Real application repairs and offline Wave 2 verified; SANS daily quota exhausted
-state_head: 77124712dfba563a9f745eb2efedcf601abf9f3d
+last_activity_desc: Real local-model false hit repaired; gateway flow passes but low-hit P95 gate fails
+state_head: 757bd1755977e943dd094bc1492acf406deb5b28
 progress:
   total_phases: 3
   completed_phases: 2
@@ -82,13 +82,13 @@ See: `.planning/PROJECT.md` (updated 2026-09-25)
 
 Phase: 29 (Semantic Cache Latency Hardening) — EXECUTING
 Plan: 3 of 3
-Status: Offline Wave 2 complete; live validation blocked by external SANS daily quota
-Last activity: 2026-10-01 — Full backend/race checks pass; 256 baseline attempts retained without release approval
+Status: Offline Wave 2 complete; one local-model flow passes, latency and second-model gates open
+Last activity: 2026-10-01 — Real false hit repaired; 1044 local-model timed attempts retained; corrected P95 ratios 1.143/1.511 fail; full backend/race checks pass
 
 ## Operator Next Steps
 
-- Restore sustainable quota for both configured SANS embedding models, then resume 29-03 from a committed-build repeated baseline and real gateway flows.
-- Review `29-EVIDENCE.md`; experimental bounds are not final approved parameters.
+- Review `29-LOCAL-MODEL-MEASUREMENT.md`; the specified local model works, but primary deadline failures and failed latency ratios prevent sign-off.
+- Resume 29-03 with stable representative primary load, clean completed warmup, longer steady state and a second distinct real-model lifecycle. Experimental bounds are not final approved parameters.
 - Deployment remains separate; no deployment authorization was received.
 
 ## Deferred Items
@@ -134,7 +134,7 @@ Items acknowledged at v7.0 close:
 ## Session
 
 **Last session:** 2026-10-01
-**Stopped at:** Completed offline 29-02; 29-03 quota/latency/real-model gates pending
+**Stopped at:** Local-model semantic/version/fault/burst validation passes; latency and second-model gates pending
 **Resume file:** 29-03-PLAN.md
 
 ## Decisions
@@ -150,9 +150,10 @@ Items acknowledged at v7.0 close:
 - [Phase 29]: Semantic cache eligibility is an opaque trusted FAQ profile keyed by database-authenticated API key ID, knowledge version, fixed prompt, generation settings, and embedding identity.
 - [Phase 29]: User authorized offline Wave 2 without final numeric approval; enabled cache bounds must be explicit. Isolation candidates are 100 ms / four reads / two workers / queue 32 / 2 s write / 1 s close, pending sustainable-load validation.
 - [Phase 29]: Production remains off with empty allowlist; no account credits were purchased. Native Gemini and real app/Qdrant paths are repaired.
+- [Phase 29]: The user-provided local embedding model is selected through configuration and real dimension probing. Gateway cache input is eligible user text only; system prompt remains in authorization scope, with an input-format version preventing old vectors from matching.
 
 ### Blockers
 
-- Both SANS embedding models returned upstream HTTP 429 `free-models-per-day`; sustainable repeated baseline and two-model full gateway acceptance cannot proceed with the exhausted allowance.
-- Actual same-schedule pre-Wave-2 P95 ratios were approximately 1.407/1.406 with quota faults and mismatched achieved load; the 1.05 gate and final numeric approval remain open.
+- SANS embedding quota remains a historical blocker for its two configured models. The specified local model now passes one-model real acceptance, but the second-model full lifecycle is not verified or waived.
+- Corrected local-model same-schedule P95 ratios are 1.143/1.511, with primary client deadlines, unequal achieved load and one failed warmup. The 1.05 gate, sustained concurrency evidence and final numeric approval remain open; operation samples retain an asynchronous-warmup overlap limitation.
 - Production FAQ publisher, atomic version-switch procedure and deployment stop deadline are unconfirmed; production enablement requires separate approval.

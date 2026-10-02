@@ -1,0 +1,7 @@
+=== RUN   TestPhase29LiveMeasure
+{"time":"2026-10-02T03:04:23.575405186Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_live_test.go:210: model=text-embedding-embedder_collection dimension=768 primary=oc/big-pickle
+    phase29_live_test.go:216: warmup HTTP 0
+{"time":"2026-10-02T03:04:33.577354659Z","level":"INFO","msg":"request completed","request_id":"3ce68c10990b1d8239a465e2986b0d0d","method":"POST","path":"/v1/chat/completions","status":499,"latency_ms":10001}
+--- FAIL: TestPhase29LiveMeasure (10.07s)
+FAIL
