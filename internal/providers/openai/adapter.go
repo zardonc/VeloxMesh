@@ -11,7 +11,6 @@
 package openai
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -237,159 +236,8 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 	}
 
 	ch := make(chan llm.StreamEvent)
-	go a.readStream(ctx, req, resp, ch)
+	go a.readStream(streamRead{ctx: ctx, events: ch, model: req.Model}, resp.Body)
 	return ch, nil
-}
-
-type streamReadState struct {
-	protocol    toolstream.State
-	indexes     map[int]struct{}
-	sawEvent    bool
-	sawToolCall bool
-	terminal    bool
-}
-
-func (a *Adapter) readStream(ctx context.Context, req *llm.LLMRequest, resp *http.Response, ch chan<- llm.StreamEvent) {
-	defer close(ch)
-	defer resp.Body.Close()
-	stopClose := context.AfterFunc(ctx, func() { _ = resp.Body.Close() })
-	defer stopClose()
-	state := streamReadState{protocol: toolstream.New(toolstream.Config{GenerateID: a.generateToolCallID}), indexes: map[int]struct{}{}}
-	reader := bufio.NewReader(resp.Body)
-	for {
-		line, readErr := reader.ReadBytes('\n')
-		data := strings.TrimSpace(string(line))
-		if strings.HasPrefix(data, "data:") && !a.handleStreamData(ctx, ch, &state, strings.TrimSpace(strings.TrimPrefix(data, "data:")), req.Model) {
-			return
-		}
-		if readErr == nil {
-			continue
-		}
-		if ctx.Err() != nil {
-			return
-		}
-		if state.sawToolCall || !state.sawEvent || !errors.Is(readErr, io.EOF) {
-			a.sendStreamError(ctx, ch)
-			return
-		}
-		sendStreamEvent(ctx, ch, llm.StreamEvent{Done: true, Provider: a.id, Model: req.Model})
-		return
-	}
-}
-
-func (a *Adapter) handleStreamData(ctx context.Context, ch chan<- llm.StreamEvent, state *streamReadState, data, model string) bool {
-	if data == "[DONE]" {
-		if state.sawToolCall && !state.terminal {
-			a.sendStreamError(ctx, ch)
-			return false
-		}
-		sendStreamEvent(ctx, ch, llm.StreamEvent{Done: true, Provider: a.id, Model: model})
-		return false
-	}
-	if state.terminal {
-		a.sendStreamError(ctx, ch)
-		return false
-	}
-	var chunk streamChunk
-	if json.Unmarshal([]byte(data), &chunk) != nil {
-		a.sendStreamError(ctx, ch)
-		return false
-	}
-	event, next, indexes, hasToolCall, err := a.normalizeStreamChunk(state.protocol, chunk, model)
-	if err != nil || !a.completeStreamEvent(state, event, next, indexes, hasToolCall) {
-		a.sendStreamError(ctx, ch)
-		return false
-	}
-	if (event.DeltaContent != "" || event.FinishReason != "" || event.Usage != nil || len(event.ToolCalls) > 0) && !sendStreamEvent(ctx, ch, event) {
-		return false
-	}
-	state.sawEvent = true
-	return true
-}
-
-func (a *Adapter) completeStreamEvent(state *streamReadState, event llm.StreamEvent, next toolstream.State, indexes map[int]struct{}, hasToolCall bool) bool {
-	state.protocol = next
-	for index := range indexes {
-		state.indexes[index] = struct{}{}
-	}
-	state.sawToolCall = state.sawToolCall || hasToolCall
-	if event.FinishReason == "" {
-		return true
-	}
-	if !state.sawToolCall {
-		state.terminal = event.FinishReason != "tool_calls"
-		return state.terminal
-	}
-	if event.FinishReason != "tool_calls" {
-		return false
-	}
-	completed, err := finishToolStream(state.protocol, state.indexes)
-	if err != nil {
-		return false
-	}
-	state.protocol, state.terminal = completed, true
-	return true
-}
-
-func (a *Adapter) normalizeStreamChunk(state toolstream.State, chunk streamChunk, fallbackModel string) (llm.StreamEvent, toolstream.State, map[int]struct{}, bool, error) {
-	event := llm.StreamEvent{Provider: a.id, Model: chunk.Model, Usage: chunk.Usage}
-	if event.Model == "" {
-		event.Model = fallbackModel
-	}
-	indexes := map[int]struct{}{}
-	if len(chunk.Choices) == 0 {
-		return event, state, indexes, false, nil
-	}
-	choice := chunk.Choices[0]
-	event.DeltaContent = choice.Delta.Content
-	if choice.FinishReason != nil {
-		event.FinishReason = *choice.FinishReason
-	}
-	if len(choice.Delta.ToolCalls) == 0 {
-		return event, state, indexes, false, nil
-	}
-	next := state
-	chunks := make([]llm.ToolCallChunk, 0, len(choice.Delta.ToolCalls))
-	for _, fragment := range choice.Delta.ToolCalls {
-		updated, normalized, err := next.Apply(fragment)
-		if err != nil || normalized.Index == nil {
-			return llm.StreamEvent{}, state, indexes, false, providerToolError()
-		}
-		next = updated
-		indexes[*normalized.Index] = struct{}{}
-		chunks = append(chunks, normalized)
-	}
-	event.ToolCalls = chunks
-	return event, next, indexes, true, nil
-}
-
-func finishToolStream(state toolstream.State, indexes map[int]struct{}) (toolstream.State, error) {
-	next := state
-	for index := range indexes {
-		updated, err := next.CompleteCall(index)
-		if err != nil {
-			return state, providerToolError()
-		}
-		next = updated
-	}
-	finished, _, err := next.Finish("tool_calls")
-	if err != nil {
-		return state, providerToolError()
-	}
-	return finished, nil
-}
-
-func sendStreamEvent(ctx context.Context, ch chan<- llm.StreamEvent, event llm.StreamEvent) bool {
-	select {
-	case ch <- event:
-		return true
-	case <-ctx.Done():
-		return false
-	}
-}
-
-func (a *Adapter) sendStreamError(ctx context.Context, ch chan<- llm.StreamEvent) {
-	sendStreamEvent(ctx, ch, llm.StreamEvent{Error: providerToolError(), Provider: a.id})
 }
 
 func (a *Adapter) normalizeCompleteChoices(choices []llm.Choice) ([]llm.Choice, error) {
@@ -444,7 +292,7 @@ func completeToolChunk(index int, call llm.ToolCall) llm.ToolCallChunk {
 	typeCopy := call.Type
 	name := call.Function.Name
 	arguments := call.Function.Arguments
-	chunk := llm.ToolCallChunk{Index: &indexCopy, Type: &typeCopy, Function: &llm.FunctionCallChunk{Name: &name, Arguments: &arguments}}
+	chunk := llm.ToolCallChunk{Index: &indexCopy, Type: &typeCopy, Function: &llm.FunctionCallChunk{Name: &name, Arguments: &arguments}, ExtraContent: llm.CloneToolCallExtraContent(call.ExtraContent)}
 	if call.ID != "" {
 		id := call.ID
 		chunk.ID = &id

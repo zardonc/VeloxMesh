@@ -1,0 +1,4 @@
+=== RUN   TestLiveToolInvalidSignature
+    live_ship_protocol_test.go:302: real Gemini signature validation
+--- SKIP: TestLiveToolInvalidSignature (0.00s)
+PASS

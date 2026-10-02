@@ -229,6 +229,7 @@ func liveDecodeChat(t *testing.T, response *http.Response) llm.ChatCompletionRes
 
 func liveExecuteTool(t *testing.T, call llm.ToolCall) llm.Message {
 	t.Helper()
+	liveAssertToolMetadata(t, call)
 	var args struct{ A, B *int }
 	if call.ID == "" || call.Type != llm.ToolTypeFunction || call.Function.Name != "add" {
 		t.Fatal("invalid tool identity")
@@ -244,6 +245,28 @@ func liveExecuteTool(t *testing.T, call llm.ToolCall) llm.Message {
 		t.Fatal(err)
 	}
 	return llm.Message{Role: llm.RoleTool, ToolCallID: call.ID, Content: string(output)}
+}
+
+func liveAssertToolMetadata(t *testing.T, call llm.ToolCall) {
+	t.Helper()
+	if os.Getenv("SHIP_PROVIDER_TYPE") != "gemini" {
+		return
+	}
+	encoded, err := json.Marshal(call)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wire struct {
+		Extra *struct {
+			Google struct {
+				Signature string `json:"thought_signature"`
+			} `json:"google"`
+		} `json:"extra_content"`
+	}
+	if err := json.Unmarshal(encoded, &wire); err != nil || wire.Extra == nil || wire.Extra.Google.Signature == "" {
+		t.Fatal("real Gemini tool metadata missing from the public HTTP response")
+	}
+	t.Log("real Gemini opaque tool signature preserved in public response")
 }
 
 func liveToolRoundTrip(t *testing.T, choice *llm.ToolChoice) {
@@ -273,6 +296,47 @@ func TestLiveToolNamed(t *testing.T) {
 }
 func TestLiveToolAuto(t *testing.T)    { liveToolRoundTrip(t, &llm.ToolChoice{Mode: llm.ToolChoiceAuto}) }
 func TestLiveToolOmitted(t *testing.T) { liveToolRoundTrip(t, nil) }
+
+func TestLiveToolInvalidSignature(t *testing.T) {
+	chain := newLiveChain(t)
+	if os.Getenv("SHIP_PROVIDER_TYPE") != "gemini" {
+		t.Skip("real Gemini signature validation")
+	}
+	request := liveToolRequest(chain, &llm.ToolChoice{Mode: llm.ToolChoiceRequired})
+	result := liveDecodeChat(t, liveHTTP(t, chain, request))
+	message := result.Choices[0].Message
+	if len(message.ToolCalls) != 1 {
+		t.Fatal("real model did not produce one tool call")
+	}
+	output := liveExecuteTool(t, message.ToolCalls[0])
+	call := message.ToolCalls[0]
+	call.ExtraContent = &llm.ToolCallExtraContent{Google: llm.GoogleToolCallExtraContent{ThoughtSignature: "invalid-base64%"}}
+	message.ToolCalls = []llm.ToolCall{call}
+	followup := llm.ChatCompletionRequest{Model: chain.model, Tools: request.Tools, Messages: append(append([]llm.Message{}, request.Messages...), message, output)}
+	body, err := json.Marshal(followup)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req, err := http.NewRequest(http.MethodPost, chain.url+"/v1/chat/completions", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Authorization", "Bearer "+chain.token)
+	response, err := (&http.Client{Timeout: liveHTTPTimeout}).Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	var problem gatewayerrors.GatewayError
+	if err := json.NewDecoder(response.Body).Decode(&problem); err != nil {
+		t.Fatal(err)
+	}
+	if response.StatusCode != http.StatusBadRequest || problem.Code != gatewayerrors.InvalidRequest {
+		t.Fatalf("malformed signature status=%d error_code=%s", response.StatusCode, problem.Code)
+	}
+	liveAssertSettlement(t, chain, 1)
+	t.Log("malformed client signature rejected by gateway; no additional settlement")
+}
 
 func TestLiveToolNone(t *testing.T) {
 	chain := newLiveChain(t)
@@ -356,6 +420,9 @@ func liveMergeTool(t *testing.T, call llm.ToolCall, choice llm.ChunkChoice) llm.
 	t.Helper()
 	next := call
 	for _, delta := range choice.Delta.ToolCalls {
+		if delta.ExtraContent != nil {
+			next.ExtraContent = llm.CloneToolCallExtraContent(delta.ExtraContent)
+		}
 		if delta.Index == nil || *delta.Index != 0 {
 			t.Fatal("unexpected tool index")
 		}

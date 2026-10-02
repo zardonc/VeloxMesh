@@ -13,6 +13,8 @@ mock_services_used: false
 
 **未达到合并条件，当前分支未合并到 main。** 本轮发现 OpenAI-compatible 流式帧处理、Gemini 工具续接兼容性问题，Phase 29 延迟门槛也未通过。真实本地 embedding 压测通过，不代表三个 Phase 的所有功能均通过。
 
+后续状态（2026-10-02 UTC）：上述两项协议缺陷已实现修复并完成真实调用链回归，见 [兼容性修复报告](../../debug/gateway-protocol-compat-verification.md)。历史失败记录保留；重复 Gemini 流式请求的超时/API 错误以及 Phase 29 性能门槛仍未关闭，`merge_allowed=false`。
+
 本报告独立记录本次结果，不覆盖已有 VERIFICATION、历史压测或此前的通过结论。测试时间跨越 UTC 2026-10-02，温哥华本地日期为 2026-10-01。
 
 ## 实际范围与组件
@@ -154,3 +156,37 @@ uv run --no-project python scripts/live-embedding-check.py \
 每轮关闭应用/HTTP server、数据库、SSH listener 和连接；runner 只停止它临时启动的既有测试容器，保留 volumes。最近完整清理输出确认 `veloxmesh-test-redis`、`veloxmesh-test-qdrant`、`veloxmesh-test-postgres` 均为 `false`，可核对各最终 `runner.log`。用户原先运行的本地 embedding 服务保留运行。
 
 依据用户“所有测试通过且没有未解决问题才合并”的明确条件，**merge_allowed=false**。本次新增可复现失败证据与验收脚本，不修改 main，不把产品问题和未完成覆盖写成通过。
+
+## 问题归属分析（基于已有证据复核）
+
+本节重新核对真实日志、当前实现及官方协议，不新增模型调用或修改产品实现。错误码的 `provider_` 前缀表示错误分类，不是责任归属证明；网关本身也会创建这些错误。
+
+| 现象 | 归属 / 确信程度 | 依据及尚缺证据 |
+| --- | --- | --- |
+| GPT 普通/工具流式失败、无成功结算 | 网关兼容性缺陷，已确认 | 直接上游工具流成功，finish 第 12 帧、usage 第 13 帧、随后 DONE；网关在解析 JSON 前拒绝所有 terminal 后的非 DONE 帧。失败的生成位置明确在 adapter。普通/工具/Fusion 共用该 adapter；结算未完成是流被判失败的后果，尚无证据证明另有独立结算故障 |
+| GPT Fusion SSE 失败 | 网关缺陷，高置信同源 | Fusion 的 judge 使用同一个 OpenAI stream adapter；真实日志为 SSE `provider_bad_response`。与普通流式同源的推断由调用链支持；未单独记录 judge 的全部原始帧，因此不能宣称每条 Fusion 帧已逐一校验 |
+| Gemini 工具第二轮 400 | 网关协议转换缺陷，已确认 | 原生响应包含 signature；保留完整内容可续接，仅移除 signature 就返回真实 400。网关输出的通用 ToolCall 没有签名载体，回传时重建 FunctionCall Part 也只保留 ID/Name/Args。上游正常执行必需字段校验 |
+| SANS `provider_rate_limit` | 上游 provider 限流响应，已确认 | 当前 `mapChatError` 仅把上游 HTTP 429 映射为该码；日志即使 cache off 的 warmup 也失败。对客户端显示的 502 是网关映射。不能由 429 进一步确认是账户额度、模型免费池、并发限制还是上游转发链中的哪个节点 |
+| 缓存 on 的 P95 为 off 的 1.175 倍 | 性能门槛失败已确认；归属未确认 | miss 的 embedding/向量查询属于网关增加的工作；上游在线尾延迟、网络和异步写入资源竞争也可能贡献。每轮仅 32 个样本，未保存同一请求的 cache lookup / upstream / settlement 各阶段耗时。不能把 472 ms 的 P95 差全部归责于网关或 provider |
+| GEM 10 秒、GPT 12 秒请求超时 | 原因未确认 | 这些值对应测试 HTTP 客户端期限，不是上游明确返回 408/504 的证明。可能是模型/网络较慢，也可能是网关排队或组件耗时。需取消前的分段时序及同参数直接上游对照 |
+| GEM HTTP 502 `fusion_failed` | 成员阶段失败已定位，原始归属未确认 | `executeFusionStream` 在 `runFusionMembers` 无有效结果时返回该码，此时未调用 judge。member 错误只存在局部 errs 列表，调用者拿到有效文本/Token 汇总，当前日志无法恢复原始错误。成员超时、API 拒绝、adapter 判坏响应或空文本均可能触发；根因不可由汇总码推断 |
+| GEM 取消后已有结算 | 测试时序证据不足 | 客户端读取第一个片段时，服务器可能已读完并结算；关闭客户端 body 不等于一定先于服务器完成。需记录 upstream Done / 客户端取消 / 结算的先后时刻，当前不能判上游故障或已证实网关错误扣费 |
+| 本地 embedding | 本轮未发现功能故障 | 2960 次请求全部通过；较高并发不提升吞吐而增大排队延迟，属于实测容量限制。直接压测成功不能证明 SSH 转发、缓存组合负载下没有额外延迟 |
+
+OpenAI 官方协议允许在 DONE 前追加 choices 为空的 usage chunk：[ChatCompletionStreamOptions](https://developers.openai.com/api/reference/resources/chat#chatcompletionstreamoptions)。当前网关请求 payload 尚未显式设置 `stream_options.include_usage`；此次第三方 provider 默认追加 usage 可能是默认行为差异。因此直接诊断通过不等于证明该 provider 所有细节均与 OpenAI 一致，但网关把可识别的尾部统计帧直接判坏响应的兼容缺陷依然成立。修复应区分生成结束与传输结束，只接收合规的 usage-only 尾帧，不应放开结束后的任意内容/工具帧。
+
+Google 明确要求 Gemini 3 function calling 的 signature 随原 Part 原样回传，缺失会返回 400：[Thought signatures](https://ai.google.dev/gemini-api/docs/generate-content/thought-signatures)。SDK 只有在应用保留完整模型响应历史时才能自动处理；网关提取并重建历史后，不能期待 SDK 恢复已丢失的字段。签名应在 adapter → 通用响应 → 客户端续接 → adapter 整条链路中保留，不能靠放宽 provider 校验掩盖。
+
+归责优先级：先修复已确认的两个网关协议问题；SANS 需核对 provider 配额/限流条件；性能及超时需在真实链路记录 lookup、admission、upstream 首字节/完整响应、写入和结算耗时，并保留取消与完成时序。Gemini Fusion 应先保留脱敏的 member 错误分类，再判断是 provider 响应还是 adapter/网关问题。本次全通过合并条件保持不满足。
+
+## 后续资源状态与 Phase 29 性能复核
+
+用户已在 Gemini provider 后台确认测试资源耗尽；Gemini 与 SANS 的后续真实调用失败暂按上游测试资源不足处理，待资源恢复后复测。此信息是用户提供的后台状态，不把历史 400 协议缺陷或本轮 Phase 29 性能失败改写为资源问题；上述历史测试记录原样保留。
+
+离线复核 `gpt/TestLiveCacheLoad*.jsonl` 与当前负载用例发现：用例每隔 21 个请求重复前一个问题，第 20 个请求约在 19 秒发出，第 21 个在 20 秒发出。四轮重复请求均早于首次请求完成，分别早约 652、1955、1225、1271 ms。缓存写入只能在首次主模型响应及结算完成后入队，因此本轮计划中的唯一重复请求不可能从首次请求命中。实测四轮均为 0 hit，实际测到的是全 miss，而非包含可命中请求的低命中负载。这是已确认的负载设计问题，不否定全 miss 场景下观察到的门槛失败。
+
+第二组 32 对 32 个请求全部成功，P95 为 3166.033 / 2694.077 ms，差 471.956 ms、比值 1.17518；P50 只差 56.003 ms。每轮 32 个样本的最近秩 P95 由排序第 31 个请求决定，且两轮对应不同问题（on 第 2 个、off 第 13 个）。同位置请求有 20 个在 on 时更慢、12 个更快，平均差 86.720 ms，差值范围为 -2011.360 至 +1269.992 ms，说明跨轮波动明显。缓存读取在取得并发许可后设 100 ms 截止时间，miss 时先调用本地 embedding、再查询 Qdrant，之后才调用主模型；异步写入在主模型完成后执行。单次同步读取预算本身不足以直接解释 471.956 ms 的跨轮 P95 差，但不能据此排除异步竞争、排队或上游时延变化。直接 embedding 长批次 P95 为 103.426 ms，且该压测每请求输入两段文本、缓存调用仅输入一段，并经过不同网络路径，不能直接推算缓存读取超时率。
+
+[此前本地模型测量](29-LOCAL-MODEL-MEASUREMENT.md)在 SANS 主模型、64 请求/轮、650 ms 间隔的另一组真实网关负载中记录了操作级耗时：192 次 lookup embedding 有 19 次在实验性 100 ms 预算附近失败，173 次后续向量查询有 7 次失败；成功 lookup embedding P95 为 99.218 ms，向量查询 P95 为 2.542 ms。这直接表明该预算在那组负载下偏紧，可能增加 fail-open miss 和附加延迟；它不是本次 GPT 32 请求/轮负载的分段测量，也不能证明本次 471.956 ms 的差值由 lookup 导致。此前 SANS 主模型的 P95 门槛也失败，但用户新确认的 provider 资源不足进一步限制了那组主模型延迟数据的归责能力。
+
+现有负载样本只记录客户端完整 HTTP 耗时、状态及命中，不记录同一请求的 lookup、上游、结算耗时；操作级缓存观测器虽已存在，当前负载用例未接入。第二组尾部差异及首组 12 秒客户端超时不能精确归责。下一次真实复测应先让重复请求在首次写入完成后发出，并按请求关联缓存读结果/耗时、embedding、Qdrant、主模型耗时及异步写入结果；再用相同负载重新评估 1.05 门槛。复测前门槛仍为失败，`merge_allowed=false`。

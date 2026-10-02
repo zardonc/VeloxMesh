@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"google.golang.org/genai"
+
+	"veloxmesh/internal/llm"
 )
 
 func TestLiveGeminiNativeContinuation(t *testing.T) {
@@ -63,6 +65,43 @@ func liveAssertNativeAnswer(t *testing.T, response *genai.GenerateContentRespons
 	if !strings.Contains(answer.String(), "42") {
 		t.Fatal("native continuation did not return calculation result")
 	}
+}
+
+func TestLiveGeminiNativeToolStream(t *testing.T) {
+	if os.Getenv("PHASE29_MODEL") == "" {
+		t.Skip("real native stream diagnostic opt-in")
+	}
+	env := liveEnvironment(t)
+	ctx, cancel := context.WithTimeout(context.Background(), liveHTTPTimeout)
+	defer cancel()
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{APIKey: env["SANS_PRIMARY_API_KEY"], Backend: genai.BackendGeminiAPI, HTTPOptions: genai.HTTPOptions{BaseURL: env["SANS_BASE_URL"]}})
+	if err != nil {
+		t.Fatal("native stream client setup failed")
+	}
+	request := liveToolRequest(liveChain{model: env["SANS_PRIMARY_DEFAULT_MODEL"]}, &llm.ToolChoice{Mode: llm.ToolChoiceRequired})
+	function := request.Tools[0].Function
+	config := &genai.GenerateContentConfig{Tools: []*genai.Tool{{FunctionDeclarations: []*genai.FunctionDeclaration{{Name: function.Name, Description: function.Description, ParametersJsonSchema: function.Parameters}}}},
+		ToolConfig: &genai.ToolConfig{FunctionCallingConfig: &genai.FunctionCallingConfig{Mode: genai.FunctionCallingConfigModeAny}},
+	}
+	user := &genai.Content{Role: "user", Parts: []*genai.Part{{Text: request.Messages[0].Content}}}
+	started := time.Now()
+	parts := []*genai.Part{}
+	responses := 0
+	for response, err := range client.Models.GenerateContentStream(ctx, request.Model, []*genai.Content{user}, config) {
+		if err != nil {
+			t.Logf("direct native stream responses=%d elapsed_ms=%.3f", responses, float64(time.Since(started).Microseconds())/1000)
+			liveNativeError(t, err)
+		}
+		responses++
+		if responses == 1 {
+			t.Logf("direct native stream first_response_ms=%.3f", float64(time.Since(started).Microseconds())/1000)
+		}
+		if len(response.Candidates) > 0 && response.Candidates[0].Content != nil {
+			parts = append(parts, response.Candidates[0].Content.Parts...)
+		}
+	}
+	liveNativeCalculation(t, &genai.Content{Role: "model", Parts: parts})
+	t.Logf("direct native stream responses=%d complete_ms=%.3f", responses, float64(time.Since(started).Microseconds())/1000)
 }
 
 type nativeSignatureCheck struct {

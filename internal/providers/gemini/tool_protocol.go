@@ -119,17 +119,32 @@ func geminiFunctionCallParts(message llm.Message) (map[string]string, []*genai.P
 	names := make(map[string]string, len(message.ToolCalls))
 	parts := make([]*genai.Part, 0, len(message.ToolCalls))
 	for _, call := range message.ToolCalls {
-		args, err := geminiArguments(call.Function.Arguments)
-		if err != nil || !validGeminiFunctionCall(call) {
+		part, err := geminiFunctionCallPart(call)
+		if err != nil {
 			return nil, nil, invalidGeminiToolRequest()
 		}
 		if _, exists := names[call.ID]; exists {
 			return nil, nil, invalidGeminiToolRequest()
 		}
 		names[call.ID] = call.Function.Name
-		parts = append(parts, &genai.Part{FunctionCall: &genai.FunctionCall{ID: call.ID, Name: call.Function.Name, Args: args}})
+		parts = append(parts, part)
 	}
 	return names, parts, nil
+}
+
+func geminiFunctionCallPart(call llm.ToolCall) (*genai.Part, error) {
+	args, err := geminiArguments(call.Function.Arguments)
+	if err != nil || !validGeminiFunctionCall(call) || !llm.ValidToolCallExtraContent(call.ExtraContent) {
+		return nil, invalidGeminiToolRequest()
+	}
+	var signature []byte
+	if call.ExtraContent != nil {
+		signature, err = base64.StdEncoding.Strict().DecodeString(call.ExtraContent.Google.ThoughtSignature)
+		if err != nil {
+			return nil, invalidGeminiToolRequest()
+		}
+	}
+	return &genai.Part{FunctionCall: &genai.FunctionCall{ID: call.ID, Name: call.Function.Name, Args: args}, ThoughtSignature: signature}, nil
 }
 
 func validGeminiFunctionCall(call llm.ToolCall) bool {
@@ -229,7 +244,7 @@ func geminiCandidateContent(candidate *genai.Candidate, generateID func() string
 		if part.FunctionCall == nil {
 			continue
 		}
-		next, _, err := geminiApplyCall(state, callCount, part.FunctionCall)
+		next, _, err := geminiApplyCall(state, callCount, part)
 		if err != nil {
 			return "", nil, invalidGeminiToolResponse()
 		}
@@ -250,7 +265,8 @@ func geminiCompletedCalls(state toolstream.State, content string) (string, []llm
 	return content, completion.Calls, nil
 }
 
-func geminiApplyCall(state toolstream.State, index int, call *genai.FunctionCall) (toolstream.State, llm.ToolCallChunk, error) {
+func geminiApplyCall(state toolstream.State, index int, part *genai.Part) (toolstream.State, llm.ToolCallChunk, error) {
+	call := part.FunctionCall
 	arguments, err := json.Marshal(call.Args)
 	if err != nil || call.Args == nil || strings.TrimSpace(call.Name) == "" {
 		return state, llm.ToolCallChunk{}, invalidGeminiToolResponse()
@@ -260,8 +276,9 @@ func geminiApplyCall(state toolstream.State, index int, call *genai.FunctionCall
 	nameCopy := call.Name
 	argumentCopy := string(arguments)
 	chunk := llm.ToolCallChunk{
-		Index: &indexCopy,
-		Type:  &typeCopy,
+		ExtraContent: geminiToolExtraContent(part.ThoughtSignature),
+		Index:        &indexCopy,
+		Type:         &typeCopy,
 		Function: &llm.FunctionCallChunk{
 			Name:      &nameCopy,
 			Arguments: &argumentCopy,
@@ -277,6 +294,13 @@ func geminiApplyCall(state toolstream.State, index int, call *genai.FunctionCall
 	}
 	next, err = next.CompleteCall(index)
 	return next, normalized, err
+}
+
+func geminiToolExtraContent(signature []byte) *llm.ToolCallExtraContent {
+	if len(signature) == 0 {
+		return nil
+	}
+	return &llm.ToolCallExtraContent{Google: llm.GoogleToolCallExtraContent{ThoughtSignature: base64.StdEncoding.EncodeToString(signature)}}
 }
 
 func geminiFinish(reason genai.FinishReason, hasTools bool) (string, error) {
@@ -354,7 +378,7 @@ func geminiContentStreamEvents(state geminiStreamState, content *genai.Content) 
 		if part.FunctionCall == nil {
 			continue
 		}
-		next, chunk, err := geminiStreamCall(state, part.FunctionCall)
+		next, chunk, err := geminiStreamCall(state, part)
 		if err != nil {
 			return nil, state, err
 		}
@@ -375,8 +399,8 @@ func geminiUsageEvents(events []llm.StreamEvent, usage *llm.Usage, finishIndex i
 	return append(events, llm.StreamEvent{Usage: usage})
 }
 
-func geminiStreamCall(state geminiStreamState, call *genai.FunctionCall) (geminiStreamState, llm.ToolCallChunk, error) {
-	nextTools, chunk, err := geminiApplyCall(state.tools, state.toolCount, call)
+func geminiStreamCall(state geminiStreamState, part *genai.Part) (geminiStreamState, llm.ToolCallChunk, error) {
+	nextTools, chunk, err := geminiApplyCall(state.tools, state.toolCount, part)
 	if err != nil {
 		return state, llm.ToolCallChunk{}, err
 	}

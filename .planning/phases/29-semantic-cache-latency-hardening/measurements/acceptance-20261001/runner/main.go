@@ -28,6 +28,8 @@ var artifacts = artifactDirectory()
 
 const remoteBinary = "/tmp/veloxmesh-phase29-acceptance-20261001.test"
 const testLimit = 60 * time.Second
+const dependencyStartupLimit = 10 * time.Second
+const dependencyPollInterval = 250 * time.Millisecond
 
 func artifactDirectory() string {
 	if directory := os.Getenv("SHIP_ARTIFACTS"); directory != "" {
@@ -191,8 +193,22 @@ func (r *runner) dependencies() error {
 	r.env["POSTGRES_USER"] = postgres["POSTGRES_USER"]
 	r.env["POSTGRES_PASSWORD"] = postgres["POSTGRES_PASSWORD"]
 	r.env["POSTGRES_DB"] = postgres["POSTGRES_DB"]
-	_, err = r.command("docker exec veloxmesh-test-redis redis-cli ping && docker exec veloxmesh-test-postgres pg_isready")
-	return err
+	return r.waitForDependencies()
+}
+
+func (r *runner) waitForDependencies() error {
+	deadline := time.Now().Add(dependencyStartupLimit)
+	for attempt := 1; ; attempt++ {
+		output, err := r.command("timeout 3s sh -c 'docker exec veloxmesh-test-redis redis-cli ping && docker exec veloxmesh-test-postgres pg_isready'")
+		if err == nil {
+			return nil
+		}
+		fmt.Printf("dependency readiness attempt=%d error=%v output=%s\n", attempt, err, strings.TrimSpace(string(output)))
+		if time.Now().After(deadline) {
+			return fmt.Errorf("dependency readiness timed out: %w", err)
+		}
+		time.Sleep(dependencyPollInterval)
+	}
 }
 
 func (r *runner) containerEnv(name string) (map[string]string, error) {
@@ -334,6 +350,9 @@ func (r *runner) liveTest(test string) error {
 	output, err := session.CombinedOutput(command)
 	if saveErr := r.save(test+".log", output); saveErr != nil {
 		return saveErr
+	}
+	if err == nil && strings.Contains(string(output), "--- SKIP:") {
+		err = fmt.Errorf("selected live test was skipped")
 	}
 	fmt.Printf("%s exit: %v\n", test, err)
 	if err != nil {

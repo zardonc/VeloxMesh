@@ -34,6 +34,7 @@ type callState struct {
 	name      string
 	arguments string
 	complete  bool
+	extra     *llm.ToolCallExtraContent
 }
 
 type Completion struct {
@@ -51,7 +52,7 @@ func New(config Config) State {
 }
 
 func (state State) Apply(chunk llm.ToolCallChunk) (State, llm.ToolCallChunk, error) {
-	if state.finished {
+	if state.finished || !llm.ValidToolCallExtraContent(chunk.ExtraContent) {
 		return state, llm.ToolCallChunk{}, protocolError()
 	}
 
@@ -110,9 +111,10 @@ func (state State) applyNew(index int, chunk llm.ToolCallChunk) (State, llm.Tool
 	}
 
 	next := state.copy()
-	next.calls[index] = callState{id: id, name: name, arguments: arguments}
+	call := callState{id: id, name: name, arguments: arguments, extra: llm.CloneToolCallExtraContent(chunk.ExtraContent)}
+	next.calls[index] = call
 	next.ids[id] = index
-	return next, normalizedChunk(index, id, name, chunkArguments(chunk.Function)), nil
+	return next, normalizedChunk(index, call, chunkArguments(chunk.Function)), nil
 }
 
 func (state State) applyExisting(index int, call callState, chunk llm.ToolCallChunk) (State, llm.ToolCallChunk, error) {
@@ -124,12 +126,15 @@ func (state State) applyExisting(index int, call callState, chunk llm.ToolCallCh
 	if exceedsArgumentLimit(state.maxArgumentBytes, len(call.arguments), len(arguments)) {
 		return state, llm.ToolCallChunk{}, protocolError()
 	}
+	extra, valid := mergeExtraContent(call.extra, chunk.ExtraContent)
+	if !valid {
+		return state, llm.ToolCallChunk{}, protocolError()
+	}
 
 	next := state.copy()
-	if arguments != "" {
-		call.arguments += arguments
-		next.calls[index] = call
-	}
+	call.arguments += arguments
+	call.extra = extra
+	next.calls[index] = call
 	return next, opaqueChunk(index, chunk), nil
 }
 
@@ -216,8 +221,9 @@ func (state State) callsInIndexOrder() []llm.ToolCall {
 	for _, index := range indexes {
 		call := state.calls[index]
 		calls = append(calls, llm.ToolCall{
-			ID:   call.id,
-			Type: llm.ToolTypeFunction,
+			ExtraContent: llm.CloneToolCallExtraContent(call.extra),
+			ID:           call.id,
+			Type:         llm.ToolTypeFunction,
 			Function: llm.FunctionCall{
 				Name:      call.name,
 				Arguments: call.arguments,
@@ -246,7 +252,7 @@ func matchesExistingCall(call callState, chunk llm.ToolCallChunk) bool {
 		return false
 	}
 	if chunk.Function == nil {
-		return chunk.ID != nil || chunk.Type != nil
+		return chunk.ID != nil || chunk.Type != nil || chunk.ExtraContent != nil
 	}
 	if chunk.Function.Name != nil && *chunk.Function.Name != call.name {
 		return false
@@ -254,15 +260,16 @@ func matchesExistingCall(call callState, chunk llm.ToolCallChunk) bool {
 	return true
 }
 
-func normalizedChunk(index int, id, name string, arguments *string) llm.ToolCallChunk {
+func normalizedChunk(index int, call callState, arguments *string) llm.ToolCallChunk {
 	indexCopy := index
-	idCopy := id
+	idCopy := call.id
 	typeCopy := llm.ToolTypeFunction
-	nameCopy := name
+	nameCopy := call.name
 	return llm.ToolCallChunk{
-		Index: &indexCopy,
-		ID:    &idCopy,
-		Type:  &typeCopy,
+		ExtraContent: llm.CloneToolCallExtraContent(call.extra),
+		Index:        &indexCopy,
+		ID:           &idCopy,
+		Type:         &typeCopy,
 		Function: &llm.FunctionCallChunk{
 			Name:      &nameCopy,
 			Arguments: arguments,
@@ -272,7 +279,7 @@ func normalizedChunk(index int, id, name string, arguments *string) llm.ToolCall
 
 func opaqueChunk(index int, chunk llm.ToolCallChunk) llm.ToolCallChunk {
 	indexCopy := index
-	emitted := llm.ToolCallChunk{Index: &indexCopy}
+	emitted := llm.ToolCallChunk{Index: &indexCopy, ExtraContent: llm.CloneToolCallExtraContent(chunk.ExtraContent)}
 	if chunk.ID != nil {
 		idCopy := *chunk.ID
 		emitted.ID = &idCopy
@@ -290,6 +297,16 @@ func opaqueChunk(index int, chunk llm.ToolCallChunk) llm.ToolCallChunk {
 		emitted.Function.Arguments = chunkArguments(chunk.Function)
 	}
 	return emitted
+}
+
+func mergeExtraContent(existing, incoming *llm.ToolCallExtraContent) (*llm.ToolCallExtraContent, bool) {
+	if incoming == nil {
+		return llm.CloneToolCallExtraContent(existing), true
+	}
+	if existing != nil && *existing != *incoming {
+		return nil, false
+	}
+	return llm.CloneToolCallExtraContent(incoming), true
 }
 
 func fragment(function *llm.FunctionCallChunk) string {

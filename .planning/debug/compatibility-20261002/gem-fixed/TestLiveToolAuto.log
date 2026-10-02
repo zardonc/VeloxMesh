@@ -1,0 +1,16 @@
+=== RUN   TestLiveToolAuto
+{"time":"2026-10-02T05:56:08.480788558Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:56:08.484203253Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T05:56:08.484230103Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T05:56:08.484238279Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:56:08.484352805Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:56:08.486265059Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:297: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+{"time":"2026-10-02T05:56:10.789100336Z","level":"INFO","msg":"request completed","request_id":"2493868dbf87d7bc8d73ccca88be04e3","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2301}
+    live_ship_protocol_test.go:297: real Gemini opaque tool signature preserved in public response
+{"time":"2026-10-02T05:56:16.949152525Z","level":"INFO","msg":"request completed","request_id":"bff41b6ce8577539f2c7acd287ea2dd4","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":6159}
+    live_ship_protocol_test.go:297: usage_rows_all=2 usage_rows_key=2
+    live_ship_protocol_test.go:297: settled_records=2 total_tokens=201 credits=201 exactly_once=true
+    live_ship_protocol_test.go:297: real model -> tool arguments -> client calculation -> tool_call_id continuation -> final answer passed
+--- PASS: TestLiveToolAuto (8.57s)
+PASS

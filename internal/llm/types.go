@@ -55,9 +55,18 @@ type Tool struct {
 }
 
 type ToolCall struct {
-	ID       string       `json:"id"`
-	Type     ToolType     `json:"type"`
-	Function FunctionCall `json:"function"`
+	ID           string                `json:"id"`
+	Type         ToolType              `json:"type"`
+	Function     FunctionCall          `json:"function"`
+	ExtraContent *ToolCallExtraContent `json:"extra_content,omitempty"`
+}
+
+type ToolCallExtraContent struct {
+	Google GoogleToolCallExtraContent `json:"google"`
+}
+
+type GoogleToolCallExtraContent struct {
+	ThoughtSignature string `json:"thought_signature"`
 }
 
 type FunctionCall struct {
@@ -66,10 +75,11 @@ type FunctionCall struct {
 }
 
 type ToolCallChunk struct {
-	Index    *int               `json:"index,omitempty"`
-	ID       *string            `json:"id,omitempty"`
-	Type     *ToolType          `json:"type,omitempty"`
-	Function *FunctionCallChunk `json:"function,omitempty"`
+	Index        *int                  `json:"index,omitempty"`
+	ID           *string               `json:"id,omitempty"`
+	Type         *ToolType             `json:"type,omitempty"`
+	Function     *FunctionCallChunk    `json:"function,omitempty"`
+	ExtraContent *ToolCallExtraContent `json:"extra_content,omitempty"`
 }
 
 type FunctionCallChunk struct {

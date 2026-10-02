@@ -2,6 +2,7 @@ package llm
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -194,6 +195,9 @@ func cloneMessage(message Message) Message {
 	copy := message
 	copy.MultiContent = append([]ContentPart(nil), message.MultiContent...)
 	copy.ToolCalls = append([]ToolCall(nil), message.ToolCalls...)
+	for index, call := range copy.ToolCalls {
+		copy.ToolCalls[index].ExtraContent = CloneToolCallExtraContent(call.ExtraContent)
+	}
 	return copy
 }
 
@@ -229,6 +233,9 @@ func (ledger *toolLedger) acceptCalls(calls []ToolCall) *gatewayerrors.GatewayEr
 		if _, declared := ledger.names[call.Function.Name]; !declared {
 			return invalidToolProtocol()
 		}
+		if !ValidToolCallExtraContent(call.ExtraContent) {
+			return invalidToolProtocol()
+		}
 		if _, exists := ledger.seen[call.ID]; exists {
 			return invalidToolProtocol()
 		}
@@ -237,6 +244,28 @@ func (ledger *toolLedger) acceptCalls(calls []ToolCall) *gatewayerrors.GatewayEr
 		ledger.requirements.HasAssistantToolCall = true
 	}
 	return nil
+}
+
+const maxToolThoughtSignatureBytes = 1024 * 1024
+
+func ValidToolCallExtraContent(extra *ToolCallExtraContent) bool {
+	if extra == nil {
+		return true
+	}
+	signature := extra.Google.ThoughtSignature
+	if signature == "" || len(signature) > base64.StdEncoding.EncodedLen(maxToolThoughtSignatureBytes) {
+		return false
+	}
+	decoded, err := base64.StdEncoding.Strict().DecodeString(signature)
+	return err == nil && len(decoded) > 0 && len(decoded) <= maxToolThoughtSignatureBytes
+}
+
+func CloneToolCallExtraContent(extra *ToolCallExtraContent) *ToolCallExtraContent {
+	if extra == nil {
+		return nil
+	}
+	copy := *extra
+	return &copy
 }
 
 func (ledger *toolLedger) acceptResult(message Message) *gatewayerrors.GatewayError {
