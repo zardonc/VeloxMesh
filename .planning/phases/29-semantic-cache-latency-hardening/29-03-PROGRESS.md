@@ -11,3 +11,7 @@ The performance task is **failed/open**, not passed: corrected same-schedule low
 The real-model task is **partial**: only the requested local model was selected. The original second distinct model and live cross-model lifecycle remain unverified; deterministic isolation/fault coverage does not substitute for that gate. No final human-verify checkpoint is claimed ready and no final parameter approval is inferred.
 
 Next execution must resolve stable representative primary/load conditions, complete clean-warmup sustained samples and the second distinct model flow, then present passing evidence for the plan's final human review. Production publisher/atomic cutover/deployment stop ownership remains separately required before production enablement.
+
+## 2026-10-01 functional acceptance amendment
+
+The user now authorizes local-model verification for this acceptance round and report-only handling of nonfunctional/environment exceptions. Fresh full backend (592 passed, two unrelated opt-in skips), race and all three selected local-model functional runners pass. `29-UAT.md` is complete for this adjusted scope, and `29-VERIFICATION.md` records the original online/performance items as deferred. The preceding next-execution paragraph describes the original release gate, not work authorized to continue during this functional acceptance. No performance pass, second-model pass, final numeric approval or production enablement is inferred.

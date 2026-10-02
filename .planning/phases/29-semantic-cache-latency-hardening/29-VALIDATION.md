@@ -51,6 +51,7 @@ created: "2026-09-25"
 - [ ] A-D and E-F are resolved before the tasks they block.
 - [x] Offline tests pass with `-timeout 60s` and include boundary/error paths; full suite rerun with Redis, Qdrant and PostgreSQL ready on 2026-10-01.
 - [ ] Negative false hits = 0; positive hit rate reported.
+- [x] Local-model functional acceptance rerun on 2026-10-01: one paraphrase hit, two different-answer negatives missed, same-key version isolation, embedding fault forwarding and queue burst passed; see `29-VERIFICATION.md`.
 - [ ] P95 ratio <= 1.05 under matched low-hit non-streaming load.
 - [ ] Both real embedding configurations pass full gateway-flow validation.
 - [x] No credentials or raw runtime request/answer payloads in tracked evidence; model IDs/dimensions and explicit review candidates are retained as requested.
@@ -58,3 +59,5 @@ created: "2026-09-25"
 2026-10-01: `29-EVIDENCE.md` and raw JSONL record repaired real application-path measurements, but SANS upstream daily quota stopped successful repeats. Offline oracle negatives pass; real-model quality, sustained capacity, final parameters and the 1.05 gate are not signed off. Production remains disabled.
 
 Local-model continuation: `29-LOCAL-MODEL-MEASUREMENT.md` records 1044 timed client attempts and a red-to-green real negative case. The user-selected 768-dimensional model passes one paraphrase, two different-answer negatives, same-key `faq-v1` -> `faq-v2` isolation, embedding fault fallback and a real queue burst. Both available corrected same-schedule P95 ratios fail (1.143 / 1.511), with primary timeouts and a missing warmup run; sustained capacity and final numeric approval remain open. This is one real model, so the two-model checkbox remains unchecked. Full backend and focused race checks pass after the shared embedding-input repair. No phase completion or production approval is implied.
+
+2026-10-01 acceptance-scope amendment: the user explicitly accepts local-model functional verification for this round because online embedding quota prevents load testing, and requests report-only handling for nonfunctional/environment issues. The new `29-UAT.md` session is complete within that scope: 12 functional checks pass, 3 release/performance items are deferred, no new functional failure. Full backend rerun passes 592 top-level tests (two unrelated opt-in tests skipped), focused race passes, and all three selected real local-model runners pass. Original performance/two-model release checkboxes remain unchecked; deferral is not a passing measurement or permission to enable production caching.

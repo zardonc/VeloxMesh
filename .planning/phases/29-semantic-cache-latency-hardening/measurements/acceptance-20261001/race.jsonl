@@ -1,0 +1,128 @@
+{"Time":"2026-10-01T20:35:35.5101476-07:00","Action":"start","Package":"veloxmesh/internal/cache"}
+{"Time":"2026-10-01T20:35:35.51065-07:00","Action":"start","Package":"veloxmesh/internal/gateway"}
+{"Time":"2026-10-01T20:35:35.7208049-07:00","Action":"run","Package":"veloxmesh/internal/gateway","Test":"TestToolProtocolTracerBypassesSemanticCache"}
+{"Time":"2026-10-01T20:35:35.7208049-07:00","Action":"output","Package":"veloxmesh/internal/gateway","Test":"TestToolProtocolTracerBypassesSemanticCache","Output":"=== RUN   TestToolProtocolTracerBypassesSemanticCache\n"}
+{"Time":"2026-10-01T20:35:35.7208049-07:00","Action":"output","Package":"veloxmesh/internal/gateway","Test":"TestToolProtocolTracerBypassesSemanticCache","Output":"--- PASS: TestToolProtocolTracerBypassesSemanticCache (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7213067-07:00","Action":"pass","Package":"veloxmesh/internal/gateway","Test":"TestToolProtocolTracerBypassesSemanticCache","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7213067-07:00","Action":"run","Package":"veloxmesh/internal/gateway","Test":"TestNoToolsWithoutTrustedProfileBypassesSemanticCache"}
+{"Time":"2026-10-01T20:35:35.7213067-07:00","Action":"output","Package":"veloxmesh/internal/gateway","Test":"TestNoToolsWithoutTrustedProfileBypassesSemanticCache","Output":"=== RUN   TestNoToolsWithoutTrustedProfileBypassesSemanticCache\n"}
+{"Time":"2026-10-01T20:35:35.7213067-07:00","Action":"output","Package":"veloxmesh/internal/gateway","Test":"TestNoToolsWithoutTrustedProfileBypassesSemanticCache","Output":"--- PASS: TestNoToolsWithoutTrustedProfileBypassesSemanticCache (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7213067-07:00","Action":"pass","Package":"veloxmesh/internal/gateway","Test":"TestNoToolsWithoutTrustedProfileBypassesSemanticCache","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7213067-07:00","Action":"output","Package":"veloxmesh/internal/gateway","Output":"PASS\n"}
+{"Time":"2026-10-01T20:35:35.7238138-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheLabeledFAQAndIsolation"}
+{"Time":"2026-10-01T20:35:35.7238138-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheLabeledFAQAndIsolation","Output":"=== RUN   TestSemanticCacheLabeledFAQAndIsolation\n"}
+{"Time":"2026-10-01T20:35:35.7248162-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheLabeledFAQAndIsolation","Output":"--- PASS: TestSemanticCacheLabeledFAQAndIsolation (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7248162-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheLabeledFAQAndIsolation","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7248162-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRepositoryAndEmbeddingFailures"}
+{"Time":"2026-10-01T20:35:35.7248162-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRepositoryAndEmbeddingFailures","Output":"=== RUN   TestSemanticCacheRepositoryAndEmbeddingFailures\n"}
+{"Time":"2026-10-01T20:35:35.7253173-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRepositoryAndEmbeddingFailures","Output":"--- PASS: TestSemanticCacheRepositoryAndEmbeddingFailures (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7253173-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRepositoryAndEmbeddingFailures","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7253173-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheReadDeadlineAndSaturation"}
+{"Time":"2026-10-01T20:35:35.7253173-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheReadDeadlineAndSaturation","Output":"=== RUN   TestSemanticCacheReadDeadlineAndSaturation\n"}
+{"Time":"2026-10-01T20:35:35.745423-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheReadDeadlineAndSaturation","Output":"--- PASS: TestSemanticCacheReadDeadlineAndSaturation (0.02s)\n"}
+{"Time":"2026-10-01T20:35:35.745423-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheReadDeadlineAndSaturation","Elapsed":0.02}
+{"Time":"2026-10-01T20:35:35.745423-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings"}
+{"Time":"2026-10-01T20:35:35.745423-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings","Output":"=== RUN   TestSemanticCacheInvalidEmbeddings\n"}
+{"Time":"2026-10-01T20:35:35.7459173-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/dimension"}
+{"Time":"2026-10-01T20:35:35.7459173-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/dimension","Output":"=== RUN   TestSemanticCacheInvalidEmbeddings/dimension\n"}
+{"Time":"2026-10-01T20:35:35.7459173-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/dimension","Output":"--- PASS: TestSemanticCacheInvalidEmbeddings/dimension (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7459173-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/dimension","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7459173-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/nan"}
+{"Time":"2026-10-01T20:35:35.7459173-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/nan","Output":"=== RUN   TestSemanticCacheInvalidEmbeddings/nan\n"}
+{"Time":"2026-10-01T20:35:35.7459173-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/nan","Output":"--- PASS: TestSemanticCacheInvalidEmbeddings/nan (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7459173-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/nan","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7459173-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/infinity"}
+{"Time":"2026-10-01T20:35:35.7459173-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/infinity","Output":"=== RUN   TestSemanticCacheInvalidEmbeddings/infinity\n"}
+{"Time":"2026-10-01T20:35:35.7464184-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/infinity","Output":"--- PASS: TestSemanticCacheInvalidEmbeddings/infinity (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7464184-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/infinity","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7464184-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/zero"}
+{"Time":"2026-10-01T20:35:35.7464184-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/zero","Output":"=== RUN   TestSemanticCacheInvalidEmbeddings/zero\n"}
+{"Time":"2026-10-01T20:35:35.7464184-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/zero","Output":"--- PASS: TestSemanticCacheInvalidEmbeddings/zero (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7464184-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/zero","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7469213-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/empty"}
+{"Time":"2026-10-01T20:35:35.7469213-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/empty","Output":"=== RUN   TestSemanticCacheInvalidEmbeddings/empty\n"}
+{"Time":"2026-10-01T20:35:35.7469213-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/empty","Output":"--- PASS: TestSemanticCacheInvalidEmbeddings/empty (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7469213-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings/empty","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7469213-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings","Output":"--- PASS: TestSemanticCacheInvalidEmbeddings (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7469213-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheInvalidEmbeddings","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7469213-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheVectorFaultReportedWithoutScan"}
+{"Time":"2026-10-01T20:35:35.7469213-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheVectorFaultReportedWithoutScan","Output":"=== RUN   TestSemanticCacheVectorFaultReportedWithoutScan\n"}
+{"Time":"2026-10-01T20:35:35.7474212-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheVectorFaultReportedWithoutScan","Output":"--- PASS: TestSemanticCacheVectorFaultReportedWithoutScan (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7474212-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheVectorFaultReportedWithoutScan","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7474212-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheQueueAndShutdown"}
+{"Time":"2026-10-01T20:35:35.7474212-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheQueueAndShutdown","Output":"=== RUN   TestSemanticCacheQueueAndShutdown\n"}
+{"Time":"2026-10-01T20:35:35.7675746-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheQueueAndShutdown","Output":"--- PASS: TestSemanticCacheQueueAndShutdown (0.02s)\n"}
+{"Time":"2026-10-01T20:35:35.7675746-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheQueueAndShutdown","Elapsed":0.02}
+{"Time":"2026-10-01T20:35:35.7675746-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheWriteSnapshotAndDisabled"}
+{"Time":"2026-10-01T20:35:35.7675746-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheWriteSnapshotAndDisabled","Output":"=== RUN   TestSemanticCacheWriteSnapshotAndDisabled\n"}
+{"Time":"2026-10-01T20:35:35.7675746-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheWriteSnapshotAndDisabled","Output":"--- PASS: TestSemanticCacheWriteSnapshotAndDisabled (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.7680788-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheWriteSnapshotAndDisabled","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.7680788-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheCombinedReadWriteCapacity"}
+{"Time":"2026-10-01T20:35:35.7680788-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheCombinedReadWriteCapacity","Output":"=== RUN   TestSemanticCacheCombinedReadWriteCapacity\n"}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheCombinedReadWriteCapacity","Output":"--- PASS: TestSemanticCacheCombinedReadWriteCapacity (0.04s)\n"}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheCombinedReadWriteCapacity","Elapsed":0.04}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheCollectionNames"}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheCollectionNames","Output":"=== RUN   TestSemanticCacheCollectionNames\n"}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheCollectionNames","Output":"--- PASS: TestSemanticCacheCollectionNames (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheCollectionNames","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheEmbeddingProviderChangesScope"}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheEmbeddingProviderChangesScope","Output":"=== RUN   TestSemanticCacheEmbeddingProviderChangesScope\n"}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheEmbeddingProviderChangesScope","Output":"--- PASS: TestSemanticCacheEmbeddingProviderChangesScope (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheEmbeddingProviderChangesScope","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheFreezesTrustedConfiguration"}
+{"Time":"2026-10-01T20:35:35.8083741-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheFreezesTrustedConfiguration","Output":"=== RUN   TestSemanticCacheFreezesTrustedConfiguration\n"}
+{"Time":"2026-10-01T20:35:35.8090861-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheFreezesTrustedConfiguration","Output":"--- PASS: TestSemanticCacheFreezesTrustedConfiguration (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8090861-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheFreezesTrustedConfiguration","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8090861-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_Hit"}
+{"Time":"2026-10-01T20:35:35.8090861-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_Hit","Output":"=== RUN   TestSemanticCacheService_Hit\n"}
+{"Time":"2026-10-01T20:35:35.8090861-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_Hit","Output":"--- PASS: TestSemanticCacheService_Hit (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8090861-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_Hit","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8090861-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_Misses"}
+{"Time":"2026-10-01T20:35:35.8090861-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_Misses","Output":"=== RUN   TestSemanticCacheService_Misses\n"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_Misses","Output":"--- PASS: TestSemanticCacheService_Misses (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_Misses","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_NilEmbeddingResponseIsMiss"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_NilEmbeddingResponseIsMiss","Output":"=== RUN   TestSemanticCacheService_NilEmbeddingResponseIsMiss\n"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_NilEmbeddingResponseIsMiss","Output":"--- PASS: TestSemanticCacheService_NilEmbeddingResponseIsMiss (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheService_NilEmbeddingResponseIsMiss","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRejectsWrongVectorLength"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRejectsWrongVectorLength","Output":"=== RUN   TestSemanticCacheRejectsWrongVectorLength\n"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRejectsWrongVectorLength","Output":"--- PASS: TestSemanticCacheRejectsWrongVectorLength (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRejectsWrongVectorLength","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheUsesConfiguredEmbeddingModel"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheUsesConfiguredEmbeddingModel","Output":"=== RUN   TestSemanticCacheUsesConfiguredEmbeddingModel\n"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheUsesConfiguredEmbeddingModel","Output":"--- PASS: TestSemanticCacheUsesConfiguredEmbeddingModel (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheUsesConfiguredEmbeddingModel","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8095966-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRejectsMalformedCachedChoices"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRejectsMalformedCachedChoices","Output":"=== RUN   TestSemanticCacheRejectsMalformedCachedChoices\n"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRejectsMalformedCachedChoices","Output":"--- PASS: TestSemanticCacheRejectsMalformedCachedChoices (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheRejectsMalformedCachedChoices","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheKnowledgeVersionChangesScope"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheKnowledgeVersionChangesScope","Output":"=== RUN   TestSemanticCacheKnowledgeVersionChangesScope\n"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheKnowledgeVersionChangesScope","Output":"--- PASS: TestSemanticCacheKnowledgeVersionChangesScope (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheKnowledgeVersionChangesScope","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheVectorMapsThroughRepository"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheVectorMapsThroughRepository","Output":"=== RUN   TestSemanticCacheVectorMapsThroughRepository\n"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheVectorMapsThroughRepository","Output":"--- PASS: TestSemanticCacheVectorMapsThroughRepository (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheVectorMapsThroughRepository","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan","Output":"=== RUN   TestSemanticCacheMalformedVectorResultsDoNotScan\n"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/missing_score"}
+{"Time":"2026-10-01T20:35:35.8100988-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/missing_score","Output":"=== RUN   TestSemanticCacheMalformedVectorResultsDoNotScan/missing_score\n"}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/missing_score","Output":"--- PASS: TestSemanticCacheMalformedVectorResultsDoNotScan/missing_score (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/missing_score","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/nonfinite_score"}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/nonfinite_score","Output":"=== RUN   TestSemanticCacheMalformedVectorResultsDoNotScan/nonfinite_score\n"}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/nonfinite_score","Output":"--- PASS: TestSemanticCacheMalformedVectorResultsDoNotScan/nonfinite_score (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/nonfinite_score","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"run","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/missing_identity"}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/missing_identity","Output":"=== RUN   TestSemanticCacheMalformedVectorResultsDoNotScan/missing_identity\n"}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/missing_identity","Output":"--- PASS: TestSemanticCacheMalformedVectorResultsDoNotScan/missing_identity (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan/missing_identity","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"output","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan","Output":"--- PASS: TestSemanticCacheMalformedVectorResultsDoNotScan (0.00s)\n"}
+{"Time":"2026-10-01T20:35:35.8105999-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Test":"TestSemanticCacheMalformedVectorResultsDoNotScan","Elapsed":0}
+{"Time":"2026-10-01T20:35:35.811101-07:00","Action":"output","Package":"veloxmesh/internal/cache","Output":"PASS\n"}
+{"Time":"2026-10-01T20:35:36.7329485-07:00","Action":"output","Package":"veloxmesh/internal/gateway","Output":"ok  \tveloxmesh/internal/gateway\t1.222s\n"}
+{"Time":"2026-10-01T20:35:36.7329485-07:00","Action":"pass","Package":"veloxmesh/internal/gateway","Elapsed":1.222}
+{"Time":"2026-10-01T20:35:36.832268-07:00","Action":"output","Package":"veloxmesh/internal/cache","Output":"ok  \tveloxmesh/internal/cache\t1.322s\n"}
+{"Time":"2026-10-01T20:35:36.832268-07:00","Action":"pass","Package":"veloxmesh/internal/cache","Elapsed":1.322}

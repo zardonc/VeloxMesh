@@ -1,5 +1,7 @@
 # Phase 29 evidence — 2026-10-01
 
+Latest acceptance: the user amended this round to **local-model functional verification**, with online quota/performance items recorded rather than blocking that scope. Fresh full backend, race, authenticated local-model gateway/version/fault and queue tests pass. See [29-VERIFICATION.md](29-VERIFICATION.md) and [29-UAT.md](29-UAT.md). This does not mark the original performance/two-model release gates passed or approve production enablement. The following earlier measurements and failures are preserved as historical evidence.
+
 Phase 29 is **not complete**. Wave 1 and offline Wave 2 are implemented. The requested local embedding model now passes the corrected real gateway semantic/version flow, embedding fault fallback and real queue burst; full backend tests pass. A real false hit was repaired by embedding only the isolated user question and versioning that representation. Corrected low-hit P95 ratios still fail at **1.143 / 1.511**; sustainable load, final parameters and the second real-model gate remain open. Production cache remains disabled and its allowlist remains empty; no production configuration was changed.
 
 Latest local-model method, code/binary provenance, all operation quantiles, raw sample counts and concrete review candidates: [29-LOCAL-MODEL-MEASUREMENT.md](29-LOCAL-MODEL-MEASUREMENT.md). The sections below preserve the earlier SANS diagnostic history and are not the latest local-model measurements.
