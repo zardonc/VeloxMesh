@@ -1,0 +1,12 @@
+=== RUN   TestLiveFusionStream
+{"time":"2026-10-02T04:46:06.538496411Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:46:06.541437534Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:46:06.541471047Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:46:06.541479693Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:46:06.541530308Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:46:06.54352108Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_features_test.go:113: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+{"time":"2026-10-02T04:46:15.804975442Z","level":"INFO","msg":"request completed","request_id":"c5a4177071e0ea93349f5e4243e1c80e","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":9260}
+    live_ship_features_test.go:113: real gateway status=502 error_code=fusion_failed decode_error=<nil> read_error=<nil>
+--- FAIL: TestLiveFusionStream (9.34s)
+FAIL

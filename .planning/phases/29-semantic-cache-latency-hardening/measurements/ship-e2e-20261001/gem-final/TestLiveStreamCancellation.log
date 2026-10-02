@@ -1,0 +1,13 @@
+=== RUN   TestLiveStreamCancellation
+{"time":"2026-10-02T04:32:56.044382906Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:32:56.047209061Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:32:56.047242634Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:32:56.047251361Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:32:56.047295444Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:32:56.049509587Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:163: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+{"time":"2026-10-02T04:32:57.777487274Z","level":"INFO","msg":"Error context canceled"}
+{"time":"2026-10-02T04:32:57.777518032Z","level":"INFO","msg":"request completed","request_id":"a71ce71a55ee53dd5c16f8df16e12c93","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1726}
+    live_ship_protocol_test.go:192: cancelled stream was settled
+--- FAIL: TestLiveStreamCancellation (3.82s)
+FAIL

@@ -1,0 +1,4 @@
+=== RUN   TestLiveFusionStream
+    live_ship_features_test.go:91: constraint failed: FOREIGN KEY constraint failed (787)
+--- FAIL: TestLiveFusionStream (0.01s)
+FAIL

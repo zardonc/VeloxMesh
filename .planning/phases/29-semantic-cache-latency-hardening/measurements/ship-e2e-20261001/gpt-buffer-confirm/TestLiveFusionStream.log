@@ -1,0 +1,13 @@
+=== RUN   TestLiveFusionStream
+{"time":"2026-10-02T04:50:01.556343258Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:50:01.558432099Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:50:01.558462756Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:50:01.558471072Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:50:01.558519153Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:50:01.560903881Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_features_test.go:130: model=text-embedding-embedder_collection dimension=768 primary=gpt-6-luna
+{"time":"2026-10-02T04:50:04.189543709Z","level":"INFO","msg":"request completed","request_id":"7c3ce12a78faee663c43d8c492b7f199","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2626}
+    live_ship_features_test.go:130: feature=fusion done=1 fragments=3 provider=fusion-ensemble strategy=combo:fusion
+    live_ship_features_test.go:130: fusion usage rows=0 total_tokens=0 status=
+--- FAIL: TestLiveFusionStream (2.71s)
+FAIL

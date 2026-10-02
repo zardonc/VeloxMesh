@@ -1,0 +1,12 @@
+=== RUN   TestLiveToolStreaming
+{"time":"2026-10-02T04:15:49.7581379Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:49.7601916Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:15:49.76022359Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:15:49.760249699Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:49.760312477Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:49.762976538Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:258: model=text-embedding-embedder_collection dimension=768 primary=oc/big-pickle
+{"time":"2026-10-02T04:15:55.058240153Z","level":"INFO","msg":"request completed","request_id":"5b83b1be9d57b7a76bb595afb5d850fc","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":5293}
+    live_ship_protocol_test.go:265: tool SSE done=1 finish=
+--- FAIL: TestLiveToolStreaming (5.38s)
+FAIL

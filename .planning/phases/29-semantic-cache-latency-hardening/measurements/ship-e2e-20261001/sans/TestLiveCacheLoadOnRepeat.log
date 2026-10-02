@@ -1,0 +1,13 @@
+=== RUN   TestLiveCacheLoadOnRepeat
+{"time":"2026-10-02T04:24:47.46188412Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:24:47.464443233Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:24:47.464466717Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:24:47.464475504Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:24:47.464563209Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:24:47.46658041Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_load_test.go:172: model=text-embedding-embedder_collection dimension=768 primary=oc/big-pickle
+{"time":"2026-10-02T04:24:47.790621637Z","level":"INFO","msg":"request completed","request_id":"3869a3662df6d3c3e3296b04902ff703","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":323}
+    live_ship_load_test.go:172: SAMPLE {"sample":{"type":"client","index":999,"start_ms":0.092,"elapsed_ms":324.011,"status":502,"ok":false,"hit":false,"concurrent":0,"error":"provider_rate_limit"},"type":"warmup"}
+    live_ship_load_test.go:172: real primary warmup failed; no valid latency gate
+--- FAIL: TestLiveCacheLoadOnRepeat (0.41s)
+FAIL

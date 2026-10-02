@@ -1,0 +1,4 @@
+=== RUN   TestLiveStreamCancellation
+    live_ship_protocol_test.go:157: failed to seed config: static provider phase29-embedding has no api_key or env resolved, skipping seed
+--- FAIL: TestLiveStreamCancellation (0.07s)
+FAIL

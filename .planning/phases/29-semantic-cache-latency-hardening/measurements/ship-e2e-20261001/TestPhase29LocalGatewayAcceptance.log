@@ -1,0 +1,4 @@
+=== RUN   TestPhase29LocalGatewayAcceptance
+    phase29_acceptance_test.go:47: dimension probe: [provider_bad_response] Provider returned no embeddings
+--- FAIL: TestPhase29LocalGatewayAcceptance (0.01s)
+FAIL

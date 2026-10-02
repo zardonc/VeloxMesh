@@ -1,0 +1,13 @@
+=== RUN   TestLiveBufferedStream
+{"time":"2026-10-02T04:51:39.261874978Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:51:39.289521868Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:51:39.28977255Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:51:39.28978825Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:51:39.289852331Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:51:39.296807037Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_features_test.go:129: model=text-embedding-embedder_collection dimension=768 primary=gpt-6-luna
+    live_ship_features_test.go:129: response rules persisted, published and verified enabled
+{"time":"2026-10-02T04:51:40.746650638Z","level":"INFO","msg":"request completed","request_id":"50d5e16306fc22f0f5e4ceae0694b3a3","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":1445}
+    live_ship_features_test.go:129: real gateway status=502 error_code=provider_bad_response decode_error=<nil> read_error=<nil>
+--- FAIL: TestLiveBufferedStream (1.64s)
+FAIL

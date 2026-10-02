@@ -1,0 +1,4 @@
+=== RUN   TestLiveStreamCancellation
+    live_ship_protocol_test.go:157: dimension probe: [provider_bad_response] Provider returned no embeddings
+--- FAIL: TestLiveStreamCancellation (0.01s)
+FAIL

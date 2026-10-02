@@ -1,0 +1,15 @@
+=== RUN   TestLiveToolOmitted
+{"time":"2026-10-02T04:28:08.264872677Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:28:08.266916318Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:28:08.266950753Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:28:08.266958838Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:28:08.2670184Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:28:08.268883185Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:250: model=text-embedding-embedder_collection dimension=768 primary=gpt-6-luna
+{"time":"2026-10-02T04:28:09.957500257Z","level":"INFO","msg":"request completed","request_id":"42f26080cef9f402d087036a68fc3537","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1687}
+{"time":"2026-10-02T04:28:13.214827289Z","level":"INFO","msg":"request completed","request_id":"716a78f084dc126b65a715c424efca59","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":3256}
+    live_ship_protocol_test.go:250: usage_rows_all=2 usage_rows_key=2
+    live_ship_protocol_test.go:250: settled_records=2 total_tokens=227 credits=227 exactly_once=true
+    live_ship_protocol_test.go:250: real model -> tool arguments -> client calculation -> tool_call_id continuation -> final answer passed
+--- PASS: TestLiveToolOmitted (5.04s)
+PASS

@@ -140,8 +140,12 @@ func liveApplicationWithDatabase(t *testing.T, env map[string]string, database l
 	if err != nil || probe == nil || len(probe.Data) != 1 || len(probe.Data[0].Embedding) == 0 {
 		t.Fatalf("dimension probe: %v", err)
 	}
+	primaryType := env["SHIP_PROVIDER_TYPE"]
+	if primaryType == "" {
+		primaryType = "openai-compatible"
+	}
 	providers := []config.ProviderConfig{
-		{ID: "sans-primary", Type: "openai-compatible", BaseURL: env["SANS_BASE_URL"], Auth: &config.ProviderAuthConfig{APIKeyEnv: "SANS_PRIMARY_API_KEY"}, Models: []string{env["SANS_PRIMARY_DEFAULT_MODEL"]}},
+		{ID: "sans-primary", Type: primaryType, BaseURL: env["SANS_BASE_URL"], Auth: &config.ProviderAuthConfig{APIKeyEnv: "SANS_PRIMARY_API_KEY"}, Models: []string{env["SANS_PRIMARY_DEFAULT_MODEL"]}},
 		{ID: embeddingProvider, Type: "openai-compatible", BaseURL: embeddingURL, Auth: &config.ProviderAuthConfig{APIKeyEnv: "PHASE29_EMBEDDING_API_KEY"}, Models: []string{model}},
 	}
 	t.Setenv("CONTROL_STATE_BACKEND", "sqlite")

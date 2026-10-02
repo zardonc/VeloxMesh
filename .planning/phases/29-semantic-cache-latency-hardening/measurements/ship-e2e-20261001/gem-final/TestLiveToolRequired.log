@@ -1,0 +1,13 @@
+=== RUN   TestLiveToolRequired
+{"time":"2026-10-02T04:32:59.954546265Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:32:59.956738716Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:32:59.956781287Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:32:59.956789983Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:32:59.956830479Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:32:59.959194594Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:259: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+{"time":"2026-10-02T04:33:02.646293867Z","level":"INFO","msg":"request completed","request_id":"843f790816e625fa6d299209ba51595a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2685}
+{"time":"2026-10-02T04:33:02.79550839Z","level":"INFO","msg":"request completed","request_id":"e936c0d3e41d5af6c7da760d7a8072bf","method":"POST","path":"/v1/chat/completions","status":400,"latency_ms":148}
+    live_ship_protocol_test.go:259: real gateway status=400 error_code=provider_invalid_request decode_error=<nil> read_error=<nil>
+--- FAIL: TestLiveToolRequired (2.91s)
+FAIL

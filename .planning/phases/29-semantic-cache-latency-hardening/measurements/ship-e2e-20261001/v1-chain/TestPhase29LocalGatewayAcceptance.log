@@ -1,0 +1,4 @@
+=== RUN   TestPhase29LocalGatewayAcceptance
+    phase29_acceptance_test.go:47: failed to seed config: static provider phase29-embedding has no api_key or env resolved, skipping seed
+--- FAIL: TestPhase29LocalGatewayAcceptance (0.06s)
+FAIL

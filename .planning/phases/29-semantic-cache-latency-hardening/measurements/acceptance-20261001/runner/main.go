@@ -6,10 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
+	"maps"
 	"net"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -19,9 +24,17 @@ import (
 	"golang.org/x/crypto/ssh/knownhosts"
 )
 
-const artifacts = ".planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001"
+var artifacts = artifactDirectory()
+
 const remoteBinary = "/tmp/veloxmesh-phase29-acceptance-20261001.test"
 const testLimit = 60 * time.Second
+
+func artifactDirectory() string {
+	if directory := os.Getenv("SHIP_ARTIFACTS"); directory != "" {
+		return directory
+	}
+	return ".planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001"
+}
 
 type runner struct {
 	client    *ssh.Client
@@ -38,22 +51,19 @@ func main() {
 }
 
 func run() error {
-	env, err := godotenv.Read(".env")
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	if env == nil {
-		env = map[string]string{}
-	}
-	local, err := godotenv.Read(".env.local")
+	env, err := loadEnvironment()
 	if err != nil {
 		return err
 	}
-	for key, value := range local {
-		env[key] = value
-	}
 	if len(os.Args) > 1 && os.Args[1] == "audit" {
 		return audit(env)
+	}
+	if len(os.Args) > 1 && os.Args[1] == "inventory" {
+		return inventory(env)
+	}
+	env, err = selectProvider(env)
+	if err != nil {
+		return err
 	}
 	for _, key := range []string{"PHASE29_MODEL", "PHASE29_EMBEDDING_BASE_URL", "PHASE29_READ_TIMEOUT", "PHASE29_READ_CONCURRENCY", "PHASE29_WRITE_WORKERS", "PHASE29_QUEUE_CAPACITY", "PHASE29_WRITE_TIMEOUT", "PHASE29_SHUTDOWN_GRACE"} {
 		if os.Getenv(key) == "" {
@@ -66,16 +76,67 @@ func run() error {
 	}
 	r := &runner{client: client, env: env}
 	defer r.cleanup()
+	return r.checks()
+}
+
+func (r *runner) checks() error {
 	if err := r.dependencies(); err != nil {
 		return err
 	}
 	if err := r.forward(); err != nil {
 		return err
 	}
-	if err := r.localChecks(); err != nil {
-		return err
+	if os.Getenv("SHIP_TESTS") != "" {
+		return r.liveChecks()
 	}
-	return r.liveChecks()
+	return errors.Join(r.localChecks(), r.liveChecks())
+}
+
+func loadEnvironment() (map[string]string, error) {
+	env, err := godotenv.Read(".env")
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+	if env == nil {
+		env = map[string]string{}
+	}
+	local, err := godotenv.Read(".env.local")
+	if err != nil {
+		return nil, err
+	}
+	for key, value := range local {
+		env[key] = value
+	}
+	return env, nil
+}
+
+func selectProvider(env map[string]string) (map[string]string, error) {
+	prefix := os.Getenv("SHIP_PROVIDER")
+	if prefix == "" {
+		return env, nil
+	}
+	if prefix != "SANS" && prefix != "GEM" && prefix != "GPT" {
+		return nil, fmt.Errorf("unsupported provider selection")
+	}
+	selected := maps.Clone(env)
+	for _, suffix := range []string{"BASE_URL", "PRIMARY_API_KEY", "PRIMARY_DEFAULT_MODEL"} {
+		selected["SANS_"+suffix] = env[prefix+"_"+suffix]
+	}
+	if prefix == "GEM" {
+		selected["SHIP_PROVIDER_TYPE"] = "gemini"
+	}
+	return selected, nil
+}
+
+func inventory(env map[string]string) error {
+	for _, prefix := range []string{"SANS", "GEM", "GPT"} {
+		endpoint, err := url.Parse(env[prefix+"_BASE_URL"])
+		if err != nil {
+			return fmt.Errorf("invalid provider endpoint: %s", prefix)
+		}
+		fmt.Printf("provider=%s endpoint=%s://%s%s default_model=%s models=%s credentials_present=%t\n", prefix, endpoint.Scheme, endpoint.Host, endpoint.Path, env[prefix+"_PRIMARY_DEFAULT_MODEL"], env[prefix+"_PRIMARY_MODELS"], env[prefix+"_PRIMARY_API_KEY"] != "")
+	}
+	return nil
 }
 
 func connect(env map[string]string) (*ssh.Client, error) {
@@ -208,12 +269,15 @@ func (r *runner) localChecks() error {
 		return saveErr
 	}
 	fmt.Printf("full backend exit: %v\n", err)
-	// Functional acceptance still runs when unrelated integration infrastructure fails.
-	return nil
+	return err
 }
 
 func (r *runner) liveChecks() error {
-	binary, err := os.Open(filepath.Join(artifacts, "app-linux.test"))
+	binaryPath := os.Getenv("SHIP_BINARY")
+	if binaryPath == "" {
+		binaryPath = filepath.Join(artifacts, "app-linux.test")
+	}
+	binary, err := os.Open(binaryPath)
 	if err != nil {
 		return err
 	}
@@ -229,7 +293,14 @@ func (r *runner) liveChecks() error {
 	}
 	session.Close()
 	var failures []error
-	for _, test := range []string{"TestPhase29LocalGatewayAcceptance", "TestPhase29LocalEmbeddingFault", "TestPhase29LocalQueueBurst"} {
+	tests := []string{"TestPhase29LocalGatewayAcceptance", "TestPhase29LocalEmbeddingFault", "TestPhase29LocalQueueBurst"}
+	if selection := os.Getenv("SHIP_TESTS"); selection != "" {
+		tests = strings.Split(selection, ",")
+	}
+	for _, test := range tests {
+		if !regexp.MustCompile(`^Test[A-Za-z0-9_]+$`).MatchString(test) {
+			return fmt.Errorf("invalid test selection")
+		}
 		if err := r.liveTest(test); err != nil {
 			failures = append(failures, err)
 		}
@@ -244,10 +315,13 @@ func (r *runner) liveTest(test string) error {
 	}
 	defer session.Close()
 	input := map[string]string{}
-	for _, key := range []string{"SANS_BASE_URL", "SANS_PRIMARY_API_KEY", "SANS_PRIMARY_DEFAULT_MODEL", "QDRANT_API_KEY"} {
+	for _, key := range []string{"SANS_BASE_URL", "SANS_PRIMARY_API_KEY", "SANS_PRIMARY_DEFAULT_MODEL", "QDRANT_API_KEY", "SHIP_PROVIDER_TYPE"} {
 		input[key] = r.env[key]
 	}
 	for _, key := range []string{"PHASE29_EMBEDDING_API_KEY", "PHASE29_EMBEDDING_BASE_URL", "PHASE29_READ_TIMEOUT", "PHASE29_READ_CONCURRENCY", "PHASE29_WRITE_WORKERS", "PHASE29_QUEUE_CAPACITY", "PHASE29_WRITE_TIMEOUT", "PHASE29_SHUTDOWN_GRACE"} {
+		input[key] = os.Getenv(key)
+	}
+	for _, key := range []string{"PHASE29_COUNT", "PHASE29_INTERVAL_MS", "PHASE29_CLIENT_CONCURRENCY"} {
 		input[key] = os.Getenv(key)
 	}
 	payload, err := json.Marshal(input)
@@ -298,25 +372,31 @@ func (r *runner) cleanup() {
 }
 
 func audit(env map[string]string) error {
-	files, err := os.ReadDir(artifacts)
-	if err != nil {
-		return err
-	}
-	for _, file := range files {
-		if file.IsDir() || (filepath.Ext(file.Name()) != ".jsonl" && filepath.Ext(file.Name()) != ".log") {
-			continue
+	err := filepath.WalkDir(artifacts, func(path string, file fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
-		output, err := os.ReadFile(filepath.Join(artifacts, file.Name()))
+		if file.IsDir() || !slices.Contains([]string{".jsonl", ".log", ".json"}, filepath.Ext(path)) {
+			return nil
+		}
+		output, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 		for key, value := range env {
-			secret := strings.Contains(key, "KEY") || strings.Contains(key, "PASSWORD") || strings.Contains(key, "SECRET") || strings.Contains(key, "TOKEN") || key == "DEV_SERVER_PW"
-			if secret && len(value) >= 4 && strings.Contains(string(output), value) {
-				return fmt.Errorf("credential audit failed: %s", file.Name())
+			if secretName(key) && len(value) >= 4 && strings.Contains(string(output), value) {
+				return fmt.Errorf("credential audit failed: %s", path)
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 	fmt.Println("credential audit passed")
 	return nil
+}
+
+func secretName(key string) bool {
+	return strings.Contains(key, "KEY") || strings.Contains(key, "PASSWORD") || strings.Contains(key, "SECRET") || strings.Contains(key, "TOKEN") || key == "DEV_SERVER_PW"
 }

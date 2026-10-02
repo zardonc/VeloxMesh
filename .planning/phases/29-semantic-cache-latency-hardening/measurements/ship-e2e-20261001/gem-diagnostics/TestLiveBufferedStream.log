@@ -1,0 +1,4 @@
+=== RUN   TestLiveBufferedStream
+    live_ship_features_test.go:90: constraint failed: FOREIGN KEY constraint failed (787)
+--- FAIL: TestLiveBufferedStream (0.03s)
+FAIL
