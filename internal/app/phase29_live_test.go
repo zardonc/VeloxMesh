@@ -39,6 +39,7 @@ type liveSample struct {
 	Status     int     `json:"status,omitempty"`
 	Hit        bool    `json:"hit,omitempty"`
 	Concurrent int64   `json:"concurrent,omitempty"`
+	AnswerHash string  `json:"answer_hash,omitempty"`
 }
 
 type liveRecorder struct {
@@ -112,6 +113,13 @@ func liveRepository(t *testing.T) (*sqlite.Repository, string, string) {
 func liveApplication(t *testing.T, env map[string]string) (*App, string) {
 	t.Helper()
 	_, dsn, keyID := liveRepository(t)
+	return liveApplicationWithDatabase(t, env, liveDatabase{dsn: dsn, keyID: keyID})
+}
+
+type liveDatabase struct{ dsn, keyID string }
+
+func liveApplicationWithDatabase(t *testing.T, env map[string]string, database liveDatabase) (*App, string) {
+	t.Helper()
 	model := os.Getenv("PHASE29_MODEL")
 	embeddingProvider := "phase29-embedding"
 	embeddingURL := os.Getenv("PHASE29_EMBEDDING_BASE_URL")
@@ -133,7 +141,7 @@ func liveApplication(t *testing.T, env map[string]string) (*App, string) {
 		{ID: embeddingProvider, Type: "openai-compatible", BaseURL: embeddingURL, Auth: &config.ProviderAuthConfig{APIKeyEnv: "PHASE29_EMBEDDING_API_KEY"}, Models: []string{model}},
 	}
 	t.Setenv("CONTROL_STATE_BACKEND", "sqlite")
-	t.Setenv("CONTROL_STATE_DSN", dsn)
+	t.Setenv("CONTROL_STATE_DSN", database.dsn)
 	t.Setenv("CONTROL_STATE_MIGRATE_ON_STARTUP", "true")
 	t.Setenv("CONTROL_STATE_LOCAL_SEED_ENABLED", "true")
 	t.Setenv("CONTROL_STATE_ENCRYPTION_KEY", livePostgresTestEncryptionKey)
@@ -141,14 +149,8 @@ func liveApplication(t *testing.T, env map[string]string) (*App, string) {
 	t.Setenv("REDIS_ADDR", "127.0.0.1:6379")
 	t.Setenv("REDIS_PASSWORD", "")
 	t.Setenv("SCHEDULER_ENABLED", "false")
-	t.Setenv("REDIS_NAMESPACE", "phase29-"+keyID)
-	cacheConfig := config.CacheConfig{Enabled: os.Getenv("PHASE29_MODE") != "off", Provider: embeddingProvider, EmbeddingModel: model, VectorStore: "qdrant", VectorDimension: len(probe.Data[0].Embedding), TTL: "1h", Threshold: 0.99999, MaxCandidates: 10, Qdrant: config.QdrantConfig{Addr: "127.0.0.1:6334", APIKey: os.Getenv("QDRANT_API_KEY")}, UseCases: []config.CacheUseCaseConfig{{APIKeyIDs: []string{keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: "faq-v1", TargetModel: env["SANS_PRIMARY_DEFAULT_MODEL"], SystemPrompt: liveFAQSystem}}}
-	cacheConfig.ReadTimeout = os.Getenv("PHASE29_READ_TIMEOUT")
-	cacheConfig.ReadConcurrency = liveInteger(t, "PHASE29_READ_CONCURRENCY")
-	cacheConfig.WriteTimeout = os.Getenv("PHASE29_WRITE_TIMEOUT")
-	cacheConfig.WriteWorkers = liveInteger(t, "PHASE29_WRITE_WORKERS")
-	cacheConfig.QueueCapacity = liveInteger(t, "PHASE29_QUEUE_CAPACITY")
-	cacheConfig.ShutdownGrace = os.Getenv("PHASE29_SHUTDOWN_GRACE")
+	t.Setenv("REDIS_NAMESPACE", "phase29-"+database.keyID)
+	cacheConfig := liveCacheConfig(t, env, database, len(probe.Data[0].Embedding))
 	t.Setenv("CONFIG_FILE", liveJSON(t, map[string]any{"providers": providers, "default_provider": "sans-primary", "cache": cacheConfig}))
 	application, err := New()
 	if err != nil {
@@ -159,7 +161,33 @@ func liveApplication(t *testing.T, env map[string]string) (*App, string) {
 		t.Fatal("real cache wiring unavailable")
 	}
 	t.Logf("model=%s dimension=%d primary=%s", model, cacheConfig.VectorDimension, env["SANS_PRIMARY_DEFAULT_MODEL"])
-	return application, keyID
+	return application, database.keyID
+}
+
+func liveCacheConfig(t *testing.T, env map[string]string, database liveDatabase, dimension int) config.CacheConfig {
+	t.Helper()
+	version, system := os.Getenv("PHASE29_KNOWLEDGE_VERSION"), os.Getenv("PHASE29_SYSTEM")
+	if version == "" {
+		version = "faq-v1"
+	}
+	if system == "" {
+		system = liveFAQSystem
+	}
+	cacheConfig := config.CacheConfig{Enabled: os.Getenv("PHASE29_MODE") != "off", Provider: "phase29-embedding", EmbeddingModel: os.Getenv("PHASE29_MODEL"), VectorStore: "qdrant", VectorDimension: dimension, TTL: "1h", Threshold: 0.99999, MaxCandidates: 10, Qdrant: config.QdrantConfig{Addr: "127.0.0.1:6334", APIKey: os.Getenv("QDRANT_API_KEY")}, UseCases: []config.CacheUseCaseConfig{{APIKeyIDs: []string{database.keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: version, TargetModel: env["SANS_PRIMARY_DEFAULT_MODEL"], SystemPrompt: system}}}
+	if threshold := os.Getenv("PHASE29_THRESHOLD"); threshold != "" {
+		value, err := strconv.ParseFloat(threshold, 32)
+		if err != nil {
+			t.Fatal(err)
+		}
+		cacheConfig.Threshold = float32(value)
+	}
+	cacheConfig.ReadTimeout = os.Getenv("PHASE29_READ_TIMEOUT")
+	cacheConfig.ReadConcurrency = liveInteger(t, "PHASE29_READ_CONCURRENCY")
+	cacheConfig.WriteTimeout = os.Getenv("PHASE29_WRITE_TIMEOUT")
+	cacheConfig.WriteWorkers = liveInteger(t, "PHASE29_WRITE_WORKERS")
+	cacheConfig.QueueCapacity = liveInteger(t, "PHASE29_QUEUE_CAPACITY")
+	cacheConfig.ShutdownGrace = os.Getenv("PHASE29_SHUTDOWN_GRACE")
+	return cacheConfig
 }
 
 func liveInteger(t *testing.T, name string) int {
@@ -177,7 +205,14 @@ func liveInteger(t *testing.T, name string) int {
 
 func liveRequest(options liveRequestOptions) liveSample {
 	temperature, maxTokens := 0.0, 256
-	body, _ := json.Marshal(llm.ChatCompletionRequest{Model: options.model, Temperature: &temperature, MaxTokens: &maxTokens, Messages: []llm.Message{{Role: llm.RoleSystem, Content: liveFAQSystem}, {Role: llm.RoleUser, Content: fmt.Sprintf("How long is the trial for plan %d?", options.index)}}})
+	system, question := options.system, options.question
+	if system == "" {
+		system = liveFAQSystem
+	}
+	if question == "" {
+		question = fmt.Sprintf("How long is the trial for plan %d?", options.index)
+	}
+	body, _ := json.Marshal(llm.ChatCompletionRequest{Model: options.model, Temperature: &temperature, MaxTokens: &maxTokens, Messages: []llm.Message{{Role: llm.RoleSystem, Content: system}, {Role: llm.RoleUser, Content: question}}})
 	req, _ := http.NewRequest(http.MethodPost, options.url+"/v1/chat/completions", bytes.NewReader(body))
 	req.Header.Set("Authorization", "Bearer "+options.token)
 	req.Header.Set("Content-Type", "application/json")
@@ -185,9 +220,17 @@ func liveRequest(options liveRequestOptions) liveSample {
 	sample := liveSample{Type: "client", StartMS: float64(time.Since(options.origin).Microseconds()) / 1000, Concurrent: options.concurrent}
 	response, err := options.client.Do(req)
 	if err == nil {
-		_, err = io.Copy(io.Discard, response.Body)
+		var body []byte
+		body, err = io.ReadAll(response.Body)
 		response.Body.Close()
 		sample.Status, sample.Hit = response.StatusCode, response.Header.Get("X-Cache-Hit") == "true"
+		var content struct {
+			Choices []struct{ Message struct{ Content string } }
+		}
+		if json.Unmarshal(body, &content) == nil && len(content.Choices) > 0 {
+			digest := sha256.Sum256([]byte(content.Choices[0].Message.Content))
+			sample.AnswerHash = hex.EncodeToString(digest[:])
+		}
 	}
 	sample.ElapsedMS, sample.OK = float64(time.Since(started).Microseconds())/1000, err == nil && sample.Status == http.StatusOK
 	return sample
@@ -196,6 +239,7 @@ func liveRequest(options liveRequestOptions) liveSample {
 type liveRequestOptions struct {
 	client            *http.Client
 	url, token, model string
+	system, question  string
 	index             int
 	origin            time.Time
 	concurrent        int64
