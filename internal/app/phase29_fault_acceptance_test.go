@@ -49,6 +49,11 @@ func TestPhase29LocalEmbeddingFault(t *testing.T) {
 	if !response.OK || response.Hit {
 		t.Fatalf("fault forwarding: %+v", response)
 	}
+	liveLogEmbeddingFault(t, recorder, response)
+}
+
+func liveLogEmbeddingFault(t *testing.T, recorder *liveRecorder, response liveSample) {
+	t.Helper()
 	recorder.mu.Lock()
 	defer recorder.mu.Unlock()
 	var failures int

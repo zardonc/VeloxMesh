@@ -22,20 +22,7 @@ func TestPhase29LocalQueueBurst(t *testing.T) {
 	env := liveEnvironment(t)
 	t.Setenv("PHASE29_MODE", "on")
 	application, token := liveApplication(t, env)
-	temperature, maxTokens := 0.0, 256
-	req := &llm.LLMRequest{Model: env["SANS_PRIMARY_DEFAULT_MODEL"], Temperature: &temperature, MaxTokens: &maxTokens, Messages: []llm.Message{{Role: llm.RoleSystem, Content: liveFAQSystem}, {Role: llm.RoleUser, Content: "How long is the trial for plan 1?"}}}
-	scope, eligible := application.semanticCache.Eligible(token, "user", req)
-	if !eligible {
-		t.Fatal("burst request not eligible")
-	}
-	text, err := json.Marshal(req.Messages)
-	if err != nil {
-		t.Fatal(err)
-	}
-	choices, err := json.Marshal([]llm.Choice{{Message: llm.Message{Role: llm.RoleAssistant, Content: "One day."}}})
-	if err != nil {
-		t.Fatal(err)
-	}
+	write := liveBurstWrite(t, application, token)
 	recorder := &liveRecorder{StubMetrics: observability.NewStubMetrics(), started: time.Now()}
 	previous := observability.DefaultMetrics
 	observability.DefaultMetrics = recorder
@@ -46,7 +33,7 @@ func TestPhase29LocalQueueBurst(t *testing.T) {
 	var accepted int
 	started := time.Now()
 	for index := 0; index < candidates; index++ {
-		if application.semanticCache.Enqueue(cache.CacheWrite{ID: fmt.Sprintf("burst-%d", index), Scope: scope, Model: req.Model, Text: string(text), Response: string(choices)}) {
+		if application.semanticCache.Enqueue(cache.CacheWrite{ID: fmt.Sprintf("burst-%d", index), Scope: write.Scope, Model: write.Model, Text: write.Text, Response: write.Response}) {
 			accepted++
 		}
 	}
@@ -65,6 +52,11 @@ func TestPhase29LocalQueueBurst(t *testing.T) {
 		t.Fatal("accepted after close")
 	}
 	t.Logf("candidates=%d accepted=%d dropped_newest=%d enqueue_ms=%.3f close_ms=%.3f heap_before=%d heap_after=%d", candidates, accepted, candidates-accepted, float64(enqueueElapsed.Microseconds())/1000, float64(closeElapsed.Microseconds())/1000, before.HeapAlloc, after.HeapAlloc)
+	liveLogBurstOutcomes(t, recorder)
+}
+
+func liveLogBurstOutcomes(t *testing.T, recorder *liveRecorder) {
+	t.Helper()
 	recorder.mu.Lock()
 	defer recorder.mu.Unlock()
 	counts := map[string]int{}
@@ -74,4 +66,23 @@ func TestPhase29LocalQueueBurst(t *testing.T) {
 		}
 	}
 	t.Logf("reason_counts=%v", counts)
+}
+
+func liveBurstWrite(t *testing.T, application *App, token string) cache.CacheWrite {
+	t.Helper()
+	temperature, maxTokens := 0.0, 256
+	req := &llm.LLMRequest{Model: os.Getenv("SANS_PRIMARY_DEFAULT_MODEL"), Temperature: &temperature, MaxTokens: &maxTokens, Messages: []llm.Message{{Role: llm.RoleSystem, Content: liveFAQSystem}, {Role: llm.RoleUser, Content: "How long is the trial for plan 1?"}}}
+	scope, eligible := application.semanticCache.Eligible(token, "user", req)
+	if !eligible {
+		t.Fatal("burst request not eligible")
+	}
+	text, err := json.Marshal(req.Messages)
+	if err != nil {
+		t.Fatal(err)
+	}
+	choices, err := json.Marshal([]llm.Choice{{Message: llm.Message{Role: llm.RoleAssistant, Content: "One day."}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return cache.CacheWrite{Scope: scope, Model: req.Model, Text: string(text), Response: string(choices)}
 }

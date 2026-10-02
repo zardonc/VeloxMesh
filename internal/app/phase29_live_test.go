@@ -154,7 +154,7 @@ func liveApplicationWithDatabase(t *testing.T, env map[string]string, database l
 	t.Setenv("REDIS_PASSWORD", "")
 	t.Setenv("SCHEDULER_ENABLED", "false")
 	t.Setenv("REDIS_NAMESPACE", "phase29-"+database.keyID)
-	cacheConfig := liveCacheConfig(t, env, database, len(probe.Data[0].Embedding))
+	cacheConfig := liveCacheConfig(t, env, liveCacheInputs{database: database, dimension: len(probe.Data[0].Embedding)})
 	t.Setenv("CONFIG_FILE", liveJSON(t, map[string]any{"providers": providers, "default_provider": "sans-primary", "cache": cacheConfig}))
 	application, err := New()
 	if err != nil {
@@ -168,7 +168,12 @@ func liveApplicationWithDatabase(t *testing.T, env map[string]string, database l
 	return application, database.keyID
 }
 
-func liveCacheConfig(t *testing.T, env map[string]string, database liveDatabase, dimension int) config.CacheConfig {
+type liveCacheInputs struct {
+	database  liveDatabase
+	dimension int
+}
+
+func liveCacheConfig(t *testing.T, env map[string]string, inputs liveCacheInputs) config.CacheConfig {
 	t.Helper()
 	version, system := os.Getenv("PHASE29_KNOWLEDGE_VERSION"), os.Getenv("PHASE29_SYSTEM")
 	if version == "" {
@@ -177,7 +182,7 @@ func liveCacheConfig(t *testing.T, env map[string]string, database liveDatabase,
 	if system == "" {
 		system = liveFAQSystem
 	}
-	cacheConfig := config.CacheConfig{Enabled: os.Getenv("PHASE29_MODE") != "off", Provider: "phase29-embedding", EmbeddingModel: os.Getenv("PHASE29_MODEL"), VectorStore: "qdrant", VectorDimension: dimension, TTL: "1h", Threshold: 0.99999, MaxCandidates: 10, Qdrant: config.QdrantConfig{Addr: "127.0.0.1:6334", APIKey: os.Getenv("QDRANT_API_KEY")}, UseCases: []config.CacheUseCaseConfig{{APIKeyIDs: []string{database.keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: version, TargetModel: env["SANS_PRIMARY_DEFAULT_MODEL"], SystemPrompt: system}}}
+	cacheConfig := config.CacheConfig{Enabled: os.Getenv("PHASE29_MODE") != "off", Provider: "phase29-embedding", EmbeddingModel: os.Getenv("PHASE29_MODEL"), VectorStore: "qdrant", VectorDimension: inputs.dimension, TTL: "1h", Threshold: 0.99999, MaxCandidates: 10, Qdrant: config.QdrantConfig{Addr: "127.0.0.1:6334", APIKey: os.Getenv("QDRANT_API_KEY")}, UseCases: []config.CacheUseCaseConfig{{APIKeyIDs: []string{inputs.database.keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: version, TargetModel: env["SANS_PRIMARY_DEFAULT_MODEL"], SystemPrompt: system}}}
 	if threshold := os.Getenv("PHASE29_THRESHOLD"); threshold != "" {
 		value, err := strconv.ParseFloat(threshold, 32)
 		if err != nil {
