@@ -103,7 +103,7 @@ func validCacheRequest(req *llm.LLMRequest) bool {
 }
 
 func cacheScope(identityID string, useCase SemanticCacheUseCase, config SemanticCacheConfig) string {
-	identity := strings.Join([]string{identityID, useCase.UseCaseID, useCase.KnowledgeVersion, useCase.TargetModel, useCase.SystemPrompt, config.EmbeddingProvider, config.EmbeddingModel, fmt.Sprint(config.VectorDimension), "temperature=0", "max_tokens=256"}, "\x00")
+	identity := strings.Join([]string{identityID, useCase.UseCaseID, useCase.KnowledgeVersion, useCase.TargetModel, useCase.SystemPrompt, config.EmbeddingProvider, config.EmbeddingModel, fmt.Sprint(config.VectorDimension), "temperature=0", "max_tokens=256", "embedding-input=user-text-v1"}, "\x00")
 	digest := sha256.Sum256([]byte(identity))
 	return hex.EncodeToString(digest[:])
 }

@@ -11,7 +11,7 @@ const quantiles = (values) => {
 
 const analyze = (file) => {
   const raw = readFileSync(join(directory, file), 'utf8').trim();
-  if (!raw) return { file, excluded: 'empty output from failed dimension probe' };
+  if (!raw) return { file, excluded: 'empty output; inspect retained run log for the failure' };
   const rows = raw.split('\n').map((line) => JSON.parse(line));
   const metadata = rows.find((row) => row.type === 'metadata');
   const clients = rows.filter((row) => row.type === 'client');

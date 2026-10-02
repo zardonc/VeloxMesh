@@ -4,7 +4,6 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -25,12 +24,8 @@ func liveWaitStored(t *testing.T, application *App, database liveDatabase, quest
 		t.Fatal("acceptance request not eligible")
 	}
 	deadline := time.Now().Add(3 * time.Second)
-	encoded, err := json.Marshal(req.Messages)
-	if err != nil {
-		t.Fatal(err)
-	}
 	for time.Now().Before(deadline) {
-		entry, lookupErr := application.semanticCache.Lookup(context.Background(), scope, req.Model, string(encoded))
+		entry, lookupErr := application.semanticCache.Lookup(context.Background(), scope, req.Model, question)
 		if lookupErr == nil && entry != nil {
 			return
 		}

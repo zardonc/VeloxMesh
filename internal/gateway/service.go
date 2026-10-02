@@ -140,8 +140,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 	// 1. Cache Lookup
 	if cacheEligible && !usesToolProtocol {
-		b, _ := json.Marshal(req.Messages)
-		text := string(b)
+		text := req.Messages[1].Content
 		entry, err := s.semanticCache.Lookup(ctx, cacheScope, req.Model, text)
 		if err == nil && entry != nil {
 			// Cache hit
@@ -196,8 +195,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	var reqTextForStore string
 	cacheResult := "none"
 	if cacheEligible && !usesToolProtocol {
-		b, _ := json.Marshal(req.Messages)
-		reqTextForStore = string(b)
+		reqTextForStore = req.Messages[1].Content
 		cacheResult = "miss"
 	}
 

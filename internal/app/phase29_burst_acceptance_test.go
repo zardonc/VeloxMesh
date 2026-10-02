@@ -76,13 +76,9 @@ func liveBurstWrite(t *testing.T, application *App, token string) cache.CacheWri
 	if !eligible {
 		t.Fatal("burst request not eligible")
 	}
-	text, err := json.Marshal(req.Messages)
-	if err != nil {
-		t.Fatal(err)
-	}
 	choices, err := json.Marshal([]llm.Choice{{Message: llm.Message{Role: llm.RoleAssistant, Content: "One day."}}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	return cache.CacheWrite{Scope: scope, Model: req.Model, Text: string(text), Response: string(choices)}
+	return cache.CacheWrite{Scope: scope, Model: req.Model, Text: req.Messages[1].Content, Response: string(choices)}
 }
