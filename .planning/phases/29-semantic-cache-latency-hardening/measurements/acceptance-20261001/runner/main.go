@@ -117,6 +117,16 @@ func selectProvider(env map[string]string) (map[string]string, error) {
 	if prefix == "" {
 		return env, nil
 	}
+	if prefix == "LOCAL" {
+		base, model, key := os.Getenv("SHIP_LOCAL_BASE_URL"), os.Getenv("SHIP_LOCAL_MODEL"), os.Getenv("SHIP_LOCAL_API_KEY")
+		endpoint, err := url.Parse(base)
+		if err != nil || (endpoint.Scheme != "http" && endpoint.Scheme != "https") || endpoint.Host == "" || model == "" || key == "" {
+			return nil, fmt.Errorf("invalid local provider test inputs")
+		}
+		selected := maps.Clone(env)
+		selected["SANS_BASE_URL"], selected["SANS_PRIMARY_DEFAULT_MODEL"], selected["SANS_PRIMARY_API_KEY"] = base, model, key
+		return selected, nil
+	}
 	if prefix != "SANS" && prefix != "GEM" && prefix != "GPT" {
 		return nil, fmt.Errorf("unsupported provider selection")
 	}

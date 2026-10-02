@@ -21,6 +21,7 @@ import (
 
 	gatewayerrors "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
+	"veloxmesh/internal/observability"
 )
 
 const liveLowHitEvery = 21
@@ -121,10 +122,23 @@ func shipLoad(t *testing.T, mode string) {
 		t.Fatal("real primary warmup failed; no valid latency gate")
 	}
 	options.origin = time.Now()
-	shipScheduledLoad(t, application, options)
+	recorder := &liveRecorder{StubMetrics: observability.NewStubMetrics(), started: options.origin}
+	previous := observability.DefaultMetrics
+	observability.DefaultMetrics = recorder
+	defer func() { observability.DefaultMetrics = previous }()
+	failures := shipScheduledLoad(t, application, options)
+	recorder.mu.Lock()
+	operations := append([]liveSample(nil), recorder.samples...)
+	recorder.mu.Unlock()
+	for _, sample := range operations {
+		shipLogJSON(t, sample)
+	}
+	if failures != 0 {
+		t.Fatalf("real load failed requests=%d", failures)
+	}
 }
 
-func shipScheduledLoad(t *testing.T, application *App, options liveRequestOptions) {
+func shipScheduledLoad(t *testing.T, application *App, options liveRequestOptions) int {
 	t.Helper()
 	count, concurrency := liveInteger(t, "PHASE29_COUNT"), liveInteger(t, "PHASE29_CLIENT_CONCURRENCY")
 	interval := liveLoadInterval(t, count, concurrency)
@@ -139,11 +153,11 @@ func shipScheduledLoad(t *testing.T, application *App, options liveRequestOption
 		group.Add(1)
 		go func(index int) {
 			defer group.Done()
-			defer func() { <-sem; active.Add(-1) }()
+			defer func() { active.Add(-1); <-sem }()
 			request := options
 			request.index, request.concurrent = index, active.Add(1)
 			if index%liveLowHitEvery == 0 {
-				request.index--
+				request.index = index - liveLowHitEvery + 1
 			}
 			samples[index-1] = shipRequest(request)
 		}(index)
@@ -160,9 +174,7 @@ func shipScheduledLoad(t *testing.T, application *App, options liveRequestOption
 	}
 	shipLogJSON(t, map[string]any{"type": "metadata", "model": os.Getenv("PHASE29_MODEL"), "mode": os.Getenv("PHASE29_MODE"), "count": count,
 		"interval_ms": interval.Milliseconds(), "elapsed_ms": float64(foreground.Microseconds()) / 1000, "max_concurrency": concurrency, "failed": failures})
-	if failures != 0 {
-		t.Fatalf("real load failed requests=%d/%d", failures, count)
-	}
+	return failures
 }
 
 func liveLoadInterval(t *testing.T, count, concurrency int) time.Duration {
