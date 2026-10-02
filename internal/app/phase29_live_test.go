@@ -53,6 +53,10 @@ func (r *liveRecorder) RecordCacheOperation(name string, elapsed time.Duration, 
 	r.add(liveSample{Type: "operation", Name: name, ElapsedMS: float64(elapsed.Microseconds()) / 1000, StartMS: float64(time.Since(r.started).Microseconds())/1000 - float64(elapsed.Microseconds())/1000, OK: err == nil})
 }
 
+func (r *liveRecorder) RecordCacheOutcome(operation, reason string) {
+	r.add(liveSample{Type: "outcome", Name: operation + "/" + reason, StartMS: float64(time.Since(r.started).Microseconds()) / 1000, OK: true})
+}
+
 func (r *liveRecorder) add(sample liveSample) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
