@@ -113,14 +113,25 @@ func liveApplication(t *testing.T, env map[string]string) (*App, string) {
 	t.Helper()
 	_, dsn, keyID := liveRepository(t)
 	model := os.Getenv("PHASE29_MODEL")
-	adapter := openai.NewAdapter("sans-primary", env["SANS_BASE_URL"], env["SANS_PRIMARY_API_KEY"], model)
+	embeddingProvider := "phase29-embedding"
+	embeddingURL := os.Getenv("PHASE29_EMBEDDING_BASE_URL")
+	embeddingKey := env["PHASE29_EMBEDDING_API_KEY"]
+	if embeddingURL == "" {
+		embeddingURL = env["SANS_BASE_URL"]
+		embeddingKey = env["SANS_PRIMARY_API_KEY"]
+		t.Setenv("PHASE29_EMBEDDING_API_KEY", embeddingKey)
+	}
+	adapter := openai.NewAdapter(embeddingProvider, embeddingURL, embeddingKey, model)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	probe, err := adapter.Embed(ctx, &llm.EmbeddingRequest{Model: model, Input: []string{"dimension probe"}})
 	if err != nil || probe == nil || len(probe.Data) != 1 || len(probe.Data[0].Embedding) == 0 {
 		t.Fatalf("dimension probe: %v", err)
 	}
-	providers := []config.ProviderConfig{{ID: "sans-primary", Type: "openai-compatible", BaseURL: env["SANS_BASE_URL"], Auth: &config.ProviderAuthConfig{APIKeyEnv: "SANS_PRIMARY_API_KEY"}, Models: []string{env["SANS_PRIMARY_DEFAULT_MODEL"], model}}}
+	providers := []config.ProviderConfig{
+		{ID: "sans-primary", Type: "openai-compatible", BaseURL: env["SANS_BASE_URL"], Auth: &config.ProviderAuthConfig{APIKeyEnv: "SANS_PRIMARY_API_KEY"}, Models: []string{env["SANS_PRIMARY_DEFAULT_MODEL"]}},
+		{ID: embeddingProvider, Type: "openai-compatible", BaseURL: embeddingURL, Auth: &config.ProviderAuthConfig{APIKeyEnv: "PHASE29_EMBEDDING_API_KEY"}, Models: []string{model}},
+	}
 	t.Setenv("CONTROL_STATE_BACKEND", "sqlite")
 	t.Setenv("CONTROL_STATE_DSN", dsn)
 	t.Setenv("CONTROL_STATE_MIGRATE_ON_STARTUP", "true")
@@ -131,7 +142,7 @@ func liveApplication(t *testing.T, env map[string]string) (*App, string) {
 	t.Setenv("REDIS_PASSWORD", "")
 	t.Setenv("SCHEDULER_ENABLED", "false")
 	t.Setenv("REDIS_NAMESPACE", "phase29-"+keyID)
-	cacheConfig := config.CacheConfig{Enabled: os.Getenv("PHASE29_MODE") != "off", Provider: "sans-primary", EmbeddingModel: model, VectorStore: "qdrant", VectorDimension: len(probe.Data[0].Embedding), TTL: "1h", Threshold: 0.99999, MaxCandidates: 10, Qdrant: config.QdrantConfig{Addr: "127.0.0.1:6334", APIKey: os.Getenv("QDRANT_API_KEY")}, UseCases: []config.CacheUseCaseConfig{{APIKeyIDs: []string{keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: "faq-v1", TargetModel: env["SANS_PRIMARY_DEFAULT_MODEL"], SystemPrompt: liveFAQSystem}}}
+	cacheConfig := config.CacheConfig{Enabled: os.Getenv("PHASE29_MODE") != "off", Provider: embeddingProvider, EmbeddingModel: model, VectorStore: "qdrant", VectorDimension: len(probe.Data[0].Embedding), TTL: "1h", Threshold: 0.99999, MaxCandidates: 10, Qdrant: config.QdrantConfig{Addr: "127.0.0.1:6334", APIKey: os.Getenv("QDRANT_API_KEY")}, UseCases: []config.CacheUseCaseConfig{{APIKeyIDs: []string{keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: "faq-v1", TargetModel: env["SANS_PRIMARY_DEFAULT_MODEL"], SystemPrompt: liveFAQSystem}}}
 	cacheConfig.ReadTimeout = os.Getenv("PHASE29_READ_TIMEOUT")
 	cacheConfig.ReadConcurrency = liveInteger(t, "PHASE29_READ_CONCURRENCY")
 	cacheConfig.WriteTimeout = os.Getenv("PHASE29_WRITE_TIMEOUT")
@@ -221,7 +232,11 @@ func liveMeasureLoad(t *testing.T, recorder *liveRecorder, options liveRequestOp
 	if err != nil || count < 1 {
 		t.Fatal("invalid sample count")
 	}
-	sem := make(chan struct{}, 4)
+	concurrency := liveInteger(t, "PHASE29_CLIENT_CONCURRENCY")
+	if concurrency < 1 {
+		t.Fatal("invalid client concurrency")
+	}
+	sem := make(chan struct{}, concurrency)
 	var active atomic.Int64
 	var group sync.WaitGroup
 	for index := 1; index <= count; index++ {
