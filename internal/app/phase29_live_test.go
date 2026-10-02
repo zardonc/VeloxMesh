@@ -315,13 +315,18 @@ func liveMeasureLoad(t *testing.T, recorder *liveRecorder, options liveRequestOp
 	if options.finish != nil {
 		options.finish()
 	}
+	liveSaveSamples(t, recorder, map[string]any{"type": "metadata", "model": os.Getenv("PHASE29_MODEL"), "mode": os.Getenv("PHASE29_MODE"), "count": count, "interval_ms": intervalMS, "elapsed_ms": float64(foregroundElapsed.Microseconds()) / 1000, "drain_ms": float64((time.Since(options.origin) - foregroundElapsed).Microseconds()) / 1000, "max_concurrency": cap(sem)})
+}
+
+func liveSaveSamples(t *testing.T, recorder *liveRecorder, metadata map[string]any) {
+	t.Helper()
 	file, err := os.Create(os.Getenv("PHASE29_OUTPUT"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
-	if err := encoder.Encode(map[string]any{"type": "metadata", "model": os.Getenv("PHASE29_MODEL"), "mode": os.Getenv("PHASE29_MODE"), "count": count, "interval_ms": intervalMS, "elapsed_ms": float64(foregroundElapsed.Microseconds()) / 1000, "drain_ms": float64((time.Since(options.origin) - foregroundElapsed).Microseconds()) / 1000, "max_concurrency": cap(sem)}); err != nil {
+	if err := encoder.Encode(metadata); err != nil {
 		t.Fatal(err)
 	}
 	for _, sample := range recorder.samples {
