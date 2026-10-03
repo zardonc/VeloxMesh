@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"veloxmesh/internal/observability"
@@ -10,6 +11,7 @@ import (
 type CacheWrite struct {
 	ID, Scope, Model, Text, Response string
 	UsageID                          *string
+	Vector                           []float32
 	queuedAt                         time.Time
 }
 
@@ -38,6 +40,7 @@ func (s *SemanticCacheService) Enqueue(write CacheWrite) bool {
 		usage := *write.UsageID
 		write.UsageID = &usage
 	}
+	write.Vector = slices.Clone(write.Vector)
 	select {
 	case s.writes <- write:
 		recordCacheOutcome("enqueue", "accepted")
@@ -58,7 +61,7 @@ func (s *SemanticCacheService) writeWorker() {
 		ctx, cancel := context.WithTimeout(s.writeCtx, s.config.WriteTimeout)
 		ctx = observability.WithTimingID(ctx, write.ID)
 		observeQueueWait(write.ID, write.queuedAt)
-		err := s.Store(ctx, write.ID, write.Scope, write.Model, write.Text, write.Response, write.UsageID)
+		err := s.StoreWrite(ctx, write)
 		if ctx.Err() == context.Canceled {
 			recordCacheOutcome("store", "shutdown_cancelled")
 		} else if ctx.Err() != nil {

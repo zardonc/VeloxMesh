@@ -1,0 +1,48 @@
+=== RUN   TestLiveStageAccounting
+{"time":"2026-10-03T21:07:59.254749033Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T21:07:59.25766424Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-03T21:07:59.257699807Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-03T21:07:59.257708653Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T21:07:59.25775465Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T21:07:59.259808419Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:175: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-03T21:07:59.398277848Z","level":"INFO","msg":"request completed","request_id":"timing-210759.261053274","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":137}
+    live_diagnostic_test.go:185: usage_rows_all=1 usage_rows_key=1
+    live_diagnostic_test.go:185: settled_records=1 total_tokens=65 credits=65 exactly_once=true
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"request_rules","start_ms":2.058,"elapsed_ms":0.003}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"net_embedding/get_connection","start_ms":2.112,"elapsed_ms":0.028}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"net_embedding/got_connection_reused","start_ms":2.112,"elapsed_ms":0.032}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"net_embedding/request_written","start_ms":2.112,"elapsed_ms":0.057}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"net_embedding/first_byte","start_ms":2.112,"elapsed_ms":17.701}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"embedding_headers","start_ms":2.112,"elapsed_ms":17.774}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"embedding_http","start_ms":2.112,"elapsed_ms":17.952}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"lookup_embedding","start_ms":2.08,"elapsed_ms":18.447}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"vector_search","start_ms":20.529,"elapsed_ms":4.538}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"cache_read","start_ms":2.07,"elapsed_ms":23.092}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"routing","start_ms":25.163,"elapsed_ms":0.643}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"admission","start_ms":25.808,"elapsed_ms":0.234}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"net_upstream/get_connection","start_ms":26.695,"elapsed_ms":0.013}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"net_upstream/got_connection_reused","start_ms":26.695,"elapsed_ms":0.02}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"net_upstream/request_written","start_ms":26.695,"elapsed_ms":0.042}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"net_upstream/first_byte","start_ms":26.695,"elapsed_ms":109.878}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"upstream_headers","start_ms":26.695,"elapsed_ms":109.922}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"upstream_http","start_ms":26.695,"elapsed_ms":109.987}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"provider_complete","start_ms":26.607,"elapsed_ms":110.145}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"response_rules","start_ms":137.697,"elapsed_ms":0.001}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"settlement","start_ms":137.7,"elapsed_ms":0.582}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"write_enqueue","start_ms":138.293,"elapsed_ms":0.027}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"http_handler","start_ms":1.17,"elapsed_ms":137.242}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"write_queue_wait","start_ms":138.293,"elapsed_ms":0.234}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"repo_write","start_ms":138.533,"elapsed_ms":0.269}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"vector_insert","start_ms":138.808,"elapsed_ms":36.228}
+    live_timing_test.go:138: SAMPLE {"type":"stage","request_id":"timing-210759.261053274","name":"store_total","start_ms":138.529,"elapsed_ms":36.51}
+    live_timing_test.go:141: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":18.443,"start_ms":2.0809999999999995,"ok":true}
+    live_timing_test.go:141: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":4.544,"start_ms":20.585,"ok":false,"error":"NotFound"}
+    live_timing_test.go:141: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":25.13,"ok":true}
+    live_timing_test.go:141: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":138.32,"ok":true}
+    live_timing_test.go:141: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.27,"start_ms":138.535,"ok":true}
+    live_timing_test.go:141: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":36.231,"start_ms":138.808,"ok":true}
+    live_timing_test.go:141: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":36.51,"start_ms":138.53,"ok":true}
+    live_timing_test.go:141: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":175.053,"ok":true}
+--- PASS: TestLiveStageAccounting (0.22s)
+PASS

@@ -1,0 +1,27 @@
+File: app-linux.test
+Build ID: 09456a6c938db8f95e18c87135152cffca038703
+Type: alloc_space
+Time: 2026-10-03 14:14:25 PDT
+Showing nodes accounting for 40697.58kB, 66.23% of 61452.46kB total
+Showing top 20 nodes out of 333
+      flat  flat%   sum%        cum   cum%
+11511.74kB 18.73% 18.73% 12023.75kB 19.57%  encoding/json.(*Decoder).refill
+ 4609.40kB  7.50% 26.23%  4609.40kB  7.50%  testing.(*common).frameSkip
+ 3587.79kB  5.84% 32.07%  3587.79kB  5.84%  runtime.mallocgc
+ 2368.55kB  3.85% 35.93%  2368.55kB  3.85%  runtime/trace.(*traceMultiplexer).startLocked
+ 1762.94kB  2.87% 38.79%  1762.94kB  2.87%  runtime/pprof.StartCPUProfile
+ 1536.56kB  2.50% 41.30%  1536.56kB  2.50%  google.golang.org/grpc/internal/transport.(*http2Client).createHeaderFields
+ 1536.42kB  2.50% 43.80%  4609.20kB  7.50%  google.golang.org/grpc.newClientStreamWithParams
+ 1536.14kB  2.50% 46.30%  1536.14kB  2.50%  reflect.unsafe_New
+ 1276.40kB  2.08% 48.37%  1276.40kB  2.08%  veloxmesh/internal/app.(*liveTiming).RecordStage
+ 1172.24kB  1.91% 50.28%  1172.24kB  1.91%  veloxmesh/internal/app.(*liveRecorder).add
+ 1027.38kB  1.67% 51.95%  1027.38kB  1.67%  reflect.growslice
+    1026kB  1.67% 53.62%     1026kB  1.67%  google.golang.org/protobuf/internal/impl.(*MessageInfo).makeStructInfo
+ 1024.33kB  1.67% 55.29%  1536.37kB  2.50%  encoding/json.Marshal
+ 1024.28kB  1.67% 56.95%  4619.71kB  7.52%  veloxmesh/internal/storage.(*QdrantVectorAdapter).Search
+ 1024.21kB  1.67% 58.62%  6657.63kB 10.83%  testing.(*common).log
+ 1024.20kB  1.67% 60.29%  1024.20kB  1.67%  context.(*cancelCtx).propagateCancel
+ 1024.16kB  1.67% 61.95%  1024.16kB  1.67%  google.golang.org/grpc.defaultCallInfo (inline)
+ 1024.02kB  1.67% 63.62%  1024.02kB  1.67%  testing.(*outputWriter).writeLine
+  902.59kB  1.47% 65.09%  1553.21kB  2.53%  compress/flate.NewWriter
+  698.24kB  1.14% 66.23%  6331.53kB 10.30%  veloxmesh/internal/app.(*liveTiming).dump

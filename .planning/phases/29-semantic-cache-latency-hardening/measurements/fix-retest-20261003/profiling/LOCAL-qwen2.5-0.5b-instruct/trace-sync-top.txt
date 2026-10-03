@@ -1,0 +1,25 @@
+Type: delay
+Showing nodes accounting for 622.62s, 100% of 622.75s total
+Dropped 181 nodes (cum <= 3.11s)
+Showing top 20 nodes out of 54
+      flat  flat%   sum%        cum   cum%
+   470.33s 75.52% 75.52%    470.33s 75.52%  runtime.selectgo
+    76.19s 12.23% 87.76%     76.19s 12.23%  runtime.chanrecv2
+    76.11s 12.22%   100%     76.11s 12.22%  runtime.chanrecv1
+         0     0%   100%     25.54s  4.10%  database/sql.(*DB).connectionOpener
+         0     0%   100%     23.90s  3.84%  github.com/go-chi/chi/v5.(*ChainHandler).ServeHTTP
+         0     0%   100%     23.90s  3.84%  github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+         0     0%   100%     23.90s  3.84%  github.com/go-chi/chi/v5.(*Mux).routeHTTP
+         0     0%   100%     25.37s  4.07%  github.com/redis/go-redis/v9.(*channel).initHealthCheck.func1
+         0     0%   100%        10s  1.61%  go.opencensus.io/stats/view.(*worker).start
+         0     0%   100%     75.57s 12.13%  google.golang.org/grpc/internal/transport.(*controlBuffer).get
+         0     0%   100%     59.88s  9.62%  google.golang.org/grpc/internal/transport.(*http2Client).keepalive
+         0     0%   100%     75.57s 12.13%  google.golang.org/grpc/internal/transport.(*loopyWriter).run
+         0     0%   100%     75.57s 12.13%  google.golang.org/grpc/internal/transport.NewHTTP2Client.func6
+         0     0%   100%     25.54s  4.10%  main.main
+         0     0%   100%     48.22s  7.74%  net/http.(*Client).Do
+         0     0%   100%     48.22s  7.74%  net/http.(*Client).do
+         0     0%   100%     48.22s  7.74%  net/http.(*Client).send
+         0     0%   100%     48.22s  7.74%  net/http.(*Transport).RoundTrip
+         0     0%   100%     48.22s  7.74%  net/http.(*Transport).roundTrip
+         0     0%   100%     23.90s  3.84%  net/http.(*conn).serve

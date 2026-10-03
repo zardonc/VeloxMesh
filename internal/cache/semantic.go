@@ -119,72 +119,104 @@ func contains(values []string, value string) bool {
 }
 
 func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, text string) (*controlstate.SemanticCacheEntry, error) {
+	result, err := s.LookupWithVector(ctx, CacheLookup{Scope: scope, Model: model, Text: text})
+	return result.Entry, err
+}
+
+type CacheLookup struct {
+	Scope, Model, Text string
+}
+
+type CacheLookupResult struct {
+	Entry  *controlstate.SemanticCacheEntry
+	Vector []float32
+}
+
+// LookupWithVector retains a completed embedding, including on a search fault.
+// An embedding deadline or admission failure returns no vector. A later search
+// deadline can still reuse a vector published before that deadline.
+func (s *SemanticCacheService) LookupWithVector(ctx context.Context, query CacheLookup) (CacheLookupResult, error) {
 	defer observability.Stage(ctx, "cache_read")()
 	if !s.config.Enabled {
-		return nil, nil
+		return CacheLookupResult{}, nil
 	}
 	if s.reads == nil || s.config.ReadTimeout <= 0 {
-		return s.lookup(ctx, scope, model, text)
+		return s.lookup(ctx, query, nil)
 	}
 	select {
 	case s.reads <- struct{}{}:
 	default:
-		return nil, s.fault("lookup", "concurrency_full", nil)
+		return CacheLookupResult{}, s.fault("lookup", "concurrency_full", nil)
 	}
 	readCtx, cancel := context.WithTimeout(ctx, s.config.ReadTimeout)
 	defer cancel()
 	type result struct {
-		entry *controlstate.SemanticCacheEntry
-		err   error
+		lookup CacheLookupResult
+		err    error
 	}
 	done := make(chan result, 1)
+	vectors := make(chan []float32, 1)
 	go func() {
 		defer func() { <-s.reads }()
-		entry, err := s.lookup(readCtx, scope, model, text)
-		done <- result{entry, err}
+		lookup, err := s.lookup(readCtx, query, vectors)
+		done <- result{lookup, err}
 	}()
 	select {
 	case <-readCtx.Done():
-		return nil, s.fault("lookup", "timeout", readCtx.Err())
+		return s.readTimeout(readCtx, vectors)
 	case result := <-done:
 		if readCtx.Err() != nil {
-			return nil, s.fault("lookup", "timeout", readCtx.Err())
+			return s.readTimeout(readCtx, vectors)
 		}
-		return result.entry, result.err
+		return result.lookup, result.err
 	}
 }
 
-func (s *SemanticCacheService) lookup(ctx context.Context, scope, model string, text string) (*controlstate.SemanticCacheEntry, error) {
-	if !s.config.Enabled || s.repo == nil || s.adapter == nil {
-		return nil, nil // Miss
+func (s *SemanticCacheService) readTimeout(ctx context.Context, vectors <-chan []float32) (CacheLookupResult, error) {
+	var vector []float32
+	select {
+	case vector = <-vectors:
+	default:
+	}
+	return CacheLookupResult{Vector: vector}, s.fault("lookup", "timeout", ctx.Err())
+}
+
+func (s *SemanticCacheService) lookup(ctx context.Context, query CacheLookup, vectors chan<- []float32) (CacheLookupResult, error) {
+	if s.repo == nil || s.adapter == nil {
+		return CacheLookupResult{}, nil
 	}
 
-	inputVector, err := s.embed(ctx, text, "lookup")
+	inputVector, err := s.embed(ctx, query.Text, "lookup")
 	if err != nil {
-		return nil, err
+		return CacheLookupResult{}, err
+	}
+	result := CacheLookupResult{Vector: inputVector}
+	if vectors != nil {
+		vectors <- inputVector
 	}
 
 	// 2. If vector adapter is configured, use it for search
 	if s.vector != nil {
 		started := time.Now()
 		finish := observability.Stage(ctx, "vector_search")
-		results, err := s.vector.Search(ctx, vectorCollection(scope, model), inputVector, s.config.MaxCandidates)
+		results, err := s.vector.Search(ctx, vectorCollection(query.Scope, query.Model), inputVector, s.config.MaxCandidates)
 		finish()
 		measureOperation("vector_search", started, err)
 		if err != nil {
-			return nil, s.fault("lookup", "vector_error", err)
+			return result, s.fault("lookup", "vector_error", err)
 		}
-		entry, err := s.lookupVectorResult(ctx, scope, model, results)
+		entry, err := s.lookupVectorResult(ctx, query.Scope, query.Model, results)
 		if err != nil || entry != nil {
-			return entry, err
+			return CacheLookupResult{Entry: entry, Vector: inputVector}, err
 		}
 		if _, offlineFallback := s.vector.(*storage.NoopVectorAdapter); !offlineFallback {
 			recordCacheOutcome("lookup", "miss")
-			return nil, nil
+			return result, nil
 		}
 	}
 
-	return s.lookupRepository(ctx, CacheWrite{Scope: scope, Model: model}, inputVector)
+	entry, err := s.lookupRepository(ctx, CacheWrite{Scope: query.Scope, Model: query.Model}, inputVector)
+	return CacheLookupResult{Entry: entry, Vector: inputVector}, err
 }
 
 func (s *SemanticCacheService) lookupRepository(ctx context.Context, identity CacheWrite, inputVector []float32) (*controlstate.SemanticCacheEntry, error) {
@@ -231,7 +263,11 @@ func (s *SemanticCacheService) lookupRepository(ctx context.Context, identity Ca
 	return nil, nil
 }
 
-func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model string, text string, response string, usageID *string) (storeErr error) {
+func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model string, text string, response string, usageID *string) error {
+	return s.StoreWrite(ctx, CacheWrite{ID: id, Scope: scope, Model: model, Text: text, Response: response, UsageID: usageID})
+}
+
+func (s *SemanticCacheService) StoreWrite(ctx context.Context, write CacheWrite) (storeErr error) {
 	defer observability.Stage(ctx, "store_total")()
 	if !s.config.Enabled || s.repo == nil || s.adapter == nil {
 		return nil
@@ -239,18 +275,18 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 	storeStarted := time.Now()
 	defer func() { measureOperation("store_total", storeStarted, storeErr) }()
 
-	vector, err := s.embed(ctx, text, "store")
+	vector, err := s.writeVector(ctx, write)
 	if err != nil {
 		return err
 	}
 
 	entry := &controlstate.SemanticCacheEntry{
-		ID:        id,
-		Scope:     scope,
-		Model:     model,
+		ID:        write.ID,
+		Scope:     write.Scope,
+		Model:     write.Model,
 		Vector:    floatsToBytes(vector),
-		Response:  response,
-		UsageID:   usageID,
+		Response:  write.Response,
+		UsageID:   write.UsageID,
 		HitCount:  0,
 		Enabled:   true,
 		CreatedAt: time.Now().UTC(),
@@ -258,6 +294,16 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 	}
 
 	return s.persist(ctx, entry, vector)
+}
+
+func (s *SemanticCacheService) writeVector(ctx context.Context, write CacheWrite) ([]float32, error) {
+	if write.Vector == nil {
+		return s.embed(ctx, write.Text, "store")
+	}
+	if !validVector(write.Vector, s.config.VectorDimension) {
+		return nil, s.fault("store", "invalid_embedding", nil)
+	}
+	return write.Vector, nil
 }
 
 func (s *SemanticCacheService) persist(ctx context.Context, entry *controlstate.SemanticCacheEntry, vector []float32) error {

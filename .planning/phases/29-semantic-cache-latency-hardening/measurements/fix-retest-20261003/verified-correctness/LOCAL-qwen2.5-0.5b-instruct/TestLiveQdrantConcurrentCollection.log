@@ -1,0 +1,9 @@
+=== RUN   TestLiveQdrantConcurrentCollection
+2026/10/03 21:29:25 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+2026/10/03 21:29:25 WARN Unable to compare versions err="unable to parse version, expected format: x.y[.z], found: "
+2026/10/03 21:29:25 WARN Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check. clientVersion=Unknown serverVersion=1.18.2
+2026/10/03 21:29:25 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+2026/10/03 21:29:25 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+    live_cache_reuse_test.go:73: real Qdrant cold collections=4 concurrent creators=16 schema mismatch rejected
+--- PASS: TestLiveQdrantConcurrentCollection (0.23s)
+PASS

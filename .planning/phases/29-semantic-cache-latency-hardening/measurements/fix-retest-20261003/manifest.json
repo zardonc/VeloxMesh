@@ -1,0 +1,36 @@
+{
+  "branch": "codex/phase-27-stream-terminal-settlement",
+  "base_commit": "dc947268774c5073aaeea2522dc57c284ae33f35",
+  "binary_path": ".tmp/phase29-diagnostic-20261003/app-linux.test",
+  "binary_sha256": "d8ff1aa930fe97f75caf682869c962605a4a5c344cd452ec3be14548dc1fdf90",
+  "source_sha256": {
+    "internal/cache/semantic.go": "cdb48169ac5e7724356d2ac2b09a1069bb0e3032409a8ca1d13526ab99e6a0aa",
+    "internal/cache/writes.go": "e297b1910ea076d245392ef308c856b18852170fb7d1ac6d27a64b002f9ad961",
+    "internal/gateway/service.go": "802bf3069da38b6c5803e608f0c8925e978f4926cb38a189b2c5c4c6c8627d71",
+    "internal/storage/qdrant.go": "6b9d91be99edbc834ae61c929b8831f9058d22b3d0ec15f2faf83fdbfb5c37b9",
+    "internal/app/live_cache_reuse_test.go": "596c940e0872aa32ad07b1870191ad1b5b7f830c441b734f10383770c18d0fbb",
+    "internal/app/phase29_live_test.go": "5512eec63918e953fa4ab4b7a230b34ecc996eca54aa05c6ae9424387ff1e3d2",
+    ".planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001/runner/main.go": "70c61b1f300909267b60c859b7e55627458a89ed2d38b77ba90b6eebe075a53c",
+    ".planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001/runner/profiles.go": "ddee5a94eda9a667f3fe3182e6d435ba5f60d62dd4f372bd70553cf3e2079df8"
+  },
+  "final_performance_groups": [
+    "verified-block-1",
+    "verified-block-2",
+    "verified-block-3"
+  ],
+  "final_correctness_group": "verified-correctness",
+  "final_profile_group": "profiling-final",
+  "samples_per_window": 100,
+  "scheduled_rps": 8,
+  "concurrency_cap": 4,
+  "primary_model": "qwen2.5-0.5b-instruct",
+  "embedding_model": "text-embedding-embedder_collection",
+  "read_timeout_ms": 100,
+  "read_concurrency": 4,
+  "write_workers": 2,
+  "queue_capacity": 32,
+  "write_timeout_ms": 2000,
+  "shutdown_grace_ms": 1000,
+  "old_intermediate_binary_hashes": "not captured; not used for final performance gate",
+  "second_model_final": "Passed after vector handoff fix; before removal of redundant enabled guard and logging-only error detail edit."
+}

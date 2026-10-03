@@ -367,9 +367,13 @@ func (r *runner) liveTest(test string) error {
 	session.Stdin = strings.NewReader(string(payload))
 	model := strings.ReplaceAll(os.Getenv("PHASE29_MODEL"), "'", "'\"'\"'")
 	command := "PHASE29_MODEL='" + model + "' timeout --signal=TERM --kill-after=2s 60s " + remoteBinary + " -test.run '^" + test + "$' -test.timeout 60s -test.v"
+	command += profileFlags(test)
 	output, err := session.CombinedOutput(command)
 	if saveErr := r.save(test+".log", output); saveErr != nil {
 		return saveErr
+	}
+	if profileErr := r.fetchProfiles(test); profileErr != nil {
+		err = errors.Join(err, profileErr)
 	}
 	if err == nil && strings.Contains(string(output), "--- SKIP:") {
 		err = fmt.Errorf("selected live test was skipped")

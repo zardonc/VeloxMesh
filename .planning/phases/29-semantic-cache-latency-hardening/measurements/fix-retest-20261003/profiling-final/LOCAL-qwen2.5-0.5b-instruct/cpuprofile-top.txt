@@ -1,0 +1,28 @@
+File: app-linux.test
+Build ID: 470cac91617af72df0a7fa444facb80805a187ff
+Type: cpu
+Time: 2026-10-03 14:27:37 PDT
+Duration: 25.53s, Total samples = 1.43s ( 5.60%)
+Showing nodes accounting for 1.37s, 95.80% of 1.43s total
+Showing top 20 nodes out of 373
+      flat  flat%   sum%        cum   cum%
+     0.59s 41.26% 41.26%      0.59s 41.26%  internal/runtime/syscall/linux.Syscall6
+     0.53s 37.06% 78.32%      0.53s 37.06%  runtime.futex
+     0.04s  2.80% 81.12%      0.05s  3.50%  runtime.step
+     0.02s  1.40% 82.52%      0.02s  1.40%  internal/runtime/atomic.(*UnsafePointer).StoreNoWB (inline)
+     0.02s  1.40% 83.92%      0.02s  1.40%  runtime.(*itabTableType).find
+     0.02s  1.40% 85.31%      0.07s  4.90%  runtime.pcvalue
+     0.02s  1.40% 86.71%      0.02s  1.40%  runtime.tgkill
+     0.01s   0.7% 87.41%      0.01s   0.7%  aeshashbody
+     0.01s   0.7% 88.11%      0.01s   0.7%  encoding/json.indirect
+     0.01s   0.7% 88.81%      0.01s   0.7%  encoding/json.stateBeginValue
+     0.01s   0.7% 89.51%      0.08s  5.59%  log/slog.(*commonHandler).handle
+     0.01s   0.7% 90.21%      0.01s   0.7%  modernc.org/sqlite/lib._initMemArray
+     0.01s   0.7% 90.91%      0.01s   0.7%  modernc.org/sqlite/lib._sqlite3DbMallocRawNN
+     0.01s   0.7% 91.61%      0.02s  1.40%  modernc.org/sqlite/lib._sqlite3Step
+     0.01s   0.7% 92.31%      0.05s  3.50%  runtime.(*Frames).Next
+     0.01s   0.7% 93.01%      0.01s   0.7%  runtime.(*traceBuf).varint
+     0.01s   0.7% 93.71%      0.02s  1.40%  runtime.(*traceMap).put
+     0.01s   0.7% 94.41%      0.01s   0.7%  runtime.acquirepNoTrace
+     0.01s   0.7% 95.10%      0.07s  4.90%  runtime.makeTraceFrames
+     0.01s   0.7% 95.80%      0.02s  1.40%  runtime.newobject

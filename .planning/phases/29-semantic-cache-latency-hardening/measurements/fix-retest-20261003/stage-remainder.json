@@ -1,0 +1,8 @@
+{
+  "lookup_other_p95_ms": 0.11899999999999794,
+  "lookup_other_max_ms": 2.4239999999999995,
+  "embedding_decode_validation_p95_ms": 0.472999999999999,
+  "direct_p95_ms": 121.638,
+  "direct_count": 300,
+  "failed": 0
+}

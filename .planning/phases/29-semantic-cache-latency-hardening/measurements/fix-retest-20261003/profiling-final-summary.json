@@ -1,0 +1,95 @@
+{
+  "profiled_requests": 200,
+  "failed": 0,
+  "outliers_above_15ms": 0,
+  "residual_max_ms": 10.198999999999998,
+  "stw_count": 21,
+  "stw_max_ms": 0.355264,
+  "stw_total_ms": 2.116864,
+  "stw_events": [
+    {
+      "name": "stop-the-world (start trace)",
+      "duration_ms": 0.009216
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.034496
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.080704
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.11104
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.074752
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.355264
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.042048
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.102208
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.037312
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.029696
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.137856
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.142592
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.1616
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.058112
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.050112
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.291008
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.076544
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.059264
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.161024
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.061824
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.040192
+    }
+  ]
+}

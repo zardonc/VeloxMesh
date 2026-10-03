@@ -137,6 +137,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 	usesToolProtocol := req.ToolRequirements.UsesProtocol()
 	cacheScope, cacheEligible := "", false
+	var cacheVector []float32
 	if identity := middleware.GetAuthIdentity(ctx); s.semanticCache != nil && identity != nil {
 		cacheScope, cacheEligible = s.semanticCache.Eligible(identity.ID, identity.Role, req)
 	}
@@ -144,7 +145,9 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	// 1. Cache Lookup
 	if cacheEligible && !usesToolProtocol {
 		text := req.Messages[1].Content
-		entry, err := s.semanticCache.Lookup(ctx, cacheScope, req.Model, text)
+		lookup, err := s.semanticCache.LookupWithVector(ctx, cache.CacheLookup{Scope: cacheScope, Model: req.Model, Text: text})
+		entry := lookup.Entry
+		cacheVector = lookup.Vector
 		if err == nil && entry != nil {
 			// Cache hit
 			rt.RecordRouting("semantic_cache", "hit", "", "")
@@ -363,7 +366,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			if len(resp.Choices) > 0 {
 				bResp, _ := json.Marshal(resp.Choices)
 				usageID := req.RequestID // from settle
-				s.semanticCache.Enqueue(cache.CacheWrite{ID: req.RequestID, Scope: cacheScope, Model: req.Model, Text: reqTextForStore, Response: string(bResp), UsageID: &usageID})
+				s.semanticCache.Enqueue(cache.CacheWrite{ID: req.RequestID, Scope: cacheScope, Model: req.Model, Text: reqTextForStore, Response: string(bResp), UsageID: &usageID, Vector: cacheVector})
 			}
 		}
 

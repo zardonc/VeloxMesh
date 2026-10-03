@@ -281,6 +281,9 @@ func liveRequest(options liveRequestOptions) liveSample {
 			sample.AnswerHash = hex.EncodeToString(digest[:])
 		}
 	}
+	if err != nil {
+		sample.Error = err.Error()
+	}
 	sample.ElapsedMS, sample.OK = float64(time.Since(started).Microseconds())/1000, err == nil && sample.Status == http.StatusOK
 	return sample
 }

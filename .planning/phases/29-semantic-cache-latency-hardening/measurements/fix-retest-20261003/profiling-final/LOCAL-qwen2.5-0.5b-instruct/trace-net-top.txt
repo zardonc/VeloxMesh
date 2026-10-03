@@ -1,0 +1,25 @@
+Type: delay
+Showing nodes accounting for 272.87s, 100% of 272.87s total
+Dropped 109 nodes (cum <= 1.36s)
+Showing top 20 nodes out of 34
+      flat  flat%   sum%        cum   cum%
+   171.89s 62.99% 62.99%    171.89s 62.99%  internal/poll.(*FD).Read
+    75.62s 27.71% 90.70%     75.62s 27.71%  internal/poll.(*FD).RawRead
+    25.37s  9.30%   100%     25.37s  9.30%  internal/poll.(*FD).Accept
+         0     0%   100%    147.13s 53.92%  bufio.(*Reader).Peek
+         0     0%   100%    147.13s 53.92%  bufio.(*Reader).fill
+         0     0%   100%     25.36s  9.29%  github.com/redis/go-redis/v9.(*PubSub).Receive
+         0     0%   100%     25.36s  9.29%  github.com/redis/go-redis/v9.(*PubSub).ReceiveTimeout
+         0     0%   100%     25.36s  9.29%  github.com/redis/go-redis/v9.(*PubSub).ReceiveTimeout.func1
+         0     0%   100%     25.36s  9.29%  github.com/redis/go-redis/v9.(*PubSub).processPendingPushNotificationWithReader
+         0     0%   100%     25.36s  9.29%  github.com/redis/go-redis/v9.(*channel).initMsgChan.func1
+         0     0%   100%     25.80s  9.46%  github.com/redis/go-redis/v9/internal/pool.(*Conn).WithReader
+         0     0%   100%     25.80s  9.46%  github.com/redis/go-redis/v9/internal/proto.(*Reader).PeekReplyType
+         0     0%   100%     25.80s  9.46%  github.com/redis/go-redis/v9/push.(*Processor).ProcessPendingNotifications
+         0     0%   100%     75.62s 27.71%  golang.org/x/net/http2.(*Framer).ReadFrameHeader
+         0     0%   100%     75.62s 27.71%  golang.org/x/net/http2.readFrameHeader
+         0     0%   100%     75.61s 27.71%  google.golang.org/grpc/internal/transport.(*framer).readFrame
+         0     0%   100%     75.62s 27.71%  google.golang.org/grpc/internal/transport.(*http2Client).reader
+         0     0%   100%     75.62s 27.71%  google.golang.org/grpc/internal/transport/readyreader.(*bufReadyReader).Read
+         0     0%   100%     75.62s 27.71%  google.golang.org/grpc/internal/transport/readyreader.(*nonBlockingReader).ReadOnReady
+         0     0%   100%     75.62s 27.71%  io.ReadAtLeast

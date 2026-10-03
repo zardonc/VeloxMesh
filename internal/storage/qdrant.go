@@ -11,6 +11,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/qdrant/go-client/qdrant"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type QdrantVectorAdapter struct {
@@ -152,7 +154,7 @@ func (q *QdrantVectorAdapter) EnsureCollection(ctx context.Context, collection s
 		return fmt.Errorf("failed to check if collection exists: %w", err)
 	}
 	if exists {
-		return nil
+		return q.validateCollection(ctx, collection, dimension)
 	}
 	err = q.client.CreateCollection(ctx, &qdrant.CreateCollection{
 		CollectionName: collection,
@@ -162,7 +164,28 @@ func (q *QdrantVectorAdapter) EnsureCollection(ctx context.Context, collection s
 		}),
 	})
 	if err != nil {
+		// Only a confirmed creation conflict is idempotent. Preserve timeouts,
+		// authentication errors and other failures even if a collection exists.
+		if status.Code(err) == codes.AlreadyExists {
+			if checkErr := q.validateCollection(ctx, collection, dimension); checkErr == nil {
+				return nil
+			} else {
+				return errors.Join(fmt.Errorf("failed to create collection: %w", err), checkErr)
+			}
+		}
 		return fmt.Errorf("failed to create collection: %w", err)
+	}
+	return nil
+}
+
+func (q *QdrantVectorAdapter) validateCollection(ctx context.Context, collection string, dimension int) error {
+	info, err := q.client.GetCollectionInfo(ctx, collection)
+	if err != nil {
+		return fmt.Errorf("failed to verify collection: %w", err)
+	}
+	params := info.GetConfig().GetParams().GetVectorsConfig().GetParams()
+	if params == nil || params.GetSize() != uint64(dimension) || params.GetDistance() != qdrant.Distance_Cosine {
+		return fmt.Errorf("qdrant collection %q requires unnamed vectors dimension=%d distance=Cosine", collection, dimension)
 	}
 	return nil
 }

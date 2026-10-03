@@ -1,0 +1,28 @@
+File: app-linux.test
+Build ID: 470cac91617af72df0a7fa444facb80805a187ff
+Type: delay
+Time: 2026-10-03 14:28:03 PDT
+Showing nodes accounting for 4393.94us, 100% of 4393.94us total
+Dropped 62 nodes (cum <= 21.97us)
+Showing top 20 nodes out of 170
+      flat  flat%   sum%        cum   cum%
+ 2337.44us 53.20% 53.20%  2337.44us 53.20%  runtime.unlock (inline)
+ 1847.33us 42.04% 95.24%  1847.33us 42.04%  sync.(*Mutex).Unlock (partial-inline)
+  209.17us  4.76%   100%   209.17us  4.76%  runtime._LostContendedRuntimeLock
+         0     0%   100%   814.38us 18.53%  bufio.(*Reader).Peek
+         0     0%   100%   814.38us 18.53%  bufio.(*Reader).fill
+         0     0%   100%   160.66us  3.66%  bufio.(*Writer).Flush
+         0     0%   100%   443.48us 10.09%  database/sql.(*DB).QueryContext
+         0     0%   100%   443.48us 10.09%  database/sql.(*DB).QueryContext.func1
+         0     0%   100%   443.48us 10.09%  database/sql.(*DB).QueryRowContext (inline)
+         0     0%   100%    63.70us  1.45%  database/sql.(*DB).conn
+         0     0%   100%   443.48us 10.09%  database/sql.(*DB).query
+         0     0%   100%   379.78us  8.64%  database/sql.(*DB).queryDC
+         0     0%   100%   379.78us  8.64%  database/sql.(*DB).queryDC.func1
+         0     0%   100%   445.28us 10.13%  database/sql.(*DB).retry
+         0     0%   100%   379.78us  8.64%  database/sql.ctxDriverQuery
+         0     0%   100%    63.70us  1.45%  database/sql.dsnConnector.Connect
+         0     0%   100%   381.58us  8.68%  database/sql.withLock
+         0     0%   100%  2235.42us 50.88%  github.com/go-chi/chi/v5.(*ChainHandler).ServeHTTP
+         0     0%   100%  2235.42us 50.88%  github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+         0     0%   100%  2235.42us 50.88%  github.com/go-chi/chi/v5.(*Mux).routeHTTP

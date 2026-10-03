@@ -1,0 +1,28 @@
+File: app-linux.test
+Build ID: 09456a6c938db8f95e18c87135152cffca038703
+Type: delay
+Time: 2026-10-03 14:14:25 PDT
+Showing nodes accounting for 2.81ms, 100% of 2.81ms total
+Dropped 28 nodes (cum <= 0.01ms)
+Showing top 20 nodes out of 145
+      flat  flat%   sum%        cum   cum%
+    1.57ms 55.87% 55.87%     1.57ms 55.87%  runtime.unlock (inline)
+    1.11ms 39.34% 95.21%     1.11ms 39.34%  sync.(*Mutex).Unlock (partial-inline)
+    0.13ms  4.79%   100%     0.13ms  4.79%  runtime._LostContendedRuntimeLock
+         0     0%   100%     0.41ms 14.71%  bufio.(*Reader).Peek
+         0     0%   100%     0.41ms 14.71%  bufio.(*Reader).fill
+         0     0%   100%     0.03ms  0.95%  bufio.(*Writer).Flush
+         0     0%   100%     0.99ms 35.16%  github.com/go-chi/chi/v5.(*ChainHandler).ServeHTTP
+         0     0%   100%     0.99ms 35.16%  github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+         0     0%   100%     0.99ms 35.16%  github.com/go-chi/chi/v5.(*Mux).routeHTTP
+         0     0%   100%     0.78ms 27.90%  github.com/go-chi/chi/v5.(*Mux).routeHTTP-fm
+         0     0%   100%     0.22ms  7.88%  github.com/redis/go-redis/v9.(*Client).Process
+         0     0%   100%     0.02ms  0.62%  github.com/redis/go-redis/v9.(*PubSub).Close
+         0     0%   100%     0.02ms  0.62%  github.com/redis/go-redis/v9.(*baseClient)._getConn
+         0     0%   100%     0.22ms  7.88%  github.com/redis/go-redis/v9.(*baseClient)._process
+         0     0%   100%     0.20ms  7.26%  github.com/redis/go-redis/v9.(*baseClient)._process.func1
+         0     0%   100%     0.20ms  7.26%  github.com/redis/go-redis/v9.(*baseClient)._process.func1.2
+         0     0%   100%     0.02ms  0.62%  github.com/redis/go-redis/v9.(*baseClient).disableMaintNotificationsUpgrades
+         0     0%   100%     0.02ms  0.62%  github.com/redis/go-redis/v9.(*baseClient).getConn
+         0     0%   100%     0.02ms  0.62%  github.com/redis/go-redis/v9.(*baseClient).initConn
+         0     0%   100%     0.22ms  7.88%  github.com/redis/go-redis/v9.(*baseClient).process

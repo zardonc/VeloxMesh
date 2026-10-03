@@ -1,0 +1,36 @@
+Type: delay
+Active filters:
+   focus=database/sql|sqlite
+Showing nodes accounting for 25545.42ms, 4.11% of 621844.58ms total
+Showing top 30 nodes out of 126
+      flat  flat%   sum%        cum   cum%
+25531.81ms  4.11%  4.11% 25531.81ms  4.11%  runtime.selectgo
+      13ms 0.0021%  4.11%       13ms 0.0021%  runtime.chanrecv1
+    0.55ms 8.8e-05%  4.11%     0.55ms 8.8e-05%  sync.(*Mutex).Lock
+    0.06ms 1e-05%  4.11%     0.06ms 1e-05%  runtime.gcStart
+         0     0%  4.11%     0.53ms 8.5e-05%  database/sql.(*DB).ExecContext
+         0     0%  4.11%     0.53ms 8.5e-05%  database/sql.(*DB).ExecContext.func1
+         0     0%  4.11%     0.02ms 2.7e-06%  database/sql.(*DB).QueryContext
+         0     0%  4.11%     0.02ms 2.7e-06%  database/sql.(*DB).QueryContext.func1
+         0     0%  4.11% 25524.44ms  4.10%  database/sql.(*DB).connectionOpener
+         0     0%  4.11%     0.53ms 8.5e-05%  database/sql.(*DB).exec
+         0     0%  4.11%     0.59ms 9.5e-05%  database/sql.(*DB).execDC
+         0     0%  4.11%     0.59ms 9.5e-05%  database/sql.(*DB).execDC.func2
+         0     0%  4.11%     0.02ms 2.7e-06%  database/sql.(*DB).query
+         0     0%  4.11%     0.02ms 2.7e-06%  database/sql.(*DB).queryDC
+         0     0%  4.11%     0.02ms 2.7e-06%  database/sql.(*DB).queryDC.func1
+         0     0%  4.11%     0.55ms 8.8e-05%  database/sql.(*DB).retry
+         0     0%  4.11%     0.26ms 4.3e-05%  database/sql.(*Rows).awaitDone
+         0     0%  4.11%     0.06ms 1e-05%  database/sql.(*Tx).ExecContext
+         0     0%  4.11%       13ms 0.0021%  database/sql.(*Tx).awaitDone
+         0     0%  4.11%     0.59ms 9.5e-05%  database/sql.ctxDriverExec
+         0     0%  4.11%     0.02ms 2.7e-06%  database/sql.ctxDriverQuery
+         0     0%  4.11%     0.61ms 9.8e-05%  database/sql.withLock
+         0     0%  4.11%     0.02ms 2.7e-06%  github.com/go-chi/chi/v5.(*ChainHandler).ServeHTTP
+         0     0%  4.11%     0.02ms 2.7e-06%  github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+         0     0%  4.11%     0.02ms 2.7e-06%  github.com/go-chi/chi/v5.(*Mux).routeHTTP
+         0     0%  4.11%     0.06ms 1e-05%  internal/runtime/maps.(*table).grow
+         0     0%  4.11%     0.06ms 1e-05%  internal/runtime/maps.(*table).rehash
+         0     0%  4.11%     0.06ms 1e-05%  internal/runtime/maps.(*table).reset
+         0     0%  4.11%     0.06ms 1e-05%  internal/runtime/maps.newGroups
+         0     0%  4.11%     0.06ms 1e-05%  internal/runtime/maps.newTable

@@ -1,0 +1,11 @@
+Type: delay
+Active filters:
+   focus=database/sql|sqlite
+Showing nodes accounting for 25555.24ms, 4.10% of 622753.24ms total
+      flat  flat%   sum%        cum   cum%
+25546.50ms  4.10%  4.10% 25546.50ms  4.10%  runtime.selectgo
+    8.75ms 0.0014%  4.10%     8.75ms 0.0014%  runtime.chanrecv1
+         0     0%  4.10% 25541.12ms  4.10%  database/sql.(*DB).connectionOpener
+         0     0%  4.10%     0.02ms 2.5e-06%  database/sql.(*Rows).awaitDone
+         0     0%  4.10%     8.75ms 0.0014%  database/sql.(*Tx).awaitDone
+         0     0%  4.10%     5.36ms 0.00086%  modernc.org/sqlite.interruptOnDone.func1
