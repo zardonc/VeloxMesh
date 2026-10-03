@@ -46,9 +46,7 @@ type shipSample struct {
 var liveRequestSequence atomic.Int64
 
 func shipRequest(options liveRequestOptions) shipSample {
-	temperature, maxTokens := 0.0, 256
-	body, err := json.Marshal(llm.ChatCompletionRequest{Model: options.model, Temperature: &temperature, MaxTokens: &maxTokens,
-		Messages: []llm.Message{{Role: llm.RoleSystem, Content: liveFAQSystem}, {Role: llm.RoleUser, Content: fmt.Sprintf("How long is the trial for plan %d?", options.index)}}})
+	body, err := shipRequestBody(options)
 	sample := shipSample{Type: "client", Index: options.index, Concurrent: options.concurrent, Model: options.model}
 	if err != nil {
 		sample.Error = err.Error()
@@ -82,12 +80,25 @@ func shipRequest(options liveRequestOptions) shipSample {
 	return sample
 }
 
+func shipRequestBody(options liveRequestOptions) ([]byte, error) {
+	temperature, maxTokens := 0.0, 256
+	system, question := options.system, options.question
+	if system == "" {
+		system = liveFAQSystem
+	}
+	if question == "" {
+		question = fmt.Sprintf("How long is the trial for plan %d?", options.index)
+	}
+	return json.Marshal(llm.ChatCompletionRequest{Model: options.model, Temperature: &temperature, MaxTokens: &maxTokens,
+		Messages: []llm.Message{{Role: llm.RoleSystem, Content: system}, {Role: llm.RoleUser, Content: question}}})
+}
+
 func shipReadResponse(sample shipSample, response *http.Response) shipSample {
 	defer response.Body.Close()
 	sample.Status, sample.Hit = response.StatusCode, response.Header.Get("X-Cache-Hit") == "true"
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		sample.Error = "body_read_error"
+		sample.Error = "body_read_error: " + err.Error()
 		return sample
 	}
 	if response.StatusCode != http.StatusOK {

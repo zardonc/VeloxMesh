@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptrace"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -26,14 +27,18 @@ type liveStage struct {
 
 type liveTiming struct {
 	*liveRecorder
-	stages []liveStage
+	stages  []liveStage
+	onStage func(observability.StageMeasurement)
 }
 
 func (r *liveTiming) RecordStage(sample observability.StageMeasurement) {
 	r.mu.Lock()
-	defer r.mu.Unlock()
 	r.stages = append(r.stages, liveStage{Type: "stage", ID: sample.ID, Name: sample.Name,
 		StartMS: float64(sample.Started.Sub(r.started).Microseconds()) / 1000, ElapsedMS: float64(sample.Elapsed.Microseconds()) / 1000})
+	r.mu.Unlock()
+	if r.onStage != nil {
+		r.onStage(sample)
+	}
 }
 
 func (r *liveTiming) handler(next http.Handler) http.Handler {
@@ -120,6 +125,9 @@ func (body *liveTimingBody) Close() error {
 func installLiveTiming(t *testing.T, application *App, origin time.Time) *liveTiming {
 	t.Helper()
 	recorder := &liveTiming{liveRecorder: &liveRecorder{StubMetrics: observability.NewStubMetrics(), started: origin}}
+	if os.Getenv("PHASE29_TIMING_DISABLED") == "true" {
+		return recorder
+	}
 	previousMetrics, previousTransport := observability.DefaultMetrics, http.DefaultTransport
 	observability.DefaultMetrics = recorder
 	http.DefaultTransport = liveTimingTransport{base: previousTransport, recorder: recorder}

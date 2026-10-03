@@ -1,0 +1,371 @@
+File: app-linux.test
+Build ID: a15803706fc6507354e0e3bd3b2001e4959edc42
+Type: cpu
+Time: 2026-10-03 16:03:03 PDT
+Duration: 6.69s, Total samples = 650ms ( 9.72%)
+Showing nodes accounting for 650ms, 100% of 650ms total
+      flat  flat%   sum%        cum   cum%
+     340ms 52.31% 52.31%      340ms 52.31%  internal/runtime/syscall/linux.Syscall6
+     180ms 27.69% 80.00%      180ms 27.69%  runtime.futex
+      20ms  3.08% 83.08%       20ms  3.08%  internal/runtime/atomic.(*UnsafePointer).StoreNoWB (inline)
+      10ms  1.54% 84.62%       10ms  1.54%  expandAVX512_60
+      10ms  1.54% 86.15%       10ms  1.54%  internal/abi.Name.IsExported (inline)
+      10ms  1.54% 87.69%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3DbMallocRawNN
+      10ms  1.54% 89.23%       10ms  1.54%  runtime.(*traceBuf).varint (inline)
+      10ms  1.54% 90.77%       10ms  1.54%  runtime.lock2
+      10ms  1.54% 92.31%       30ms  4.62%  runtime.mallocgc
+      10ms  1.54% 93.85%       10ms  1.54%  runtime.memclrNoHeapPointers
+      10ms  1.54% 95.38%       10ms  1.54%  runtime.memmove
+      10ms  1.54% 96.92%       10ms  1.54%  runtime.newarray
+      10ms  1.54% 98.46%       20ms  3.08%  runtime.pcvalue
+      10ms  1.54%   100%       10ms  1.54%  runtime.step
+         0     0%   100%       20ms  3.08%  bufio.(*Reader).Peek
+         0     0%   100%       20ms  3.08%  bufio.(*Reader).fill
+         0     0%   100%      170ms 26.15%  bufio.(*Writer).Flush
+         0     0%   100%       20ms  3.08%  database/sql.(*DB).BeginTx
+         0     0%   100%       20ms  3.08%  database/sql.(*DB).BeginTx.func1
+         0     0%   100%       20ms  3.08%  database/sql.(*DB).ExecContext
+         0     0%   100%       20ms  3.08%  database/sql.(*DB).ExecContext.func1
+         0     0%   100%       30ms  4.62%  database/sql.(*DB).QueryContext
+         0     0%   100%       30ms  4.62%  database/sql.(*DB).QueryContext.func1
+         0     0%   100%       30ms  4.62%  database/sql.(*DB).QueryRowContext (inline)
+         0     0%   100%       20ms  3.08%  database/sql.(*DB).begin
+         0     0%   100%       20ms  3.08%  database/sql.(*DB).beginDC
+         0     0%   100%       20ms  3.08%  database/sql.(*DB).exec
+         0     0%   100%       20ms  3.08%  database/sql.(*DB).execDC
+         0     0%   100%       20ms  3.08%  database/sql.(*DB).execDC.func2
+         0     0%   100%       30ms  4.62%  database/sql.(*DB).query
+         0     0%   100%       30ms  4.62%  database/sql.(*DB).queryDC
+         0     0%   100%       30ms  4.62%  database/sql.(*DB).queryDC.func1
+         0     0%   100%       70ms 10.77%  database/sql.(*DB).retry
+         0     0%   100%       10ms  1.54%  database/sql.(*Tx).Commit
+         0     0%   100%       10ms  1.54%  database/sql.(*Tx).Commit.func1
+         0     0%   100%       20ms  3.08%  database/sql.ctxDriverExec
+         0     0%   100%       30ms  4.62%  database/sql.ctxDriverQuery
+         0     0%   100%       60ms  9.23%  database/sql.withLock
+         0     0%   100%       30ms  4.62%  encoding/json.(*Decoder).Decode
+         0     0%   100%       20ms  3.08%  encoding/json.(*Decoder).readValue
+         0     0%   100%       20ms  3.08%  encoding/json.(*Decoder).refill
+         0     0%   100%       10ms  1.54%  encoding/json.(*decodeState).literalStore
+         0     0%   100%       20ms  3.08%  encoding/json.(*decodeState).object
+         0     0%   100%       20ms  3.08%  encoding/json.(*decodeState).unmarshal
+         0     0%   100%       20ms  3.08%  encoding/json.(*decodeState).value
+         0     0%   100%       10ms  1.54%  encoding/json.Unmarshal
+         0     0%   100%       10ms  1.54%  fmt.Fprintf
+         0     0%   100%      200ms 30.77%  github.com/go-chi/chi/v5.(*ChainHandler).ServeHTTP
+         0     0%   100%      240ms 36.92%  github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+         0     0%   100%      200ms 30.77%  github.com/go-chi/chi/v5.(*Mux).routeHTTP
+         0     0%   100%       10ms  1.54%  github.com/qdrant/go-client/qdrant.(*Client).CreateCollection
+         0     0%   100%       10ms  1.54%  github.com/qdrant/go-client/qdrant.(*Client).Query
+         0     0%   100%       10ms  1.54%  github.com/qdrant/go-client/qdrant.(*collectionsClient).Create
+         0     0%   100%       10ms  1.54%  github.com/qdrant/go-client/qdrant.(*pointsClient).Query
+         0     0%   100%       20ms  3.08%  github.com/qdrant/go-client/qdrant.NewGrpcClient.(*Config).getMetadataInterceptor.func1
+         0     0%   100%       20ms  3.08%  github.com/qdrant/go-client/qdrant.NewGrpcClient.(*Config).getRateLimitInterceptor.func2
+         0     0%   100%      140ms 21.54%  github.com/redis/go-redis/v9.(*Client).Process
+         0     0%   100%      140ms 21.54%  github.com/redis/go-redis/v9.(*baseClient)._process
+         0     0%   100%      140ms 21.54%  github.com/redis/go-redis/v9.(*baseClient)._process.func1
+         0     0%   100%       20ms  3.08%  github.com/redis/go-redis/v9.(*baseClient)._process.func1.2
+         0     0%   100%      140ms 21.54%  github.com/redis/go-redis/v9.(*baseClient).process
+         0     0%   100%       20ms  3.08%  github.com/redis/go-redis/v9.(*baseClient).processPendingPushNotificationWithReader
+         0     0%   100%      140ms 21.54%  github.com/redis/go-redis/v9.(*baseClient).withConn
+         0     0%   100%      140ms 21.54%  github.com/redis/go-redis/v9.(*hooksMixin).processHook (inline)
+         0     0%   100%       90ms 13.85%  github.com/redis/go-redis/v9.cmdable.Get (inline)
+         0     0%   100%       50ms  7.69%  github.com/redis/go-redis/v9.cmdable.Set
+         0     0%   100%       20ms  3.08%  github.com/redis/go-redis/v9/internal/pool.(*Conn).WithReader
+         0     0%   100%      120ms 18.46%  github.com/redis/go-redis/v9/internal/pool.(*Conn).WithWriter
+         0     0%   100%       20ms  3.08%  github.com/redis/go-redis/v9/internal/proto.(*Reader).PeekReplyType
+         0     0%   100%       20ms  3.08%  github.com/redis/go-redis/v9/push.(*Processor).ProcessPendingNotifications
+         0     0%   100%       10ms  1.54%  golang.org/x/net/http2.(*Framer).ReadFrameHeader
+         0     0%   100%       10ms  1.54%  golang.org/x/net/http2.readFrameHeader
+         0     0%   100%       10ms  1.54%  golang.org/x/sys/unix.MunmapPtr (inline)
+         0     0%   100%       10ms  1.54%  golang.org/x/sys/unix.munmap
+         0     0%   100%       20ms  3.08%  google.golang.org/grpc.(*ClientConn).Invoke
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc.(*clientStream).RecvMsg
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc.(*clientStream).RecvMsg.func1
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc.(*clientStream).SendMsg
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc.(*clientStream).withRetry
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc.(*csAttempt).recvMsg
+         0     0%   100%       20ms  3.08%  google.golang.org/grpc.NewClient.chainUnaryClientInterceptors.func1
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc.encode
+         0     0%   100%       20ms  3.08%  google.golang.org/grpc.getChainUnaryInvoker.func1
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc.getChainUnaryInvoker.func1.getChainUnaryInvoker.1
+         0     0%   100%       20ms  3.08%  google.golang.org/grpc.invoke
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc.prepareMsg
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc/encoding/proto.(*codecV2).Marshal
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc/internal/transport.(*ClientStream).RecvCompress (inline)
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc/internal/transport.(*ClientStream).waitOnHeader
+         0     0%   100%      100ms 15.38%  google.golang.org/grpc/internal/transport.(*bufWriter).Flush
+         0     0%   100%      100ms 15.38%  google.golang.org/grpc/internal/transport.(*bufWriter).flushKeepBuffer
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc/internal/transport.(*framer).readFrame
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc/internal/transport.(*http2Client).reader
+         0     0%   100%      100ms 15.38%  google.golang.org/grpc/internal/transport.(*loopyWriter).run
+         0     0%   100%      100ms 15.38%  google.golang.org/grpc/internal/transport.NewHTTP2Client.func6
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc/internal/transport/readyreader.(*bufReadyReader).Read
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc/internal/transport/readyreader.(*nonBlockingReader).ReadOnReady
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc/internal/transport/readyreader.NewNonBlocking.func1
+         0     0%   100%       10ms  1.54%  google.golang.org/grpc/internal/transport/readyreader.sysRead (inline)
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/filedesc.(*File).lazyInit (inline)
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/filedesc.(*File).lazyInitOnce
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/filedesc.(*File).lazyRawInit
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/filedesc.(*File).unmarshalFull
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/filedesc.(*Message).Fields
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/filedesc.(*Message).lazyInit (inline)
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/filedesc.(*Message).unmarshalFull
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/impl.(*MessageInfo).init (inline)
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/impl.(*MessageInfo).initOnce
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/impl.(*MessageInfo).makeKnownFieldsFunc
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/impl.(*MessageInfo).makeReflectFuncs
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/internal/impl.(*messageState).ProtoMethods
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/proto.MarshalOptions.Size
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/proto.MarshalOptions.size
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/proto.Size (inline)
+         0     0%   100%       10ms  1.54%  google.golang.org/protobuf/proto.protoMethods (inline)
+         0     0%   100%       10ms  1.54%  internal/poll.(*FD).RawRead
+         0     0%   100%       20ms  3.08%  internal/poll.(*FD).Read
+         0     0%   100%      320ms 49.23%  internal/poll.(*FD).Write
+         0     0%   100%      340ms 52.31%  internal/poll.ignoringEINTRIO (inline)
+         0     0%   100%       10ms  1.54%  internal/runtime/gc/scan.ScanSpanPacked (inline)
+         0     0%   100%       10ms  1.54%  internal/runtime/gc/scan.ScanSpanPackedAVX512
+         0     0%   100%       10ms  1.54%  internal/runtime/gc/scan.scanSpanPackedAVX512
+         0     0%   100%       10ms  1.54%  internal/runtime/maps.(*Map).growToSmall
+         0     0%   100%       10ms  1.54%  internal/runtime/maps.newGroups (inline)
+         0     0%   100%       10ms  1.54%  internal/runtime/maps.newarray
+         0     0%   100%       10ms  1.54%  internal/sync.(*Mutex).Lock (inline)
+         0     0%   100%       10ms  1.54%  internal/sync.(*Mutex).lockSlow
+         0     0%   100%       10ms  1.54%  internal/sync.runtime_SemacquireMutex
+         0     0%   100%       10ms  1.54%  io.ReadAtLeast
+         0     0%   100%       10ms  1.54%  io.ReadFull (inline)
+         0     0%   100%       40ms  6.15%  log/slog.(*JSONHandler).Handle
+         0     0%   100%       40ms  6.15%  log/slog.(*Logger).log
+         0     0%   100%       40ms  6.15%  log/slog.(*commonHandler).handle
+         0     0%   100%       40ms  6.15%  log/slog.Info (inline)
+         0     0%   100%       10ms  1.54%  modernc.org/libc.Xmalloc
+         0     0%   100%       10ms  1.54%  modernc.org/libc.Xpthread_mutex_lock
+         0     0%   100%       10ms  1.54%  modernc.org/libc.Xpwrite
+         0     0%   100%       10ms  1.54%  modernc.org/libc.___syscall_cp
+         0     0%   100%       10ms  1.54%  modernc.org/memory.(*Allocator).UintptrMalloc
+         0     0%   100%       10ms  1.54%  modernc.org/memory.(*Allocator).mmap
+         0     0%   100%       10ms  1.54%  modernc.org/memory.(*Allocator).newSharedPage
+         0     0%   100%       10ms  1.54%  modernc.org/memory.mmap
+         0     0%   100%       10ms  1.54%  modernc.org/memory.unmap (inline)
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite.(*conn).ExecContext
+         0     0%   100%       30ms  4.62%  modernc.org/sqlite.(*conn).QueryContext
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite.(*conn).exec
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite.(*conn).prepare (inline)
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite.(*conn).prepareV2
+         0     0%   100%       30ms  4.62%  modernc.org/sqlite.(*conn).query
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite.(*conn).step
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite.(*stmt).exec
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite.(*stmt).exec.func2
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite.(*stmt).query
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite.(*tx).Commit
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite.(*tx).exec
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite.interruptOnDone
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite.newStmt
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib.Xsqlite3_exec
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib.Xsqlite3_mutex_enter (inline)
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib.Xsqlite3_prepare_v2 (inline)
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib.Xsqlite3_step
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._allocateBtreePage
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._balance
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._balance_quick
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._btreeBeginTrans
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._btreeGetPage
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._btreeGetUnusedPage
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._getPageNormal
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._lockBtree
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._pagerWalFrames
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._pcache1Alloc
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._pcache1AllocPage
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._pcache1Fetch
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._pcache1FetchNoMutex
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._pcache1FetchStage2
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._pcache1FetchWithMutex
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._pthreadMutexEnter
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._seekAndWrite (inline)
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._seekAndWriteFd
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3BtreeBeginTrans
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3BtreeCommitPhaseOne
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3BtreeInsert
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3DbMallocRaw
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3GenerateConstraintChecks
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3Init
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3InitOne
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3Insert
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._sqlite3LockAndPrepare
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3MPrintf
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3Malloc
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3MemMalloc
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3OsWrite (inline)
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3PagerCommitPhaseOne
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._sqlite3PagerGet (inline)
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._sqlite3Parser
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._sqlite3PcacheFetch
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._sqlite3Prepare
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3ReadSchema
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._sqlite3RunParser
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._sqlite3Step
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3StrAccumFinish
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3VMPrintf
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._sqlite3VdbeExec
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3VdbeHalt
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._sqlite3WalFrames (inline)
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._strAccumFinishRealloc
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._unixWrite
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._vdbeCommit
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._walFrames
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._walWriteOneFrame
+         0     0%   100%       10ms  1.54%  modernc.org/sqlite/lib._walWriteToLog
+         0     0%   100%       20ms  3.08%  modernc.org/sqlite/lib._yy_reduce
+         0     0%   100%       20ms  3.08%  net.(*conn).Read
+         0     0%   100%      270ms 41.54%  net.(*conn).Write
+         0     0%   100%       20ms  3.08%  net.(*netFD).Read
+         0     0%   100%      270ms 41.54%  net.(*netFD).Write
+         0     0%   100%       10ms  1.54%  net.(*rawConn).Read
+         0     0%   100%       10ms  1.54%  net/http.(*Client).Do (inline)
+         0     0%   100%       10ms  1.54%  net/http.(*Client).do
+         0     0%   100%       10ms  1.54%  net/http.(*Client).send
+         0     0%   100%       20ms  3.08%  net/http.(*bodyEOFSignal).Read
+         0     0%   100%       20ms  3.08%  net/http.(*bodyEOFSignal).condfn (inline)
+         0     0%   100%       10ms  1.54%  net/http.(*cancelTimerBody).Close
+         0     0%   100%       20ms  3.08%  net/http.(*cancelTimerBody).Read
+         0     0%   100%      230ms 35.38%  net/http.(*conn).serve
+         0     0%   100%       40ms  6.15%  net/http.(*persistConn).readLoop
+         0     0%   100%       20ms  3.08%  net/http.(*persistConn).readLoop.func4
+         0     0%   100%       60ms  9.23%  net/http.(*persistConn).writeLoop
+         0     0%   100%      240ms 36.92%  net/http.HandlerFunc.ServeHTTP
+         0     0%   100%       50ms  7.69%  net/http.persistConnWriter.Write
+         0     0%   100%       10ms  1.54%  net/http.send
+         0     0%   100%      230ms 35.38%  net/http.serverHandler.ServeHTTP
+         0     0%   100%       10ms  1.54%  net/http.setRequestCancel
+         0     0%   100%       10ms  1.54%  net/http.setRequestCancel.OnceFunc.func5
+         0     0%   100%       10ms  1.54%  net/http.setRequestCancel.OnceFunc.func5.1
+         0     0%   100%       10ms  1.54%  net/http.setRequestCancel.func3
+         0     0%   100%       50ms  7.69%  os.(*File).Write
+         0     0%   100%       50ms  7.69%  os.(*File).write (inline)
+         0     0%   100%       10ms  1.54%  reflect.Value.Field
+         0     0%   100%       10ms  1.54%  runtime.(*Frames).Next
+         0     0%   100%       10ms  1.54%  runtime.(*atomicMSpanPointer).StoreNoWB (inline)
+         0     0%   100%       10ms  1.54%  runtime.(*gcControllerState).enlistWorker
+         0     0%   100%       10ms  1.54%  runtime.(*inlineUnwinder).resolveInternal (inline)
+         0     0%   100%       10ms  1.54%  runtime.(*mcache).nextFree
+         0     0%   100%       10ms  1.54%  runtime.(*mcache).refill
+         0     0%   100%       10ms  1.54%  runtime.(*mcentral).uncacheSpan
+         0     0%   100%       10ms  1.54%  runtime.(*spanSet).push
+         0     0%   100%       40ms  6.15%  runtime.(*traceAdvancerState).start.func1
+         0     0%   100%       40ms  6.15%  runtime.(*traceStackTable).dump
+         0     0%   100%       10ms  1.54%  runtime.blockevent
+         0     0%   100%       30ms  4.62%  runtime.chansend
+         0     0%   100%       30ms  4.62%  runtime.chansend1
+         0     0%   100%       10ms  1.54%  runtime.closechan
+         0     0%   100%       10ms  1.54%  runtime.closechan.goready.func1
+         0     0%   100%       10ms  1.54%  runtime.convTslice
+         0     0%   100%       40ms  6.15%  runtime.dumpStacksRec
+         0     0%   100%       30ms  4.62%  runtime.entersyscall
+         0     0%   100%       30ms  4.62%  runtime.entersyscallWakeSysmon
+         0     0%   100%       10ms  1.54%  runtime.fpunwindExpand
+         0     0%   100%       10ms  1.54%  runtime.funcline1
+         0     0%   100%      180ms 27.69%  runtime.futexwakeup
+         0     0%   100%       20ms  3.08%  runtime.gcBgMarkWorker
+         0     0%   100%       20ms  3.08%  runtime.gcBgMarkWorker.func2
+         0     0%   100%       20ms  3.08%  runtime.gcDrain
+         0     0%   100%       20ms  3.08%  runtime.gcDrainMarkWorkerDedicated (inline)
+         0     0%   100%       80ms 12.31%  runtime.goready (inline)
+         0     0%   100%       10ms  1.54%  runtime.lockWithRank (inline)
+         0     0%   100%       20ms  3.08%  runtime.makeTraceFrames
+         0     0%   100%       20ms  3.08%  runtime.makeslice
+         0     0%   100%       10ms  1.54%  runtime.mallocgcSmallNoscan
+         0     0%   100%       10ms  1.54%  runtime.mallocgcSmallScanHeader
+         0     0%   100%       10ms  1.54%  runtime.mapassign_faststr
+         0     0%   100%       10ms  1.54%  runtime.mcall
+         0     0%   100%       10ms  1.54%  runtime.newInlineUnwinder
+         0     0%   100%       50ms  7.69%  runtime.newproc
+         0     0%   100%       50ms  7.69%  runtime.newproc.func1
+         0     0%   100%      180ms 27.69%  runtime.notewakeup
+         0     0%   100%       10ms  1.54%  runtime.park_m
+         0     0%   100%       10ms  1.54%  runtime.pcdatavalue1
+         0     0%   100%       80ms 12.31%  runtime.ready
+         0     0%   100%       30ms  4.62%  runtime.reentersyscall
+         0     0%   100%       10ms  1.54%  runtime.resetspinning
+         0     0%   100%       10ms  1.54%  runtime.saveBlockEventStack
+         0     0%   100%       10ms  1.54%  runtime.saveblockevent
+         0     0%   100%       10ms  1.54%  runtime.scanSpan
+         0     0%   100%       10ms  1.54%  runtime.schedule
+         0     0%   100%       50ms  7.69%  runtime.selectgo
+         0     0%   100%       10ms  1.54%  runtime.semacquire1
+         0     0%   100%       70ms 10.77%  runtime.send
+         0     0%   100%       70ms 10.77%  runtime.send.goready.func1
+         0     0%   100%       10ms  1.54%  runtime.slicebytetostring
+         0     0%   100%      150ms 23.08%  runtime.startm
+         0     0%   100%       10ms  1.54%  runtime.stkbucket
+         0     0%   100%      180ms 27.69%  runtime.systemstack
+         0     0%   100%       40ms  6.15%  runtime.traceAdvance
+         0     0%   100%      150ms 23.08%  runtime.wakep
+         0     0%   100%       10ms  1.54%  sync.(*Mutex).Lock (inline)
+         0     0%   100%       10ms  1.54%  sync.(*Once).Do
+         0     0%   100%       10ms  1.54%  sync.(*Once).doSlow
+         0     0%   100%      340ms 52.31%  syscall.RawSyscall6
+         0     0%   100%       30ms  4.62%  syscall.Read (inline)
+         0     0%   100%      360ms 55.38%  syscall.Syscall
+         0     0%   100%       10ms  1.54%  syscall.Syscall6
+         0     0%   100%      320ms 49.23%  syscall.Write (inline)
+         0     0%   100%       30ms  4.62%  syscall.read
+         0     0%   100%      320ms 49.23%  syscall.write
+         0     0%   100%       10ms  1.54%  testing.(*chattyPrinter).Printf
+         0     0%   100%       10ms  1.54%  testing.(*common).Cleanup.func1
+         0     0%   100%       10ms  1.54%  testing.(*common).Logf
+         0     0%   100%       10ms  1.54%  testing.(*common).log
+         0     0%   100%       10ms  1.54%  testing.(*common).runCleanup
+         0     0%   100%       10ms  1.54%  testing.(*outputWriter).Write
+         0     0%   100%       10ms  1.54%  testing.(*outputWriter).writeLine
+         0     0%   100%       20ms  3.08%  testing.tRunner
+         0     0%   100%       10ms  1.54%  testing.tRunner.func2
+         0     0%   100%       30ms  4.62%  veloxmesh/internal/admission.(*LimitAdmissionController).Admit
+         0     0%   100%       30ms  4.62%  veloxmesh/internal/admission.(*LimitAdmissionController).currentCreditBalance
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/app.(*liveTiming).dump
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/app.(*liveTimingBody).Read
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/app.TestLiveMissBurst
+         0     0%   100%      240ms 36.92%  veloxmesh/internal/app.installLiveTiming.(*liveTiming).handler.func2
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/app.liveApplication
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/app.liveRepository
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/app.liveScenario
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/app.liveScenario.func1
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/app.shipLogJSON
+         0     0%   100%       50ms  7.69%  veloxmesh/internal/cache.(*SemanticCacheService).LookupWithVector.func1
+         0     0%   100%       60ms  9.23%  veloxmesh/internal/cache.(*SemanticCacheService).StoreWrite
+         0     0%   100%       50ms  7.69%  veloxmesh/internal/cache.(*SemanticCacheService).embed
+         0     0%   100%       50ms  7.69%  veloxmesh/internal/cache.(*SemanticCacheService).lookup
+         0     0%   100%       50ms  7.69%  veloxmesh/internal/cache.(*SemanticCacheService).persist
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/cache.(*SemanticCacheService).writeVector
+         0     0%   100%       60ms  9.23%  veloxmesh/internal/cache.(*SemanticCacheService).writeWorker
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/controlstate.(*RuntimeProviderManager).SelectExcluding
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/controlstate/sqlite.(*Migrator).Migrate
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/controlstate/sqlite.(*Repository).Migrate (inline)
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/controlstate/sqlite.(*Repository).Settle
+         0     0%   100%       30ms  4.62%  veloxmesh/internal/controlstate/sqlite.(*apiKeyRepo).GetByHash
+         0     0%   100%       30ms  4.62%  veloxmesh/internal/controlstate/sqlite.(*semanticCacheRepo).Store
+         0     0%   100%      170ms 26.15%  veloxmesh/internal/gateway.(*Service).HandleChatCompletion
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/gateway.(*Service).settleCompleted
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/gateway.(*Service).settleTerminal
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/health.(*RedisStore).BeginRequest
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/health.(*RedisStore).EndRequest
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/health.(*RedisStore).RecordModelOutcome
+         0     0%   100%       70ms 10.77%  veloxmesh/internal/health.(*RedisStore).Snapshot
+         0     0%   100%       30ms  4.62%  veloxmesh/internal/health.(*RedisStore).syncToRedis
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/hotstate.(*RedisClient).GetCachedIdentity
+         0     0%   100%       70ms 10.77%  veloxmesh/internal/hotstate.(*RedisClient).GetHealthSnapshot
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/hotstate.(*RedisClient).SetBytes
+         0     0%   100%       30ms  4.62%  veloxmesh/internal/hotstate.(*RedisClient).SetHealthSnapshot
+         0     0%   100%      180ms 27.69%  veloxmesh/internal/http/handlers.(*ChatHandler).ChatCompletions
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/http/handlers.decodeChatRequest
+         0     0%   100%      200ms 30.77%  veloxmesh/internal/http/middleware.Auth.func1.1
+         0     0%   100%      240ms 36.92%  veloxmesh/internal/http/middleware.Logging.func1
+         0     0%   100%      240ms 36.92%  veloxmesh/internal/http/middleware.Recover.func1
+         0     0%   100%      240ms 36.92%  veloxmesh/internal/http/middleware.RequestID.func1
+         0     0%   100%       50ms  7.69%  veloxmesh/internal/providers/openai.(*Adapter).Embed
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/routing.(*HealthAwareRouter).SelectExcluding
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/routing.(*HealthAwareRouter).getHealthyProviders
+         0     0%   100%       20ms  3.08%  veloxmesh/internal/routing.(*HealthAwareRouter).selectProvider
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/storage.(*QdrantVectorAdapter).EnsureCollection
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/storage.(*QdrantVectorAdapter).Insert
+         0     0%   100%       10ms  1.54%  veloxmesh/internal/storage.(*QdrantVectorAdapter).Search

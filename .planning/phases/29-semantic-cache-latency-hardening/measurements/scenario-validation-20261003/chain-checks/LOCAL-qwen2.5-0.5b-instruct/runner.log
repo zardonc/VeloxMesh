@@ -1,0 +1,31 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+dependency readiness attempt=1 error=Process exited with status 2 output=PONG
+/var/run/postgresql:5432 - no response
+dependency readiness attempt=2 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=3 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=4 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=5 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=6 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=7 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=8 error=Qdrant readiness: Process exited with status 52 output=PONG
+/var/run/postgresql:5432 - accepting connections
+TestLiveModelAvailability exit: <nil>
+TestLiveCacheMissEmbeddingReuse exit: <nil>
+TestLiveEmbeddingModelSwitch exit: <nil>
+TestLiveQdrantCrossProcess exit: <nil>
+TestLiveQdrantErrorClassification exit: <nil>
+TestLiveEmbeddingNetworkDeadline exit: <nil>
+TestLiveSearchNetworkDeadline exit: <nil>
+TestLiveVectorPartialWriteRecovery exit: Process exited with status 1
+/veloxmesh-test-redis false
+/veloxmesh-test-qdrant false
+/veloxmesh-test-postgres false
+TestLiveVectorPartialWriteRecovery: Process exited with status 1

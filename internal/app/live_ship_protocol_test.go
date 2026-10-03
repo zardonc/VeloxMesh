@@ -42,6 +42,11 @@ func newLiveChain(t *testing.T) liveChain {
 		t.Skip("real components opt-in")
 	}
 	env := liveEnvironment(t)
+	return newLiveChainWithEnvironment(t, env)
+}
+
+func newLiveChainWithEnvironment(t *testing.T, env map[string]string) liveChain {
+	t.Helper()
 	repo, dsn, keyID := liveRepository(t)
 	application, token := liveApplicationWithDatabase(t, env, liveDatabase{dsn: dsn, keyID: keyID})
 	recorder := installLiveTiming(t, application, time.Now())

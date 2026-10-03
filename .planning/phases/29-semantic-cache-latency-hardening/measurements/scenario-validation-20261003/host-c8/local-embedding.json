@@ -1,0 +1,1731 @@
+{
+  "base": "http://127.0.0.1:1234/v1",
+  "embedding_model": "text-embedding-embedder_collection",
+  "chat_model": "qwen2.5-0.5b-instruct",
+  "dimension": 768,
+  "probe": {
+    "elapsed_ms": 45.339299999999994,
+    "ok": true,
+    "dimension": 768,
+    "index": 999
+  },
+  "windows": [
+    {
+      "co_load": false,
+      "concurrency": 8,
+      "elapsed_ms": 825.1926,
+      "records": [
+        {
+          "elapsed_ms": 30.908699999999996,
+          "ok": true,
+          "dimension": 768,
+          "index": 0
+        },
+        {
+          "elapsed_ms": 60.40119999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 8
+        },
+        {
+          "elapsed_ms": 63.04899999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 16
+        },
+        {
+          "elapsed_ms": 62.19470000000004,
+          "ok": true,
+          "dimension": 768,
+          "index": 24
+        },
+        {
+          "elapsed_ms": 57.992999999999995,
+          "ok": true,
+          "dimension": 768,
+          "index": 32
+        },
+        {
+          "elapsed_ms": 64.25030000000004,
+          "ok": true,
+          "dimension": 768,
+          "index": 40
+        },
+        {
+          "elapsed_ms": 67.2493,
+          "ok": true,
+          "dimension": 768,
+          "index": 48
+        },
+        {
+          "elapsed_ms": 61.474899999999934,
+          "ok": true,
+          "dimension": 768,
+          "index": 56
+        },
+        {
+          "elapsed_ms": 61.85239999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 64
+        },
+        {
+          "elapsed_ms": 72.52909999999997,
+          "ok": true,
+          "dimension": 768,
+          "index": 72
+        },
+        {
+          "elapsed_ms": 65.55579999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 80
+        },
+        {
+          "elapsed_ms": 65.60020000000009,
+          "ok": true,
+          "dimension": 768,
+          "index": 88
+        },
+        {
+          "elapsed_ms": 66.10929999999996,
+          "ok": true,
+          "dimension": 768,
+          "index": 96
+        },
+        {
+          "elapsed_ms": 38.1288,
+          "ok": true,
+          "dimension": 768,
+          "index": 1
+        },
+        {
+          "elapsed_ms": 60.7594,
+          "ok": true,
+          "dimension": 768,
+          "index": 9
+        },
+        {
+          "elapsed_ms": 61.6259,
+          "ok": true,
+          "dimension": 768,
+          "index": 17
+        },
+        {
+          "elapsed_ms": 61.97019999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 25
+        },
+        {
+          "elapsed_ms": 59.246200000000044,
+          "ok": true,
+          "dimension": 768,
+          "index": 33
+        },
+        {
+          "elapsed_ms": 66.89840000000004,
+          "ok": true,
+          "dimension": 768,
+          "index": 41
+        },
+        {
+          "elapsed_ms": 63.381399999999985,
+          "ok": true,
+          "dimension": 768,
+          "index": 49
+        },
+        {
+          "elapsed_ms": 61.211900000000014,
+          "ok": true,
+          "dimension": 768,
+          "index": 57
+        },
+        {
+          "elapsed_ms": 63.33000000000004,
+          "ok": true,
+          "dimension": 768,
+          "index": 65
+        },
+        {
+          "elapsed_ms": 73.2536,
+          "ok": true,
+          "dimension": 768,
+          "index": 73
+        },
+        {
+          "elapsed_ms": 66.57460000000003,
+          "ok": true,
+          "dimension": 768,
+          "index": 81
+        },
+        {
+          "elapsed_ms": 64.9194,
+          "ok": true,
+          "dimension": 768,
+          "index": 89
+        },
+        {
+          "elapsed_ms": 66.00119999999993,
+          "ok": true,
+          "dimension": 768,
+          "index": 97
+        },
+        {
+          "elapsed_ms": 46.39930000000001,
+          "ok": true,
+          "dimension": 768,
+          "index": 2
+        },
+        {
+          "elapsed_ms": 57.599999999999994,
+          "ok": true,
+          "dimension": 768,
+          "index": 10
+        },
+        {
+          "elapsed_ms": 65.40959999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 18
+        },
+        {
+          "elapsed_ms": 58.87329999999997,
+          "ok": true,
+          "dimension": 768,
+          "index": 26
+        },
+        {
+          "elapsed_ms": 60.504099999999994,
+          "ok": true,
+          "dimension": 768,
+          "index": 34
+        },
+        {
+          "elapsed_ms": 65.3143,
+          "ok": true,
+          "dimension": 768,
+          "index": 42
+        },
+        {
+          "elapsed_ms": 63.98480000000001,
+          "ok": true,
+          "dimension": 768,
+          "index": 50
+        },
+        {
+          "elapsed_ms": 62.71379999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 58
+        },
+        {
+          "elapsed_ms": 63.8768,
+          "ok": true,
+          "dimension": 768,
+          "index": 66
+        },
+        {
+          "elapsed_ms": 74.93919999999991,
+          "ok": true,
+          "dimension": 768,
+          "index": 74
+        },
+        {
+          "elapsed_ms": 64.5068,
+          "ok": true,
+          "dimension": 768,
+          "index": 82
+        },
+        {
+          "elapsed_ms": 65.66410000000008,
+          "ok": true,
+          "dimension": 768,
+          "index": 90
+        },
+        {
+          "elapsed_ms": 68.67039999999997,
+          "ok": true,
+          "dimension": 768,
+          "index": 98
+        },
+        {
+          "elapsed_ms": 54.77119999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 3
+        },
+        {
+          "elapsed_ms": 57.1981,
+          "ok": true,
+          "dimension": 768,
+          "index": 11
+        },
+        {
+          "elapsed_ms": 65.44149999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 19
+        },
+        {
+          "elapsed_ms": 55.9632,
+          "ok": true,
+          "dimension": 768,
+          "index": 27
+        },
+        {
+          "elapsed_ms": 61.173100000000034,
+          "ok": true,
+          "dimension": 768,
+          "index": 35
+        },
+        {
+          "elapsed_ms": 68.48940000000005,
+          "ok": true,
+          "dimension": 768,
+          "index": 43
+        },
+        {
+          "elapsed_ms": 61.24599999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 51
+        },
+        {
+          "elapsed_ms": 62.97559999999993,
+          "ok": true,
+          "dimension": 768,
+          "index": 59
+        },
+        {
+          "elapsed_ms": 66.77320000000009,
+          "ok": true,
+          "dimension": 768,
+          "index": 67
+        },
+        {
+          "elapsed_ms": 71.06119999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 75
+        },
+        {
+          "elapsed_ms": 66.42949999999996,
+          "ok": true,
+          "dimension": 768,
+          "index": 83
+        },
+        {
+          "elapsed_ms": 66.4674,
+          "ok": true,
+          "dimension": 768,
+          "index": 91
+        },
+        {
+          "elapsed_ms": 65.66290000000004,
+          "ok": true,
+          "dimension": 768,
+          "index": 99
+        },
+        {
+          "elapsed_ms": 60.50789999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 4
+        },
+        {
+          "elapsed_ms": 60.11929999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 12
+        },
+        {
+          "elapsed_ms": 64.215,
+          "ok": true,
+          "dimension": 768,
+          "index": 20
+        },
+        {
+          "elapsed_ms": 60.74939999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 28
+        },
+        {
+          "elapsed_ms": 57.77210000000002,
+          "ok": true,
+          "dimension": 768,
+          "index": 36
+        },
+        {
+          "elapsed_ms": 65.75470000000001,
+          "ok": true,
+          "dimension": 768,
+          "index": 44
+        },
+        {
+          "elapsed_ms": 62.84449999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 52
+        },
+        {
+          "elapsed_ms": 65.47229999999996,
+          "ok": true,
+          "dimension": 768,
+          "index": 60
+        },
+        {
+          "elapsed_ms": 65.54359999999997,
+          "ok": true,
+          "dimension": 768,
+          "index": 68
+        },
+        {
+          "elapsed_ms": 69.92579999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 76
+        },
+        {
+          "elapsed_ms": 66.98289999999997,
+          "ok": true,
+          "dimension": 768,
+          "index": 84
+        },
+        {
+          "elapsed_ms": 65.72120000000007,
+          "ok": true,
+          "dimension": 768,
+          "index": 92
+        },
+        {
+          "elapsed_ms": 68.1937,
+          "ok": true,
+          "dimension": 768,
+          "index": 5
+        },
+        {
+          "elapsed_ms": 59.161099999999976,
+          "ok": true,
+          "dimension": 768,
+          "index": 13
+        },
+        {
+          "elapsed_ms": 64.6312,
+          "ok": true,
+          "dimension": 768,
+          "index": 21
+        },
+        {
+          "elapsed_ms": 59.845200000000034,
+          "ok": true,
+          "dimension": 768,
+          "index": 29
+        },
+        {
+          "elapsed_ms": 61.28800000000001,
+          "ok": true,
+          "dimension": 768,
+          "index": 37
+        },
+        {
+          "elapsed_ms": 63.477300000000014,
+          "ok": true,
+          "dimension": 768,
+          "index": 45
+        },
+        {
+          "elapsed_ms": 65.95119999999997,
+          "ok": true,
+          "dimension": 768,
+          "index": 53
+        },
+        {
+          "elapsed_ms": 62.63980000000004,
+          "ok": true,
+          "dimension": 768,
+          "index": 61
+        },
+        {
+          "elapsed_ms": 67.7595,
+          "ok": true,
+          "dimension": 768,
+          "index": 69
+        },
+        {
+          "elapsed_ms": 68.4892000000001,
+          "ok": true,
+          "dimension": 768,
+          "index": 77
+        },
+        {
+          "elapsed_ms": 65.21400000000006,
+          "ok": true,
+          "dimension": 768,
+          "index": 85
+        },
+        {
+          "elapsed_ms": 67.09749999999997,
+          "ok": true,
+          "dimension": 768,
+          "index": 93
+        },
+        {
+          "elapsed_ms": 74.47939999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 6
+        },
+        {
+          "elapsed_ms": 61.55679999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 14
+        },
+        {
+          "elapsed_ms": 62.91929999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 22
+        },
+        {
+          "elapsed_ms": 59.10200000000003,
+          "ok": true,
+          "dimension": 768,
+          "index": 30
+        },
+        {
+          "elapsed_ms": 61.611699999999985,
+          "ok": true,
+          "dimension": 768,
+          "index": 38
+        },
+        {
+          "elapsed_ms": 65.53660000000002,
+          "ok": true,
+          "dimension": 768,
+          "index": 46
+        },
+        {
+          "elapsed_ms": 64.46460000000002,
+          "ok": true,
+          "dimension": 768,
+          "index": 54
+        },
+        {
+          "elapsed_ms": 63.664300000000026,
+          "ok": true,
+          "dimension": 768,
+          "index": 62
+        },
+        {
+          "elapsed_ms": 68.22730000000001,
+          "ok": true,
+          "dimension": 768,
+          "index": 70
+        },
+        {
+          "elapsed_ms": 68.9574,
+          "ok": true,
+          "dimension": 768,
+          "index": 78
+        },
+        {
+          "elapsed_ms": 64.8555,
+          "ok": true,
+          "dimension": 768,
+          "index": 86
+        },
+        {
+          "elapsed_ms": 65.5877999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 94
+        },
+        {
+          "elapsed_ms": 80.5358,
+          "ok": true,
+          "dimension": 768,
+          "index": 7
+        },
+        {
+          "elapsed_ms": 64.50709999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 15
+        },
+        {
+          "elapsed_ms": 60.224500000000006,
+          "ok": true,
+          "dimension": 768,
+          "index": 23
+        },
+        {
+          "elapsed_ms": 59.77170000000001,
+          "ok": true,
+          "dimension": 768,
+          "index": 31
+        },
+        {
+          "elapsed_ms": 63.5043,
+          "ok": true,
+          "dimension": 768,
+          "index": 39
+        },
+        {
+          "elapsed_ms": 71.2611,
+          "ok": true,
+          "dimension": 768,
+          "index": 47
+        },
+        {
+          "elapsed_ms": 58.80709999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 55
+        },
+        {
+          "elapsed_ms": 63.478399999999965,
+          "ok": true,
+          "dimension": 768,
+          "index": 63
+        },
+        {
+          "elapsed_ms": 71.90710000000001,
+          "ok": true,
+          "dimension": 768,
+          "index": 71
+        },
+        {
+          "elapsed_ms": 63.867200000000025,
+          "ok": true,
+          "dimension": 768,
+          "index": 79
+        },
+        {
+          "elapsed_ms": 65.16799999999989,
+          "ok": true,
+          "dimension": 768,
+          "index": 87
+        },
+        {
+          "elapsed_ms": 65.45210000000009,
+          "ok": true,
+          "dimension": 768,
+          "index": 95
+        }
+      ],
+      "chats": []
+    },
+    {
+      "co_load": true,
+      "concurrency": 8,
+      "elapsed_ms": 6510.7688,
+      "records": [
+        {
+          "elapsed_ms": 76.19039999999995,
+          "ok": true,
+          "dimension": 768,
+          "index": 0
+        },
+        {
+          "elapsed_ms": 76.31690000000003,
+          "ok": true,
+          "dimension": 768,
+          "index": 10
+        },
+        {
+          "elapsed_ms": 24.200099999999793,
+          "ok": true,
+          "dimension": 768,
+          "index": 18
+        },
+        {
+          "elapsed_ms": 32.44410000000016,
+          "ok": true,
+          "dimension": 768,
+          "index": 25
+        },
+        {
+          "elapsed_ms": 51.66989999999987,
+          "ok": true,
+          "dimension": 768,
+          "index": 34
+        },
+        {
+          "elapsed_ms": 28.789999999999964,
+          "ok": true,
+          "dimension": 768,
+          "index": 42
+        },
+        {
+          "elapsed_ms": 30.973399999999856,
+          "ok": true,
+          "dimension": 768,
+          "index": 49
+        },
+        {
+          "elapsed_ms": 30.52220000000034,
+          "ok": true,
+          "dimension": 768,
+          "index": 56
+        },
+        {
+          "elapsed_ms": 17.496000000000095,
+          "ok": true,
+          "dimension": 768,
+          "index": 62
+        },
+        {
+          "elapsed_ms": 22.27639999999974,
+          "ok": true,
+          "dimension": 768,
+          "index": 70
+        },
+        {
+          "elapsed_ms": 33.41280000000006,
+          "ok": true,
+          "dimension": 768,
+          "index": 81
+        },
+        {
+          "elapsed_ms": 29.526499999999942,
+          "ok": true,
+          "dimension": 768,
+          "index": 89
+        },
+        {
+          "elapsed_ms": 19.723899999999958,
+          "ok": true,
+          "dimension": 768,
+          "index": 97
+        },
+        {
+          "elapsed_ms": 83.02869999999996,
+          "ok": true,
+          "dimension": 768,
+          "index": 1
+        },
+        {
+          "elapsed_ms": 52.47210000000018,
+          "ok": true,
+          "dimension": 768,
+          "index": 8
+        },
+        {
+          "elapsed_ms": 25.366400000000112,
+          "ok": true,
+          "dimension": 768,
+          "index": 16
+        },
+        {
+          "elapsed_ms": 23.205399999999827,
+          "ok": true,
+          "dimension": 768,
+          "index": 24
+        },
+        {
+          "elapsed_ms": 46.28679999999986,
+          "ok": true,
+          "dimension": 768,
+          "index": 32
+        },
+        {
+          "elapsed_ms": 29.78150000000005,
+          "ok": true,
+          "dimension": 768,
+          "index": 40
+        },
+        {
+          "elapsed_ms": 44.431800000000294,
+          "ok": true,
+          "dimension": 768,
+          "index": 51
+        },
+        {
+          "elapsed_ms": 20.35989999999947,
+          "ok": true,
+          "dimension": 768,
+          "index": 58
+        },
+        {
+          "elapsed_ms": 21.84979999999996,
+          "ok": true,
+          "dimension": 768,
+          "index": 66
+        },
+        {
+          "elapsed_ms": 40.333699999999226,
+          "ok": true,
+          "dimension": 768,
+          "index": 74
+        },
+        {
+          "elapsed_ms": 23.029700000000048,
+          "ok": true,
+          "dimension": 768,
+          "index": 82
+        },
+        {
+          "elapsed_ms": 28.086199999999735,
+          "ok": true,
+          "dimension": 768,
+          "index": 90
+        },
+        {
+          "elapsed_ms": 75.34929999999986,
+          "ok": true,
+          "dimension": 768,
+          "index": 98
+        },
+        {
+          "elapsed_ms": 92.94530000000009,
+          "ok": true,
+          "dimension": 768,
+          "index": 2
+        },
+        {
+          "elapsed_ms": 82.25019999999995,
+          "ok": true,
+          "dimension": 768,
+          "index": 11
+        },
+        {
+          "elapsed_ms": 31.38760000000002,
+          "ok": true,
+          "dimension": 768,
+          "index": 19
+        },
+        {
+          "elapsed_ms": 28.118199999999888,
+          "ok": true,
+          "dimension": 768,
+          "index": 27
+        },
+        {
+          "elapsed_ms": 29.9087999999997,
+          "ok": true,
+          "dimension": 768,
+          "index": 35
+        },
+        {
+          "elapsed_ms": 27.111699999999928,
+          "ok": true,
+          "dimension": 768,
+          "index": 43
+        },
+        {
+          "elapsed_ms": 23.76780000000008,
+          "ok": true,
+          "dimension": 768,
+          "index": 50
+        },
+        {
+          "elapsed_ms": 25.430199999999786,
+          "ok": true,
+          "dimension": 768,
+          "index": 61
+        },
+        {
+          "elapsed_ms": 28.96520000000055,
+          "ok": true,
+          "dimension": 768,
+          "index": 69
+        },
+        {
+          "elapsed_ms": 21.285899999999856,
+          "ok": true,
+          "dimension": 768,
+          "index": 77
+        },
+        {
+          "elapsed_ms": 23.339200000000346,
+          "ok": true,
+          "dimension": 768,
+          "index": 85
+        },
+        {
+          "elapsed_ms": 88.99699999999939,
+          "ok": true,
+          "dimension": 768,
+          "index": 94
+        },
+        {
+          "elapsed_ms": 101.49610000000007,
+          "ok": true,
+          "dimension": 768,
+          "index": 3
+        },
+        {
+          "elapsed_ms": 63.146200000000135,
+          "ok": true,
+          "dimension": 768,
+          "index": 9
+        },
+        {
+          "elapsed_ms": 26.644700000000057,
+          "ok": true,
+          "dimension": 768,
+          "index": 17
+        },
+        {
+          "elapsed_ms": 26.712099999999737,
+          "ok": true,
+          "dimension": 768,
+          "index": 26
+        },
+        {
+          "elapsed_ms": 47.92899999999963,
+          "ok": true,
+          "dimension": 768,
+          "index": 33
+        },
+        {
+          "elapsed_ms": 28.193899999999758,
+          "ok": true,
+          "dimension": 768,
+          "index": 41
+        },
+        {
+          "elapsed_ms": 50.12989999999991,
+          "ok": true,
+          "dimension": 768,
+          "index": 48
+        },
+        {
+          "elapsed_ms": 26.846800000000258,
+          "ok": true,
+          "dimension": 768,
+          "index": 57
+        },
+        {
+          "elapsed_ms": 30.638100000000122,
+          "ok": true,
+          "dimension": 768,
+          "index": 64
+        },
+        {
+          "elapsed_ms": 63.40149999999994,
+          "ok": true,
+          "dimension": 768,
+          "index": 73
+        },
+        {
+          "elapsed_ms": 28.5037999999995,
+          "ok": true,
+          "dimension": 768,
+          "index": 80
+        },
+        {
+          "elapsed_ms": 18.84060000000045,
+          "ok": true,
+          "dimension": 768,
+          "index": 88
+        },
+        {
+          "elapsed_ms": 33.712000000000444,
+          "ok": true,
+          "dimension": 768,
+          "index": 96
+        },
+        {
+          "elapsed_ms": 111.38959999999997,
+          "ok": true,
+          "dimension": 768,
+          "index": 4
+        },
+        {
+          "elapsed_ms": 72.25189999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 12
+        },
+        {
+          "elapsed_ms": 43.42059999999992,
+          "ok": true,
+          "dimension": 768,
+          "index": 20
+        },
+        {
+          "elapsed_ms": 31.779399999999896,
+          "ok": true,
+          "dimension": 768,
+          "index": 28
+        },
+        {
+          "elapsed_ms": 18.5940999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 36
+        },
+        {
+          "elapsed_ms": 26.44329999999991,
+          "ok": true,
+          "dimension": 768,
+          "index": 45
+        },
+        {
+          "elapsed_ms": 24.671499999999924,
+          "ok": true,
+          "dimension": 768,
+          "index": 53
+        },
+        {
+          "elapsed_ms": 28.157499999999345,
+          "ok": true,
+          "dimension": 768,
+          "index": 59
+        },
+        {
+          "elapsed_ms": 68.59910000000036,
+          "ok": true,
+          "dimension": 768,
+          "index": 67
+        },
+        {
+          "elapsed_ms": 29.696500000000015,
+          "ok": true,
+          "dimension": 768,
+          "index": 75
+        },
+        {
+          "elapsed_ms": 22.330699999999524,
+          "ok": true,
+          "dimension": 768,
+          "index": 83
+        },
+        {
+          "elapsed_ms": 27.725399999999354,
+          "ok": true,
+          "dimension": 768,
+          "index": 91
+        },
+        {
+          "elapsed_ms": 77.1882999999998,
+          "ok": true,
+          "dimension": 768,
+          "index": 99
+        },
+        {
+          "elapsed_ms": 118.06669999999997,
+          "ok": true,
+          "dimension": 768,
+          "index": 5
+        },
+        {
+          "elapsed_ms": 80.46629999999982,
+          "ok": true,
+          "dimension": 768,
+          "index": 13
+        },
+        {
+          "elapsed_ms": 39.98250000000007,
+          "ok": true,
+          "dimension": 768,
+          "index": 21
+        },
+        {
+          "elapsed_ms": 33.80529999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 29
+        },
+        {
+          "elapsed_ms": 33.215799999999945,
+          "ok": true,
+          "dimension": 768,
+          "index": 37
+        },
+        {
+          "elapsed_ms": 26.684499999999844,
+          "ok": true,
+          "dimension": 768,
+          "index": 44
+        },
+        {
+          "elapsed_ms": 23.489900000000034,
+          "ok": true,
+          "dimension": 768,
+          "index": 52
+        },
+        {
+          "elapsed_ms": 28.09350000000086,
+          "ok": true,
+          "dimension": 768,
+          "index": 60
+        },
+        {
+          "elapsed_ms": 26.310600000000704,
+          "ok": true,
+          "dimension": 768,
+          "index": 68
+        },
+        {
+          "elapsed_ms": 31.77220000000034,
+          "ok": true,
+          "dimension": 768,
+          "index": 76
+        },
+        {
+          "elapsed_ms": 30.988500000000386,
+          "ok": true,
+          "dimension": 768,
+          "index": 84
+        },
+        {
+          "elapsed_ms": 54.5604000000003,
+          "ok": true,
+          "dimension": 768,
+          "index": 92
+        },
+        {
+          "elapsed_ms": 126.31770000000006,
+          "ok": true,
+          "dimension": 768,
+          "index": 6
+        },
+        {
+          "elapsed_ms": 89.70949999999993,
+          "ok": true,
+          "dimension": 768,
+          "index": 14
+        },
+        {
+          "elapsed_ms": 23.70790000000011,
+          "ok": true,
+          "dimension": 768,
+          "index": 22
+        },
+        {
+          "elapsed_ms": 27.69890000000032,
+          "ok": true,
+          "dimension": 768,
+          "index": 30
+        },
+        {
+          "elapsed_ms": 31.271999999999935,
+          "ok": true,
+          "dimension": 768,
+          "index": 38
+        },
+        {
+          "elapsed_ms": 29.979699999999866,
+          "ok": true,
+          "dimension": 768,
+          "index": 46
+        },
+        {
+          "elapsed_ms": 24.93199999999979,
+          "ok": true,
+          "dimension": 768,
+          "index": 54
+        },
+        {
+          "elapsed_ms": 27.394000000000233,
+          "ok": true,
+          "dimension": 768,
+          "index": 65
+        },
+        {
+          "elapsed_ms": 76.30519999999979,
+          "ok": true,
+          "dimension": 768,
+          "index": 72
+        },
+        {
+          "elapsed_ms": 22.69250000000011,
+          "ok": true,
+          "dimension": 768,
+          "index": 78
+        },
+        {
+          "elapsed_ms": 23.400700000000143,
+          "ok": true,
+          "dimension": 768,
+          "index": 86
+        },
+        {
+          "elapsed_ms": 99.95469999999932,
+          "ok": true,
+          "dimension": 768,
+          "index": 93
+        },
+        {
+          "elapsed_ms": 134.8721999999999,
+          "ok": true,
+          "dimension": 768,
+          "index": 7
+        },
+        {
+          "elapsed_ms": 93.97479999999996,
+          "ok": true,
+          "dimension": 768,
+          "index": 15
+        },
+        {
+          "elapsed_ms": 22.964300000000094,
+          "ok": true,
+          "dimension": 768,
+          "index": 23
+        },
+        {
+          "elapsed_ms": 25.307200000000194,
+          "ok": true,
+          "dimension": 768,
+          "index": 31
+        },
+        {
+          "elapsed_ms": 39.684600000000046,
+          "ok": true,
+          "dimension": 768,
+          "index": 39
+        },
+        {
+          "elapsed_ms": 26.371700000000146,
+          "ok": true,
+          "dimension": 768,
+          "index": 47
+        },
+        {
+          "elapsed_ms": 30.002899999999954,
+          "ok": true,
+          "dimension": 768,
+          "index": 55
+        },
+        {
+          "elapsed_ms": 24.738099999999577,
+          "ok": true,
+          "dimension": 768,
+          "index": 63
+        },
+        {
+          "elapsed_ms": 74.27530000000024,
+          "ok": true,
+          "dimension": 768,
+          "index": 71
+        },
+        {
+          "elapsed_ms": 40.45770000000084,
+          "ok": true,
+          "dimension": 768,
+          "index": 79
+        },
+        {
+          "elapsed_ms": 18.582300000000032,
+          "ok": true,
+          "dimension": 768,
+          "index": 87
+        },
+        {
+          "elapsed_ms": 92.88520000000062,
+          "ok": true,
+          "dimension": 768,
+          "index": 95
+        }
+      ],
+      "chats": [
+        {
+          "elapsed_ms": 283.3731999999999,
+          "ok": true,
+          "index": 0
+        },
+        {
+          "elapsed_ms": 466.0583999999999,
+          "ok": true,
+          "index": 10
+        },
+        {
+          "elapsed_ms": 513.3625999999999,
+          "ok": true,
+          "index": 18
+        },
+        {
+          "elapsed_ms": 488.4020999999998,
+          "ok": true,
+          "index": 25
+        },
+        {
+          "elapsed_ms": 601.3109,
+          "ok": true,
+          "index": 34
+        },
+        {
+          "elapsed_ms": 454.61770000000024,
+          "ok": true,
+          "index": 42
+        },
+        {
+          "elapsed_ms": 488.38859999999977,
+          "ok": true,
+          "index": 49
+        },
+        {
+          "elapsed_ms": 461.1995999999999,
+          "ok": true,
+          "index": 56
+        },
+        {
+          "elapsed_ms": 506.7566999999999,
+          "ok": true,
+          "index": 62
+        },
+        {
+          "elapsed_ms": 717.6253999999999,
+          "ok": true,
+          "index": 70
+        },
+        {
+          "elapsed_ms": 478.65920000000006,
+          "ok": true,
+          "index": 81
+        },
+        {
+          "elapsed_ms": 530.0060000000003,
+          "ok": true,
+          "index": 89
+        },
+        {
+          "elapsed_ms": 426.6938,
+          "ok": true,
+          "index": 97
+        },
+        {
+          "elapsed_ms": 275.3635999999999,
+          "ok": true,
+          "index": 1
+        },
+        {
+          "elapsed_ms": 408.0911000000001,
+          "ok": true,
+          "index": 8
+        },
+        {
+          "elapsed_ms": 544.8726999999999,
+          "ok": true,
+          "index": 16
+        },
+        {
+          "elapsed_ms": 507.94659999999976,
+          "ok": true,
+          "index": 24
+        },
+        {
+          "elapsed_ms": 505.54800000000023,
+          "ok": true,
+          "index": 32
+        },
+        {
+          "elapsed_ms": 694.9143999999997,
+          "ok": true,
+          "index": 40
+        },
+        {
+          "elapsed_ms": 492.50710000000026,
+          "ok": true,
+          "index": 51
+        },
+        {
+          "elapsed_ms": 562.8233999999993,
+          "ok": true,
+          "index": 58
+        },
+        {
+          "elapsed_ms": 540.5317999999997,
+          "ok": true,
+          "index": 66
+        },
+        {
+          "elapsed_ms": 466.0019000000002,
+          "ok": true,
+          "index": 74
+        },
+        {
+          "elapsed_ms": 565.0954999999994,
+          "ok": true,
+          "index": 82
+        },
+        {
+          "elapsed_ms": 500.0034999999998,
+          "ok": true,
+          "index": 90
+        },
+        {
+          "elapsed_ms": 406.5459000000001,
+          "ok": true,
+          "index": 98
+        },
+        {
+          "elapsed_ms": 286.8181000000001,
+          "ok": true,
+          "index": 2
+        },
+        {
+          "elapsed_ms": 498.12030000000004,
+          "ok": true,
+          "index": 11
+        },
+        {
+          "elapsed_ms": 535.1848000000002,
+          "ok": true,
+          "index": 19
+        },
+        {
+          "elapsed_ms": 559.4823000000001,
+          "ok": true,
+          "index": 27
+        },
+        {
+          "elapsed_ms": 522.0699999999997,
+          "ok": true,
+          "index": 35
+        },
+        {
+          "elapsed_ms": 473.0909999999999,
+          "ok": true,
+          "index": 43
+        },
+        {
+          "elapsed_ms": 779.6108000000004,
+          "ok": true,
+          "index": 50
+        },
+        {
+          "elapsed_ms": 485.6267000000007,
+          "ok": true,
+          "index": 61
+        },
+        {
+          "elapsed_ms": 545.3453,
+          "ok": true,
+          "index": 69
+        },
+        {
+          "elapsed_ms": 541.4542999999994,
+          "ok": true,
+          "index": 77
+        },
+        {
+          "elapsed_ms": 554.9053000000004,
+          "ok": true,
+          "index": 85
+        },
+        {
+          "elapsed_ms": 505.4295999999995,
+          "ok": true,
+          "index": 94
+        },
+        {
+          "elapsed_ms": 278.8832000000001,
+          "ok": true,
+          "index": 3
+        },
+        {
+          "elapsed_ms": 433.0745999999999,
+          "ok": true,
+          "index": 9
+        },
+        {
+          "elapsed_ms": 586.7617999999998,
+          "ok": true,
+          "index": 17
+        },
+        {
+          "elapsed_ms": 447.03899999999976,
+          "ok": true,
+          "index": 26
+        },
+        {
+          "elapsed_ms": 501.9475000000002,
+          "ok": true,
+          "index": 33
+        },
+        {
+          "elapsed_ms": 504.50220000000036,
+          "ok": true,
+          "index": 41
+        },
+        {
+          "elapsed_ms": 570.0354000000002,
+          "ok": true,
+          "index": 48
+        },
+        {
+          "elapsed_ms": 522.8491999999997,
+          "ok": true,
+          "index": 57
+        },
+        {
+          "elapsed_ms": 534.1778999999997,
+          "ok": true,
+          "index": 64
+        },
+        {
+          "elapsed_ms": 534.5409999999993,
+          "ok": true,
+          "index": 73
+        },
+        {
+          "elapsed_ms": 517.7930999999999,
+          "ok": true,
+          "index": 80
+        },
+        {
+          "elapsed_ms": 536.1468999999997,
+          "ok": true,
+          "index": 88
+        },
+        {
+          "elapsed_ms": 442.6959999999999,
+          "ok": true,
+          "index": 96
+        },
+        {
+          "elapsed_ms": 474.595,
+          "ok": true,
+          "index": 4
+        },
+        {
+          "elapsed_ms": 466.6263999999999,
+          "ok": true,
+          "index": 12
+        },
+        {
+          "elapsed_ms": 510.0829000000001,
+          "ok": true,
+          "index": 20
+        },
+        {
+          "elapsed_ms": 539.5449999999996,
+          "ok": true,
+          "index": 28
+        },
+        {
+          "elapsed_ms": 544.9712999999997,
+          "ok": true,
+          "index": 36
+        },
+        {
+          "elapsed_ms": 536.1356000000001,
+          "ok": true,
+          "index": 45
+        },
+        {
+          "elapsed_ms": 463.0168999999996,
+          "ok": true,
+          "index": 53
+        },
+        {
+          "elapsed_ms": 532.0358999999999,
+          "ok": true,
+          "index": 59
+        },
+        {
+          "elapsed_ms": 527.3109999999997,
+          "ok": true,
+          "index": 67
+        },
+        {
+          "elapsed_ms": 499.53160000000025,
+          "ok": true,
+          "index": 75
+        },
+        {
+          "elapsed_ms": 508.1723000000002,
+          "ok": true,
+          "index": 83
+        },
+        {
+          "elapsed_ms": 465.51800000000003,
+          "ok": true,
+          "index": 91
+        },
+        {
+          "elapsed_ms": 441.83809999999994,
+          "ok": true,
+          "index": 99
+        },
+        {
+          "elapsed_ms": 479.42320000000007,
+          "ok": true,
+          "index": 5
+        },
+        {
+          "elapsed_ms": 499.19759999999997,
+          "ok": true,
+          "index": 13
+        },
+        {
+          "elapsed_ms": 479.6770999999999,
+          "ok": true,
+          "index": 21
+        },
+        {
+          "elapsed_ms": 583.6282000000001,
+          "ok": true,
+          "index": 29
+        },
+        {
+          "elapsed_ms": 427.6113999999998,
+          "ok": true,
+          "index": 37
+        },
+        {
+          "elapsed_ms": 551.0494999999996,
+          "ok": true,
+          "index": 44
+        },
+        {
+          "elapsed_ms": 519.1331,
+          "ok": true,
+          "index": 52
+        },
+        {
+          "elapsed_ms": 578.3977999999997,
+          "ok": true,
+          "index": 60
+        },
+        {
+          "elapsed_ms": 480.4232000000002,
+          "ok": true,
+          "index": 68
+        },
+        {
+          "elapsed_ms": 550.9617000000007,
+          "ok": true,
+          "index": 76
+        },
+        {
+          "elapsed_ms": 587.1878999999999,
+          "ok": true,
+          "index": 84
+        },
+        {
+          "elapsed_ms": 455.47720000000027,
+          "ok": true,
+          "index": 92
+        },
+        {
+          "elapsed_ms": 483.03110000000015,
+          "ok": true,
+          "index": 6
+        },
+        {
+          "elapsed_ms": 554.0065999999999,
+          "ok": true,
+          "index": 14
+        },
+        {
+          "elapsed_ms": 461.4378999999997,
+          "ok": true,
+          "index": 22
+        },
+        {
+          "elapsed_ms": 560.5829000000003,
+          "ok": true,
+          "index": 30
+        },
+        {
+          "elapsed_ms": 510.1388999999999,
+          "ok": true,
+          "index": 38
+        },
+        {
+          "elapsed_ms": 570.0561000000002,
+          "ok": true,
+          "index": 46
+        },
+        {
+          "elapsed_ms": 715.7628999999997,
+          "ok": true,
+          "index": 54
+        },
+        {
+          "elapsed_ms": 500.5731999999998,
+          "ok": true,
+          "index": 65
+        },
+        {
+          "elapsed_ms": 439.1854000000003,
+          "ok": true,
+          "index": 72
+        },
+        {
+          "elapsed_ms": 481.0799999999999,
+          "ok": true,
+          "index": 78
+        },
+        {
+          "elapsed_ms": 481.04299999999967,
+          "ok": true,
+          "index": 86
+        },
+        {
+          "elapsed_ms": 434.4992999999995,
+          "ok": true,
+          "index": 93
+        },
+        {
+          "elapsed_ms": 487.32579999999996,
+          "ok": true,
+          "index": 7
+        },
+        {
+          "elapsed_ms": 594.8069999999998,
+          "ok": true,
+          "index": 15
+        },
+        {
+          "elapsed_ms": 531.0708,
+          "ok": true,
+          "index": 23
+        },
+        {
+          "elapsed_ms": 523.3141,
+          "ok": true,
+          "index": 31
+        },
+        {
+          "elapsed_ms": 473.3544999999999,
+          "ok": true,
+          "index": 39
+        },
+        {
+          "elapsed_ms": 558.1659,
+          "ok": true,
+          "index": 47
+        },
+        {
+          "elapsed_ms": 658.8574000000003,
+          "ok": true,
+          "index": 55
+        },
+        {
+          "elapsed_ms": 518.3820000000005,
+          "ok": true,
+          "index": 63
+        },
+        {
+          "elapsed_ms": 476.16269999999986,
+          "ok": true,
+          "index": 71
+        },
+        {
+          "elapsed_ms": 517.3694999999998,
+          "ok": true,
+          "index": 79
+        },
+        {
+          "elapsed_ms": 445.5046999999995,
+          "ok": true,
+          "index": 87
+        },
+        {
+          "elapsed_ms": 507.0758000000005,
+          "ok": true,
+          "index": 95
+        }
+      ]
+    }
+  ]
+}

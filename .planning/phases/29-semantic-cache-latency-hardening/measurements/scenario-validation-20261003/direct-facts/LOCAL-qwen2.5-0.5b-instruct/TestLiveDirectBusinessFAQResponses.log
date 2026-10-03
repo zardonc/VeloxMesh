@@ -1,0 +1,7 @@
+=== RUN   TestLiveDirectBusinessFAQResponses
+    live_business_faq_test.go:115: SAMPLE {"answer":"The free trial lasts for 14 days.","correct":true,"index":0,"model":"qwen2.5-0.5b-instruct","type":"direct_business_faq"}
+    live_business_faq_test.go:115: SAMPLE {"answer":"Refunds are allowed within 7 days of cancellation.","correct":true,"index":1,"model":"qwen2.5-0.5b-instruct","type":"direct_business_faq"}
+    live_business_faq_test.go:115: SAMPLE {"answer":"Paid access ends 7 days after a cancellation.","correct":false,"index":2,"model":"qwen2.5-0.5b-instruct","type":"direct_business_faq"}
+    live_business_faq_test.go:117: direct model business fact mismatch: question=When does paid access end after cancellation? answer=Paid access ends 7 days after a cancellation.
+--- FAIL: TestLiveDirectBusinessFAQResponses (0.60s)
+FAIL

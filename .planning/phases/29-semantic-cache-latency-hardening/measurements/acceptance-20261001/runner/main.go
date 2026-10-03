@@ -345,6 +345,9 @@ func (r *runner) liveChecks() error {
 }
 
 func (r *runner) liveTest(test string) error {
+	if err := r.captureTelemetry(test, "before"); err != nil {
+		return err
+	}
 	session, err := r.client.NewSession()
 	if err != nil {
 		return err
@@ -357,7 +360,7 @@ func (r *runner) liveTest(test string) error {
 	for _, key := range []string{"PHASE29_EMBEDDING_API_KEY", "PHASE29_EMBEDDING_BASE_URL", "PHASE29_READ_TIMEOUT", "PHASE29_READ_CONCURRENCY", "PHASE29_WRITE_WORKERS", "PHASE29_QUEUE_CAPACITY", "PHASE29_WRITE_TIMEOUT", "PHASE29_SHUTDOWN_GRACE"} {
 		input[key] = os.Getenv(key)
 	}
-	for _, key := range []string{"PHASE29_COUNT", "PHASE29_INTERVAL_MS", "PHASE29_CLIENT_CONCURRENCY", "PHASE29_EXTRA_PROVIDERS", "PHASE29_MIXED_MODELS", "OR_PRIMARY_API_KEY"} {
+	for _, key := range []string{"PHASE29_COUNT", "PHASE29_INTERVAL_MS", "PHASE29_CLIENT_CONCURRENCY", "PHASE29_EXTRA_PROVIDERS", "PHASE29_MIXED_MODELS", "OR_PRIMARY_API_KEY", "PHASE29_SECOND_EMBEDDING_MODEL", "PHASE29_EMBEDDING_PARALLEL_WARMUP"} {
 		input[key] = os.Getenv(key)
 	}
 	payload, err := json.Marshal(input)
@@ -369,6 +372,13 @@ func (r *runner) liveTest(test string) error {
 	command := "PHASE29_MODEL='" + model + "' timeout --signal=TERM --kill-after=2s 60s " + remoteBinary + " -test.run '^" + test + "$' -test.timeout 60s -test.v"
 	command += profileFlags(test)
 	output, err := session.CombinedOutput(command)
+	return r.finishLiveTest(test, output, err)
+}
+
+func (r *runner) finishLiveTest(test string, output []byte, err error) error {
+	if telemetryErr := r.captureTelemetry(test, "after"); telemetryErr != nil {
+		err = errors.Join(err, telemetryErr)
+	}
 	if saveErr := r.save(test+".log", output); saveErr != nil {
 		return saveErr
 	}

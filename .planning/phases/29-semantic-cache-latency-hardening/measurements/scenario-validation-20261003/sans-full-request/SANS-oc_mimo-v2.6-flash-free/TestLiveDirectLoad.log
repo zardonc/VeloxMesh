@@ -1,0 +1,15 @@
+=== RUN   TestLiveDirectLoad
+    live_diagnostic_test.go:128: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"oc/mimo-v2.6-flash-free","index":999,"start_ms":0.13,"elapsed_ms":12001.666,"status":0,"ok":false,"hit":false,"concurrent":0,"error":"transport_error: Post \"https://sans.282643.xyz/v1/chat/completions\": context deadline exceeded","planned_ms":0},"type":"warmup"}
+    live_diagnostic_test.go:130: direct upstream warmup failed
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/get_connection","start_ms":0.258,"elapsed_ms":0.033}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/dns_start","start_ms":0.258,"elapsed_ms":0.081}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/dns_done","start_ms":0.258,"elapsed_ms":90.153}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/connect_start","start_ms":0.258,"elapsed_ms":90.249}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/connect_done","start_ms":0.258,"elapsed_ms":119.264}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/tls_start","start_ms":0.258,"elapsed_ms":119.305}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/tls_done","start_ms":0.258,"elapsed_ms":227.782}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/got_connection_new","start_ms":0.258,"elapsed_ms":227.966}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/request_written","start_ms":0.258,"elapsed_ms":228.027}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"upstream_headers","start_ms":0.258,"elapsed_ms":12001.469}
+--- FAIL: TestLiveDirectLoad (12.00s)
+FAIL

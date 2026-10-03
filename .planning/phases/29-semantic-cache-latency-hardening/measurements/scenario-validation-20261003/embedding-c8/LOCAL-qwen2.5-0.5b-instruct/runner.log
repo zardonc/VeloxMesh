@@ -1,0 +1,19 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+dependency readiness attempt=1 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=2 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=3 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=4 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=5 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=6 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+TestLiveEmbeddingStress exit: <nil>
+/veloxmesh-test-redis false
+/veloxmesh-test-qdrant false
+/veloxmesh-test-postgres false

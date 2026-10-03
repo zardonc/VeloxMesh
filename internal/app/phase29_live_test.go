@@ -158,7 +158,7 @@ func liveApplicationWithDatabase(t *testing.T, env map[string]string, database l
 	t.Setenv("CONTROL_STATE_LOCAL_SEED_ENABLED", "true")
 	t.Setenv("CONTROL_STATE_ENCRYPTION_KEY", livePostgresTestEncryptionKey)
 	t.Setenv("REDIS_ENABLED", "true")
-	t.Setenv("REDIS_ADDR", "127.0.0.1:6379")
+	t.Setenv("REDIS_ADDR", liveRedisAddress())
 	t.Setenv("REDIS_PASSWORD", "")
 	t.Setenv("SCHEDULER_ENABLED", "false")
 	t.Setenv("REDIS_NAMESPACE", "phase29-"+database.keyID)
@@ -175,6 +175,13 @@ func liveApplicationWithDatabase(t *testing.T, env map[string]string, database l
 	}
 	t.Logf("model=%s dimension=%d primary=%s", model, cacheConfig.VectorDimension, env["SANS_PRIMARY_DEFAULT_MODEL"])
 	return application, database.keyID
+}
+
+func liveRedisAddress() string {
+	if address := os.Getenv("PHASE29_REDIS_ADDR"); address != "" {
+		return address
+	}
+	return "127.0.0.1:6379"
 }
 
 func liveProviders(t *testing.T, env map[string]string, embedding config.ProviderConfig) []config.ProviderConfig {
@@ -223,6 +230,12 @@ func liveCacheConfig(t *testing.T, env map[string]string, inputs liveCacheInputs
 		system = liveFAQSystem
 	}
 	cacheConfig := config.CacheConfig{Enabled: os.Getenv("PHASE29_MODE") != "off", Provider: "phase29-embedding", EmbeddingModel: os.Getenv("PHASE29_MODEL"), VectorStore: "qdrant", VectorDimension: inputs.dimension, TTL: "1h", Threshold: 0.99999, MaxCandidates: 10, Qdrant: config.QdrantConfig{Addr: "127.0.0.1:6334", APIKey: os.Getenv("QDRANT_API_KEY")}, UseCases: []config.CacheUseCaseConfig{{APIKeyIDs: []string{inputs.database.keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: version, TargetModel: env["SANS_PRIMARY_DEFAULT_MODEL"], SystemPrompt: system}}}
+	if addr := os.Getenv("PHASE29_QDRANT_ADDR"); addr != "" {
+		cacheConfig.Qdrant.Addr = addr
+	}
+	if dimension := liveInteger(t, "PHASE29_VECTOR_DIMENSION"); dimension > 0 {
+		cacheConfig.VectorDimension = dimension
+	}
 	if threshold := os.Getenv("PHASE29_THRESHOLD"); threshold != "" {
 		value, err := strconv.ParseFloat(threshold, 32)
 		if err != nil {
