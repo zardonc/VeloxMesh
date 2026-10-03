@@ -1,0 +1,9 @@
+=== RUN   TestLiveModelAvailability
+{"time":"2026-10-03T19:14:13.955187452Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=stealth/space-bunny-alpha
+{"time":"2026-10-03T19:14:15.075849115Z","level":"INFO","msg":"request completed","request_id":"3371bbde7a4dd78a54692452c3d96834","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1117}
+    live_diagnostic_test.go:38: usage_rows_all=1 usage_rows_key=1
+    live_diagnostic_test.go:38: settled_records=1 total_tokens=162 credits=162 exactly_once=true
+    live_diagnostic_test.go:39: SAMPLE {"elapsed_ms":1140.689,"model":"stealth/space-bunny-alpha","type":"availability","usage":{"prompt_tokens":160,"completion_tokens":2,"total_tokens":162}}
+--- PASS: TestLiveModelAvailability (1.30s)
+PASS

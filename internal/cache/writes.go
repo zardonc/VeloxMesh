@@ -3,11 +3,14 @@ package cache
 import (
 	"context"
 	"time"
+
+	"veloxmesh/internal/observability"
 )
 
 type CacheWrite struct {
 	ID, Scope, Model, Text, Response string
 	UsageID                          *string
+	queuedAt                         time.Time
 }
 
 func (s *SemanticCacheService) startWorkers() {
@@ -20,6 +23,8 @@ func (s *SemanticCacheService) startWorkers() {
 }
 
 func (s *SemanticCacheService) Enqueue(write CacheWrite) bool {
+	defer observability.Stage(observability.WithTimingID(context.Background(), write.ID), "write_enqueue")()
+	write.queuedAt = time.Now()
 	if !s.config.Enabled {
 		return false
 	}
@@ -51,6 +56,8 @@ func (s *SemanticCacheService) writeWorker() {
 			continue
 		}
 		ctx, cancel := context.WithTimeout(s.writeCtx, s.config.WriteTimeout)
+		ctx = observability.WithTimingID(ctx, write.ID)
+		observeQueueWait(write.ID, write.queuedAt)
 		err := s.Store(ctx, write.ID, write.Scope, write.Model, write.Text, write.Response, write.UsageID)
 		if ctx.Err() == context.Canceled {
 			recordCacheOutcome("store", "shutdown_cancelled")
@@ -60,6 +67,14 @@ func (s *SemanticCacheService) writeWorker() {
 			recordCacheOutcome("store", "stored")
 		}
 		cancel()
+	}
+}
+
+func observeQueueWait(id string, queuedAt time.Time) {
+	if observer, ok := observability.DefaultMetrics.(interface {
+		RecordStage(observability.StageMeasurement)
+	}); ok {
+		observer.RecordStage(observability.StageMeasurement{ID: id, Name: "write_queue_wait", Started: queuedAt, Elapsed: time.Since(queuedAt)})
 	}
 }
 

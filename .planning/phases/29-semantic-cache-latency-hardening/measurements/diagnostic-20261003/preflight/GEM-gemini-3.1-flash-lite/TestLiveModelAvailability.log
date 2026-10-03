@@ -1,0 +1,7 @@
+=== RUN   TestLiveModelAvailability
+{"time":"2026-10-03T19:16:28.657898394Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+    live_diagnostic_test.go:29: Post "http://127.0.0.1:37301/v1/chat/completions": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+{"time":"2026-10-03T19:16:40.661872444Z","level":"INFO","msg":"request completed","request_id":"df73c33bd18d201f1a937105364305cc","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":12002}
+--- FAIL: TestLiveModelAvailability (12.15s)
+FAIL

@@ -1,0 +1,17 @@
+=== RUN   TestLiveToolAuto
+{"time":"2026-10-03T19:31:00.589654715Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:00.623927295Z","level":"WARN","msg":"Unable to get server version, use default","err":"rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\"","default":"Unknown"}
+{"time":"2026-10-03T19:31:00.624700282Z","level":"WARN","msg":"Failed to obtain server version. Unable to check client-server compatibility. Set SkipCompatibilityCheck=true to skip version check."}
+{"time":"2026-10-03T19:31:00.624721832Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:00.625238135Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:00.625761511Z","level":"WARN","msg":"failed to initialize Qdrant; evaluating fallback","error":"failed to connect to qdrant: HealthCheck() failed: rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\""}
+{"time":"2026-10-03T19:31:00.630716285Z","level":"INFO","msg":"activated Redis VSS fallback for vector store"}
+{"time":"2026-10-03T19:31:00.635409348Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:297: model=text-embedding-embedder_collection dimension=768 primary=gpt-6-luna
+{"time":"2026-10-03T19:31:03.604464166Z","level":"INFO","msg":"request completed","request_id":"c0cad4fdfe22f3d0935650ae7ea8452a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2962}
+{"time":"2026-10-03T19:31:05.546391101Z","level":"INFO","msg":"request completed","request_id":"49d8dc19e63aa89fc498f5e120a36333","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1941}
+    live_ship_protocol_test.go:297: usage_rows_all=2 usage_rows_key=2
+    live_ship_protocol_test.go:297: settled_records=2 total_tokens=237 credits=237 exactly_once=true
+    live_ship_protocol_test.go:297: real model -> tool arguments -> client calculation -> tool_call_id continuation -> final answer passed
+--- PASS: TestLiveToolAuto (5.27s)
+PASS

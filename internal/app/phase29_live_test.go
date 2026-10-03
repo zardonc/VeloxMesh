@@ -20,6 +20,8 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/grpc/status"
+
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/controlstate/sqlite"
@@ -40,6 +42,7 @@ type liveSample struct {
 	Hit        bool    `json:"hit,omitempty"`
 	Concurrent int64   `json:"concurrent,omitempty"`
 	AnswerHash string  `json:"answer_hash,omitempty"`
+	Error      string  `json:"error,omitempty"`
 }
 
 type liveRecorder struct {
@@ -50,7 +53,11 @@ type liveRecorder struct {
 }
 
 func (r *liveRecorder) RecordCacheOperation(name string, elapsed time.Duration, err error) {
-	r.add(liveSample{Type: "operation", Name: name, ElapsedMS: float64(elapsed.Microseconds()) / 1000, StartMS: float64(time.Since(r.started).Microseconds())/1000 - float64(elapsed.Microseconds())/1000, OK: err == nil})
+	category := ""
+	if err != nil {
+		category = status.Code(err).String()
+	}
+	r.add(liveSample{Type: "operation", Name: name, ElapsedMS: float64(elapsed.Microseconds()) / 1000, StartMS: float64(time.Since(r.started).Microseconds())/1000 - float64(elapsed.Microseconds())/1000, OK: err == nil, Error: category})
 }
 
 func (r *liveRecorder) RecordCacheOutcome(operation, reason string) {
@@ -78,6 +85,9 @@ func liveJSON(t *testing.T, value any) string {
 
 func liveEnvironment(t *testing.T) map[string]string {
 	t.Helper()
+	if os.Getenv("PHASE29_MODEL") == "" {
+		t.Skip("real components require explicit opt-in")
+	}
 	var env map[string]string
 	if err := json.NewDecoder(os.Stdin).Decode(&env); err != nil {
 		t.Fatal("secret input unavailable")
@@ -140,14 +150,8 @@ func liveApplicationWithDatabase(t *testing.T, env map[string]string, database l
 	if err != nil || probe == nil || len(probe.Data) != 1 || len(probe.Data[0].Embedding) == 0 {
 		t.Fatalf("dimension probe: %v", err)
 	}
-	primaryType := env["SHIP_PROVIDER_TYPE"]
-	if primaryType == "" {
-		primaryType = "openai-compatible"
-	}
-	providers := []config.ProviderConfig{
-		{ID: "sans-primary", Type: primaryType, BaseURL: env["SANS_BASE_URL"], Auth: &config.ProviderAuthConfig{APIKeyEnv: "SANS_PRIMARY_API_KEY"}, Models: []string{env["SANS_PRIMARY_DEFAULT_MODEL"]}},
-		{ID: embeddingProvider, Type: "openai-compatible", BaseURL: embeddingURL, Auth: &config.ProviderAuthConfig{APIKeyEnv: "PHASE29_EMBEDDING_API_KEY"}, Models: []string{model}},
-	}
+	providers := liveProviders(t, env, config.ProviderConfig{ID: embeddingProvider, Type: "openai-compatible", BaseURL: embeddingURL,
+		Auth: &config.ProviderAuthConfig{APIKeyEnv: "PHASE29_EMBEDDING_API_KEY"}, Models: []string{model}})
 	t.Setenv("CONTROL_STATE_BACKEND", "sqlite")
 	t.Setenv("CONTROL_STATE_DSN", database.dsn)
 	t.Setenv("CONTROL_STATE_MIGRATE_ON_STARTUP", "true")
@@ -159,6 +163,7 @@ func liveApplicationWithDatabase(t *testing.T, env map[string]string, database l
 	t.Setenv("SCHEDULER_ENABLED", "false")
 	t.Setenv("REDIS_NAMESPACE", "phase29-"+database.keyID)
 	cacheConfig := liveCacheConfig(t, env, liveCacheInputs{database: database, dimension: len(probe.Data[0].Embedding)})
+	cacheConfig = liveExpandCacheUseCases(cacheConfig, providers[2:])
 	t.Setenv("CONFIG_FILE", liveJSON(t, map[string]any{"providers": providers, "default_provider": "sans-primary", "cache": cacheConfig}))
 	application, err := New()
 	if err != nil {
@@ -170,6 +175,37 @@ func liveApplicationWithDatabase(t *testing.T, env map[string]string, database l
 	}
 	t.Logf("model=%s dimension=%d primary=%s", model, cacheConfig.VectorDimension, env["SANS_PRIMARY_DEFAULT_MODEL"])
 	return application, database.keyID
+}
+
+func liveProviders(t *testing.T, env map[string]string, embedding config.ProviderConfig) []config.ProviderConfig {
+	t.Helper()
+	primaryType := env["SHIP_PROVIDER_TYPE"]
+	if primaryType == "" {
+		primaryType = "openai-compatible"
+	}
+	providers := []config.ProviderConfig{{ID: "sans-primary", Type: primaryType, BaseURL: env["SANS_BASE_URL"],
+		Auth: &config.ProviderAuthConfig{APIKeyEnv: "SANS_PRIMARY_API_KEY"}, Models: []string{env["SANS_PRIMARY_DEFAULT_MODEL"]}}, embedding}
+	if extra := env["PHASE29_EXTRA_PROVIDERS"]; extra != "" {
+		var configured []config.ProviderConfig
+		if err := json.Unmarshal([]byte(extra), &configured); err != nil {
+			t.Fatal(err)
+		}
+		return append(providers, configured...)
+	}
+	return providers
+}
+
+func liveExpandCacheUseCases(original config.CacheConfig, providers []config.ProviderConfig) config.CacheConfig {
+	result := original
+	result.UseCases = append([]config.CacheUseCaseConfig(nil), original.UseCases...)
+	for _, provider := range providers {
+		for _, model := range provider.Models {
+			useCase := original.UseCases[0]
+			useCase.TargetModel = model
+			result.UseCases = append(result.UseCases, useCase)
+		}
+	}
+	return result
 }
 
 type liveCacheInputs struct {
@@ -257,6 +293,8 @@ type liveRequestOptions struct {
 	origin            time.Time
 	concurrent        int64
 	finish            func()
+	direct            bool
+	models            []string
 }
 
 func TestPhase29LiveMeasure(t *testing.T) {
@@ -324,6 +362,13 @@ func liveMeasureLoad(t *testing.T, recorder *liveRecorder, options liveRequestOp
 
 func liveSaveSamples(t *testing.T, recorder *liveRecorder, metadata map[string]any) {
 	t.Helper()
+	if os.Getenv("PHASE29_OUTPUT") == "" {
+		shipLogJSON(t, metadata)
+		for _, sample := range recorder.samples {
+			shipLogJSON(t, sample)
+		}
+		return
+	}
 	file, err := os.Create(os.Getenv("PHASE29_OUTPUT"))
 	if err != nil {
 		t.Fatal(err)

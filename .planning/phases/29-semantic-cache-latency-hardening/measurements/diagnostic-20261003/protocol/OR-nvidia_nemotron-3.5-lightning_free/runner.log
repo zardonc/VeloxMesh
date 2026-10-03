@@ -1,0 +1,10 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+TestLiveStreamSettlement exit: Process exited with status 1
+TestLiveToolRequired exit: Process exited with status 1
+/veloxmesh-test-redis false
+/veloxmesh-test-qdrant false
+/veloxmesh-test-postgres false
+TestLiveStreamSettlement: Process exited with status 1
+TestLiveToolRequired: Process exited with status 1

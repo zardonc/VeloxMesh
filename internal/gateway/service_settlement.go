@@ -8,6 +8,7 @@ import (
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/llm"
+	"veloxmesh/internal/observability"
 	"veloxmesh/internal/routing"
 )
 
@@ -18,6 +19,7 @@ func (s *Service) settleCompleted(ctx context.Context, req *llm.LLMRequest, deci
 }
 
 func (s *Service) settleTerminal(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, outcome terminalOutcome, latency time.Duration) {
+	defer observability.Stage(ctx, "settlement")()
 	if s.repo == nil || outcome.kind != terminalCompleted {
 		return
 	}

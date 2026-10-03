@@ -14,6 +14,7 @@ import (
 
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/llm"
+	"veloxmesh/internal/observability"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/storage"
 )
@@ -118,6 +119,7 @@ func contains(values []string, value string) bool {
 }
 
 func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, text string) (*controlstate.SemanticCacheEntry, error) {
+	defer observability.Stage(ctx, "cache_read")()
 	if !s.config.Enabled {
 		return nil, nil
 	}
@@ -165,7 +167,9 @@ func (s *SemanticCacheService) lookup(ctx context.Context, scope, model string, 
 	// 2. If vector adapter is configured, use it for search
 	if s.vector != nil {
 		started := time.Now()
+		finish := observability.Stage(ctx, "vector_search")
 		results, err := s.vector.Search(ctx, vectorCollection(scope, model), inputVector, s.config.MaxCandidates)
+		finish()
 		measureOperation("vector_search", started, err)
 		if err != nil {
 			return nil, s.fault("lookup", "vector_error", err)
@@ -184,6 +188,7 @@ func (s *SemanticCacheService) lookup(ctx context.Context, scope, model string, 
 }
 
 func (s *SemanticCacheService) lookupRepository(ctx context.Context, identity CacheWrite, inputVector []float32) (*controlstate.SemanticCacheEntry, error) {
+	defer observability.Stage(ctx, "repo_read")()
 	started := time.Now()
 	scope, model := identity.Scope, identity.Model
 	candidates, err := s.repo.ListCandidates(ctx, scope, model)
@@ -227,6 +232,7 @@ func (s *SemanticCacheService) lookupRepository(ctx context.Context, identity Ca
 }
 
 func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model string, text string, response string, usageID *string) (storeErr error) {
+	defer observability.Stage(ctx, "store_total")()
 	if !s.config.Enabled || s.repo == nil || s.adapter == nil {
 		return nil
 	}
@@ -256,7 +262,9 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 
 func (s *SemanticCacheService) persist(ctx context.Context, entry *controlstate.SemanticCacheEntry, vector []float32) error {
 	started := time.Now()
+	finish := observability.Stage(ctx, "repo_write")
 	err := s.repo.Store(ctx, entry)
+	finish()
 	measureOperation("repo_write", started, err)
 	if err != nil {
 		return s.fault("store", "repository_error", err)
@@ -269,7 +277,9 @@ func (s *SemanticCacheService) persist(ctx context.Context, entry *controlstate.
 			meta["usage_id"] = *entry.UsageID
 		}
 		started = time.Now()
+		finish = observability.Stage(ctx, "vector_insert")
 		err = s.vector.Insert(ctx, vectorCollection(entry.Scope, entry.Model), [][]float32{vector}, []map[string]interface{}{meta})
+		finish()
 		measureOperation("vector_insert", started, err)
 		if err != nil {
 			return s.fault("store", "vector_error", err)
@@ -292,7 +302,9 @@ func (s *SemanticCacheService) lookupVectorResult(ctx context.Context, scope, mo
 			return nil, s.fault("lookup", "invalid_entry", nil)
 		}
 		started := time.Now()
+		finish := observability.Stage(ctx, "repo_read")
 		entry, err := s.repo.GetCandidate(ctx, id, scope, model)
+		finish()
 		measureOperation("repo_read", started, err)
 		if err != nil {
 			return nil, s.fault("lookup", "repository_error", err)
@@ -309,6 +321,7 @@ func (s *SemanticCacheService) lookupVectorResult(ctx context.Context, scope, mo
 }
 
 func (s *SemanticCacheService) embed(ctx context.Context, text, operation string) ([]float32, error) {
+	defer observability.Stage(ctx, operation+"_embedding")()
 	started := time.Now()
 	response, err := s.adapter.Embed(ctx, &llm.EmbeddingRequest{Model: s.config.EmbeddingModel, Input: []string{text}})
 	measureOperation(operation+"_embedding", started, err)

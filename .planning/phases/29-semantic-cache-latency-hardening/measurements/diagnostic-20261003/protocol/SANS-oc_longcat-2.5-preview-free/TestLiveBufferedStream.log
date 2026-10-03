@@ -1,0 +1,17 @@
+=== RUN   TestLiveBufferedStream
+{"time":"2026-10-03T19:30:41.558977227Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:41.578306109Z","level":"WARN","msg":"Unable to get server version, use default","err":"rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\"","default":"Unknown"}
+{"time":"2026-10-03T19:30:41.578951615Z","level":"WARN","msg":"Failed to obtain server version. Unable to check client-server compatibility. Set SkipCompatibilityCheck=true to skip version check."}
+{"time":"2026-10-03T19:30:41.578969679Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:41.579321142Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:41.579816174Z","level":"WARN","msg":"failed to initialize Qdrant; evaluating fallback","error":"failed to connect to qdrant: HealthCheck() failed: rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\""}
+{"time":"2026-10-03T19:30:41.587878499Z","level":"INFO","msg":"activated Redis VSS fallback for vector store"}
+{"time":"2026-10-03T19:30:41.593033281Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_features_test.go:138: model=text-embedding-embedder_collection dimension=768 primary=oc/longcat-2.5-preview-free
+    live_ship_features_test.go:138: response rules persisted, published and verified enabled
+{"time":"2026-10-03T19:30:45.824334503Z","level":"INFO","msg":"request completed","request_id":"9816f5e85143f849deb3fcacd03b8cb5","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":4224}
+    live_ship_features_test.go:138: feature=buffered done=1 fragments=1 provider=sans-primary strategy=least-latency-cold-start-rr
+    live_ship_features_test.go:138: usage_rows_all=1 usage_rows_key=1
+    live_ship_features_test.go:138: settled_records=1 total_tokens=55 credits=55 exactly_once=true
+--- PASS: TestLiveBufferedStream (4.57s)
+PASS

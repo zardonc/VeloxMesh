@@ -1,0 +1,7 @@
+=== RUN   TestLiveModelAvailability
+{"time":"2026-10-03T19:14:50.890183222Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=thinkingmachines/inkling:free
+{"time":"2026-10-03T19:14:51.17685801Z","level":"INFO","msg":"request completed","request_id":"fcc1e53e1e055bcf10b5a0d2676f9370","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":274}
+    live_diagnostic_test.go:29: real gateway status=502 error_code=provider_auth_error decode_error=<nil> read_error=<nil>
+--- FAIL: TestLiveModelAvailability (0.51s)
+FAIL

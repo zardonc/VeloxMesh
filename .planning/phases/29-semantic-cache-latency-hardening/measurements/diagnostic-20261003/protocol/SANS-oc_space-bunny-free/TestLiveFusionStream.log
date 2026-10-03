@@ -1,0 +1,15 @@
+=== RUN   TestLiveFusionStream
+{"time":"2026-10-03T19:31:18.409385996Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:18.443472911Z","level":"WARN","msg":"Unable to get server version, use default","err":"rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\"","default":"Unknown"}
+{"time":"2026-10-03T19:31:18.446258315Z","level":"WARN","msg":"Failed to obtain server version. Unable to check client-server compatibility. Set SkipCompatibilityCheck=true to skip version check."}
+{"time":"2026-10-03T19:31:18.446289473Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:18.446357932Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:18.446421332Z","level":"WARN","msg":"failed to initialize Qdrant; evaluating fallback","error":"failed to connect to qdrant: HealthCheck() failed: rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\""}
+{"time":"2026-10-03T19:31:18.451838453Z","level":"INFO","msg":"activated Redis VSS fallback for vector store"}
+{"time":"2026-10-03T19:31:18.456147372Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_features_test.go:139: model=text-embedding-embedder_collection dimension=768 primary=oc/space-bunny-free
+{"time":"2026-10-03T19:31:22.743965305Z","level":"INFO","msg":"request completed","request_id":"07dc9a8a5832d8cbdb074f372e5603df","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":4273}
+    live_ship_features_test.go:139: feature=fusion done=1 fragments=2 provider=fusion-ensemble strategy=combo:fusion
+    live_ship_features_test.go:139: fusion usage exactly once total_tokens=474 status=missing_rate no_debit=true
+--- PASS: TestLiveFusionStream (4.75s)
+PASS

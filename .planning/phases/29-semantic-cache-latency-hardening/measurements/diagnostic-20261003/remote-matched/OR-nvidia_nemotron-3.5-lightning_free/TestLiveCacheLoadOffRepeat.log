@@ -1,0 +1,8 @@
+=== RUN   TestLiveCacheLoadOffRepeat
+{"time":"2026-10-03T19:32:27.631484177Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_load_test.go:229: model=text-embedding-embedder_collection dimension=768 primary=nvidia/nemotron-3.5-lightning:free
+    live_ship_load_test.go:229: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"nvidia/nemotron-3.5-lightning:free","index":999,"start_ms":0.137,"elapsed_ms":12000.457,"status":0,"ok":false,"hit":false,"concurrent":0,"error":"transport_error: Post \"http://127.0.0.1:41905/v1/chat/completions\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)","planned_ms":0},"type":"warmup"}
+    live_ship_load_test.go:229: real primary warmup failed; no valid latency gate
+{"time":"2026-10-03T19:32:39.633318484Z","level":"INFO","msg":"request completed","request_id":"diag-1","method":"POST","path":"/v1/chat/completions","status":499,"latency_ms":12000}
+--- FAIL: TestLiveCacheLoadOffRepeat (12.09s)
+FAIL

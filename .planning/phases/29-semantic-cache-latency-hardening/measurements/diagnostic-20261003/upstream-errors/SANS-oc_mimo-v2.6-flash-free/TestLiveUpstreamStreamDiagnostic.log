@@ -1,0 +1,5 @@
+=== RUN   TestLiveUpstreamStreamDiagnostic
+    live_ship_load_test.go:256: direct_upstream frames=16 done=2 tools=7 usage=2 finishes=map[tool_calls:2] positions=map[finish:15 usage:15] root_fields=map[choices:16 cost:1 created:16 id:15 model:15 object:16 usage:2]
+    live_ship_load_test.go:256: direct real upstream tool stream did not meet OpenAI protocol
+--- FAIL: TestLiveUpstreamStreamDiagnostic (1.91s)
+FAIL

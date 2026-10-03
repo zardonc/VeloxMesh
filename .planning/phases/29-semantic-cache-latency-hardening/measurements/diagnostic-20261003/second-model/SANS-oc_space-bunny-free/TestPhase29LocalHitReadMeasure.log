@@ -1,0 +1,613 @@
+=== RUN   TestPhase29LocalHitReadMeasure
+{"time":"2026-10-03T19:53:56.013484628Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:53:56.017502088Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-03T19:53:56.017528177Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-03T19:53:56.017536382Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:53:56.017587358Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:53:56.019635036Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_hit_measure_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=oc/space-bunny-free
+{"time":"2026-10-03T19:53:57.334251963Z","level":"INFO","msg":"request completed","request_id":"1da172649c101f9f7c98f52aed4b4a7b","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1314}
+{"time":"2026-10-03T19:53:57.569610465Z","level":"INFO","msg":"request completed","request_id":"2ca9119988a68f241ed0f3bdf3b61fa0","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":51}
+{"time":"2026-10-03T19:53:57.62396768Z","level":"INFO","msg":"request completed","request_id":"f2efa09d3cc1f224ac62d0681de1f451","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":54}
+{"time":"2026-10-03T19:53:57.675271179Z","level":"INFO","msg":"request completed","request_id":"a613ab84f7878ba581c705332df55130","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":50}
+{"time":"2026-10-03T19:53:57.726087546Z","level":"INFO","msg":"request completed","request_id":"0e26032bcd474e527473b8a77f16c941","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":50}
+{"time":"2026-10-03T19:53:57.776342346Z","level":"INFO","msg":"request completed","request_id":"3bba8d30821ee32d7f0460ac58fd48a2","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":49}
+{"time":"2026-10-03T19:53:57.826149278Z","level":"INFO","msg":"request completed","request_id":"81f8dab553f6b2fe3eaf0113e518faaa","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":49}
+{"time":"2026-10-03T19:53:57.849804896Z","level":"INFO","msg":"request completed","request_id":"af146ba86243465768d5d2ab963d13ef","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":23}
+{"time":"2026-10-03T19:53:57.865558166Z","level":"INFO","msg":"request completed","request_id":"0397cb5adb01027d1bd63cef1189ed3d","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:57.882094404Z","level":"INFO","msg":"request completed","request_id":"bb17fd41e5876db8d83804fa813101ed","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:57.900738146Z","level":"INFO","msg":"request completed","request_id":"2e4cfc2f4bf1540a2103b2a50fc03d27","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:57.918185758Z","level":"INFO","msg":"request completed","request_id":"8afe570935dbc39a9be853a60f703f5e","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:57.931861523Z","level":"INFO","msg":"request completed","request_id":"a567b476ea8ad2b383dad7512124698a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:57.945747815Z","level":"INFO","msg":"request completed","request_id":"15e23229658e3b27a27af875e019cf3f","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:57.961147113Z","level":"INFO","msg":"request completed","request_id":"6878646c4edf0f771c9d5980b211b2b6","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:57.979659956Z","level":"INFO","msg":"request completed","request_id":"ca73ee147fdc5701fb25e4d05b64517a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:57.996012596Z","level":"INFO","msg":"request completed","request_id":"61a3041e01685b00e588d4deba958d3d","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:58.009309843Z","level":"INFO","msg":"request completed","request_id":"9cb33cc67b5d305b480a11e62b476eb4","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.022556129Z","level":"INFO","msg":"request completed","request_id":"12902edfc3d1782193e88abf9de7008d","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.036838105Z","level":"INFO","msg":"request completed","request_id":"96459c3629290bf4ea0ba47752a767af","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.053083283Z","level":"INFO","msg":"request completed","request_id":"3d9626c07283f89f9a01cf84a1a15cd4","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:58.067074182Z","level":"INFO","msg":"request completed","request_id":"7f6d9fab1b40465c348fcaa790f19665","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.084558949Z","level":"INFO","msg":"request completed","request_id":"c3c6b5b7037d83a93d981f21bd7d8100","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:58.100184157Z","level":"INFO","msg":"request completed","request_id":"7a141a19ed66a0191eed0aa205c4a1ac","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:58.118852714Z","level":"INFO","msg":"request completed","request_id":"b1368fb5a3187833e3c1b45daf066094","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:58.133012987Z","level":"INFO","msg":"request completed","request_id":"6a2df01e87b390e8ab3a291b7bb06b40","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.147138525Z","level":"INFO","msg":"request completed","request_id":"025859201ca10484354c88f9d44c977b","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.164350877Z","level":"INFO","msg":"request completed","request_id":"528de3db4a409a327550c22f5a5e154c","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:58.179954967Z","level":"INFO","msg":"request completed","request_id":"1cfe5fc0d91729d8fa16b2a9e38ac946","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:58.198850066Z","level":"INFO","msg":"request completed","request_id":"051408b6daf61654fd1c704c3ea45384","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:58.218193008Z","level":"INFO","msg":"request completed","request_id":"8e60248242c4b8c459ece166e6fbb2e2","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:58.232294537Z","level":"INFO","msg":"request completed","request_id":"3378844ec09f21175609a130ca8d97b2","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.248531062Z","level":"INFO","msg":"request completed","request_id":"3e7ee6cd9dbaad762cef5778789d6eb0","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:58.262376482Z","level":"INFO","msg":"request completed","request_id":"98f02874786a525aba30570996ff53ed","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.276078017Z","level":"INFO","msg":"request completed","request_id":"2e478bdff827b080440848416504878d","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.294076726Z","level":"INFO","msg":"request completed","request_id":"fd394f042ae55e7dbed06b35a43c5eb8","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:58.312846158Z","level":"INFO","msg":"request completed","request_id":"90e18f1c9269818c37f3ba894e5680c0","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:58.326093692Z","level":"INFO","msg":"request completed","request_id":"a48ba48df4ecf558c832e3c2f8e9c548","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":12}
+{"time":"2026-10-03T19:53:58.340960957Z","level":"INFO","msg":"request completed","request_id":"9266b70ab859ac9016f0c3492e05d476","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:58.358495953Z","level":"INFO","msg":"request completed","request_id":"1bba2adcbe1a198cd7f124cac492fb57","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:58.372913155Z","level":"INFO","msg":"request completed","request_id":"37cf6712c66025275fad16f3b241789e","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.391944672Z","level":"INFO","msg":"request completed","request_id":"28a1319925a33077bca27d63076108eb","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:58.406246327Z","level":"INFO","msg":"request completed","request_id":"7ee8ca179ae828a7fe9db455bac1625b","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:58.423069807Z","level":"INFO","msg":"request completed","request_id":"096acdbb61d3ff941022e78ffecef539","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:58.440310595Z","level":"INFO","msg":"request completed","request_id":"61b4035f7fda174fd9191bf1e5b5fd23","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:58.453991661Z","level":"INFO","msg":"request completed","request_id":"b76448ecba6ff468d7c61ae0b3515a7d","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.468882385Z","level":"INFO","msg":"request completed","request_id":"effc3f765d1199b6dbdb3755b572495e","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:58.482758023Z","level":"INFO","msg":"request completed","request_id":"5c1a2f4954bad40d7884ff54ed979075","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.497360048Z","level":"INFO","msg":"request completed","request_id":"85bec43a9dd49ed8839be9f4f02e48f9","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:58.514556527Z","level":"INFO","msg":"request completed","request_id":"b70e8a02b857b81f9d73a3c3cb9890e6","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:58.533231907Z","level":"INFO","msg":"request completed","request_id":"45a0c73de4c7bf2fec1a5e5e6f0d3246","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:58.548309719Z","level":"INFO","msg":"request completed","request_id":"e1e6b6564f10edcae85dda4ad5ff2cc8","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:58.568165548Z","level":"INFO","msg":"request completed","request_id":"284ef5a6d59df3c46512610721c02e1d","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":19}
+{"time":"2026-10-03T19:53:58.592244834Z","level":"INFO","msg":"request completed","request_id":"0a78d4d26425936f90baa31638eb2a88","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":23}
+{"time":"2026-10-03T19:53:58.609950191Z","level":"INFO","msg":"request completed","request_id":"a9999b3bfebcc53e6d74a29f3c5a4759","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:58.633732228Z","level":"INFO","msg":"request completed","request_id":"03765e905b27288481ea9638828f6029","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":23}
+{"time":"2026-10-03T19:53:58.653296471Z","level":"INFO","msg":"request completed","request_id":"196ac78dff5c7cddf64b029c054304f0","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":19}
+{"time":"2026-10-03T19:53:58.670558419Z","level":"INFO","msg":"request completed","request_id":"61c0c3fb75b4b8069c6e6f6dbe209319","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:58.687361171Z","level":"INFO","msg":"request completed","request_id":"1a15a90506c4db90c6702e0ce566e551","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:58.704373694Z","level":"INFO","msg":"request completed","request_id":"2899e57163b712b3133098b8c37b3352","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:58.723445561Z","level":"INFO","msg":"request completed","request_id":"154a221ac68a42cb5125566763ef59eb","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:58.741282215Z","level":"INFO","msg":"request completed","request_id":"42b1667985e44d4590de2677bca85290","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:58.755445069Z","level":"INFO","msg":"request completed","request_id":"95a570332a9ae06c3ad8af78c770e9de","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.770485159Z","level":"INFO","msg":"request completed","request_id":"68b7a8e96b8adba4b338e321cc7f1a16","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:58.784475462Z","level":"INFO","msg":"request completed","request_id":"8139f3b845658734c19614848fd8a268","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.798940865Z","level":"INFO","msg":"request completed","request_id":"ef16c713c2ca89ab4e900e6f59fab782","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:58.812490688Z","level":"INFO","msg":"request completed","request_id":"8e4c8c97acc3e929f5b08979a22a6b22","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":12}
+{"time":"2026-10-03T19:53:58.827938217Z","level":"INFO","msg":"request completed","request_id":"c4552ce3ca0fcbad08f0b262a1c8ab87","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:58.842580143Z","level":"INFO","msg":"request completed","request_id":"fc6cd8ba297ccd9c64ee9e59c270e33a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:58.85773193Z","level":"INFO","msg":"request completed","request_id":"b7ee2d541b181f9cea6ac900bd304619","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:58.877301614Z","level":"INFO","msg":"request completed","request_id":"86ee01db4098a3e9b9e89ff03a588593","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":19}
+{"time":"2026-10-03T19:53:58.895948586Z","level":"INFO","msg":"request completed","request_id":"7328a84ae58672b9fa6ed48be0975150","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:58.910244404Z","level":"INFO","msg":"request completed","request_id":"86c455ec22c391edcf75b9aac1589d86","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:58.925705534Z","level":"INFO","msg":"request completed","request_id":"41aca8e325b9701b90ce06612ad55ee5","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:58.960353381Z","level":"INFO","msg":"request completed","request_id":"ddf7288dcc746e9414ffe20156237911","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":34}
+{"time":"2026-10-03T19:53:58.976269723Z","level":"INFO","msg":"request completed","request_id":"20a38178bcf62c1d85cc175195caa9f3","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:58.990754214Z","level":"INFO","msg":"request completed","request_id":"c3f6ad64b83e92a338d2eb35ea16822e","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:59.010084527Z","level":"INFO","msg":"request completed","request_id":"2670137967ac59873d78a031523e03a4","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":19}
+{"time":"2026-10-03T19:53:59.023451946Z","level":"INFO","msg":"request completed","request_id":"197ea0bfd08ce02ee0d635537c2ced29","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:59.037348478Z","level":"INFO","msg":"request completed","request_id":"dcff48f4023620d6db94d25271e56e15","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:59.056952377Z","level":"INFO","msg":"request completed","request_id":"0e0c366ccff382386a4eb781983208c7","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":19}
+{"time":"2026-10-03T19:53:59.074084278Z","level":"INFO","msg":"request completed","request_id":"24475eb62416c92a0678d3cf2dd3a132","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:59.088506124Z","level":"INFO","msg":"request completed","request_id":"dbbf7f3c84ed2d750205ebc32a1d9897","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:59.102303599Z","level":"INFO","msg":"request completed","request_id":"f7104bfe57e0ee453a9e94ad69f52c00","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:59.11998189Z","level":"INFO","msg":"request completed","request_id":"5f24a6e9b3a5baea6d74d167dcb27fb3","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:59.134865707Z","level":"INFO","msg":"request completed","request_id":"89e53bb094edc9c3c8b466520568c0f9","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+{"time":"2026-10-03T19:53:59.152060121Z","level":"INFO","msg":"request completed","request_id":"d4ef92b5f2d1e8ca16b4834f87943a01","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:59.171487823Z","level":"INFO","msg":"request completed","request_id":"479d565776c05873495699706068c93a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":19}
+{"time":"2026-10-03T19:53:59.188603734Z","level":"INFO","msg":"request completed","request_id":"b560251463c659577fb050c0339eff42","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":16}
+{"time":"2026-10-03T19:53:59.206190078Z","level":"INFO","msg":"request completed","request_id":"5d338f4b798045712e59e1d0a2fab955","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:59.225245844Z","level":"INFO","msg":"request completed","request_id":"fa151778862086a440d78e5cc2429a41","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:59.243859383Z","level":"INFO","msg":"request completed","request_id":"18196e5a7c352b37c996e69784a6fd69","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+{"time":"2026-10-03T19:53:59.257857089Z","level":"INFO","msg":"request completed","request_id":"ab9652c79f1ea6f4d908778e2bcec31a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:59.273420121Z","level":"INFO","msg":"request completed","request_id":"e58e44fb6aea7dad2f18b0a9adbc00bd","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:59.287438085Z","level":"INFO","msg":"request completed","request_id":"4773cdcd7270a1f4e4d0e5539e447bd8","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":13}
+{"time":"2026-10-03T19:53:59.302927433Z","level":"INFO","msg":"request completed","request_id":"e4fabfbbdceb2c0afdc7ce12cadeefb2","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:59.316191073Z","level":"INFO","msg":"request completed","request_id":"b7152e141d3479786da0ff1c88674831","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":12}
+{"time":"2026-10-03T19:53:59.334117867Z","level":"INFO","msg":"request completed","request_id":"5f5752e9ab2f532a60bf2b700fd58e76","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":17}
+{"time":"2026-10-03T19:53:59.350150924Z","level":"INFO","msg":"request completed","request_id":"601de4327dae259949abb0c54c648398","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":15}
+{"time":"2026-10-03T19:53:59.362687458Z","level":"INFO","msg":"request completed","request_id":"11bef95fe2e746bb14ea9b49d34f9666","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":12}
+{"time":"2026-10-03T19:53:59.377241874Z","level":"INFO","msg":"request completed","request_id":"5bcd20f7996863d33c5be459f0edd2b2","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":14}
+    phase29_hit_measure_test.go:49: SAMPLE {"count":100,"elapsed_ms":1859.84,"max_concurrency":1,"mode":"hit-path-only","model":"text-embedding-embedder_collection","type":"metadata"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":49.439,"start_ms":0.8389999999999986,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.337,"start_ms":50.282,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.227,"start_ms":51.621,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":51.976,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":52.219,"start_ms":0.028,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":51.106,"start_ms":53.127,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.849,"start_ms":104.23599999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.165,"start_ms":106.08699999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":106.367,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":54.302,"start_ms":52.266,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":47.65,"start_ms":108.417,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.316,"start_ms":156.069,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.196,"start_ms":157.386,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":157.663,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":51.052,"start_ms":106.804,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":48.52,"start_ms":158.36399999999998,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.366,"start_ms":206.88699999999997,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.158,"start_ms":208.25400000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":208.484,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":50.888,"start_ms":157.87,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":47.576,"start_ms":209.328,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.587,"start_ms":256.90700000000004,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.163,"start_ms":258.496,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":258.734,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":50.296,"start_ms":208.774,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":47.133,"start_ms":259.694,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.373,"start_ms":306.831,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.194,"start_ms":308.205,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":308.525,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":49.858,"start_ms":259.088,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":20.274,"start_ms":309.643,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.972,"start_ms":329.921,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.189,"start_ms":331.895,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":332.19,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":23.532,"start_ms":308.97,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.714,"start_ms":333.103,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.75,"start_ms":345.82,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.264,"start_ms":347.572,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":347.943,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.689,"start_ms":332.518,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.021,"start_ms":348.86899999999997,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.349,"start_ms":362.894,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.166,"start_ms":364.244,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":364.488,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":16.538,"start_ms":348.222,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.127,"start_ms":365.271,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.397,"start_ms":381.401,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.225,"start_ms":382.799,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":383.126,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":18.515,"start_ms":364.778,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.016,"start_ms":383.79699999999997,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.535,"start_ms":398.815,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.157,"start_ms":400.351,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":400.582,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.508,"start_ms":383.304,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":10.871,"start_ms":401.387,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.716,"start_ms":412.262,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.169,"start_ms":413.98,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":414.235,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.763,"start_ms":400.829,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.232,"start_ms":415.09299999999996,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.407,"start_ms":426.32800000000003,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.261,"start_ms":427.736,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":428.102,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.791,"start_ms":414.606,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.675,"start_ms":429.085,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.49,"start_ms":441.764,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.178,"start_ms":443.25600000000003,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":443.54,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.309,"start_ms":428.417,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.862,"start_ms":444.284,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.579,"start_ms":460.15,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.208,"start_ms":461.72999999999996,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":462.044,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":18.508,"start_ms":443.738,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":13.979,"start_ms":462.997,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.195,"start_ms":476.978,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.154,"start_ms":478.174,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":478.408,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":16.295,"start_ms":462.259,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.12,"start_ms":479.1,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.221,"start_ms":490.223,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.186,"start_ms":491.445,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":491.706,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.326,"start_ms":478.566,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.024,"start_ms":492.337,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.369,"start_ms":503.366,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.145,"start_ms":504.737,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":504.958,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.297,"start_ms":491.905,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.451,"start_ms":505.71899999999994,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.781,"start_ms":517.173,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.196,"start_ms":518.9549999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":519.229,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.255,"start_ms":505.221,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":13.774,"start_ms":519.974,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.413,"start_ms":533.75,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.198,"start_ms":535.164,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":535.444,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":16.142,"start_ms":519.493,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.548,"start_ms":536.149,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.47,"start_ms":547.6999999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.164,"start_ms":549.171,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":549.409,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.982,"start_ms":535.646,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.044,"start_ms":550.265,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.396,"start_ms":565.312,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.17,"start_ms":566.71,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":566.955,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.583,"start_ms":549.64,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.143,"start_ms":567.8589999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":2.2,"start_ms":580.0039999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.231,"start_ms":582.205,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":582.567,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.539,"start_ms":567.236,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.226,"start_ms":583.43,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.325,"start_ms":599.659,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.154,"start_ms":600.985,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":601.21,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":18.776,"start_ms":582.796,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.485,"start_ms":602.102,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.557,"start_ms":613.59,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.172,"start_ms":615.148,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":615.409,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.046,"start_ms":601.586,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.59,"start_ms":616.097,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.585,"start_ms":627.6899999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.177,"start_ms":629.276,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":629.53,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.222,"start_ms":615.645,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.584,"start_ms":630.493,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.403,"start_ms":645.0799999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.184,"start_ms":646.484,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":646.749,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.091,"start_ms":629.882,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":13.008,"start_ms":647.4989999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.518,"start_ms":660.509,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.212,"start_ms":662.028,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":662.314,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.547,"start_ms":646.989,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.405,"start_ms":663.0600000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.546,"start_ms":679.468,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.154,"start_ms":681.015,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":681.247,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.118,"start_ms":662.553,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.48,"start_ms":682.288,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.406,"start_ms":698.7700000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.235,"start_ms":700.178,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":700.574,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.071,"start_ms":681.69,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.676,"start_ms":701.185,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.465,"start_ms":712.8629999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.243,"start_ms":714.3299999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":714.677,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.139,"start_ms":700.774,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":13.877,"start_ms":715.6740000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.154,"start_ms":729.554,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.152,"start_ms":730.708,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":730.933,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":16.302,"start_ms":714.931,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.414,"start_ms":731.708,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.404,"start_ms":743.125,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.169,"start_ms":744.5310000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":744.774,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.824,"start_ms":731.253,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.35,"start_ms":745.519,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.392,"start_ms":756.872,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.144,"start_ms":758.265,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":758.479,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.565,"start_ms":745.091,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.8,"start_ms":759.104,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.32,"start_ms":774.91,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.169,"start_ms":776.231,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":776.474,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":18.585,"start_ms":758.667,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.374,"start_ms":777.999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.61,"start_ms":793.376,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.163,"start_ms":794.987,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":795.245,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":18.266,"start_ms":777.267,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":10.9,"start_ms":796.0360000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.307,"start_ms":806.939,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.154,"start_ms":808.247,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":808.487,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.144,"start_ms":795.55,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.38,"start_ms":809.211,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.526,"start_ms":821.595,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.163,"start_ms":823.122,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":823.359,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.935,"start_ms":808.708,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.028,"start_ms":824.24,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.342,"start_ms":839.27,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.195,"start_ms":840.6139999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":840.89,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.732,"start_ms":823.657,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.854,"start_ms":841.978,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.256,"start_ms":853.836,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.148,"start_ms":855.093,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":855.311,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.097,"start_ms":841.403,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.481,"start_ms":855.991,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.645,"start_ms":872.475,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.154,"start_ms":874.121,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":874.345,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.01,"start_ms":855.513,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.841,"start_ms":875.043,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.513,"start_ms":886.889,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.156,"start_ms":888.402,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":888.639,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.288,"start_ms":874.536,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.446,"start_ms":889.432,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.362,"start_ms":903.88,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.152,"start_ms":905.2429999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":905.468,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":16.806,"start_ms":888.837,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.643,"start_ms":906.1189999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.714,"start_ms":920.765,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.153,"start_ms":922.48,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":922.708,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.568,"start_ms":905.655,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":10.69,"start_ms":923.899,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.533,"start_ms":934.592,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.187,"start_ms":936.126,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":936.387,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.601,"start_ms":923.242,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.81,"start_ms":937.4060000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.786,"start_ms":949.22,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.169,"start_ms":951.0070000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":951.277,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.603,"start_ms":936.872,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.304,"start_ms":952.154,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.453,"start_ms":963.462,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.165,"start_ms":964.916,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":965.157,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.822,"start_ms":951.487,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.094,"start_ms":966.0219999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.304,"start_ms":978.119,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.163,"start_ms":979.424,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":979.741,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.699,"start_ms":965.323,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.616,"start_ms":980.522,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.353,"start_ms":995.142,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.317,"start_ms":996.496,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":996.924,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.208,"start_ms":980.037,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.752,"start_ms":998.0830000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.496,"start_ms":1013.839,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.165,"start_ms":1015.336,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1015.61,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":18.406,"start_ms":997.385,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.165,"start_ms":1016.2830000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.788,"start_ms":1028.453,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.293,"start_ms":1030.2420000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1030.692,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.36,"start_ms":1015.803,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":17.028,"start_ms":1031.682,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.51,"start_ms":1048.713,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.222,"start_ms":1050.224,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1050.557,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.9,"start_ms":1031.177,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":20.884,"start_ms":1051.687,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.757,"start_ms":1072.575,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.2,"start_ms":1074.3319999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1074.634,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":23.758,"start_ms":1051.099,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.887,"start_ms":1075.635,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.522,"start_ms":1090.527,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.164,"start_ms":1092.05,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1092.29,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.709,"start_ms":1074.871,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":20.279,"start_ms":1093.185,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":2.405,"start_ms":1113.469,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.17,"start_ms":1115.875,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1116.125,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":23.701,"start_ms":1092.602,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.543,"start_ms":1116.8890000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.874,"start_ms":1133.435,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.246,"start_ms":1135.311,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1135.683,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.61,"start_ms":1116.317,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.549,"start_ms":1136.65,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.472,"start_ms":1151.202,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.159,"start_ms":1152.675,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1152.911,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.382,"start_ms":1136.047,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":13.942,"start_ms":1154.115,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.329,"start_ms":1168.06,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.228,"start_ms":1169.3909999999998,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1169.732,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":16.489,"start_ms":1153.45,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.629,"start_ms":1170.537,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.356,"start_ms":1185.169,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.169,"start_ms":1186.5259999999998,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1186.771,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":16.979,"start_ms":1169.958,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.592,"start_ms":1187.472,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.5,"start_ms":1204.068,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.17,"start_ms":1205.569,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1205.825,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.376,"start_ms":1186.951,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.895,"start_ms":1206.933,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.469,"start_ms":1221.8319999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.235,"start_ms":1223.3020000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1223.642,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.714,"start_ms":1206.346,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.319,"start_ms":1224.579,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.626,"start_ms":1235.902,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.154,"start_ms":1237.529,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1237.782,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.944,"start_ms":1224.074,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.322,"start_ms":1238.9430000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.609,"start_ms":1250.268,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.454,"start_ms":1251.8790000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1252.435,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.062,"start_ms":1238.032,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.217,"start_ms":1254.0529999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.327,"start_ms":1265.273,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.189,"start_ms":1266.6009999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1266.869,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.939,"start_ms":1253.111,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.862,"start_ms":1267.754,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.349,"start_ms":1279.6190000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.244,"start_ms":1280.969,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1281.322,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.721,"start_ms":1267.065,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":10.892,"start_ms":1282.3899999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.329,"start_ms":1293.285,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.195,"start_ms":1294.615,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1294.885,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.309,"start_ms":1281.805,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.678,"start_ms":1296.0149999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.402,"start_ms":1308.697,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.164,"start_ms":1310.1,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1310.337,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.39,"start_ms":1295.138,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.467,"start_ms":1311.087,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.186,"start_ms":1323.557,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.156,"start_ms":1324.7440000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1324.977,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.676,"start_ms":1310.542,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.077,"start_ms":1325.921,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.632,"start_ms":1338.001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.22,"start_ms":1339.786,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1340.113,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.147,"start_ms":1325.239,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.806,"start_ms":1341.042,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.515,"start_ms":1357.8519999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.216,"start_ms":1359.3680000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1359.689,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.509,"start_ms":1340.41,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.117,"start_ms":1360.519,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.333,"start_ms":1376.6399999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.204,"start_ms":1377.9750000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1378.329,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":18.642,"start_ms":1359.936,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.703,"start_ms":1379.156,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.489,"start_ms":1390.863,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.21,"start_ms":1392.353,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1392.642,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.247,"start_ms":1378.596,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":13.044,"start_ms":1393.4389999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.359,"start_ms":1406.487,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.176,"start_ms":1407.847,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1408.1,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.48,"start_ms":1392.863,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":32.005,"start_ms":1408.9089999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.532,"start_ms":1440.919,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.182,"start_ms":1442.452,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1442.739,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":34.647,"start_ms":1408.356,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":13.212,"start_ms":1443.634,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.514,"start_ms":1456.8500000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.216,"start_ms":1458.365,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1458.652,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.854,"start_ms":1443.02,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.301,"start_ms":1459.4640000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.167,"start_ms":1471.767,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.147,"start_ms":1472.9350000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1473.154,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.452,"start_ms":1458.894,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.92,"start_ms":1473.9089999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.406,"start_ms":1490.832,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.167,"start_ms":1492.239,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1492.484,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.311,"start_ms":1473.359,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":10.486,"start_ms":1493.1409999999998,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.832,"start_ms":1503.6309999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.207,"start_ms":1505.464,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1505.774,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.403,"start_ms":1492.684,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.127,"start_ms":1506.963,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.418,"start_ms":1518.093,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.165,"start_ms":1519.512,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1519.749,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.81,"start_ms":1506.103,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.906,"start_ms":1520.497,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.644,"start_ms":1537.408,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.182,"start_ms":1539.054,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1539.335,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.736,"start_ms":1519.924,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.813,"start_ms":1540.3,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.094,"start_ms":1555.116,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.177,"start_ms":1556.211,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1556.483,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":16.967,"start_ms":1539.677,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.159,"start_ms":1557.1129999999998,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.378,"start_ms":1569.275,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.174,"start_ms":1570.655,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1570.904,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.404,"start_ms":1556.657,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":10.798,"start_ms":1571.504,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.988,"start_ms":1582.307,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.286,"start_ms":1584.296,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1584.693,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.905,"start_ms":1571.073,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.214,"start_ms":1585.498,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.405,"start_ms":1600.715,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.173,"start_ms":1602.122,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1602.377,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.583,"start_ms":1584.996,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.349,"start_ms":1603.2040000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.415,"start_ms":1615.557,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.167,"start_ms":1616.9730000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1617.214,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.87,"start_ms":1602.593,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.035,"start_ms":1617.9969999999998,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.186,"start_ms":1633.035,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.153,"start_ms":1634.222,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1634.456,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.19,"start_ms":1617.477,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.861,"start_ms":1635.2269999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.572,"start_ms":1652.092,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.151,"start_ms":1653.666,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1653.888,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.382,"start_ms":1634.681,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.852,"start_ms":1654.576,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.341,"start_ms":1669.431,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.157,"start_ms":1670.7740000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1671.002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.096,"start_ms":1654.077,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.461,"start_ms":1671.597,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.275,"start_ms":1687.062,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.168,"start_ms":1688.3390000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1688.583,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.598,"start_ms":1671.188,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":16.926,"start_ms":1689.232,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.259,"start_ms":1706.161,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.147,"start_ms":1707.421,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1707.645,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":19.087,"start_ms":1688.802,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.854,"start_ms":1708.691,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.435,"start_ms":1724.549,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.19,"start_ms":1725.985,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1726.255,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":18.604,"start_ms":1707.916,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":10.994,"start_ms":1727.025,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.986,"start_ms":1738.022,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.167,"start_ms":1740.009,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1740.256,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.964,"start_ms":1726.54,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.963,"start_ms":1741.012,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.613,"start_ms":1753.9779999999998,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.151,"start_ms":1755.5919999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1755.818,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.509,"start_ms":1740.522,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.463,"start_ms":1756.6480000000001,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.164,"start_ms":1768.114,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.205,"start_ms":1769.279,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1769.585,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.113,"start_ms":1756.048,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":12.998,"start_ms":1770.749,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.274,"start_ms":1783.75,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.171,"start_ms":1785.0249999999999,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1785.301,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.517,"start_ms":1770.18,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":10.789,"start_ms":1786.357,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.214,"start_ms":1797.15,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.151,"start_ms":1798.365,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1798.589,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":13.14,"start_ms":1785.712,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.263,"start_ms":1799.3770000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.491,"start_ms":1814.642,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.299,"start_ms":1816.135,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1816.516,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":17.85,"start_ms":1798.871,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":13.58,"start_ms":1817.3490000000002,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.369,"start_ms":1830.932,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.169,"start_ms":1832.302,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1832.548,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":15.992,"start_ms":1816.735,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":10.098,"start_ms":1833.246,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.4,"start_ms":1843.348,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.227,"start_ms":1844.749,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1845.08,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":12.551,"start_ms":1832.741,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":11.861,"start_ms":1845.831,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.58,"start_ms":1857.694,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.278,"start_ms":1859.276,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":1859.638,"ok":true}
+    phase29_hit_measure_test.go:49: SAMPLE {"type":"client","elapsed_ms":14.53,"start_ms":1845.309,"ok":true,"status":200,"hit":true,"concurrent":1,"answer_hash":"d172067262963855a257e0487e101f3ed056ba8469fcba6a7eb006309e2dccc9"}
+    phase29_hit_measure_test.go:50: exact repeat hits=100/100, elapsed_ms=1859.840; component sample only, not low-hit release gate
+--- PASS: TestPhase29LocalHitReadMeasure (3.43s)
+PASS

@@ -33,6 +33,7 @@ type liveChain struct {
 	repo              *sqlite.Repository
 	url, token, model string
 	initialBalance    int
+	timing            *liveTiming
 }
 
 func newLiveChain(t *testing.T) liveChain {
@@ -43,6 +44,8 @@ func newLiveChain(t *testing.T) liveChain {
 	env := liveEnvironment(t)
 	repo, dsn, keyID := liveRepository(t)
 	application, token := liveApplicationWithDatabase(t, env, liveDatabase{dsn: dsn, keyID: keyID})
+	recorder := installLiveTiming(t, application, time.Now())
+	t.Cleanup(func() { application.Close(); recorder.dump(t) })
 	server := httptest.NewServer(application.Router)
 	t.Cleanup(server.Close)
 	model := env["SANS_PRIMARY_DEFAULT_MODEL"]
@@ -56,7 +59,7 @@ func newLiveChain(t *testing.T) liveChain {
 	if err := repo.DBForTest().QueryRow("SELECT credit_balance FROM api_keys WHERE id = ?", token).Scan(&balance); err != nil {
 		t.Fatal(err)
 	}
-	return liveChain{app: application, repo: repo, url: server.URL, token: token, model: model, initialBalance: balance}
+	return liveChain{app: application, repo: repo, url: server.URL, token: token, model: model, initialBalance: balance, timing: recorder}
 }
 
 func liveHTTP(t *testing.T, chain liveChain, payload any) *http.Response {
@@ -70,6 +73,7 @@ func liveHTTP(t *testing.T, chain liveChain, payload any) *http.Response {
 		t.Fatal(err)
 	}
 	req.Header.Set("Authorization", "Bearer "+chain.token)
+	started := time.Now()
 	response, err := (&http.Client{Timeout: liveHTTPTimeout}).Do(req)
 	if err != nil {
 		t.Fatal(err)
@@ -81,6 +85,9 @@ func liveHTTP(t *testing.T, chain liveChain, payload any) *http.Response {
 		var problem gatewayerrors.GatewayError
 		decodeErr := json.Unmarshal(body, &problem)
 		t.Fatalf("real gateway status=%d error_code=%s decode_error=%v read_error=%v", response.StatusCode, problem.Code, decodeErr, readErr)
+	}
+	if chat, ok := payload.(llm.ChatCompletionRequest); ok && chat.Stream && chain.timing != nil {
+		response.Body = &liveSSEBody{ReadCloser: response.Body, recorder: chain.timing, id: response.Header.Get("X-Request-ID"), started: started}
 	}
 	return response
 }

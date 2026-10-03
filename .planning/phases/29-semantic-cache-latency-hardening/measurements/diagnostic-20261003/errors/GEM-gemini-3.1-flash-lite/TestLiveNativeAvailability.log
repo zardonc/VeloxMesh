@@ -1,0 +1,4 @@
+=== RUN   TestLiveNativeAvailability
+    live_diagnostic_test.go:103: native upstream error: Error 504, Message: Deadline expired before operation could complete., Status: DEADLINE_EXCEEDED, Details: []
+--- FAIL: TestLiveNativeAvailability (9.90s)
+FAIL

@@ -1,0 +1,15 @@
+=== RUN   TestLiveCacheLoadOn
+{"time":"2026-10-03T19:32:14.030701313Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:32:14.071541427Z","level":"WARN","msg":"Unable to get server version, use default","err":"rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\"","default":"Unknown"}
+{"time":"2026-10-03T19:32:14.072347365Z","level":"WARN","msg":"Failed to obtain server version. Unable to check client-server compatibility. Set SkipCompatibilityCheck=true to skip version check."}
+{"time":"2026-10-03T19:32:14.072372002Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:32:14.072637973Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:32:14.072709698Z","level":"WARN","msg":"failed to initialize Qdrant; evaluating fallback","error":"failed to connect to qdrant: HealthCheck() failed: rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\""}
+{"time":"2026-10-03T19:32:14.083202547Z","level":"INFO","msg":"activated Redis VSS fallback for vector store"}
+{"time":"2026-10-03T19:32:14.088129289Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_load_test.go:227: model=text-embedding-embedder_collection dimension=768 primary=nvidia/nemotron-3.5-lightning:free
+{"time":"2026-10-03T19:32:15.141639543Z","level":"INFO","msg":"request completed","request_id":"diag-1","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":1044}
+    live_ship_load_test.go:227: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"nvidia/nemotron-3.5-lightning:free","index":999,"start_ms":0.733,"elapsed_ms":1047.156,"status":502,"ok":false,"hit":false,"concurrent":0,"error":"provider_unavailable","planned_ms":0},"type":"warmup"}
+    live_ship_load_test.go:227: real primary warmup failed; no valid latency gate
+--- FAIL: TestLiveCacheLoadOn (1.31s)
+FAIL

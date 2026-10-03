@@ -1,0 +1,14 @@
+=== RUN   TestLiveToolNamed
+{"time":"2026-10-03T19:30:22.204889483Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:22.225385318Z","level":"WARN","msg":"Unable to get server version, use default","err":"rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\"","default":"Unknown"}
+{"time":"2026-10-03T19:30:22.226729811Z","level":"WARN","msg":"Failed to obtain server version. Unable to check client-server compatibility. Set SkipCompatibilityCheck=true to skip version check."}
+{"time":"2026-10-03T19:30:22.22686193Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:22.227202812Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:22.227368314Z","level":"WARN","msg":"failed to initialize Qdrant; evaluating fallback","error":"failed to connect to qdrant: HealthCheck() failed: rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\""}
+{"time":"2026-10-03T19:30:22.241463737Z","level":"INFO","msg":"activated Redis VSS fallback for vector store"}
+{"time":"2026-10-03T19:30:22.244989798Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:295: model=text-embedding-embedder_collection dimension=768 primary=poolside/laguna-s-2.1:free
+{"time":"2026-10-03T19:30:22.614581704Z","level":"INFO","msg":"request completed","request_id":"1b3d4eaa287a6f92909073d356a722d6","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":364}
+    live_ship_protocol_test.go:295: real gateway status=502 error_code=provider_rate_limit decode_error=<nil> read_error=<nil>
+--- FAIL: TestLiveToolNamed (0.61s)
+FAIL

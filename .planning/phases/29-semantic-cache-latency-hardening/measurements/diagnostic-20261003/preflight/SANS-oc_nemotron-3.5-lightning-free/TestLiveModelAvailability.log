@@ -1,0 +1,9 @@
+=== RUN   TestLiveModelAvailability
+{"time":"2026-10-03T19:15:17.595714693Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=oc/nemotron-3.5-lightning-free
+{"time":"2026-10-03T19:15:18.997121448Z","level":"INFO","msg":"request completed","request_id":"bae8193c22add2941307b5575d38bdcb","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1396}
+    live_diagnostic_test.go:38: usage_rows_all=1 usage_rows_key=1
+    live_diagnostic_test.go:38: settled_records=1 total_tokens=52 credits=52 exactly_once=true
+    live_diagnostic_test.go:39: SAMPLE {"elapsed_ms":1421.088,"model":"oc/nemotron-3.5-lightning-free","type":"availability","usage":{"prompt_tokens":20,"completion_tokens":32,"total_tokens":52}}
+--- PASS: TestLiveModelAvailability (1.64s)
+PASS

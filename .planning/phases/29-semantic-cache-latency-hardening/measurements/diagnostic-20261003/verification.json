@@ -1,0 +1,31 @@
+[
+  {
+    "command": [
+      "go",
+      "vet",
+      "-tags",
+      "phase29preflight",
+      "./..."
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "go",
+      "build",
+      "./..."
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "go",
+      "vet",
+      ".planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001/runner/main.go"
+    ],
+    "exit_code": 0,
+    "output": ""
+  }
+]

@@ -21,7 +21,6 @@ import (
 
 	gatewayerrors "veloxmesh/internal/errors"
 	"veloxmesh/internal/llm"
-	"veloxmesh/internal/observability"
 )
 
 const liveLowHitEvery = 21
@@ -30,6 +29,8 @@ const liveLoadScheduleLimit = 45 * time.Second
 
 type shipSample struct {
 	Type       string  `json:"type"`
+	RequestID  string  `json:"request_id,omitempty"`
+	Model      string  `json:"model"`
 	Index      int     `json:"index"`
 	StartMS    float64 `json:"start_ms"`
 	ElapsedMS  float64 `json:"elapsed_ms"`
@@ -39,23 +40,36 @@ type shipSample struct {
 	Concurrent int64   `json:"concurrent"`
 	Error      string  `json:"error,omitempty"`
 	AnswerHash string  `json:"answer_hash,omitempty"`
+	PlannedMS  float64 `json:"planned_ms"`
 }
+
+var liveRequestSequence atomic.Int64
 
 func shipRequest(options liveRequestOptions) shipSample {
 	temperature, maxTokens := 0.0, 256
 	body, err := json.Marshal(llm.ChatCompletionRequest{Model: options.model, Temperature: &temperature, MaxTokens: &maxTokens,
 		Messages: []llm.Message{{Role: llm.RoleSystem, Content: liveFAQSystem}, {Role: llm.RoleUser, Content: fmt.Sprintf("How long is the trial for plan %d?", options.index)}}})
-	sample := shipSample{Type: "client", Index: options.index, Concurrent: options.concurrent}
+	sample := shipSample{Type: "client", Index: options.index, Concurrent: options.concurrent, Model: options.model}
 	if err != nil {
 		sample.Error = err.Error()
 		return sample
 	}
-	req, err := http.NewRequest(http.MethodPost, options.url+"/v1/chat/completions", bytes.NewReader(body))
+	endpoint := options.url + "/v1/chat/completions"
+	if options.direct {
+		endpoint = strings.TrimRight(options.url, "/") + "/chat/completions"
+	}
+	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(body))
 	if err != nil {
 		sample.Error = err.Error()
 		return sample
 	}
 	req.Header.Set("Authorization", "Bearer "+options.token)
+	req.Header.Set("Content-Type", "application/json")
+	sample.RequestID = fmt.Sprintf("diag-%d", liveRequestSequence.Add(1))
+	req.Header.Set("X-Request-ID", sample.RequestID)
+	if options.direct {
+		req = req.WithContext(timingContext(sample.RequestID))
+	}
 	started := time.Now()
 	sample.StartMS = float64(started.Sub(options.origin).Microseconds()) / 1000
 	response, err := options.client.Do(req)
@@ -112,6 +126,8 @@ func shipLoad(t *testing.T, mode string) {
 	env := liveEnvironment(t)
 	t.Setenv("PHASE29_MODE", mode)
 	application, token := liveApplication(t, env)
+	recorder := installLiveTiming(t, application, time.Now())
+	t.Cleanup(func() { application.Close(); recorder.dump(t) })
 	server := httptest.NewServer(application.Router)
 	t.Cleanup(server.Close)
 	options := liveRequestOptions{client: &http.Client{Timeout: liveHTTPTimeout}, url: server.URL, token: token,
@@ -122,17 +138,7 @@ func shipLoad(t *testing.T, mode string) {
 		t.Fatal("real primary warmup failed; no valid latency gate")
 	}
 	options.origin = time.Now()
-	recorder := &liveRecorder{StubMetrics: observability.NewStubMetrics(), started: options.origin}
-	previous := observability.DefaultMetrics
-	observability.DefaultMetrics = recorder
-	defer func() { observability.DefaultMetrics = previous }()
 	failures := shipScheduledLoad(t, application, options)
-	recorder.mu.Lock()
-	operations := append([]liveSample(nil), recorder.samples...)
-	recorder.mu.Unlock()
-	for _, sample := range operations {
-		shipLogJSON(t, sample)
-	}
 	if failures != 0 {
 		t.Fatalf("real load failed requests=%d", failures)
 	}
@@ -143,6 +149,7 @@ func shipScheduledLoad(t *testing.T, application *App, options liveRequestOption
 	count, concurrency := liveInteger(t, "PHASE29_COUNT"), liveInteger(t, "PHASE29_CLIENT_CONCURRENCY")
 	interval := liveLoadInterval(t, count, concurrency)
 	sem, samples := make(chan struct{}, concurrency), make([]shipSample, count)
+	modelLimits := liveModelLimits(options.models)
 	var group sync.WaitGroup
 	var active atomic.Int64
 	for index := 1; index <= count; index++ {
@@ -151,16 +158,7 @@ func shipScheduledLoad(t *testing.T, application *App, options liveRequestOption
 		}
 		sem <- struct{}{}
 		group.Add(1)
-		go func(index int) {
-			defer group.Done()
-			defer func() { active.Add(-1); <-sem }()
-			request := options
-			request.index, request.concurrent = index, active.Add(1)
-			if index%liveLowHitEvery == 0 {
-				request.index = index - liveLowHitEvery + 1
-			}
-			samples[index-1] = shipRequest(request)
-		}(index)
+		go liveScheduledRequest{options: options, index: index, interval: interval, sem: sem, modelLimits: modelLimits, samples: samples, group: &group, active: &active}.execute()
 	}
 	group.Wait()
 	foreground := time.Since(options.origin)
@@ -175,6 +173,45 @@ func shipScheduledLoad(t *testing.T, application *App, options liveRequestOption
 	shipLogJSON(t, map[string]any{"type": "metadata", "model": os.Getenv("PHASE29_MODEL"), "mode": os.Getenv("PHASE29_MODE"), "count": count,
 		"interval_ms": interval.Milliseconds(), "elapsed_ms": float64(foreground.Microseconds()) / 1000, "max_concurrency": concurrency, "failed": failures})
 	return failures
+}
+
+type liveScheduledRequest struct {
+	options     liveRequestOptions
+	index       int
+	interval    time.Duration
+	sem         chan struct{}
+	modelLimits map[string]chan struct{}
+	samples     []shipSample
+	group       *sync.WaitGroup
+	active      *atomic.Int64
+}
+
+func liveModelLimits(models []string) map[string]chan struct{} {
+	limits := make(map[string]chan struct{}, len(models))
+	for _, model := range models {
+		limits[model] = make(chan struct{}, 1)
+	}
+	return limits
+}
+
+func (task liveScheduledRequest) execute() {
+	defer task.group.Done()
+	defer func() { <-task.sem }()
+	request := task.options
+	request.index = task.index
+	if len(request.models) > 0 {
+		request.model = request.models[(task.index-1)%len(request.models)]
+		limit := task.modelLimits[request.model]
+		limit <- struct{}{}
+		defer func() { <-limit }()
+	}
+	request.concurrent = task.active.Add(1)
+	defer task.active.Add(-1)
+	if task.index%liveLowHitEvery == 0 {
+		request.index = task.index - liveLowHitEvery + 1
+	}
+	task.samples[task.index-1] = shipRequest(request)
+	task.samples[task.index-1].PlannedMS = float64(time.Duration(task.index-1)*task.interval) / float64(time.Millisecond)
 }
 
 func liveLoadInterval(t *testing.T, count, concurrency int) time.Duration {

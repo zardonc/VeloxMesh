@@ -185,6 +185,25 @@ curl -X POST http://localhost:8080/v1/chat/completions \
   }'
 ```
 
+## Client Compatibility
+
+### Gemini Tool Calling
+
+Gemini 3 requires thought signatures when continuing a tool-calling turn. Preserve
+`tool_calls[].extra_content.google.thought_signature` exactly as returned and send
+it back on the same assistant tool call in the next request's message history.
+For SSE responses, retain this metadata when assembling the streamed tool calls.
+
+Third-party clients that discard `extra_content` are incompatible with these
+continuations: Gemini can reject the next request with HTTP 400 even when the
+tool call ID, function arguments, and tool result are correct. VeloxMesh forwards
+the signature but does not retain a server-side copy to recover discarded fields.
+
+The official Google Gen AI SDK handles signatures when the complete model
+response is retained in history; manually rebuilding messages still requires
+preserving them. See Google's [thought signature requirements and OpenAI-compatible
+examples](https://ai.google.dev/gemini-api/docs/generate-content/thought-signatures).
+
 ## Configuration Overview
 
 VeloxMesh can start with simple environment variables and grow into durable runtime configuration.

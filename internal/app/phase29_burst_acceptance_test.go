@@ -5,6 +5,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"net/http/httptest"
 	"os"
 	"runtime"
 	"testing"
@@ -60,12 +61,22 @@ func liveLogBurstOutcomes(t *testing.T, recorder *liveRecorder) {
 	recorder.mu.Lock()
 	defer recorder.mu.Unlock()
 	counts := map[string]int{}
+	var collectionConflicts int
 	for _, sample := range recorder.samples {
+		if sample.Type == "operation" && !sample.OK {
+			t.Logf("failed_operation=%s error_category=%s elapsed_ms=%.3f", sample.Name, sample.Error, sample.ElapsedMS)
+		}
+		if sample.Type == "operation" && sample.Name == "vector_insert" && sample.Error == "AlreadyExists" {
+			collectionConflicts++
+		}
 		if sample.Type == "outcome" {
 			counts[sample.Name]++
 		}
 	}
 	t.Logf("reason_counts=%v", counts)
+	if collectionConflicts > 0 {
+		t.Fatalf("real concurrent collection creation conflicts=%d", collectionConflicts)
+	}
 }
 
 func liveBurstWrite(t *testing.T, application *App, token string) cache.CacheWrite {
@@ -76,7 +87,15 @@ func liveBurstWrite(t *testing.T, application *App, token string) cache.CacheWri
 	if !eligible {
 		t.Fatal("burst request not eligible")
 	}
-	choices, err := json.Marshal([]llm.Choice{{Message: llm.Message{Role: llm.RoleAssistant, Content: "One day."}}})
+	server := httptest.NewServer(application.Router)
+	t.Cleanup(server.Close)
+	response := liveHTTP(t, liveChain{url: server.URL, token: token, model: req.Model}, llm.ChatCompletionRequest{
+		Model: req.Model, Temperature: req.Temperature, MaxTokens: req.MaxTokens, Messages: req.Messages})
+	completion := liveDecodeChat(t, response)
+	if completion.Choices[0].Message.Content == "" {
+		t.Fatal("real burst seed response has no text")
+	}
+	choices, err := json.Marshal(completion.Choices)
 	if err != nil {
 		t.Fatal(err)
 	}

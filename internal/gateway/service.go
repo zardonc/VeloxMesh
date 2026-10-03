@@ -121,11 +121,14 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		identityScope = identity.ID
 	}
 
+	finishRules := observability.Stage(ctx, "request_rules")
 	p := s.buildPipeline(ctx, identityScope)
 	scope := pipeline.RequestScope{UserID: identityScope, RequestID: req.RequestID}
 	state := &pipeline.RunState{}
 
-	if err := p.ProcessRequest(ctx, scope, state, req); err != nil {
+	rulesErr := p.ProcessRequest(ctx, scope, state, req)
+	finishRules()
+	if err := rulesErr; err != nil {
 		if err == replication.ErrWriteNotWritable {
 			return nil, errors.ErrServiceNotWritable
 		}
@@ -181,7 +184,10 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 					CacheLevel: "semantic",
 				}
 
-				if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
+				finishResponse := observability.Stage(ctx, "response_rules")
+				responseErr := p.ProcessResponse(ctx, scope, state, resp)
+				finishResponse()
+				if err := responseErr; err != nil {
 					if err == replication.ErrWriteNotWritable {
 						return nil, errors.ErrServiceNotWritable
 					}
@@ -201,7 +207,9 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 	for attempts < maxAllowedAttempts {
 
+		finishRouting := observability.Stage(ctx, "routing")
 		adapter, decision, err := s.router.SelectExcluding(ctx, req, attempted)
+		finishRouting()
 		if err != nil {
 			if err == errors.ErrCompositeScoreBelowThreshold && attempts < maxAllowedAttempts && decision.ProviderID != "" {
 				attempted[decision.ProviderID] = true
@@ -240,7 +248,9 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 
 		attempts++
 
+		finishAdmission := observability.Stage(ctx, "admission")
 		release, _, err := s.admission.Admit(ctx, req, decision)
+		finishAdmission()
 		if err != nil {
 			if lastErr != nil {
 				return nil, lastErr
@@ -258,6 +268,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			upstreamReq.Model = decision.UpstreamModel
 		}
 		resp, err := s.runScheduledChat(ctx, &upstreamReq, func(runCtx context.Context, scheduledReq *llm.LLMRequest) (*llm.LLMResponse, error) {
+			defer observability.Stage(runCtx, "provider_complete")()
 			return adapter.Complete(runCtx, scheduledReq)
 		})
 		latency := time.Since(start)
@@ -330,7 +341,10 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		resp.AttemptCount = attempts
 		resp.FallbackUsed = attempts > 1
 
-		if err := p.ProcessResponse(ctx, scope, state, resp); err != nil {
+		finishResponse := observability.Stage(ctx, "response_rules")
+		responseErr := p.ProcessResponse(ctx, scope, state, resp)
+		finishResponse()
+		if err := responseErr; err != nil {
 			if err == replication.ErrWriteNotWritable {
 				return nil, errors.ErrServiceNotWritable
 			}

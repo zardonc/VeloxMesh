@@ -1,0 +1,5 @@
+=== RUN   TestLiveDirectLoad
+    live_diagnostic_test.go:120: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"nvidia/nemotron-3.5-lightning:free","index":999,"start_ms":0.856,"elapsed_ms":9.295,"status":0,"ok":false,"hit":false,"concurrent":0,"error":"transport_error: Post \"https://openrouter.ai/api/v1/chat/completions\": dial tcp: lookup openrouter.ai on 127.0.0.53:53: read udp 127.0.0.1:34479-\u003e127.0.0.53:53: read: connection refused","planned_ms":0},"type":"warmup"}
+    live_diagnostic_test.go:122: direct upstream warmup failed
+--- FAIL: TestLiveDirectLoad (0.01s)
+FAIL

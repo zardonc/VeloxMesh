@@ -118,25 +118,32 @@ func selectProvider(env map[string]string) (map[string]string, error) {
 		return env, nil
 	}
 	if prefix == "LOCAL" {
-		base, model, key := os.Getenv("SHIP_LOCAL_BASE_URL"), os.Getenv("SHIP_LOCAL_MODEL"), os.Getenv("SHIP_LOCAL_API_KEY")
-		endpoint, err := url.Parse(base)
-		if err != nil || (endpoint.Scheme != "http" && endpoint.Scheme != "https") || endpoint.Host == "" || model == "" || key == "" {
-			return nil, fmt.Errorf("invalid local provider test inputs")
-		}
-		selected := maps.Clone(env)
-		selected["SANS_BASE_URL"], selected["SANS_PRIMARY_DEFAULT_MODEL"], selected["SANS_PRIMARY_API_KEY"] = base, model, key
-		return selected, nil
+		return selectLocalProvider(env)
 	}
-	if prefix != "SANS" && prefix != "GEM" && prefix != "GPT" {
+	if !slices.Contains([]string{"SANS", "GEM", "GPT", "OR"}, prefix) {
 		return nil, fmt.Errorf("unsupported provider selection")
 	}
 	selected := maps.Clone(env)
 	for _, suffix := range []string{"BASE_URL", "PRIMARY_API_KEY", "PRIMARY_DEFAULT_MODEL"} {
 		selected["SANS_"+suffix] = env[prefix+"_"+suffix]
 	}
+	if model := os.Getenv("SHIP_MODEL"); model != "" {
+		selected["SANS_PRIMARY_DEFAULT_MODEL"] = model
+	}
 	if prefix == "GEM" {
 		selected["SHIP_PROVIDER_TYPE"] = "gemini"
 	}
+	return selected, nil
+}
+
+func selectLocalProvider(env map[string]string) (map[string]string, error) {
+	base, model, key := os.Getenv("SHIP_LOCAL_BASE_URL"), os.Getenv("SHIP_LOCAL_MODEL"), os.Getenv("SHIP_LOCAL_API_KEY")
+	endpoint, err := url.Parse(base)
+	if err != nil || (endpoint.Scheme != "http" && endpoint.Scheme != "https") || endpoint.Host == "" || model == "" || key == "" {
+		return nil, fmt.Errorf("invalid local provider test inputs")
+	}
+	selected := maps.Clone(env)
+	selected["SANS_BASE_URL"], selected["SANS_PRIMARY_DEFAULT_MODEL"], selected["SANS_PRIMARY_API_KEY"] = base, model, key
 	return selected, nil
 }
 
@@ -210,6 +217,9 @@ func (r *runner) waitForDependencies() error {
 	deadline := time.Now().Add(dependencyStartupLimit)
 	for attempt := 1; ; attempt++ {
 		output, err := r.command("timeout 3s sh -c 'docker exec veloxmesh-test-redis redis-cli ping && docker exec veloxmesh-test-postgres pg_isready'")
+		if err == nil {
+			err = r.qdrantReady()
+		}
 		if err == nil {
 			return nil
 		}
@@ -347,7 +357,7 @@ func (r *runner) liveTest(test string) error {
 	for _, key := range []string{"PHASE29_EMBEDDING_API_KEY", "PHASE29_EMBEDDING_BASE_URL", "PHASE29_READ_TIMEOUT", "PHASE29_READ_CONCURRENCY", "PHASE29_WRITE_WORKERS", "PHASE29_QUEUE_CAPACITY", "PHASE29_WRITE_TIMEOUT", "PHASE29_SHUTDOWN_GRACE"} {
 		input[key] = os.Getenv(key)
 	}
-	for _, key := range []string{"PHASE29_COUNT", "PHASE29_INTERVAL_MS", "PHASE29_CLIENT_CONCURRENCY"} {
+	for _, key := range []string{"PHASE29_COUNT", "PHASE29_INTERVAL_MS", "PHASE29_CLIENT_CONCURRENCY", "PHASE29_EXTRA_PROVIDERS", "PHASE29_MIXED_MODELS", "OR_PRIMARY_API_KEY"} {
 		input[key] = os.Getenv(key)
 	}
 	payload, err := json.Marshal(input)
@@ -379,7 +389,22 @@ func (r *runner) save(name string, output []byte) error {
 			redacted = strings.ReplaceAll(redacted, value, "[REDACTED]")
 		}
 	}
+	redacted = regexp.MustCompile(`"user_id":"[^"]+"`).ReplaceAllString(redacted, `"user_id":"[REDACTED_ACCOUNT]"`)
 	return os.WriteFile(filepath.Join(artifacts, name), []byte(redacted), 0600)
+}
+
+func (r *runner) qdrantReady() error {
+	session, err := r.client.NewSession()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	session.Stdin = strings.NewReader("api-key: " + r.env["QDRANT_API_KEY"] + "\n")
+	_, err = session.CombinedOutput("timeout 3s curl --fail --silent --show-error -H @- http://127.0.0.1:6333/readyz")
+	if err != nil {
+		return fmt.Errorf("Qdrant readiness: %w", err)
+	}
+	return nil
 }
 
 func (r *runner) cleanup() {
