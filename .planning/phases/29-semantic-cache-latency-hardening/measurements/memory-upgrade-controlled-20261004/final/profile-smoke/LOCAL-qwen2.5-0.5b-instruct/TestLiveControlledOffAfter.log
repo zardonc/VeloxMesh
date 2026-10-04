@@ -1,0 +1,45 @@
+=== RUN   TestLiveControlledOffAfter
+{"time":"2026-10-04T16:58:17.271036429Z","level":"INFO","msg":"starting config change subscriber"}
+    live_controlled_load_test.go:18: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T16:58:17.409234923Z","level":"INFO","msg":"request completed","request_id":"diag-1","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":137}
+    live_controlled_load_test.go:18: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"qwen2.5-0.5b-instruct","index":999,"start_ms":0.085,"elapsed_ms":138.022,"status":200,"ok":true,"hit":false,"concurrent":0,"answer_hash":"87557cf2ce9e9cde148322c6498d5b63eed3ed4eb872a5d0b5a30a878a0822c1","planned_ms":0},"type":"warmup"}
+    live_controlled_load_test.go:18: SAMPLE {"memo_capacity":"0","memo_ttl":"","quiet_ms":2000,"seed_persisted":false,"type":"effective_cache_profile"}
+    live_controlled_load_test.go:18: SAMPLE {"type":"measurement_start","utc":"2026-10-04T16:58:19.410071566Z"}
+{"time":"2026-10-04T16:58:19.737659475Z","level":"INFO","msg":"request completed","request_id":"diag-2","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":327}
+    live_controlled_load_test.go:18: SAMPLE {"type":"client","request_id":"diag-2","model":"qwen2.5-0.5b-instruct","index":1,"start_ms":0.085,"elapsed_ms":327.94,"status":200,"ok":true,"hit":false,"concurrent":1,"answer_hash":"243df915297a1ee4f1890fa019a2e3d9d190cb39e9504706803c308453f4797b","planned_ms":0}
+    live_controlled_load_test.go:18: SAMPLE {"count":1,"elapsed_ms":328.032,"failed":0,"interval_ms":125,"max_concurrency":4,"mode":"off","model":"text-embedding-embedder_collection","type":"metadata"}
+    live_controlled_load_test.go:18: SAMPLE {"type":"measurement_end","utc":"2026-10-04T16:58:19.738287087Z"}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"request_rules","start_ms":1.358,"elapsed_ms":0.004}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"routing","start_ms":1.363,"elapsed_ms":0.38}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"admission","start_ms":1.744,"elapsed_ms":0.189}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/get_connection","start_ms":2.724,"elapsed_ms":0.012}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/got_connection_reused","start_ms":2.724,"elapsed_ms":0.018}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/request_written","start_ms":2.724,"elapsed_ms":0.039}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/first_byte","start_ms":2.724,"elapsed_ms":133.882}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"upstream_headers","start_ms":2.724,"elapsed_ms":133.948}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"upstream_http","start_ms":2.724,"elapsed_ms":134.043}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"provider_complete","start_ms":2.607,"elapsed_ms":134.231}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"health_provider_sync","start_ms":136.84,"elapsed_ms":0.584}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"circuit_result","start_ms":137.426,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"health_model_sync","start_ms":137.427,"elapsed_ms":0.374}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"response_rules","start_ms":137.805,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"settlement","start_ms":137.807,"elapsed_ms":0.275}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"http_handler","start_ms":0.48,"elapsed_ms":137.667}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"request_rules","start_ms":2139.957,"elapsed_ms":0.005}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"routing","start_ms":2139.963,"elapsed_ms":0.504}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"admission","start_ms":2140.47,"elapsed_ms":0.272}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"net_upstream/get_connection","start_ms":2141.332,"elapsed_ms":0.008}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"net_upstream/got_connection_reused","start_ms":2141.332,"elapsed_ms":0.013}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"net_upstream/request_written","start_ms":2141.332,"elapsed_ms":0.03}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"net_upstream/first_byte","start_ms":2141.332,"elapsed_ms":323.78}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"upstream_headers","start_ms":2141.332,"elapsed_ms":323.83}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"upstream_http","start_ms":2141.332,"elapsed_ms":323.876}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"provider_complete","start_ms":2141.289,"elapsed_ms":323.952}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"health_provider_sync","start_ms":2465.243,"elapsed_ms":0.473}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"circuit_result","start_ms":2465.718,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"health_model_sync","start_ms":2465.719,"elapsed_ms":0.452}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"response_rules","start_ms":2466.176,"elapsed_ms":0.002}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"settlement","start_ms":2466.179,"elapsed_ms":0.321}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"http_handler","start_ms":2139.291,"elapsed_ms":327.28}
+--- PASS: TestLiveControlledOffAfter (2.50s)
+PASS

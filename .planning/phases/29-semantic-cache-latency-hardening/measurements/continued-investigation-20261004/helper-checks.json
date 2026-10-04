@@ -1,0 +1,22 @@
+[
+  {
+    "args": [
+      "build",
+      "-o",
+      ".tmp/continued-investigation-20261004/vmctl-review.exe",
+      ".planning/phases/29-semantic-cache-latency-hardening/measurements/continued-investigation-20261004/vmctl.go"
+    ],
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "vet",
+      ".planning/phases/29-semantic-cache-latency-hardening/measurements/continued-investigation-20261004/vmctl.go"
+    ],
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

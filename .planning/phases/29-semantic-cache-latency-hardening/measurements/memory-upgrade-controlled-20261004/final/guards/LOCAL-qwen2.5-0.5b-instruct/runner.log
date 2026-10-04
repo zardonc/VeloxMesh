@@ -1,0 +1,15 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+TestLiveEmbeddingMemoHitBilling exit: <nil>
+TestLiveExactCacheSafetyRegression exit: <nil>
+TestLiveExactCacheVersionIsolation exit: <nil>
+TestLiveProviderDeadlineProtection exit: <nil>
+TestLiveProviderConcurrencyRecovery exit: <nil>
+TestLiveProviderCancellationRecovery exit: <nil>
+TestLiveProviderSharedResource exit: <nil>
+TestLiveProviderOverallTimeout exit: <nil>
+TestLiveProviderRegistryCapacity exit: <nil>
+/veloxmesh-test-redis true
+/veloxmesh-test-qdrant true
+/veloxmesh-test-postgres true

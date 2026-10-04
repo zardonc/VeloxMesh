@@ -1,0 +1,8 @@
+=== RUN   TestLiveGeminiNativeTimeline
+    live_gemini_timeline_test.go:58: upstream status=200 headers_ms=2402.832 stream=true
+    live_ship_gemini_diagnostic_test.go:101: direct native stream first_response_ms=2404.365
+    live_gemini_timeline_test.go:76: upstream body_end_utc=2026-10-04T20:59:27.938951457Z error_type=<nil>
+    live_gemini_timeline_test.go:233: native function_calls=1 parts_with_opaque_signature=1
+    live_gemini_timeline_test.go:233: direct native stream responses=2 complete_ms=2453.191
+--- PASS: TestLiveGeminiNativeTimeline (2.45s)
+PASS

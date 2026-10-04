@@ -1,0 +1,125 @@
+           _                 _    
+  __ _  __| |_ __ __ _ _ __ | |_  
+ / _` |/ _` | '__/ _` | '_ \| __| 
+| (_| | (_| | | | (_| | | | | |_  
+ \__, |\__,_|_|  \__,_|_| |_|\__| 
+    |_|                           
+
+Version: 1.18.2, build: 44ad62f8
+Access web UI at http://localhost:6333/dashboard
+Agentic Skills: https://skills.qdrant.tech/
+
+2026-10-04T19:08:47.894391Z  INFO storage::content_manager::consensus::persistent: Loading raft state from ./storage/raft_state.json
+2026-10-04T19:08:47.896738Z  INFO storage::content_manager::toc: Loading collection: layout_shared
+2026-10-04T19:08:48.070957Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_shared/0: 0/133 (0%)
+2026-10-04T19:08:48.935137Z  INFO collection::shards::local_shard: Recovered collection layout_shared: 133/133 (100%)
+2026-10-04T19:08:48.935804Z  INFO qdrant: Distributed mode disabled
+2026-10-04T19:08:48.935849Z  INFO qdrant: Telemetry reporting enabled, id: 34747fbf-c56a-4ba9-9088-ca98d7a9a9c3
+2026-10-04T19:08:48.947471Z  INFO qdrant::actix: REST transport settings: keep_alive=5s, client_request_timeout=5s, client_disconnect_timeout=5s
+2026-10-04T19:08:48.947497Z  INFO qdrant::actix: TLS disabled for REST API
+2026-10-04T19:08:48.947565Z  INFO qdrant::actix: Qdrant HTTP listening on 6333
+2026-10-04T19:08:48.947570Z  INFO actix_server::builder: starting 3 workers
+2026-10-04T19:08:48.947576Z  INFO actix_server::server: Actix runtime found; starting in Actix runtime
+2026-10-04T19:08:48.947581Z  INFO actix_server::server: starting service: "actix-web-service-0.0.0.0:6333", workers: 3, listening on: 0.0.0.0:6333
+2026-10-04T19:08:48.954589Z  INFO qdrant::tonic: Qdrant gRPC listening on 6334
+2026-10-04T19:08:48.954628Z  INFO qdrant::tonic: TLS disabled for gRPC API
+2026-10-04T19:09:48.978482Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001910
+2026-10-04T19:09:49.081688Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.001033
+2026-10-04T19:09:49.184844Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 121 "-" "Go-http-client/1.1" 0.000679
+2026-10-04T19:09:49.287299Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000735
+2026-10-04T19:09:49.390556Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000751
+2026-10-04T19:09:49.492665Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000765
+2026-10-04T19:09:49.596523Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001195
+2026-10-04T19:09:49.699496Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000529
+2026-10-04T19:09:49.802730Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 121 "-" "Go-http-client/1.1" 0.001154
+2026-10-04T19:09:49.905672Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 121 "-" "Go-http-client/1.1" 0.000678
+2026-10-04T19:09:50.008649Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000938
+2026-10-04T19:09:50.112274Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000743
+2026-10-04T19:09:50.215071Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.000690
+2026-10-04T19:09:50.317864Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000817
+2026-10-04T19:09:50.421173Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000748
+2026-10-04T19:09:50.524387Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.000782
+2026-10-04T19:09:50.628440Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001111
+2026-10-04T19:09:50.732475Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.001141
+2026-10-04T19:09:50.836069Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.001037
+2026-10-04T19:09:50.939623Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.000704
+2026-10-04T19:09:51.042164Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.001193
+2026-10-04T19:09:51.145349Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000982
+2026-10-04T19:09:51.248345Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000818
+2026-10-04T19:09:51.351084Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000891
+2026-10-04T19:09:51.453921Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.000841
+2026-10-04T19:09:51.557012Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000980
+2026-10-04T19:09:51.660817Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000966
+2026-10-04T19:09:51.764606Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000670
+2026-10-04T19:09:51.870517Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.003846
+2026-10-04T19:09:51.974351Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.001581
+2026-10-04T19:09:52.077627Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000723
+2026-10-04T19:09:52.180544Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.001050
+2026-10-04T19:09:52.284468Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000894
+2026-10-04T19:09:52.387771Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000858
+2026-10-04T19:09:52.490900Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000825
+2026-10-04T19:09:52.594275Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.000750
+2026-10-04T19:09:52.696639Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.000756
+2026-10-04T19:09:52.799358Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000727
+2026-10-04T19:09:52.903248Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.001031
+2026-10-04T19:09:53.006268Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000851
+2026-10-04T19:09:53.108910Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.000859
+2026-10-04T19:09:53.211132Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.000725
+2026-10-04T19:09:53.314339Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001015
+2026-10-04T19:09:53.416862Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.000690
+2026-10-04T19:09:53.520018Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000732
+2026-10-04T19:09:53.623563Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000899
+2026-10-04T19:09:53.725782Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000649
+2026-10-04T19:09:53.828540Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000673
+2026-10-04T19:09:53.931256Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.000555
+2026-10-04T19:09:54.034372Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.001048
+2026-10-04T19:09:54.137071Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000896
+2026-10-04T19:09:54.240132Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.000728
+2026-10-04T19:09:54.342762Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000660
+2026-10-04T19:09:54.445708Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.001049
+2026-10-04T19:09:54.549391Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000759
+2026-10-04T19:09:54.653106Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.001006
+2026-10-04T19:09:54.756322Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001153
+2026-10-04T19:09:54.863932Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.004635
+2026-10-04T19:09:54.967161Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000785
+2026-10-04T19:09:55.070240Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000720
+2026-10-04T19:09:55.173375Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.001077
+2026-10-04T19:09:55.277160Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001240
+2026-10-04T19:09:55.381261Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000759
+2026-10-04T19:09:55.484323Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000959
+2026-10-04T19:09:55.586835Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000718
+2026-10-04T19:09:55.690013Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000947
+2026-10-04T19:09:55.794098Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.001106
+2026-10-04T19:09:55.896942Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000921
+2026-10-04T19:09:55.999592Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000781
+2026-10-04T19:09:56.102828Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001037
+2026-10-04T19:09:56.205891Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000784
+2026-10-04T19:09:56.308386Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000836
+2026-10-04T19:09:56.412356Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 121 "-" "Go-http-client/1.1" 0.001259
+2026-10-04T19:09:56.514940Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000632
+2026-10-04T19:09:56.618306Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.000997
+2026-10-04T19:09:56.721947Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000855
+2026-10-04T19:09:56.825143Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000868
+2026-10-04T19:09:56.927557Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000879
+2026-10-04T19:09:57.030816Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.000980
+2026-10-04T19:09:57.133221Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000725
+2026-10-04T19:09:57.236458Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000813
+2026-10-04T19:09:57.339718Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.001012
+2026-10-04T19:09:57.442301Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.000787
+2026-10-04T19:09:57.544853Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000730
+2026-10-04T19:09:57.647414Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000623
+2026-10-04T19:09:57.750660Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000680
+2026-10-04T19:09:57.853608Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000633
+2026-10-04T19:09:57.957447Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.001274
+2026-10-04T19:09:58.060570Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000969
+2026-10-04T19:09:58.163220Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000811
+2026-10-04T19:09:58.266122Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000696
+2026-10-04T19:09:58.369412Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000848
+2026-10-04T19:09:58.472630Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.001110
+2026-10-04T19:09:58.575365Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.000963
+2026-10-04T19:09:58.678332Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.000684
+2026-10-04T19:09:58.781811Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.000857
+2026-10-04T19:09:58.884269Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.000800
+2026-10-04T19:09:58.987729Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.000778
+2026-10-04T19:09:59.091878Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001079
+2026-10-04T19:09:59.194212Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_shared/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.000668

@@ -1,0 +1,116 @@
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"time"
+
+	"github.com/joho/godotenv"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
+)
+
+const storageEvidence = ".planning/phases/29-semantic-cache-latency-hardening/measurements/primary-warmup-investigation-20261004"
+
+func main() {
+	if err := storageRun(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func storageClient() (*ssh.Client, error) {
+	env, err := godotenv.Read(".env.local")
+	if err != nil {
+		return nil, err
+	}
+	userDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	callback, err := knownhosts.New(filepath.Join(userDir, ".ssh", "known_hosts"))
+	if err != nil {
+		return nil, err
+	}
+	port := env["DEV_SERVER_PORT"]
+	if port == "" {
+		port = "22"
+	}
+	return ssh.Dial("tcp", net.JoinHostPort(env["DEV_SERVER_IP"], port), &ssh.ClientConfig{
+		User: env["DEV_SERVER_USER"], Auth: []ssh.AuthMethod{ssh.Password(env["DEV_SERVER_PW"])},
+		HostKeyCallback: callback, Timeout: 10 * time.Second})
+}
+
+func storageCommand(client *ssh.Client, command string) ([]byte, error) {
+	session, err := client.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+	return session.CombinedOutput(command)
+}
+
+func storageRun() error {
+	client, err := storageClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	deadline := time.AfterFunc(time.Minute, func() { client.Close() })
+	defer deadline.Stop()
+	state, err := storageCommand(client, "docker inspect --format '{{.Name}} running={{.State.Running}} oom={{.State.OOMKilled}} restarts={{.RestartCount}}' veloxmesh-test-redis veloxmesh-test-qdrant veloxmesh-test-postgres")
+	if err != nil {
+		return err
+	}
+	if strings.Contains(string(state), "running=true") {
+		return fmt.Errorf("storage inspection requires stopped test containers")
+	}
+	if err := os.WriteFile(filepath.Join(storageEvidence, "container-state-after.log"), state, 0600); err != nil {
+		return err
+	}
+	mount, err := storageCommand(client, "docker inspect --format '{{range .Mounts}}{{if eq .Destination \"/qdrant/storage\"}}{{.Source}}{{end}}{{end}}' veloxmesh-test-qdrant")
+	if err != nil {
+		return err
+	}
+	path := strings.TrimSpace(string(mount))
+	if !regexp.MustCompile(`^/var/lib/docker/volumes/[A-Za-z0-9_-]+/_data$`).MatchString(path) {
+		return fmt.Errorf("unexpected storage volume path; refusing traversal")
+	}
+	image, err := storageCommand(client, "docker inspect --format '{{.Image}}' veloxmesh-test-postgres")
+	if err != nil {
+		return err
+	}
+	imageID := strings.TrimSpace(string(image))
+	if !regexp.MustCompile(`^sha256:[a-f0-9]{64}$`).MatchString(imageID) {
+		return fmt.Errorf("invalid cached helper image")
+	}
+	volume := strings.TrimSuffix(strings.TrimPrefix(path, "/var/lib/docker/volumes/"), "/_data")
+	base := "timeout 20s docker run --rm --pull never --read-only --network none --cap-drop ALL --security-opt no-new-privileges --user 0 --memory 128m --cpus 0.5 --mount type=volume,source=" + volume + ",target=/data,readonly --entrypoint du " + imageID
+	if err := storageSave(client, "storage-allocated-readonly-helper.log", base+" -k -d 2 /data"); err != nil {
+		return err
+	}
+	if err := storageSave(client, "storage-apparent-readonly-helper.log", base+" --apparent-size -k -d 2 /data"); err != nil {
+		return err
+	}
+	fileBase := strings.Replace(base, "--entrypoint du", "--entrypoint find", 1)
+	if err := storageSave(client, "storage-file-layout.log", fileBase+" /data/collections -type f -printf '%s\\t%b\\t%P\\n'"); err != nil {
+		return err
+	}
+	return storageSave(client, "storage-host-after.log", "cat /proc/meminfo /proc/pressure/memory && df -k /var/lib/docker && sysctl vm.swappiness")
+}
+
+func storageSave(client *ssh.Client, name, command string) error {
+	output, err := storageCommand(client, command)
+	if saveErr := os.WriteFile(filepath.Join(storageEvidence, name), output, 0600); saveErr != nil {
+		return saveErr
+	}
+	if err != nil {
+		return fmt.Errorf("read-only %s: %w", name, err)
+	}
+	fmt.Println("Saved read-only evidence:", name)
+	return nil
+}

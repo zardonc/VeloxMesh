@@ -1,0 +1,14 @@
+{
+  "utc": "2026-10-04T20:51:55.081Z",
+  "host": {
+    "cpu": "AMD Ryzen 9 8945HS w/ Radeon 780M Graphics",
+    "logical_processors": 16,
+    "total_memory": 33555279872,
+    "available_memory": 4465721344
+  },
+  "oldObserver": {
+    "pid": 33964,
+    "exists": false,
+    "status": "ESRCH"
+  }
+}

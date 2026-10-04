@@ -1,0 +1,1091 @@
+           _                 _    
+  __ _  __| |_ __ __ _ _ __ | |_  
+ / _` |/ _` | '__/ _` | '_ \| __| 
+| (_| | (_| | | | (_| | | | | |_  
+ \__, |\__,_|_|  \__,_|_| |_|\__| 
+    |_|                           
+
+Version: 1.18.2, build: 44ad62f8
+Access web UI at http://localhost:6333/dashboard
+Agentic Skills: https://skills.qdrant.tech/
+
+2026-10-04T19:10:15.120034Z  INFO storage::content_manager::consensus::persistent: Loading raft state from ./storage/raft_state.json
+2026-10-04T19:10:15.133671Z  INFO storage::content_manager::toc: Loading collection: layout_scope_220
+2026-10-04T19:10:15.195366Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_220/0: 0/4 (0%)
+2026-10-04T19:10:15.201860Z  INFO collection::shards::local_shard: Recovered collection layout_scope_220: 4/4 (100%)
+2026-10-04T19:10:15.202494Z  INFO storage::content_manager::toc: Loading collection: layout_scope_286
+2026-10-04T19:10:15.250669Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_286/0: 0/4 (0%)
+2026-10-04T19:10:15.273844Z  INFO collection::shards::local_shard: Recovered collection layout_scope_286: 4/4 (100%)
+2026-10-04T19:10:15.273963Z  INFO storage::content_manager::toc: Loading collection: layout_scope_024
+2026-10-04T19:10:15.322861Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_024/0: 0/1 (0%)
+2026-10-04T19:10:15.329956Z  INFO collection::shards::local_shard: Recovered collection layout_scope_024: 1/1 (100%)
+2026-10-04T19:10:15.330560Z  INFO storage::content_manager::toc: Loading collection: layout_scope_256
+2026-10-04T19:10:15.357504Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_256/0: 0/4 (0%)
+2026-10-04T19:10:15.382643Z  INFO collection::shards::local_shard: Recovered collection layout_scope_256: 4/4 (100%)
+2026-10-04T19:10:15.382959Z  INFO storage::content_manager::toc: Loading collection: layout_scope_020
+2026-10-04T19:10:15.415943Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_020/0: 0/1 (0%)
+2026-10-04T19:10:15.421964Z  INFO collection::shards::local_shard: Recovered collection layout_scope_020: 1/1 (100%)
+2026-10-04T19:10:15.423024Z  INFO storage::content_manager::toc: Loading collection: layout_scope_292
+2026-10-04T19:10:15.450787Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_292/0: 0/4 (0%)
+2026-10-04T19:10:15.473953Z  INFO collection::shards::local_shard: Recovered collection layout_scope_292: 4/4 (100%)
+2026-10-04T19:10:15.474104Z  INFO storage::content_manager::toc: Loading collection: layout_scope_319
+2026-10-04T19:10:15.503208Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_319/0: 0/4 (0%)
+2026-10-04T19:10:15.528223Z  INFO collection::shards::local_shard: Recovered collection layout_scope_319: 4/4 (100%)
+2026-10-04T19:10:15.528411Z  INFO storage::content_manager::toc: Loading collection: layout_scope_252
+2026-10-04T19:10:15.559000Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_252/0: 0/4 (0%)
+2026-10-04T19:10:15.565679Z  INFO collection::shards::local_shard: Recovered collection layout_scope_252: 4/4 (100%)
+2026-10-04T19:10:15.566507Z  INFO storage::content_manager::toc: Loading collection: layout_scope_209
+2026-10-04T19:10:15.599073Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_209/0: 0/4 (0%)
+2026-10-04T19:10:15.605470Z  INFO collection::shards::local_shard: Recovered collection layout_scope_209: 4/4 (100%)
+2026-10-04T19:10:15.606216Z  INFO storage::content_manager::toc: Loading collection: layout_scope_224
+2026-10-04T19:10:15.639836Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_224/0: 0/4 (0%)
+2026-10-04T19:10:15.645618Z  INFO collection::shards::local_shard: Recovered collection layout_scope_224: 4/4 (100%)
+2026-10-04T19:10:15.646528Z  INFO storage::content_manager::toc: Loading collection: layout_scope_115
+2026-10-04T19:10:15.680346Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_115/0: 0/1 (0%)
+2026-10-04T19:10:15.687624Z  INFO collection::shards::local_shard: Recovered collection layout_scope_115: 1/1 (100%)
+2026-10-04T19:10:15.688454Z  INFO storage::content_manager::toc: Loading collection: layout_scope_311
+2026-10-04T19:10:15.716734Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_311/0: 0/4 (0%)
+2026-10-04T19:10:15.743129Z  INFO collection::shards::local_shard: Recovered collection layout_scope_311: 4/4 (100%)
+2026-10-04T19:10:15.743358Z  INFO storage::content_manager::toc: Loading collection: layout_scope_084
+2026-10-04T19:10:15.774672Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_084/0: 0/1 (0%)
+2026-10-04T19:10:15.781996Z  INFO collection::shards::local_shard: Recovered collection layout_scope_084: 1/1 (100%)
+2026-10-04T19:10:15.782732Z  INFO storage::content_manager::toc: Loading collection: layout_scope_014
+2026-10-04T19:10:15.812742Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_014/0: 0/1 (0%)
+2026-10-04T19:10:15.819963Z  INFO collection::shards::local_shard: Recovered collection layout_scope_014: 1/1 (100%)
+2026-10-04T19:10:15.820572Z  INFO storage::content_manager::toc: Loading collection: layout_scope_285
+2026-10-04T19:10:15.847715Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_285/0: 0/4 (0%)
+2026-10-04T19:10:15.877200Z  INFO collection::shards::local_shard: Recovered collection layout_scope_285: 4/4 (100%)
+2026-10-04T19:10:15.877385Z  INFO storage::content_manager::toc: Loading collection: layout_scope_163
+2026-10-04T19:10:15.908235Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_163/0: 0/1 (0%)
+2026-10-04T19:10:15.915136Z  INFO collection::shards::local_shard: Recovered collection layout_scope_163: 1/1 (100%)
+2026-10-04T19:10:15.916067Z  INFO storage::content_manager::toc: Loading collection: layout_scope_011
+2026-10-04T19:10:15.948388Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_011/0: 0/1 (0%)
+2026-10-04T19:10:15.955334Z  INFO collection::shards::local_shard: Recovered collection layout_scope_011: 1/1 (100%)
+2026-10-04T19:10:15.956173Z  INFO storage::content_manager::toc: Loading collection: layout_scope_077
+2026-10-04T19:10:15.988268Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_077/0: 0/1 (0%)
+2026-10-04T19:10:15.997009Z  INFO collection::shards::local_shard: Recovered collection layout_scope_077: 1/1 (100%)
+2026-10-04T19:10:15.998075Z  INFO storage::content_manager::toc: Loading collection: layout_scope_125
+2026-10-04T19:10:16.030906Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_125/0: 0/1 (0%)
+2026-10-04T19:10:16.037499Z  INFO collection::shards::local_shard: Recovered collection layout_scope_125: 1/1 (100%)
+2026-10-04T19:10:16.038403Z  INFO storage::content_manager::toc: Loading collection: layout_scope_244
+2026-10-04T19:10:16.068954Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_244/0: 0/4 (0%)
+2026-10-04T19:10:16.076601Z  INFO collection::shards::local_shard: Recovered collection layout_scope_244: 4/4 (100%)
+2026-10-04T19:10:16.077423Z  INFO storage::content_manager::toc: Loading collection: layout_scope_245
+2026-10-04T19:10:16.105474Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_245/0: 0/4 (0%)
+2026-10-04T19:10:16.111170Z  INFO collection::shards::local_shard: Recovered collection layout_scope_245: 4/4 (100%)
+2026-10-04T19:10:16.111781Z  INFO storage::content_manager::toc: Loading collection: layout_scope_001
+2026-10-04T19:10:16.138485Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_001/0: 0/1 (0%)
+2026-10-04T19:10:16.144556Z  INFO collection::shards::local_shard: Recovered collection layout_scope_001: 1/1 (100%)
+2026-10-04T19:10:16.145366Z  INFO storage::content_manager::toc: Loading collection: layout_scope_107
+2026-10-04T19:10:16.176322Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_107/0: 0/1 (0%)
+2026-10-04T19:10:16.182709Z  INFO collection::shards::local_shard: Recovered collection layout_scope_107: 1/1 (100%)
+2026-10-04T19:10:16.183464Z  INFO storage::content_manager::toc: Loading collection: layout_scope_169
+2026-10-04T19:10:16.209889Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_169/0: 0/1 (0%)
+2026-10-04T19:10:16.216685Z  INFO collection::shards::local_shard: Recovered collection layout_scope_169: 1/1 (100%)
+2026-10-04T19:10:16.217493Z  INFO storage::content_manager::toc: Loading collection: layout_scope_104
+2026-10-04T19:10:16.243504Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_104/0: 0/1 (0%)
+2026-10-04T19:10:16.249817Z  INFO collection::shards::local_shard: Recovered collection layout_scope_104: 1/1 (100%)
+2026-10-04T19:10:16.250612Z  INFO storage::content_manager::toc: Loading collection: layout_scope_075
+2026-10-04T19:10:16.276962Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_075/0: 0/1 (0%)
+2026-10-04T19:10:16.282443Z  INFO collection::shards::local_shard: Recovered collection layout_scope_075: 1/1 (100%)
+2026-10-04T19:10:16.283463Z  INFO storage::content_manager::toc: Loading collection: layout_scope_030
+2026-10-04T19:10:16.310929Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_030/0: 0/1 (0%)
+2026-10-04T19:10:16.317280Z  INFO collection::shards::local_shard: Recovered collection layout_scope_030: 1/1 (100%)
+2026-10-04T19:10:16.318076Z  INFO storage::content_manager::toc: Loading collection: layout_scope_282
+2026-10-04T19:10:16.341377Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_282/0: 0/4 (0%)
+2026-10-04T19:10:16.363314Z  INFO collection::shards::local_shard: Recovered collection layout_scope_282: 4/4 (100%)
+2026-10-04T19:10:16.363501Z  INFO storage::content_manager::toc: Loading collection: layout_scope_119
+2026-10-04T19:10:16.390427Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_119/0: 0/1 (0%)
+2026-10-04T19:10:16.396590Z  INFO collection::shards::local_shard: Recovered collection layout_scope_119: 1/1 (100%)
+2026-10-04T19:10:16.397193Z  INFO storage::content_manager::toc: Loading collection: layout_scope_242
+2026-10-04T19:10:16.424734Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_242/0: 0/4 (0%)
+2026-10-04T19:10:16.431476Z  INFO collection::shards::local_shard: Recovered collection layout_scope_242: 4/4 (100%)
+2026-10-04T19:10:16.432201Z  INFO storage::content_manager::toc: Loading collection: layout_scope_281
+2026-10-04T19:10:16.454661Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_281/0: 0/4 (0%)
+2026-10-04T19:10:16.478882Z  INFO collection::shards::local_shard: Recovered collection layout_scope_281: 4/4 (100%)
+2026-10-04T19:10:16.479020Z  INFO storage::content_manager::toc: Loading collection: layout_scope_103
+2026-10-04T19:10:16.505309Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_103/0: 0/1 (0%)
+2026-10-04T19:10:16.511578Z  INFO collection::shards::local_shard: Recovered collection layout_scope_103: 1/1 (100%)
+2026-10-04T19:10:16.512473Z  INFO storage::content_manager::toc: Loading collection: layout_scope_126
+2026-10-04T19:10:16.537258Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_126/0: 0/1 (0%)
+2026-10-04T19:10:16.544085Z  INFO collection::shards::local_shard: Recovered collection layout_scope_126: 1/1 (100%)
+2026-10-04T19:10:16.544921Z  INFO storage::content_manager::toc: Loading collection: layout_scope_085
+2026-10-04T19:10:16.569660Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_085/0: 0/1 (0%)
+2026-10-04T19:10:16.575298Z  INFO collection::shards::local_shard: Recovered collection layout_scope_085: 1/1 (100%)
+2026-10-04T19:10:16.576022Z  INFO storage::content_manager::toc: Loading collection: layout_scope_088
+2026-10-04T19:10:16.601321Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_088/0: 0/1 (0%)
+2026-10-04T19:10:16.607328Z  INFO collection::shards::local_shard: Recovered collection layout_scope_088: 1/1 (100%)
+2026-10-04T19:10:16.607998Z  INFO storage::content_manager::toc: Loading collection: layout_scope_178
+2026-10-04T19:10:16.632074Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_178/0: 0/1 (0%)
+2026-10-04T19:10:16.638086Z  INFO collection::shards::local_shard: Recovered collection layout_scope_178: 1/1 (100%)
+2026-10-04T19:10:16.638932Z  INFO storage::content_manager::toc: Loading collection: layout_scope_083
+2026-10-04T19:10:16.664992Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_083/0: 0/1 (0%)
+2026-10-04T19:10:16.672505Z  INFO collection::shards::local_shard: Recovered collection layout_scope_083: 1/1 (100%)
+2026-10-04T19:10:16.673314Z  INFO storage::content_manager::toc: Loading collection: layout_scope_078
+2026-10-04T19:10:16.698449Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_078/0: 0/1 (0%)
+2026-10-04T19:10:16.704516Z  INFO collection::shards::local_shard: Recovered collection layout_scope_078: 1/1 (100%)
+2026-10-04T19:10:16.705195Z  INFO storage::content_manager::toc: Loading collection: layout_scope_310
+2026-10-04T19:10:16.727621Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_310/0: 0/4 (0%)
+2026-10-04T19:10:16.750114Z  INFO collection::shards::local_shard: Recovered collection layout_scope_310: 4/4 (100%)
+2026-10-04T19:10:16.750311Z  INFO storage::content_manager::toc: Loading collection: layout_scope_039
+2026-10-04T19:10:16.777304Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_039/0: 0/1 (0%)
+2026-10-04T19:10:16.783218Z  INFO collection::shards::local_shard: Recovered collection layout_scope_039: 1/1 (100%)
+2026-10-04T19:10:16.784192Z  INFO storage::content_manager::toc: Loading collection: layout_scope_189
+2026-10-04T19:10:16.811237Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_189/0: 0/4 (0%)
+2026-10-04T19:10:16.817734Z  INFO collection::shards::local_shard: Recovered collection layout_scope_189: 4/4 (100%)
+2026-10-04T19:10:16.818632Z  INFO storage::content_manager::toc: Loading collection: layout_scope_299
+2026-10-04T19:10:16.841429Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_299/0: 0/4 (0%)
+2026-10-04T19:10:16.869017Z  INFO collection::shards::local_shard: Recovered collection layout_scope_299: 4/4 (100%)
+2026-10-04T19:10:16.869248Z  INFO storage::content_manager::toc: Loading collection: layout_scope_106
+2026-10-04T19:10:16.897394Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_106/0: 0/1 (0%)
+2026-10-04T19:10:16.903572Z  INFO collection::shards::local_shard: Recovered collection layout_scope_106: 1/1 (100%)
+2026-10-04T19:10:16.904481Z  INFO storage::content_manager::toc: Loading collection: layout_scope_150
+2026-10-04T19:10:16.935136Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_150/0: 0/1 (0%)
+2026-10-04T19:10:16.942006Z  INFO collection::shards::local_shard: Recovered collection layout_scope_150: 1/1 (100%)
+2026-10-04T19:10:16.942755Z  INFO storage::content_manager::toc: Loading collection: layout_scope_141
+2026-10-04T19:10:16.973893Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_141/0: 0/1 (0%)
+2026-10-04T19:10:16.980960Z  INFO collection::shards::local_shard: Recovered collection layout_scope_141: 1/1 (100%)
+2026-10-04T19:10:16.981909Z  INFO storage::content_manager::toc: Loading collection: layout_scope_272
+2026-10-04T19:10:17.008908Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_272/0: 0/4 (0%)
+2026-10-04T19:10:17.031698Z  INFO collection::shards::local_shard: Recovered collection layout_scope_272: 4/4 (100%)
+2026-10-04T19:10:17.031810Z  INFO storage::content_manager::toc: Loading collection: layout_scope_055
+2026-10-04T19:10:17.062953Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_055/0: 0/1 (0%)
+2026-10-04T19:10:17.069358Z  INFO collection::shards::local_shard: Recovered collection layout_scope_055: 1/1 (100%)
+2026-10-04T19:10:17.070338Z  INFO storage::content_manager::toc: Loading collection: layout_scope_262
+2026-10-04T19:10:17.094563Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_262/0: 0/4 (0%)
+2026-10-04T19:10:17.114270Z  INFO collection::shards::local_shard: Recovered collection layout_scope_262: 4/4 (100%)
+2026-10-04T19:10:17.114493Z  INFO storage::content_manager::toc: Loading collection: layout_scope_204
+2026-10-04T19:10:17.141401Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_204/0: 0/4 (0%)
+2026-10-04T19:10:17.146747Z  INFO collection::shards::local_shard: Recovered collection layout_scope_204: 4/4 (100%)
+2026-10-04T19:10:17.147426Z  INFO storage::content_manager::toc: Loading collection: layout_scope_267
+2026-10-04T19:10:17.170090Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_267/0: 0/4 (0%)
+2026-10-04T19:10:17.190693Z  INFO collection::shards::local_shard: Recovered collection layout_scope_267: 4/4 (100%)
+2026-10-04T19:10:17.190940Z  INFO storage::content_manager::toc: Loading collection: layout_scope_164
+2026-10-04T19:10:17.217487Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_164/0: 0/1 (0%)
+2026-10-04T19:10:17.223410Z  INFO collection::shards::local_shard: Recovered collection layout_scope_164: 1/1 (100%)
+2026-10-04T19:10:17.224045Z  INFO storage::content_manager::toc: Loading collection: layout_scope_190
+2026-10-04T19:10:17.249180Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_190/0: 0/4 (0%)
+2026-10-04T19:10:17.255385Z  INFO collection::shards::local_shard: Recovered collection layout_scope_190: 4/4 (100%)
+2026-10-04T19:10:17.256057Z  INFO storage::content_manager::toc: Loading collection: layout_scope_236
+2026-10-04T19:10:17.281597Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_236/0: 0/4 (0%)
+2026-10-04T19:10:17.287962Z  INFO collection::shards::local_shard: Recovered collection layout_scope_236: 4/4 (100%)
+2026-10-04T19:10:17.288631Z  INFO storage::content_manager::toc: Loading collection: layout_scope_229
+2026-10-04T19:10:17.314154Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_229/0: 0/4 (0%)
+2026-10-04T19:10:17.320279Z  INFO collection::shards::local_shard: Recovered collection layout_scope_229: 4/4 (100%)
+2026-10-04T19:10:17.321083Z  INFO storage::content_manager::toc: Loading collection: layout_scope_059
+2026-10-04T19:10:17.346405Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_059/0: 0/1 (0%)
+2026-10-04T19:10:17.352085Z  INFO collection::shards::local_shard: Recovered collection layout_scope_059: 1/1 (100%)
+2026-10-04T19:10:17.352865Z  INFO storage::content_manager::toc: Loading collection: layout_scope_309
+2026-10-04T19:10:17.374881Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_309/0: 0/4 (0%)
+2026-10-04T19:10:17.392769Z  INFO collection::shards::local_shard: Recovered collection layout_scope_309: 4/4 (100%)
+2026-10-04T19:10:17.392943Z  INFO storage::content_manager::toc: Loading collection: layout_scope_198
+2026-10-04T19:10:17.417906Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_198/0: 0/4 (0%)
+2026-10-04T19:10:17.423595Z  INFO collection::shards::local_shard: Recovered collection layout_scope_198: 4/4 (100%)
+2026-10-04T19:10:17.424457Z  INFO storage::content_manager::toc: Loading collection: layout_scope_243
+2026-10-04T19:10:17.449871Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_243/0: 0/4 (0%)
+2026-10-04T19:10:17.455894Z  INFO collection::shards::local_shard: Recovered collection layout_scope_243: 4/4 (100%)
+2026-10-04T19:10:17.456706Z  INFO storage::content_manager::toc: Loading collection: layout_scope_047
+2026-10-04T19:10:17.480526Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_047/0: 0/1 (0%)
+2026-10-04T19:10:17.486465Z  INFO collection::shards::local_shard: Recovered collection layout_scope_047: 1/1 (100%)
+2026-10-04T19:10:17.487210Z  INFO storage::content_manager::toc: Loading collection: layout_scope_101
+2026-10-04T19:10:17.510727Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_101/0: 0/1 (0%)
+2026-10-04T19:10:17.516473Z  INFO collection::shards::local_shard: Recovered collection layout_scope_101: 1/1 (100%)
+2026-10-04T19:10:17.517155Z  INFO storage::content_manager::toc: Loading collection: layout_scope_276
+2026-10-04T19:10:17.537356Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_276/0: 0/4 (0%)
+2026-10-04T19:10:17.558283Z  INFO collection::shards::local_shard: Recovered collection layout_scope_276: 4/4 (100%)
+2026-10-04T19:10:17.558485Z  INFO storage::content_manager::toc: Loading collection: layout_scope_027
+2026-10-04T19:10:17.583742Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_027/0: 0/1 (0%)
+2026-10-04T19:10:17.590606Z  INFO collection::shards::local_shard: Recovered collection layout_scope_027: 1/1 (100%)
+2026-10-04T19:10:17.591730Z  INFO storage::content_manager::toc: Loading collection: layout_scope_018
+2026-10-04T19:10:17.618213Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_018/0: 0/1 (0%)
+2026-10-04T19:10:17.624020Z  INFO collection::shards::local_shard: Recovered collection layout_scope_018: 1/1 (100%)
+2026-10-04T19:10:17.624735Z  INFO storage::content_manager::toc: Loading collection: layout_scope_072
+2026-10-04T19:10:17.653492Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_072/0: 0/1 (0%)
+2026-10-04T19:10:17.659376Z  INFO collection::shards::local_shard: Recovered collection layout_scope_072: 1/1 (100%)
+2026-10-04T19:10:17.660215Z  INFO storage::content_manager::toc: Loading collection: layout_scope_230
+2026-10-04T19:10:17.694290Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_230/0: 0/4 (0%)
+2026-10-04T19:10:17.699820Z  INFO collection::shards::local_shard: Recovered collection layout_scope_230: 4/4 (100%)
+2026-10-04T19:10:17.700604Z  INFO storage::content_manager::toc: Loading collection: layout_scope_093
+2026-10-04T19:10:17.734526Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_093/0: 0/1 (0%)
+2026-10-04T19:10:17.741272Z  INFO collection::shards::local_shard: Recovered collection layout_scope_093: 1/1 (100%)
+2026-10-04T19:10:17.742432Z  INFO storage::content_manager::toc: Loading collection: layout_scope_316
+2026-10-04T19:10:17.768349Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_316/0: 0/4 (0%)
+2026-10-04T19:10:17.789190Z  INFO collection::shards::local_shard: Recovered collection layout_scope_316: 4/4 (100%)
+2026-10-04T19:10:17.789374Z  INFO storage::content_manager::toc: Loading collection: layout_scope_063
+2026-10-04T19:10:17.820533Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_063/0: 0/1 (0%)
+2026-10-04T19:10:17.825924Z  INFO collection::shards::local_shard: Recovered collection layout_scope_063: 1/1 (100%)
+2026-10-04T19:10:17.826599Z  INFO storage::content_manager::toc: Loading collection: layout_scope_123
+2026-10-04T19:10:17.860128Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_123/0: 0/1 (0%)
+2026-10-04T19:10:17.865385Z  INFO collection::shards::local_shard: Recovered collection layout_scope_123: 1/1 (100%)
+2026-10-04T19:10:17.866217Z  INFO storage::content_manager::toc: Loading collection: layout_scope_318
+2026-10-04T19:10:17.897938Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_318/0: 0/4 (0%)
+2026-10-04T19:10:17.918684Z  INFO collection::shards::local_shard: Recovered collection layout_scope_318: 4/4 (100%)
+2026-10-04T19:10:17.918865Z  INFO storage::content_manager::toc: Loading collection: layout_scope_259
+2026-10-04T19:10:17.954475Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_259/0: 0/4 (0%)
+2026-10-04T19:10:17.980347Z  INFO collection::shards::local_shard: Recovered collection layout_scope_259: 4/4 (100%)
+2026-10-04T19:10:17.980524Z  INFO storage::content_manager::toc: Loading collection: layout_scope_117
+2026-10-04T19:10:18.013802Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_117/0: 0/1 (0%)
+2026-10-04T19:10:18.021082Z  INFO collection::shards::local_shard: Recovered collection layout_scope_117: 1/1 (100%)
+2026-10-04T19:10:18.021754Z  INFO storage::content_manager::toc: Loading collection: layout_scope_147
+2026-10-04T19:10:18.056555Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_147/0: 0/1 (0%)
+2026-10-04T19:10:18.062736Z  INFO collection::shards::local_shard: Recovered collection layout_scope_147: 1/1 (100%)
+2026-10-04T19:10:18.063452Z  INFO storage::content_manager::toc: Loading collection: layout_scope_317
+2026-10-04T19:10:18.099344Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_317/0: 0/4 (0%)
+2026-10-04T19:10:18.120764Z  INFO collection::shards::local_shard: Recovered collection layout_scope_317: 4/4 (100%)
+2026-10-04T19:10:18.120950Z  INFO storage::content_manager::toc: Loading collection: layout_scope_069
+2026-10-04T19:10:18.159316Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_069/0: 0/1 (0%)
+2026-10-04T19:10:18.165735Z  INFO collection::shards::local_shard: Recovered collection layout_scope_069: 1/1 (100%)
+2026-10-04T19:10:18.166461Z  INFO storage::content_manager::toc: Loading collection: layout_scope_048
+2026-10-04T19:10:18.208331Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_048/0: 0/1 (0%)
+2026-10-04T19:10:18.215005Z  INFO collection::shards::local_shard: Recovered collection layout_scope_048: 1/1 (100%)
+2026-10-04T19:10:18.215881Z  INFO storage::content_manager::toc: Loading collection: layout_scope_216
+2026-10-04T19:10:18.288209Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_216/0: 0/4 (0%)
+2026-10-04T19:10:18.295406Z  INFO collection::shards::local_shard: Recovered collection layout_scope_216: 4/4 (100%)
+2026-10-04T19:10:18.296910Z  INFO storage::content_manager::toc: Loading collection: layout_scope_290
+2026-10-04T19:10:18.339804Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_290/0: 0/4 (0%)
+2026-10-04T19:10:18.362993Z  INFO collection::shards::local_shard: Recovered collection layout_scope_290: 4/4 (100%)
+2026-10-04T19:10:18.363161Z  INFO storage::content_manager::toc: Loading collection: layout_scope_028
+2026-10-04T19:10:18.413523Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_028/0: 0/1 (0%)
+2026-10-04T19:10:18.420498Z  INFO collection::shards::local_shard: Recovered collection layout_scope_028: 1/1 (100%)
+2026-10-04T19:10:18.421169Z  INFO storage::content_manager::toc: Loading collection: layout_scope_223
+2026-10-04T19:10:18.461714Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_223/0: 0/4 (0%)
+2026-10-04T19:10:18.467912Z  INFO collection::shards::local_shard: Recovered collection layout_scope_223: 4/4 (100%)
+2026-10-04T19:10:18.468634Z  INFO storage::content_manager::toc: Loading collection: layout_scope_034
+2026-10-04T19:10:18.547985Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_034/0: 0/1 (0%)
+2026-10-04T19:10:18.555091Z  INFO collection::shards::local_shard: Recovered collection layout_scope_034: 1/1 (100%)
+2026-10-04T19:10:18.555910Z  INFO storage::content_manager::toc: Loading collection: layout_scope_021
+2026-10-04T19:10:18.635404Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_021/0: 0/1 (0%)
+2026-10-04T19:10:18.643596Z  INFO collection::shards::local_shard: Recovered collection layout_scope_021: 1/1 (100%)
+2026-10-04T19:10:18.644356Z  INFO storage::content_manager::toc: Loading collection: layout_scope_264
+2026-10-04T19:10:18.708150Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_264/0: 0/4 (0%)
+2026-10-04T19:10:18.729044Z  INFO collection::shards::local_shard: Recovered collection layout_scope_264: 4/4 (100%)
+2026-10-04T19:10:18.729224Z  INFO storage::content_manager::toc: Loading collection: layout_scope_266
+2026-10-04T19:10:18.769568Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_266/0: 0/4 (0%)
+2026-10-04T19:10:18.795915Z  INFO collection::shards::local_shard: Recovered collection layout_scope_266: 4/4 (100%)
+2026-10-04T19:10:18.796021Z  INFO storage::content_manager::toc: Loading collection: layout_scope_251
+2026-10-04T19:10:18.854787Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_251/0: 0/4 (0%)
+2026-10-04T19:10:18.863349Z  INFO collection::shards::local_shard: Recovered collection layout_scope_251: 4/4 (100%)
+2026-10-04T19:10:18.864491Z  INFO storage::content_manager::toc: Loading collection: layout_scope_300
+2026-10-04T19:10:18.955341Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_300/0: 0/4 (0%)
+2026-10-04T19:10:18.986842Z  INFO collection::shards::local_shard: Recovered collection layout_scope_300: 4/4 (100%)
+2026-10-04T19:10:18.987063Z  INFO storage::content_manager::toc: Loading collection: layout_scope_227
+2026-10-04T19:10:19.069207Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_227/0: 0/4 (0%)
+2026-10-04T19:10:19.075331Z  INFO collection::shards::local_shard: Recovered collection layout_scope_227: 4/4 (100%)
+2026-10-04T19:10:19.076130Z  INFO storage::content_manager::toc: Loading collection: layout_scope_196
+2026-10-04T19:10:19.140187Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_196/0: 0/4 (0%)
+2026-10-04T19:10:19.147302Z  INFO collection::shards::local_shard: Recovered collection layout_scope_196: 4/4 (100%)
+2026-10-04T19:10:19.147919Z  INFO storage::content_manager::toc: Loading collection: layout_scope_105
+2026-10-04T19:10:19.182091Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_105/0: 0/1 (0%)
+2026-10-04T19:10:19.189856Z  INFO collection::shards::local_shard: Recovered collection layout_scope_105: 1/1 (100%)
+2026-10-04T19:10:19.190679Z  INFO storage::content_manager::toc: Loading collection: layout_scope_214
+2026-10-04T19:10:19.226772Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_214/0: 0/4 (0%)
+2026-10-04T19:10:19.234429Z  INFO collection::shards::local_shard: Recovered collection layout_scope_214: 4/4 (100%)
+2026-10-04T19:10:19.235181Z  INFO storage::content_manager::toc: Loading collection: layout_scope_067
+2026-10-04T19:10:19.271529Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_067/0: 0/1 (0%)
+2026-10-04T19:10:19.277956Z  INFO collection::shards::local_shard: Recovered collection layout_scope_067: 1/1 (100%)
+2026-10-04T19:10:19.278566Z  INFO storage::content_manager::toc: Loading collection: layout_scope_160
+2026-10-04T19:10:19.317299Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_160/0: 0/1 (0%)
+2026-10-04T19:10:19.323820Z  INFO collection::shards::local_shard: Recovered collection layout_scope_160: 1/1 (100%)
+2026-10-04T19:10:19.324512Z  INFO storage::content_manager::toc: Loading collection: layout_scope_040
+2026-10-04T19:10:19.372056Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_040/0: 0/1 (0%)
+2026-10-04T19:10:19.378359Z  INFO collection::shards::local_shard: Recovered collection layout_scope_040: 1/1 (100%)
+2026-10-04T19:10:19.378970Z  INFO storage::content_manager::toc: Loading collection: layout_scope_023
+2026-10-04T19:10:19.416420Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_023/0: 0/1 (0%)
+2026-10-04T19:10:19.421488Z  INFO collection::shards::local_shard: Recovered collection layout_scope_023: 1/1 (100%)
+2026-10-04T19:10:19.422410Z  INFO storage::content_manager::toc: Loading collection: layout_scope_073
+2026-10-04T19:10:19.463704Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_073/0: 0/1 (0%)
+2026-10-04T19:10:19.473858Z  INFO collection::shards::local_shard: Recovered collection layout_scope_073: 1/1 (100%)
+2026-10-04T19:10:19.474533Z  INFO storage::content_manager::toc: Loading collection: layout_scope_225
+2026-10-04T19:10:19.510367Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_225/0: 0/4 (0%)
+2026-10-04T19:10:19.517555Z  INFO collection::shards::local_shard: Recovered collection layout_scope_225: 4/4 (100%)
+2026-10-04T19:10:19.519065Z  INFO storage::content_manager::toc: Loading collection: layout_scope_274
+2026-10-04T19:10:19.573870Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_274/0: 0/4 (0%)
+2026-10-04T19:10:19.599242Z  INFO collection::shards::local_shard: Recovered collection layout_scope_274: 4/4 (100%)
+2026-10-04T19:10:19.599526Z  INFO storage::content_manager::toc: Loading collection: layout_scope_195
+2026-10-04T19:10:19.812956Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_195/0: 0/4 (0%)
+2026-10-04T19:10:19.844180Z  INFO collection::shards::local_shard: Recovered collection layout_scope_195: 4/4 (100%)
+2026-10-04T19:10:19.854061Z  INFO storage::content_manager::toc: Loading collection: layout_scope_268
+2026-10-04T19:10:19.931524Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_268/0: 0/4 (0%)
+2026-10-04T19:10:19.955714Z  INFO collection::shards::local_shard: Recovered collection layout_scope_268: 4/4 (100%)
+2026-10-04T19:10:19.956135Z  INFO storage::content_manager::toc: Loading collection: layout_scope_095
+2026-10-04T19:10:20.014212Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_095/0: 0/1 (0%)
+2026-10-04T19:10:20.021109Z  INFO collection::shards::local_shard: Recovered collection layout_scope_095: 1/1 (100%)
+2026-10-04T19:10:20.022069Z  INFO storage::content_manager::toc: Loading collection: layout_scope_097
+2026-10-04T19:10:20.068400Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_097/0: 0/1 (0%)
+2026-10-04T19:10:20.075046Z  INFO collection::shards::local_shard: Recovered collection layout_scope_097: 1/1 (100%)
+2026-10-04T19:10:20.075654Z  INFO storage::content_manager::toc: Loading collection: layout_scope_157
+2026-10-04T19:10:20.114780Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_157/0: 0/1 (0%)
+2026-10-04T19:10:20.121564Z  INFO collection::shards::local_shard: Recovered collection layout_scope_157: 1/1 (100%)
+2026-10-04T19:10:20.122257Z  INFO storage::content_manager::toc: Loading collection: layout_scope_168
+2026-10-04T19:10:20.158098Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_168/0: 0/1 (0%)
+2026-10-04T19:10:20.164426Z  INFO collection::shards::local_shard: Recovered collection layout_scope_168: 1/1 (100%)
+2026-10-04T19:10:20.165466Z  INFO storage::content_manager::toc: Loading collection: layout_scope_180
+2026-10-04T19:10:20.216695Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_180/0: 0/1 (0%)
+2026-10-04T19:10:20.230774Z  INFO collection::shards::local_shard: Recovered collection layout_scope_180: 1/1 (100%)
+2026-10-04T19:10:20.233143Z  INFO storage::content_manager::toc: Loading collection: layout_scope_066
+2026-10-04T19:10:20.297344Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_066/0: 0/1 (0%)
+2026-10-04T19:10:20.309375Z  INFO collection::shards::local_shard: Recovered collection layout_scope_066: 1/1 (100%)
+2026-10-04T19:10:20.310243Z  INFO storage::content_manager::toc: Loading collection: layout_scope_306
+2026-10-04T19:10:20.356433Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_306/0: 0/4 (0%)
+2026-10-04T19:10:20.381502Z  INFO collection::shards::local_shard: Recovered collection layout_scope_306: 4/4 (100%)
+2026-10-04T19:10:20.381998Z  INFO storage::content_manager::toc: Loading collection: layout_scope_287
+2026-10-04T19:10:20.429618Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_287/0: 0/4 (0%)
+2026-10-04T19:10:20.459064Z  INFO collection::shards::local_shard: Recovered collection layout_scope_287: 4/4 (100%)
+2026-10-04T19:10:20.459284Z  INFO storage::content_manager::toc: Loading collection: layout_scope_051
+2026-10-04T19:10:20.503480Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_051/0: 0/1 (0%)
+2026-10-04T19:10:20.513957Z  INFO collection::shards::local_shard: Recovered collection layout_scope_051: 1/1 (100%)
+2026-10-04T19:10:20.514892Z  INFO storage::content_manager::toc: Loading collection: layout_scope_295
+2026-10-04T19:10:20.555808Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_295/0: 0/4 (0%)
+2026-10-04T19:10:20.581730Z  INFO collection::shards::local_shard: Recovered collection layout_scope_295: 4/4 (100%)
+2026-10-04T19:10:20.581950Z  INFO storage::content_manager::toc: Loading collection: layout_scope_139
+2026-10-04T19:10:20.631504Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_139/0: 0/1 (0%)
+2026-10-04T19:10:20.639010Z  INFO collection::shards::local_shard: Recovered collection layout_scope_139: 1/1 (100%)
+2026-10-04T19:10:20.639637Z  INFO storage::content_manager::toc: Loading collection: layout_scope_037
+2026-10-04T19:10:20.687754Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_037/0: 0/1 (0%)
+2026-10-04T19:10:20.698045Z  INFO collection::shards::local_shard: Recovered collection layout_scope_037: 1/1 (100%)
+2026-10-04T19:10:20.699199Z  INFO storage::content_manager::toc: Loading collection: layout_scope_312
+2026-10-04T19:10:20.736954Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_312/0: 0/4 (0%)
+2026-10-04T19:10:20.762807Z  INFO collection::shards::local_shard: Recovered collection layout_scope_312: 4/4 (100%)
+2026-10-04T19:10:20.763229Z  INFO storage::content_manager::toc: Loading collection: layout_scope_007
+2026-10-04T19:10:20.803926Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_007/0: 0/1 (0%)
+2026-10-04T19:10:20.811485Z  INFO collection::shards::local_shard: Recovered collection layout_scope_007: 1/1 (100%)
+2026-10-04T19:10:20.812586Z  INFO storage::content_manager::toc: Loading collection: layout_scope_280
+2026-10-04T19:10:20.848873Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_280/0: 0/4 (0%)
+2026-10-04T19:10:20.885259Z  INFO collection::shards::local_shard: Recovered collection layout_scope_280: 4/4 (100%)
+2026-10-04T19:10:20.885448Z  INFO storage::content_manager::toc: Loading collection: layout_scope_296
+2026-10-04T19:10:20.919091Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_296/0: 0/4 (0%)
+2026-10-04T19:10:20.947685Z  INFO collection::shards::local_shard: Recovered collection layout_scope_296: 4/4 (100%)
+2026-10-04T19:10:20.947810Z  INFO storage::content_manager::toc: Loading collection: layout_scope_271
+2026-10-04T19:10:20.980736Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_271/0: 0/4 (0%)
+2026-10-04T19:10:21.010879Z  INFO collection::shards::local_shard: Recovered collection layout_scope_271: 4/4 (100%)
+2026-10-04T19:10:21.011018Z  INFO storage::content_manager::toc: Loading collection: layout_scope_232
+2026-10-04T19:10:21.040506Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_232/0: 0/4 (0%)
+2026-10-04T19:10:21.047152Z  INFO collection::shards::local_shard: Recovered collection layout_scope_232: 4/4 (100%)
+2026-10-04T19:10:21.048020Z  INFO storage::content_manager::toc: Loading collection: layout_scope_162
+2026-10-04T19:10:21.084386Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_162/0: 0/1 (0%)
+2026-10-04T19:10:21.091505Z  INFO collection::shards::local_shard: Recovered collection layout_scope_162: 1/1 (100%)
+2026-10-04T19:10:21.092191Z  INFO storage::content_manager::toc: Loading collection: layout_scope_258
+2026-10-04T19:10:21.122231Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_258/0: 0/4 (0%)
+2026-10-04T19:10:21.144751Z  INFO collection::shards::local_shard: Recovered collection layout_scope_258: 4/4 (100%)
+2026-10-04T19:10:21.145016Z  INFO storage::content_manager::toc: Loading collection: layout_scope_263
+2026-10-04T19:10:21.167333Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_263/0: 0/4 (0%)
+2026-10-04T19:10:21.190316Z  INFO collection::shards::local_shard: Recovered collection layout_scope_263: 4/4 (100%)
+2026-10-04T19:10:21.190538Z  INFO storage::content_manager::toc: Loading collection: layout_scope_153
+2026-10-04T19:10:21.224598Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_153/0: 0/1 (0%)
+2026-10-04T19:10:21.230564Z  INFO collection::shards::local_shard: Recovered collection layout_scope_153: 1/1 (100%)
+2026-10-04T19:10:21.231326Z  INFO storage::content_manager::toc: Loading collection: layout_scope_129
+2026-10-04T19:10:21.528866Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_129/0: 0/1 (0%)
+2026-10-04T19:10:21.536429Z  INFO collection::shards::local_shard: Recovered collection layout_scope_129: 1/1 (100%)
+2026-10-04T19:10:21.537210Z  INFO storage::content_manager::toc: Loading collection: layout_scope_222
+2026-10-04T19:10:21.570567Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_222/0: 0/4 (0%)
+2026-10-04T19:10:21.578121Z  INFO collection::shards::local_shard: Recovered collection layout_scope_222: 4/4 (100%)
+2026-10-04T19:10:21.578698Z  INFO storage::content_manager::toc: Loading collection: layout_scope_294
+2026-10-04T19:10:21.613297Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_294/0: 0/4 (0%)
+2026-10-04T19:10:21.640745Z  INFO collection::shards::local_shard: Recovered collection layout_scope_294: 4/4 (100%)
+2026-10-04T19:10:21.640979Z  INFO storage::content_manager::toc: Loading collection: layout_scope_185
+2026-10-04T19:10:21.673311Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_185/0: 0/4 (0%)
+2026-10-04T19:10:21.681419Z  INFO collection::shards::local_shard: Recovered collection layout_scope_185: 4/4 (100%)
+2026-10-04T19:10:21.682353Z  INFO storage::content_manager::toc: Loading collection: layout_scope_089
+2026-10-04T19:10:21.717230Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_089/0: 0/1 (0%)
+2026-10-04T19:10:21.725475Z  INFO collection::shards::local_shard: Recovered collection layout_scope_089: 1/1 (100%)
+2026-10-04T19:10:21.726297Z  INFO storage::content_manager::toc: Loading collection: layout_scope_142
+2026-10-04T19:10:21.765588Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_142/0: 0/1 (0%)
+2026-10-04T19:10:21.774894Z  INFO collection::shards::local_shard: Recovered collection layout_scope_142: 1/1 (100%)
+2026-10-04T19:10:21.775773Z  INFO storage::content_manager::toc: Loading collection: layout_scope_182
+2026-10-04T19:10:22.007251Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_182/0: 0/1 (0%)
+2026-10-04T19:10:22.027427Z  INFO collection::shards::local_shard: Recovered collection layout_scope_182: 1/1 (100%)
+2026-10-04T19:10:22.028759Z  INFO storage::content_manager::toc: Loading collection: layout_scope_237
+2026-10-04T19:10:22.101054Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_237/0: 0/4 (0%)
+2026-10-04T19:10:22.107324Z  INFO collection::shards::local_shard: Recovered collection layout_scope_237: 4/4 (100%)
+2026-10-04T19:10:22.108556Z  INFO storage::content_manager::toc: Loading collection: layout_scope_184
+2026-10-04T19:10:22.209902Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_184/0: 0/4 (0%)
+2026-10-04T19:10:22.215017Z  INFO collection::shards::local_shard: Recovered collection layout_scope_184: 4/4 (100%)
+2026-10-04T19:10:22.215904Z  INFO storage::content_manager::toc: Loading collection: layout_scope_136
+2026-10-04T19:10:22.256765Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_136/0: 0/1 (0%)
+2026-10-04T19:10:22.263415Z  INFO collection::shards::local_shard: Recovered collection layout_scope_136: 1/1 (100%)
+2026-10-04T19:10:22.264227Z  INFO storage::content_manager::toc: Loading collection: layout_scope_165
+2026-10-04T19:10:22.299057Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_165/0: 0/1 (0%)
+2026-10-04T19:10:22.305693Z  INFO collection::shards::local_shard: Recovered collection layout_scope_165: 1/1 (100%)
+2026-10-04T19:10:22.306643Z  INFO storage::content_manager::toc: Loading collection: layout_scope_135
+2026-10-04T19:10:22.340699Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_135/0: 0/1 (0%)
+2026-10-04T19:10:22.346311Z  INFO collection::shards::local_shard: Recovered collection layout_scope_135: 1/1 (100%)
+2026-10-04T19:10:22.347085Z  INFO storage::content_manager::toc: Loading collection: layout_scope_194
+2026-10-04T19:10:22.380758Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_194/0: 0/4 (0%)
+2026-10-04T19:10:22.387626Z  INFO collection::shards::local_shard: Recovered collection layout_scope_194: 4/4 (100%)
+2026-10-04T19:10:22.388699Z  INFO storage::content_manager::toc: Loading collection: layout_scope_313
+2026-10-04T19:10:22.434999Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_313/0: 0/4 (0%)
+2026-10-04T19:10:22.460806Z  INFO collection::shards::local_shard: Recovered collection layout_scope_313: 4/4 (100%)
+2026-10-04T19:10:22.461391Z  INFO storage::content_manager::toc: Loading collection: layout_scope_303
+2026-10-04T19:10:22.509384Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_303/0: 0/4 (0%)
+2026-10-04T19:10:22.534884Z  INFO collection::shards::local_shard: Recovered collection layout_scope_303: 4/4 (100%)
+2026-10-04T19:10:22.535439Z  INFO storage::content_manager::toc: Loading collection: layout_scope_022
+2026-10-04T19:10:22.575485Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_022/0: 0/1 (0%)
+2026-10-04T19:10:22.581753Z  INFO collection::shards::local_shard: Recovered collection layout_scope_022: 1/1 (100%)
+2026-10-04T19:10:22.583269Z  INFO storage::content_manager::toc: Loading collection: layout_scope_108
+2026-10-04T19:10:22.626566Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_108/0: 0/1 (0%)
+2026-10-04T19:10:22.634087Z  INFO collection::shards::local_shard: Recovered collection layout_scope_108: 1/1 (100%)
+2026-10-04T19:10:22.634925Z  INFO storage::content_manager::toc: Loading collection: layout_scope_171
+2026-10-04T19:10:22.674153Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_171/0: 0/1 (0%)
+2026-10-04T19:10:22.680999Z  INFO collection::shards::local_shard: Recovered collection layout_scope_171: 1/1 (100%)
+2026-10-04T19:10:22.682055Z  INFO storage::content_manager::toc: Loading collection: layout_scope_199
+2026-10-04T19:10:22.725489Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_199/0: 0/4 (0%)
+2026-10-04T19:10:22.732962Z  INFO collection::shards::local_shard: Recovered collection layout_scope_199: 4/4 (100%)
+2026-10-04T19:10:22.735076Z  INFO storage::content_manager::toc: Loading collection: layout_scope_221
+2026-10-04T19:10:22.794713Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_221/0: 0/4 (0%)
+2026-10-04T19:10:22.802328Z  INFO collection::shards::local_shard: Recovered collection layout_scope_221: 4/4 (100%)
+2026-10-04T19:10:22.803591Z  INFO storage::content_manager::toc: Loading collection: layout_scope_033
+2026-10-04T19:10:22.866020Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_033/0: 0/1 (0%)
+2026-10-04T19:10:22.874037Z  INFO collection::shards::local_shard: Recovered collection layout_scope_033: 1/1 (100%)
+2026-10-04T19:10:22.875366Z  INFO storage::content_manager::toc: Loading collection: layout_scope_255
+2026-10-04T19:10:22.924744Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_255/0: 0/4 (0%)
+2026-10-04T19:10:22.931266Z  INFO collection::shards::local_shard: Recovered collection layout_scope_255: 4/4 (100%)
+2026-10-04T19:10:22.932285Z  INFO storage::content_manager::toc: Loading collection: layout_scope_305
+2026-10-04T19:10:22.978107Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_305/0: 0/4 (0%)
+2026-10-04T19:10:23.038724Z  INFO collection::shards::local_shard: Recovered collection layout_scope_305: 4/4 (100%)
+2026-10-04T19:10:23.039665Z  INFO storage::content_manager::toc: Loading collection: layout_scope_240
+2026-10-04T19:10:23.078626Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_240/0: 0/4 (0%)
+2026-10-04T19:10:23.084461Z  INFO collection::shards::local_shard: Recovered collection layout_scope_240: 4/4 (100%)
+2026-10-04T19:10:23.085449Z  INFO storage::content_manager::toc: Loading collection: layout_scope_235
+2026-10-04T19:10:23.113409Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_235/0: 0/4 (0%)
+2026-10-04T19:10:23.119596Z  INFO collection::shards::local_shard: Recovered collection layout_scope_235: 4/4 (100%)
+2026-10-04T19:10:23.120459Z  INFO storage::content_manager::toc: Loading collection: layout_scope_091
+2026-10-04T19:10:23.150262Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_091/0: 0/1 (0%)
+2026-10-04T19:10:23.155731Z  INFO collection::shards::local_shard: Recovered collection layout_scope_091: 1/1 (100%)
+2026-10-04T19:10:23.156581Z  INFO storage::content_manager::toc: Loading collection: layout_scope_210
+2026-10-04T19:10:23.187427Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_210/0: 0/4 (0%)
+2026-10-04T19:10:23.192775Z  INFO collection::shards::local_shard: Recovered collection layout_scope_210: 4/4 (100%)
+2026-10-04T19:10:23.193853Z  INFO storage::content_manager::toc: Loading collection: layout_scope_301
+2026-10-04T19:10:23.222792Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_301/0: 0/4 (0%)
+2026-10-04T19:10:23.243376Z  INFO collection::shards::local_shard: Recovered collection layout_scope_301: 4/4 (100%)
+2026-10-04T19:10:23.243960Z  INFO storage::content_manager::toc: Loading collection: layout_scope_275
+2026-10-04T19:10:23.273975Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_275/0: 0/4 (0%)
+2026-10-04T19:10:23.300864Z  INFO collection::shards::local_shard: Recovered collection layout_scope_275: 4/4 (100%)
+2026-10-04T19:10:23.301426Z  INFO storage::content_manager::toc: Loading collection: layout_scope_143
+2026-10-04T19:10:23.331070Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_143/0: 0/1 (0%)
+2026-10-04T19:10:23.337074Z  INFO collection::shards::local_shard: Recovered collection layout_scope_143: 1/1 (100%)
+2026-10-04T19:10:23.338137Z  INFO storage::content_manager::toc: Loading collection: layout_scope_127
+2026-10-04T19:10:23.369226Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_127/0: 0/1 (0%)
+2026-10-04T19:10:23.375709Z  INFO collection::shards::local_shard: Recovered collection layout_scope_127: 1/1 (100%)
+2026-10-04T19:10:23.376828Z  INFO storage::content_manager::toc: Loading collection: layout_scope_238
+2026-10-04T19:10:23.408981Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_238/0: 0/4 (0%)
+2026-10-04T19:10:23.417010Z  INFO collection::shards::local_shard: Recovered collection layout_scope_238: 4/4 (100%)
+2026-10-04T19:10:23.418354Z  INFO storage::content_manager::toc: Loading collection: layout_scope_074
+2026-10-04T19:10:23.448879Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_074/0: 0/1 (0%)
+2026-10-04T19:10:23.455012Z  INFO collection::shards::local_shard: Recovered collection layout_scope_074: 1/1 (100%)
+2026-10-04T19:10:23.455916Z  INFO storage::content_manager::toc: Loading collection: layout_scope_144
+2026-10-04T19:10:23.488858Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_144/0: 0/1 (0%)
+2026-10-04T19:10:23.494788Z  INFO collection::shards::local_shard: Recovered collection layout_scope_144: 1/1 (100%)
+2026-10-04T19:10:23.496087Z  INFO storage::content_manager::toc: Loading collection: layout_scope_131
+2026-10-04T19:10:23.526129Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_131/0: 0/1 (0%)
+2026-10-04T19:10:23.531761Z  INFO collection::shards::local_shard: Recovered collection layout_scope_131: 1/1 (100%)
+2026-10-04T19:10:23.532948Z  INFO storage::content_manager::toc: Loading collection: layout_scope_217
+2026-10-04T19:10:23.562382Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_217/0: 0/4 (0%)
+2026-10-04T19:10:23.569731Z  INFO collection::shards::local_shard: Recovered collection layout_scope_217: 4/4 (100%)
+2026-10-04T19:10:23.570637Z  INFO storage::content_manager::toc: Loading collection: layout_scope_215
+2026-10-04T19:10:23.597649Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_215/0: 0/4 (0%)
+2026-10-04T19:10:23.605450Z  INFO collection::shards::local_shard: Recovered collection layout_scope_215: 4/4 (100%)
+2026-10-04T19:10:23.606659Z  INFO storage::content_manager::toc: Loading collection: layout_scope_122
+2026-10-04T19:10:23.632430Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_122/0: 0/1 (0%)
+2026-10-04T19:10:23.640526Z  INFO collection::shards::local_shard: Recovered collection layout_scope_122: 1/1 (100%)
+2026-10-04T19:10:23.641944Z  INFO storage::content_manager::toc: Loading collection: layout_scope_137
+2026-10-04T19:10:23.675700Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_137/0: 0/1 (0%)
+2026-10-04T19:10:23.684155Z  INFO collection::shards::local_shard: Recovered collection layout_scope_137: 1/1 (100%)
+2026-10-04T19:10:23.685100Z  INFO storage::content_manager::toc: Loading collection: layout_scope_002
+2026-10-04T19:10:23.712986Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_002/0: 0/1 (0%)
+2026-10-04T19:10:23.720989Z  INFO collection::shards::local_shard: Recovered collection layout_scope_002: 1/1 (100%)
+2026-10-04T19:10:23.722168Z  INFO storage::content_manager::toc: Loading collection: layout_scope_092
+2026-10-04T19:10:23.840719Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_092/0: 0/1 (0%)
+2026-10-04T19:10:23.846728Z  INFO collection::shards::local_shard: Recovered collection layout_scope_092: 1/1 (100%)
+2026-10-04T19:10:23.847629Z  INFO storage::content_manager::toc: Loading collection: layout_scope_110
+2026-10-04T19:10:23.908507Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_110/0: 0/1 (0%)
+2026-10-04T19:10:23.918476Z  INFO collection::shards::local_shard: Recovered collection layout_scope_110: 1/1 (100%)
+2026-10-04T19:10:23.920770Z  INFO storage::content_manager::toc: Loading collection: layout_scope_175
+2026-10-04T19:10:24.106141Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_175/0: 0/1 (0%)
+2026-10-04T19:10:24.126948Z  INFO collection::shards::local_shard: Recovered collection layout_scope_175: 1/1 (100%)
+2026-10-04T19:10:24.128144Z  INFO storage::content_manager::toc: Loading collection: layout_scope_036
+2026-10-04T19:10:24.188903Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_036/0: 0/1 (0%)
+2026-10-04T19:10:24.195780Z  INFO collection::shards::local_shard: Recovered collection layout_scope_036: 1/1 (100%)
+2026-10-04T19:10:24.196931Z  INFO storage::content_manager::toc: Loading collection: layout_scope_158
+2026-10-04T19:10:24.235311Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_158/0: 0/1 (0%)
+2026-10-04T19:10:24.240790Z  INFO collection::shards::local_shard: Recovered collection layout_scope_158: 1/1 (100%)
+2026-10-04T19:10:24.241969Z  INFO storage::content_manager::toc: Loading collection: layout_scope_082
+2026-10-04T19:10:24.273702Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_082/0: 0/1 (0%)
+2026-10-04T19:10:24.280445Z  INFO collection::shards::local_shard: Recovered collection layout_scope_082: 1/1 (100%)
+2026-10-04T19:10:24.281495Z  INFO storage::content_manager::toc: Loading collection: layout_scope_159
+2026-10-04T19:10:24.311688Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_159/0: 0/1 (0%)
+2026-10-04T19:10:24.317251Z  INFO collection::shards::local_shard: Recovered collection layout_scope_159: 1/1 (100%)
+2026-10-04T19:10:24.318104Z  INFO storage::content_manager::toc: Loading collection: layout_scope_248
+2026-10-04T19:10:24.361676Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_248/0: 0/4 (0%)
+2026-10-04T19:10:24.370721Z  INFO collection::shards::local_shard: Recovered collection layout_scope_248: 4/4 (100%)
+2026-10-04T19:10:24.371793Z  INFO storage::content_manager::toc: Loading collection: layout_scope_087
+2026-10-04T19:10:24.407957Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_087/0: 0/1 (0%)
+2026-10-04T19:10:24.415013Z  INFO collection::shards::local_shard: Recovered collection layout_scope_087: 1/1 (100%)
+2026-10-04T19:10:24.416337Z  INFO storage::content_manager::toc: Loading collection: layout_scope_054
+2026-10-04T19:10:24.451221Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_054/0: 0/1 (0%)
+2026-10-04T19:10:24.459752Z  INFO collection::shards::local_shard: Recovered collection layout_scope_054: 1/1 (100%)
+2026-10-04T19:10:24.460903Z  INFO storage::content_manager::toc: Loading collection: layout_scope_314
+2026-10-04T19:10:24.491814Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_314/0: 0/4 (0%)
+2026-10-04T19:10:24.515311Z  INFO collection::shards::local_shard: Recovered collection layout_scope_314: 4/4 (100%)
+2026-10-04T19:10:24.515787Z  INFO storage::content_manager::toc: Loading collection: layout_scope_265
+2026-10-04T19:10:24.548116Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_265/0: 0/4 (0%)
+2026-10-04T19:10:24.572354Z  INFO collection::shards::local_shard: Recovered collection layout_scope_265: 4/4 (100%)
+2026-10-04T19:10:24.572958Z  INFO storage::content_manager::toc: Loading collection: layout_scope_273
+2026-10-04T19:10:24.649943Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_273/0: 0/4 (0%)
+2026-10-04T19:10:24.678971Z  INFO collection::shards::local_shard: Recovered collection layout_scope_273: 4/4 (100%)
+2026-10-04T19:10:24.679848Z  INFO storage::content_manager::toc: Loading collection: layout_scope_201
+2026-10-04T19:10:24.732305Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_201/0: 0/4 (0%)
+2026-10-04T19:10:24.738973Z  INFO collection::shards::local_shard: Recovered collection layout_scope_201: 4/4 (100%)
+2026-10-04T19:10:24.740797Z  INFO storage::content_manager::toc: Loading collection: layout_scope_239
+2026-10-04T19:10:24.798028Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_239/0: 0/4 (0%)
+2026-10-04T19:10:24.806378Z  INFO collection::shards::local_shard: Recovered collection layout_scope_239: 4/4 (100%)
+2026-10-04T19:10:24.807505Z  INFO storage::content_manager::toc: Loading collection: layout_scope_246
+2026-10-04T19:10:24.857555Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_246/0: 0/4 (0%)
+2026-10-04T19:10:24.872629Z  INFO collection::shards::local_shard: Recovered collection layout_scope_246: 4/4 (100%)
+2026-10-04T19:10:24.874109Z  INFO storage::content_manager::toc: Loading collection: layout_scope_012
+2026-10-04T19:10:24.918485Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_012/0: 0/1 (0%)
+2026-10-04T19:10:24.926106Z  INFO collection::shards::local_shard: Recovered collection layout_scope_012: 1/1 (100%)
+2026-10-04T19:10:24.927204Z  INFO storage::content_manager::toc: Loading collection: layout_scope_003
+2026-10-04T19:10:24.973761Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_003/0: 0/1 (0%)
+2026-10-04T19:10:24.981406Z  INFO collection::shards::local_shard: Recovered collection layout_scope_003: 1/1 (100%)
+2026-10-04T19:10:24.982337Z  INFO storage::content_manager::toc: Loading collection: layout_scope_134
+2026-10-04T19:10:25.031627Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_134/0: 0/1 (0%)
+2026-10-04T19:10:25.038525Z  INFO collection::shards::local_shard: Recovered collection layout_scope_134: 1/1 (100%)
+2026-10-04T19:10:25.039727Z  INFO storage::content_manager::toc: Loading collection: layout_scope_177
+2026-10-04T19:10:25.078776Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_177/0: 0/1 (0%)
+2026-10-04T19:10:25.085443Z  INFO collection::shards::local_shard: Recovered collection layout_scope_177: 1/1 (100%)
+2026-10-04T19:10:25.086641Z  INFO storage::content_manager::toc: Loading collection: layout_scope_253
+2026-10-04T19:10:25.126545Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_253/0: 0/4 (0%)
+2026-10-04T19:10:25.135304Z  INFO collection::shards::local_shard: Recovered collection layout_scope_253: 4/4 (100%)
+2026-10-04T19:10:25.137093Z  INFO storage::content_manager::toc: Loading collection: layout_scope_213
+2026-10-04T19:10:25.189647Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_213/0: 0/4 (0%)
+2026-10-04T19:10:25.197598Z  INFO collection::shards::local_shard: Recovered collection layout_scope_213: 4/4 (100%)
+2026-10-04T19:10:25.198837Z  INFO storage::content_manager::toc: Loading collection: layout_scope_096
+2026-10-04T19:10:25.246975Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_096/0: 0/1 (0%)
+2026-10-04T19:10:25.253347Z  INFO collection::shards::local_shard: Recovered collection layout_scope_096: 1/1 (100%)
+2026-10-04T19:10:25.254329Z  INFO storage::content_manager::toc: Loading collection: layout_scope_205
+2026-10-04T19:10:25.286130Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_205/0: 0/4 (0%)
+2026-10-04T19:10:25.292595Z  INFO collection::shards::local_shard: Recovered collection layout_scope_205: 4/4 (100%)
+2026-10-04T19:10:25.293742Z  INFO storage::content_manager::toc: Loading collection: layout_scope_208
+2026-10-04T19:10:25.326778Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_208/0: 0/4 (0%)
+2026-10-04T19:10:25.335578Z  INFO collection::shards::local_shard: Recovered collection layout_scope_208: 4/4 (100%)
+2026-10-04T19:10:25.337249Z  INFO storage::content_manager::toc: Loading collection: layout_scope_278
+2026-10-04T19:10:25.368648Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_278/0: 0/4 (0%)
+2026-10-04T19:10:25.393693Z  INFO collection::shards::local_shard: Recovered collection layout_scope_278: 4/4 (100%)
+2026-10-04T19:10:25.394661Z  INFO storage::content_manager::toc: Loading collection: layout_scope_183
+2026-10-04T19:10:25.428102Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_183/0: 0/4 (0%)
+2026-10-04T19:10:25.437206Z  INFO collection::shards::local_shard: Recovered collection layout_scope_183: 4/4 (100%)
+2026-10-04T19:10:25.438463Z  INFO storage::content_manager::toc: Loading collection: layout_scope_043
+2026-10-04T19:10:25.469912Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_043/0: 0/1 (0%)
+2026-10-04T19:10:25.476810Z  INFO collection::shards::local_shard: Recovered collection layout_scope_043: 1/1 (100%)
+2026-10-04T19:10:25.478852Z  INFO storage::content_manager::toc: Loading collection: layout_scope_120
+2026-10-04T19:10:25.512193Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_120/0: 0/1 (0%)
+2026-10-04T19:10:25.517946Z  INFO collection::shards::local_shard: Recovered collection layout_scope_120: 1/1 (100%)
+2026-10-04T19:10:25.519554Z  INFO storage::content_manager::toc: Loading collection: layout_scope_004
+2026-10-04T19:10:25.552812Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_004/0: 0/1 (0%)
+2026-10-04T19:10:25.561555Z  INFO collection::shards::local_shard: Recovered collection layout_scope_004: 1/1 (100%)
+2026-10-04T19:10:25.562909Z  INFO storage::content_manager::toc: Loading collection: layout_scope_320
+2026-10-04T19:10:25.782456Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_320/0: 0/4 (0%)
+2026-10-04T19:10:25.810033Z  INFO collection::shards::local_shard: Recovered collection layout_scope_320: 4/4 (100%)
+2026-10-04T19:10:25.810712Z  INFO storage::content_manager::toc: Loading collection: layout_scope_193
+2026-10-04T19:10:25.892746Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_193/0: 0/4 (0%)
+2026-10-04T19:10:25.902623Z  INFO collection::shards::local_shard: Recovered collection layout_scope_193: 4/4 (100%)
+2026-10-04T19:10:25.903696Z  INFO storage::content_manager::toc: Loading collection: layout_scope_086
+2026-10-04T19:10:25.943639Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_086/0: 0/1 (0%)
+2026-10-04T19:10:25.953410Z  INFO collection::shards::local_shard: Recovered collection layout_scope_086: 1/1 (100%)
+2026-10-04T19:10:25.954950Z  INFO storage::content_manager::toc: Loading collection: layout_scope_269
+2026-10-04T19:10:25.992408Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_269/0: 0/4 (0%)
+2026-10-04T19:10:26.022316Z  INFO collection::shards::local_shard: Recovered collection layout_scope_269: 4/4 (100%)
+2026-10-04T19:10:26.022855Z  INFO storage::content_manager::toc: Loading collection: layout_scope_000
+2026-10-04T19:10:26.057579Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_000/0: 0/1 (0%)
+2026-10-04T19:10:26.066103Z  INFO collection::shards::local_shard: Recovered collection layout_scope_000: 1/1 (100%)
+2026-10-04T19:10:26.067875Z  INFO storage::content_manager::toc: Loading collection: layout_scope_293
+2026-10-04T19:10:26.101776Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_293/0: 0/4 (0%)
+2026-10-04T19:10:26.123165Z  INFO collection::shards::local_shard: Recovered collection layout_scope_293: 4/4 (100%)
+2026-10-04T19:10:26.123848Z  INFO storage::content_manager::toc: Loading collection: layout_scope_241
+2026-10-04T19:10:26.200475Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_241/0: 0/4 (0%)
+2026-10-04T19:10:26.216312Z  INFO collection::shards::local_shard: Recovered collection layout_scope_241: 4/4 (100%)
+2026-10-04T19:10:26.217220Z  INFO storage::content_manager::toc: Loading collection: layout_scope_187
+2026-10-04T19:10:26.366280Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_187/0: 0/4 (0%)
+2026-10-04T19:10:26.376783Z  INFO collection::shards::local_shard: Recovered collection layout_scope_187: 4/4 (100%)
+2026-10-04T19:10:26.377808Z  INFO storage::content_manager::toc: Loading collection: layout_scope_192
+2026-10-04T19:10:26.431385Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_192/0: 0/4 (0%)
+2026-10-04T19:10:26.438293Z  INFO collection::shards::local_shard: Recovered collection layout_scope_192: 4/4 (100%)
+2026-10-04T19:10:26.439425Z  INFO storage::content_manager::toc: Loading collection: layout_scope_062
+2026-10-04T19:10:26.481043Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_062/0: 0/1 (0%)
+2026-10-04T19:10:26.488284Z  INFO collection::shards::local_shard: Recovered collection layout_scope_062: 1/1 (100%)
+2026-10-04T19:10:26.492202Z  INFO storage::content_manager::toc: Loading collection: layout_scope_257
+2026-10-04T19:10:26.519846Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_257/0: 0/4 (0%)
+2026-10-04T19:10:26.539423Z  INFO collection::shards::local_shard: Recovered collection layout_scope_257: 4/4 (100%)
+2026-10-04T19:10:26.540376Z  INFO storage::content_manager::toc: Loading collection: layout_scope_298
+2026-10-04T19:10:26.569968Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_298/0: 0/4 (0%)
+2026-10-04T19:10:26.592674Z  INFO collection::shards::local_shard: Recovered collection layout_scope_298: 4/4 (100%)
+2026-10-04T19:10:26.593231Z  INFO storage::content_manager::toc: Loading collection: layout_scope_099
+2026-10-04T19:10:26.633080Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_099/0: 0/1 (0%)
+2026-10-04T19:10:26.639741Z  INFO collection::shards::local_shard: Recovered collection layout_scope_099: 1/1 (100%)
+2026-10-04T19:10:26.640668Z  INFO storage::content_manager::toc: Loading collection: layout_scope_044
+2026-10-04T19:10:26.688866Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_044/0: 0/1 (0%)
+2026-10-04T19:10:26.696026Z  INFO collection::shards::local_shard: Recovered collection layout_scope_044: 1/1 (100%)
+2026-10-04T19:10:26.696968Z  INFO storage::content_manager::toc: Loading collection: layout_scope_203
+2026-10-04T19:10:26.730685Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_203/0: 0/4 (0%)
+2026-10-04T19:10:26.737106Z  INFO collection::shards::local_shard: Recovered collection layout_scope_203: 4/4 (100%)
+2026-10-04T19:10:26.738035Z  INFO storage::content_manager::toc: Loading collection: layout_scope_090
+2026-10-04T19:10:26.947387Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_090/0: 0/1 (0%)
+2026-10-04T19:10:26.975755Z  INFO collection::shards::local_shard: Recovered collection layout_scope_090: 1/1 (100%)
+2026-10-04T19:10:26.977736Z  INFO storage::content_manager::toc: Loading collection: layout_scope_052
+2026-10-04T19:10:27.177438Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_052/0: 0/1 (0%)
+2026-10-04T19:10:27.193771Z  INFO collection::shards::local_shard: Recovered collection layout_scope_052: 1/1 (100%)
+2026-10-04T19:10:27.194628Z  INFO storage::content_manager::toc: Loading collection: layout_scope_026
+2026-10-04T19:10:27.229188Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_026/0: 0/1 (0%)
+2026-10-04T19:10:27.235816Z  INFO collection::shards::local_shard: Recovered collection layout_scope_026: 1/1 (100%)
+2026-10-04T19:10:27.237173Z  INFO storage::content_manager::toc: Loading collection: layout_scope_284
+2026-10-04T19:10:27.273794Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_284/0: 0/4 (0%)
+2026-10-04T19:10:27.300656Z  INFO collection::shards::local_shard: Recovered collection layout_scope_284: 4/4 (100%)
+2026-10-04T19:10:27.301187Z  INFO storage::content_manager::toc: Loading collection: layout_scope_173
+2026-10-04T19:10:27.332417Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_173/0: 0/1 (0%)
+2026-10-04T19:10:27.338862Z  INFO collection::shards::local_shard: Recovered collection layout_scope_173: 1/1 (100%)
+2026-10-04T19:10:27.339779Z  INFO storage::content_manager::toc: Loading collection: layout_scope_249
+2026-10-04T19:10:27.404869Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_249/0: 0/4 (0%)
+2026-10-04T19:10:27.413541Z  INFO collection::shards::local_shard: Recovered collection layout_scope_249: 4/4 (100%)
+2026-10-04T19:10:27.414868Z  INFO storage::content_manager::toc: Loading collection: layout_scope_118
+2026-10-04T19:10:27.500145Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_118/0: 0/1 (0%)
+2026-10-04T19:10:27.507370Z  INFO collection::shards::local_shard: Recovered collection layout_scope_118: 1/1 (100%)
+2026-10-04T19:10:27.508418Z  INFO storage::content_manager::toc: Loading collection: layout_scope_068
+2026-10-04T19:10:27.559142Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_068/0: 0/1 (0%)
+2026-10-04T19:10:27.569342Z  INFO collection::shards::local_shard: Recovered collection layout_scope_068: 1/1 (100%)
+2026-10-04T19:10:27.570373Z  INFO storage::content_manager::toc: Loading collection: layout_scope_277
+2026-10-04T19:10:27.614099Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_277/0: 0/4 (0%)
+2026-10-04T19:10:27.636933Z  INFO collection::shards::local_shard: Recovered collection layout_scope_277: 4/4 (100%)
+2026-10-04T19:10:27.638250Z  INFO storage::content_manager::toc: Loading collection: layout_scope_155
+2026-10-04T19:10:27.690753Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_155/0: 0/1 (0%)
+2026-10-04T19:10:27.698420Z  INFO collection::shards::local_shard: Recovered collection layout_scope_155: 1/1 (100%)
+2026-10-04T19:10:27.700372Z  INFO storage::content_manager::toc: Loading collection: layout_scope_081
+2026-10-04T19:10:27.751766Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_081/0: 0/1 (0%)
+2026-10-04T19:10:27.758666Z  INFO collection::shards::local_shard: Recovered collection layout_scope_081: 1/1 (100%)
+2026-10-04T19:10:27.759534Z  INFO storage::content_manager::toc: Loading collection: layout_scope_207
+2026-10-04T19:10:27.807992Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_207/0: 0/4 (0%)
+2026-10-04T19:10:27.814502Z  INFO collection::shards::local_shard: Recovered collection layout_scope_207: 4/4 (100%)
+2026-10-04T19:10:27.815381Z  INFO storage::content_manager::toc: Loading collection: layout_scope_133
+2026-10-04T19:10:27.863020Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_133/0: 0/1 (0%)
+2026-10-04T19:10:27.872167Z  INFO collection::shards::local_shard: Recovered collection layout_scope_133: 1/1 (100%)
+2026-10-04T19:10:27.873594Z  INFO storage::content_manager::toc: Loading collection: layout_scope_212
+2026-10-04T19:10:27.910328Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_212/0: 0/4 (0%)
+2026-10-04T19:10:27.916729Z  INFO collection::shards::local_shard: Recovered collection layout_scope_212: 4/4 (100%)
+2026-10-04T19:10:27.917413Z  INFO storage::content_manager::toc: Loading collection: layout_scope_128
+2026-10-04T19:10:27.963993Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_128/0: 0/1 (0%)
+2026-10-04T19:10:27.970944Z  INFO collection::shards::local_shard: Recovered collection layout_scope_128: 1/1 (100%)
+2026-10-04T19:10:27.971816Z  INFO storage::content_manager::toc: Loading collection: layout_scope_080
+2026-10-04T19:10:28.020197Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_080/0: 0/1 (0%)
+2026-10-04T19:10:28.028355Z  INFO collection::shards::local_shard: Recovered collection layout_scope_080: 1/1 (100%)
+2026-10-04T19:10:28.029354Z  INFO storage::content_manager::toc: Loading collection: layout_scope_233
+2026-10-04T19:10:28.059479Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_233/0: 0/4 (0%)
+2026-10-04T19:10:28.067103Z  INFO collection::shards::local_shard: Recovered collection layout_scope_233: 4/4 (100%)
+2026-10-04T19:10:28.069108Z  INFO storage::content_manager::toc: Loading collection: layout_scope_057
+2026-10-04T19:10:28.108601Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_057/0: 0/1 (0%)
+2026-10-04T19:10:28.116230Z  INFO collection::shards::local_shard: Recovered collection layout_scope_057: 1/1 (100%)
+2026-10-04T19:10:28.117487Z  INFO storage::content_manager::toc: Loading collection: layout_scope_015
+2026-10-04T19:10:28.154168Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_015/0: 0/1 (0%)
+2026-10-04T19:10:28.161849Z  INFO collection::shards::local_shard: Recovered collection layout_scope_015: 1/1 (100%)
+2026-10-04T19:10:28.162847Z  INFO storage::content_manager::toc: Loading collection: layout_scope_151
+2026-10-04T19:10:28.191429Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_151/0: 0/1 (0%)
+2026-10-04T19:10:28.197035Z  INFO collection::shards::local_shard: Recovered collection layout_scope_151: 1/1 (100%)
+2026-10-04T19:10:28.198348Z  INFO storage::content_manager::toc: Loading collection: layout_scope_174
+2026-10-04T19:10:28.232387Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_174/0: 0/1 (0%)
+2026-10-04T19:10:28.239050Z  INFO collection::shards::local_shard: Recovered collection layout_scope_174: 1/1 (100%)
+2026-10-04T19:10:28.239890Z  INFO storage::content_manager::toc: Loading collection: layout_scope_146
+2026-10-04T19:10:28.271439Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_146/0: 0/1 (0%)
+2026-10-04T19:10:28.278616Z  INFO collection::shards::local_shard: Recovered collection layout_scope_146: 1/1 (100%)
+2026-10-04T19:10:28.279703Z  INFO storage::content_manager::toc: Loading collection: layout_scope_124
+2026-10-04T19:10:28.319107Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_124/0: 0/1 (0%)
+2026-10-04T19:10:28.326108Z  INFO collection::shards::local_shard: Recovered collection layout_scope_124: 1/1 (100%)
+2026-10-04T19:10:28.327212Z  INFO storage::content_manager::toc: Loading collection: layout_scope_102
+2026-10-04T19:10:28.362388Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_102/0: 0/1 (0%)
+2026-10-04T19:10:28.369195Z  INFO collection::shards::local_shard: Recovered collection layout_scope_102: 1/1 (100%)
+2026-10-04T19:10:28.370438Z  INFO storage::content_manager::toc: Loading collection: layout_scope_113
+2026-10-04T19:10:28.408939Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_113/0: 0/1 (0%)
+2026-10-04T19:10:28.417031Z  INFO collection::shards::local_shard: Recovered collection layout_scope_113: 1/1 (100%)
+2026-10-04T19:10:28.418381Z  INFO storage::content_manager::toc: Loading collection: layout_scope_283
+2026-10-04T19:10:28.442186Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_283/0: 0/4 (0%)
+2026-10-04T19:10:28.466618Z  INFO collection::shards::local_shard: Recovered collection layout_scope_283: 4/4 (100%)
+2026-10-04T19:10:28.467120Z  INFO storage::content_manager::toc: Loading collection: layout_scope_179
+2026-10-04T19:10:28.507731Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_179/0: 0/1 (0%)
+2026-10-04T19:10:28.513700Z  INFO collection::shards::local_shard: Recovered collection layout_scope_179: 1/1 (100%)
+2026-10-04T19:10:28.514623Z  INFO storage::content_manager::toc: Loading collection: layout_scope_112
+2026-10-04T19:10:28.550288Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_112/0: 0/1 (0%)
+2026-10-04T19:10:28.556575Z  INFO collection::shards::local_shard: Recovered collection layout_scope_112: 1/1 (100%)
+2026-10-04T19:10:28.557574Z  INFO storage::content_manager::toc: Loading collection: layout_scope_250
+2026-10-04T19:10:28.591668Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_250/0: 0/4 (0%)
+2026-10-04T19:10:28.599072Z  INFO collection::shards::local_shard: Recovered collection layout_scope_250: 4/4 (100%)
+2026-10-04T19:10:28.599957Z  INFO storage::content_manager::toc: Loading collection: layout_scope_228
+2026-10-04T19:10:28.641211Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_228/0: 0/4 (0%)
+2026-10-04T19:10:28.648102Z  INFO collection::shards::local_shard: Recovered collection layout_scope_228: 4/4 (100%)
+2026-10-04T19:10:28.649040Z  INFO storage::content_manager::toc: Loading collection: layout_scope_111
+2026-10-04T19:10:28.708592Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_111/0: 0/1 (0%)
+2026-10-04T19:10:28.716633Z  INFO collection::shards::local_shard: Recovered collection layout_scope_111: 1/1 (100%)
+2026-10-04T19:10:28.718433Z  INFO storage::content_manager::toc: Loading collection: layout_scope_053
+2026-10-04T19:10:28.760606Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_053/0: 0/1 (0%)
+2026-10-04T19:10:28.767535Z  INFO collection::shards::local_shard: Recovered collection layout_scope_053: 1/1 (100%)
+2026-10-04T19:10:28.768489Z  INFO storage::content_manager::toc: Loading collection: layout_scope_038
+2026-10-04T19:10:28.816484Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_038/0: 0/1 (0%)
+2026-10-04T19:10:28.823054Z  INFO collection::shards::local_shard: Recovered collection layout_scope_038: 1/1 (100%)
+2026-10-04T19:10:28.824664Z  INFO storage::content_manager::toc: Loading collection: layout_scope_156
+2026-10-04T19:10:28.873805Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_156/0: 0/1 (0%)
+2026-10-04T19:10:28.879954Z  INFO collection::shards::local_shard: Recovered collection layout_scope_156: 1/1 (100%)
+2026-10-04T19:10:28.881107Z  INFO storage::content_manager::toc: Loading collection: layout_scope_261
+2026-10-04T19:10:28.924423Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_261/0: 0/4 (0%)
+2026-10-04T19:10:28.945767Z  INFO collection::shards::local_shard: Recovered collection layout_scope_261: 4/4 (100%)
+2026-10-04T19:10:28.947006Z  INFO storage::content_manager::toc: Loading collection: layout_scope_061
+2026-10-04T19:10:28.989931Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_061/0: 0/1 (0%)
+2026-10-04T19:10:28.996841Z  INFO collection::shards::local_shard: Recovered collection layout_scope_061: 1/1 (100%)
+2026-10-04T19:10:28.997909Z  INFO storage::content_manager::toc: Loading collection: layout_scope_098
+2026-10-04T19:10:29.033566Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_098/0: 0/1 (0%)
+2026-10-04T19:10:29.041522Z  INFO collection::shards::local_shard: Recovered collection layout_scope_098: 1/1 (100%)
+2026-10-04T19:10:29.042780Z  INFO storage::content_manager::toc: Loading collection: layout_scope_321
+2026-10-04T19:10:29.077939Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_321/0: 0/4 (0%)
+2026-10-04T19:10:29.098945Z  INFO collection::shards::local_shard: Recovered collection layout_scope_321: 4/4 (100%)
+2026-10-04T19:10:29.099553Z  INFO storage::content_manager::toc: Loading collection: layout_scope_219
+2026-10-04T19:10:29.129403Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_219/0: 0/4 (0%)
+2026-10-04T19:10:29.135181Z  INFO collection::shards::local_shard: Recovered collection layout_scope_219: 4/4 (100%)
+2026-10-04T19:10:29.136033Z  INFO storage::content_manager::toc: Loading collection: layout_scope_291
+2026-10-04T19:10:29.251496Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_291/0: 0/4 (0%)
+2026-10-04T19:10:29.272436Z  INFO collection::shards::local_shard: Recovered collection layout_scope_291: 4/4 (100%)
+2026-10-04T19:10:29.273039Z  INFO storage::content_manager::toc: Loading collection: layout_scope_315
+2026-10-04T19:10:29.346755Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_315/0: 0/4 (0%)
+2026-10-04T19:10:29.367702Z  INFO collection::shards::local_shard: Recovered collection layout_scope_315: 4/4 (100%)
+2026-10-04T19:10:29.368259Z  INFO storage::content_manager::toc: Loading collection: layout_scope_197
+2026-10-04T19:10:29.408230Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_197/0: 0/4 (0%)
+2026-10-04T19:10:29.415660Z  INFO collection::shards::local_shard: Recovered collection layout_scope_197: 4/4 (100%)
+2026-10-04T19:10:29.416735Z  INFO storage::content_manager::toc: Loading collection: layout_scope_302
+2026-10-04T19:10:29.447504Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_302/0: 0/4 (0%)
+2026-10-04T19:10:29.468998Z  INFO collection::shards::local_shard: Recovered collection layout_scope_302: 4/4 (100%)
+2026-10-04T19:10:29.469414Z  INFO storage::content_manager::toc: Loading collection: layout_scope_031
+2026-10-04T19:10:29.506972Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_031/0: 0/1 (0%)
+2026-10-04T19:10:29.515550Z  INFO collection::shards::local_shard: Recovered collection layout_scope_031: 1/1 (100%)
+2026-10-04T19:10:29.516640Z  INFO storage::content_manager::toc: Loading collection: layout_scope_289
+2026-10-04T19:10:29.561369Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_289/0: 0/4 (0%)
+2026-10-04T19:10:29.580745Z  INFO collection::shards::local_shard: Recovered collection layout_scope_289: 4/4 (100%)
+2026-10-04T19:10:29.581716Z  INFO storage::content_manager::toc: Loading collection: layout_scope_010
+2026-10-04T19:10:29.645394Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_010/0: 0/1 (0%)
+2026-10-04T19:10:29.652020Z  INFO collection::shards::local_shard: Recovered collection layout_scope_010: 1/1 (100%)
+2026-10-04T19:10:29.653682Z  INFO storage::content_manager::toc: Loading collection: layout_scope_008
+2026-10-04T19:10:29.752380Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_008/0: 0/1 (0%)
+2026-10-04T19:10:29.757916Z  INFO collection::shards::local_shard: Recovered collection layout_scope_008: 1/1 (100%)
+2026-10-04T19:10:29.758856Z  INFO storage::content_manager::toc: Loading collection: layout_scope_200
+2026-10-04T19:10:29.833760Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_200/0: 0/4 (0%)
+2026-10-04T19:10:29.839522Z  INFO collection::shards::local_shard: Recovered collection layout_scope_200: 4/4 (100%)
+2026-10-04T19:10:29.840532Z  INFO storage::content_manager::toc: Loading collection: layout_scope_202
+2026-10-04T19:10:29.879877Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_202/0: 0/4 (0%)
+2026-10-04T19:10:29.886458Z  INFO collection::shards::local_shard: Recovered collection layout_scope_202: 4/4 (100%)
+2026-10-04T19:10:29.887795Z  INFO storage::content_manager::toc: Loading collection: layout_scope_270
+2026-10-04T19:10:29.922311Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_270/0: 0/4 (0%)
+2026-10-04T19:10:29.943306Z  INFO collection::shards::local_shard: Recovered collection layout_scope_270: 4/4 (100%)
+2026-10-04T19:10:29.944052Z  INFO storage::content_manager::toc: Loading collection: layout_scope_218
+2026-10-04T19:10:29.988478Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_218/0: 0/4 (0%)
+2026-10-04T19:10:29.994194Z  INFO collection::shards::local_shard: Recovered collection layout_scope_218: 4/4 (100%)
+2026-10-04T19:10:29.995223Z  INFO storage::content_manager::toc: Loading collection: layout_scope_148
+2026-10-04T19:10:30.080659Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_148/0: 0/1 (0%)
+2026-10-04T19:10:30.086627Z  INFO collection::shards::local_shard: Recovered collection layout_scope_148: 1/1 (100%)
+2026-10-04T19:10:30.087514Z  INFO storage::content_manager::toc: Loading collection: layout_scope_279
+2026-10-04T19:10:30.130870Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_279/0: 0/4 (0%)
+2026-10-04T19:10:30.154439Z  INFO collection::shards::local_shard: Recovered collection layout_scope_279: 4/4 (100%)
+2026-10-04T19:10:30.154941Z  INFO storage::content_manager::toc: Loading collection: layout_scope_005
+2026-10-04T19:10:30.206451Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_005/0: 0/1 (0%)
+2026-10-04T19:10:30.212336Z  INFO collection::shards::local_shard: Recovered collection layout_scope_005: 1/1 (100%)
+2026-10-04T19:10:30.214140Z  INFO storage::content_manager::toc: Loading collection: layout_scope_035
+2026-10-04T19:10:30.418426Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_035/0: 0/1 (0%)
+2026-10-04T19:10:30.429160Z  INFO collection::shards::local_shard: Recovered collection layout_scope_035: 1/1 (100%)
+2026-10-04T19:10:30.431327Z  INFO storage::content_manager::toc: Loading collection: layout_scope_017
+2026-10-04T19:10:30.509379Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_017/0: 0/1 (0%)
+2026-10-04T19:10:30.517306Z  INFO collection::shards::local_shard: Recovered collection layout_scope_017: 1/1 (100%)
+2026-10-04T19:10:30.518125Z  INFO storage::content_manager::toc: Loading collection: layout_scope_130
+2026-10-04T19:10:30.640732Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_130/0: 0/1 (0%)
+2026-10-04T19:10:30.648607Z  INFO collection::shards::local_shard: Recovered collection layout_scope_130: 1/1 (100%)
+2026-10-04T19:10:30.649457Z  INFO storage::content_manager::toc: Loading collection: layout_scope_116
+2026-10-04T19:10:30.705912Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_116/0: 0/1 (0%)
+2026-10-04T19:10:30.713064Z  INFO collection::shards::local_shard: Recovered collection layout_scope_116: 1/1 (100%)
+2026-10-04T19:10:30.714616Z  INFO storage::content_manager::toc: Loading collection: layout_scope_029
+2026-10-04T19:10:30.766346Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_029/0: 0/1 (0%)
+2026-10-04T19:10:30.774384Z  INFO collection::shards::local_shard: Recovered collection layout_scope_029: 1/1 (100%)
+2026-10-04T19:10:30.775422Z  INFO storage::content_manager::toc: Loading collection: layout_scope_114
+2026-10-04T19:10:30.827689Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_114/0: 0/1 (0%)
+2026-10-04T19:10:30.835206Z  INFO collection::shards::local_shard: Recovered collection layout_scope_114: 1/1 (100%)
+2026-10-04T19:10:30.837638Z  INFO storage::content_manager::toc: Loading collection: layout_scope_121
+2026-10-04T19:10:30.893612Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_121/0: 0/1 (0%)
+2026-10-04T19:10:30.905112Z  INFO collection::shards::local_shard: Recovered collection layout_scope_121: 1/1 (100%)
+2026-10-04T19:10:30.906210Z  INFO storage::content_manager::toc: Loading collection: layout_scope_079
+2026-10-04T19:10:30.962826Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_079/0: 0/1 (0%)
+2026-10-04T19:10:30.970318Z  INFO collection::shards::local_shard: Recovered collection layout_scope_079: 1/1 (100%)
+2026-10-04T19:10:30.971868Z  INFO storage::content_manager::toc: Loading collection: layout_scope_016
+2026-10-04T19:10:31.018608Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_016/0: 0/1 (0%)
+2026-10-04T19:10:31.025447Z  INFO collection::shards::local_shard: Recovered collection layout_scope_016: 1/1 (100%)
+2026-10-04T19:10:31.026711Z  INFO storage::content_manager::toc: Loading collection: layout_scope_234
+2026-10-04T19:10:31.074464Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_234/0: 0/4 (0%)
+2026-10-04T19:10:31.080317Z  INFO collection::shards::local_shard: Recovered collection layout_scope_234: 4/4 (100%)
+2026-10-04T19:10:31.081370Z  INFO storage::content_manager::toc: Loading collection: layout_scope_247
+2026-10-04T19:10:31.120364Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_247/0: 0/4 (0%)
+2026-10-04T19:10:31.127430Z  INFO collection::shards::local_shard: Recovered collection layout_scope_247: 4/4 (100%)
+2026-10-04T19:10:31.128338Z  INFO storage::content_manager::toc: Loading collection: layout_scope_145
+2026-10-04T19:10:31.177099Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_145/0: 0/1 (0%)
+2026-10-04T19:10:31.183995Z  INFO collection::shards::local_shard: Recovered collection layout_scope_145: 1/1 (100%)
+2026-10-04T19:10:31.184993Z  INFO storage::content_manager::toc: Loading collection: layout_scope_170
+2026-10-04T19:10:31.224162Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_170/0: 0/1 (0%)
+2026-10-04T19:10:31.231991Z  INFO collection::shards::local_shard: Recovered collection layout_scope_170: 1/1 (100%)
+2026-10-04T19:10:31.233199Z  INFO storage::content_manager::toc: Loading collection: layout_scope_109
+2026-10-04T19:10:31.289007Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_109/0: 0/1 (0%)
+2026-10-04T19:10:31.296125Z  INFO collection::shards::local_shard: Recovered collection layout_scope_109: 1/1 (100%)
+2026-10-04T19:10:31.297487Z  INFO storage::content_manager::toc: Loading collection: layout_scope_181
+2026-10-04T19:10:31.339190Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_181/0: 0/1 (0%)
+2026-10-04T19:10:31.346642Z  INFO collection::shards::local_shard: Recovered collection layout_scope_181: 1/1 (100%)
+2026-10-04T19:10:31.347852Z  INFO storage::content_manager::toc: Loading collection: layout_scope_191
+2026-10-04T19:10:31.389154Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_191/0: 0/4 (0%)
+2026-10-04T19:10:31.399269Z  INFO collection::shards::local_shard: Recovered collection layout_scope_191: 4/4 (100%)
+2026-10-04T19:10:31.400864Z  INFO storage::content_manager::toc: Loading collection: layout_scope_058
+2026-10-04T19:10:31.444875Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_058/0: 0/1 (0%)
+2026-10-04T19:10:31.451686Z  INFO collection::shards::local_shard: Recovered collection layout_scope_058: 1/1 (100%)
+2026-10-04T19:10:31.452595Z  INFO storage::content_manager::toc: Loading collection: layout_scope_254
+2026-10-04T19:10:31.480565Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_254/0: 0/4 (0%)
+2026-10-04T19:10:31.487887Z  INFO collection::shards::local_shard: Recovered collection layout_scope_254: 4/4 (100%)
+2026-10-04T19:10:31.489100Z  INFO storage::content_manager::toc: Loading collection: layout_scope_056
+2026-10-04T19:10:31.523181Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_056/0: 0/1 (0%)
+2026-10-04T19:10:31.529726Z  INFO collection::shards::local_shard: Recovered collection layout_scope_056: 1/1 (100%)
+2026-10-04T19:10:31.530647Z  INFO storage::content_manager::toc: Loading collection: layout_scope_060
+2026-10-04T19:10:31.558903Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_060/0: 0/1 (0%)
+2026-10-04T19:10:31.564216Z  INFO collection::shards::local_shard: Recovered collection layout_scope_060: 1/1 (100%)
+2026-10-04T19:10:31.565100Z  INFO storage::content_manager::toc: Loading collection: layout_scope_307
+2026-10-04T19:10:31.594261Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_307/0: 0/4 (0%)
+2026-10-04T19:10:31.622274Z  INFO collection::shards::local_shard: Recovered collection layout_scope_307: 4/4 (100%)
+2026-10-04T19:10:31.622677Z  INFO storage::content_manager::toc: Loading collection: layout_scope_045
+2026-10-04T19:10:31.655774Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_045/0: 0/1 (0%)
+2026-10-04T19:10:31.662112Z  INFO collection::shards::local_shard: Recovered collection layout_scope_045: 1/1 (100%)
+2026-10-04T19:10:31.663026Z  INFO storage::content_manager::toc: Loading collection: layout_scope_132
+2026-10-04T19:10:31.695952Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_132/0: 0/1 (0%)
+2026-10-04T19:10:31.701307Z  INFO collection::shards::local_shard: Recovered collection layout_scope_132: 1/1 (100%)
+2026-10-04T19:10:31.702195Z  INFO storage::content_manager::toc: Loading collection: layout_scope_071
+2026-10-04T19:10:31.735831Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_071/0: 0/1 (0%)
+2026-10-04T19:10:31.742996Z  INFO collection::shards::local_shard: Recovered collection layout_scope_071: 1/1 (100%)
+2026-10-04T19:10:31.743992Z  INFO storage::content_manager::toc: Loading collection: layout_scope_172
+2026-10-04T19:10:31.774449Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_172/0: 0/1 (0%)
+2026-10-04T19:10:31.780388Z  INFO collection::shards::local_shard: Recovered collection layout_scope_172: 1/1 (100%)
+2026-10-04T19:10:31.781340Z  INFO storage::content_manager::toc: Loading collection: layout_scope_042
+2026-10-04T19:10:31.814600Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_042/0: 0/1 (0%)
+2026-10-04T19:10:31.821715Z  INFO collection::shards::local_shard: Recovered collection layout_scope_042: 1/1 (100%)
+2026-10-04T19:10:31.822793Z  INFO storage::content_manager::toc: Loading collection: layout_scope_076
+2026-10-04T19:10:31.854587Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_076/0: 0/1 (0%)
+2026-10-04T19:10:31.867943Z  INFO collection::shards::local_shard: Recovered collection layout_scope_076: 1/1 (100%)
+2026-10-04T19:10:31.868730Z  INFO storage::content_manager::toc: Loading collection: layout_scope_206
+2026-10-04T19:10:31.919926Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_206/0: 0/4 (0%)
+2026-10-04T19:10:31.926330Z  INFO collection::shards::local_shard: Recovered collection layout_scope_206: 4/4 (100%)
+2026-10-04T19:10:31.927469Z  INFO storage::content_manager::toc: Loading collection: layout_scope_152
+2026-10-04T19:10:31.973900Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_152/0: 0/1 (0%)
+2026-10-04T19:10:31.982115Z  INFO collection::shards::local_shard: Recovered collection layout_scope_152: 1/1 (100%)
+2026-10-04T19:10:31.983347Z  INFO storage::content_manager::toc: Loading collection: layout_scope_025
+2026-10-04T19:10:32.033472Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_025/0: 0/1 (0%)
+2026-10-04T19:10:32.040134Z  INFO collection::shards::local_shard: Recovered collection layout_scope_025: 1/1 (100%)
+2026-10-04T19:10:32.041438Z  INFO storage::content_manager::toc: Loading collection: layout_scope_176
+2026-10-04T19:10:32.097561Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_176/0: 0/1 (0%)
+2026-10-04T19:10:32.104134Z  INFO collection::shards::local_shard: Recovered collection layout_scope_176: 1/1 (100%)
+2026-10-04T19:10:32.105238Z  INFO storage::content_manager::toc: Loading collection: layout_scope_149
+2026-10-04T19:10:32.183988Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_149/0: 0/1 (0%)
+2026-10-04T19:10:32.191218Z  INFO collection::shards::local_shard: Recovered collection layout_scope_149: 1/1 (100%)
+2026-10-04T19:10:32.192854Z  INFO storage::content_manager::toc: Loading collection: layout_scope_304
+2026-10-04T19:10:32.227837Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_304/0: 0/4 (0%)
+2026-10-04T19:10:32.261177Z  INFO collection::shards::local_shard: Recovered collection layout_scope_304: 4/4 (100%)
+2026-10-04T19:10:32.261950Z  INFO storage::content_manager::toc: Loading collection: layout_scope_049
+2026-10-04T19:10:32.297585Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_049/0: 0/1 (0%)
+2026-10-04T19:10:32.308280Z  INFO collection::shards::local_shard: Recovered collection layout_scope_049: 1/1 (100%)
+2026-10-04T19:10:32.309331Z  INFO storage::content_manager::toc: Loading collection: layout_scope_154
+2026-10-04T19:10:32.349016Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_154/0: 0/1 (0%)
+2026-10-04T19:10:32.355919Z  INFO collection::shards::local_shard: Recovered collection layout_scope_154: 1/1 (100%)
+2026-10-04T19:10:32.356580Z  INFO storage::content_manager::toc: Loading collection: layout_scope_050
+2026-10-04T19:10:32.436780Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_050/0: 0/1 (0%)
+2026-10-04T19:10:32.444672Z  INFO collection::shards::local_shard: Recovered collection layout_scope_050: 1/1 (100%)
+2026-10-04T19:10:32.445785Z  INFO storage::content_manager::toc: Loading collection: layout_scope_297
+2026-10-04T19:10:32.498232Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_297/0: 0/4 (0%)
+2026-10-04T19:10:32.520829Z  INFO collection::shards::local_shard: Recovered collection layout_scope_297: 4/4 (100%)
+2026-10-04T19:10:32.522038Z  INFO storage::content_manager::toc: Loading collection: layout_scope_260
+2026-10-04T19:10:32.570616Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_260/0: 0/4 (0%)
+2026-10-04T19:10:32.591826Z  INFO collection::shards::local_shard: Recovered collection layout_scope_260: 4/4 (100%)
+2026-10-04T19:10:32.592639Z  INFO storage::content_manager::toc: Loading collection: layout_scope_186
+2026-10-04T19:10:32.677861Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_186/0: 0/4 (0%)
+2026-10-04T19:10:32.683817Z  INFO collection::shards::local_shard: Recovered collection layout_scope_186: 4/4 (100%)
+2026-10-04T19:10:32.684716Z  INFO storage::content_manager::toc: Loading collection: layout_scope_138
+2026-10-04T19:10:32.744849Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_138/0: 0/1 (0%)
+2026-10-04T19:10:32.752068Z  INFO collection::shards::local_shard: Recovered collection layout_scope_138: 1/1 (100%)
+2026-10-04T19:10:32.753217Z  INFO storage::content_manager::toc: Loading collection: layout_scope_019
+2026-10-04T19:10:32.790640Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_019/0: 0/1 (0%)
+2026-10-04T19:10:32.796816Z  INFO collection::shards::local_shard: Recovered collection layout_scope_019: 1/1 (100%)
+2026-10-04T19:10:32.798142Z  INFO storage::content_manager::toc: Loading collection: layout_scope_046
+2026-10-04T19:10:32.844542Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_046/0: 0/1 (0%)
+2026-10-04T19:10:32.851416Z  INFO collection::shards::local_shard: Recovered collection layout_scope_046: 1/1 (100%)
+2026-10-04T19:10:32.852681Z  INFO storage::content_manager::toc: Loading collection: layout_scope_032
+2026-10-04T19:10:32.896319Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_032/0: 0/1 (0%)
+2026-10-04T19:10:32.902406Z  INFO collection::shards::local_shard: Recovered collection layout_scope_032: 1/1 (100%)
+2026-10-04T19:10:32.903385Z  INFO storage::content_manager::toc: Loading collection: layout_scope_188
+2026-10-04T19:10:32.943088Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_188/0: 0/4 (0%)
+2026-10-04T19:10:32.950393Z  INFO collection::shards::local_shard: Recovered collection layout_scope_188: 4/4 (100%)
+2026-10-04T19:10:32.951477Z  INFO storage::content_manager::toc: Loading collection: layout_scope_211
+2026-10-04T19:10:32.989370Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_211/0: 0/4 (0%)
+2026-10-04T19:10:32.994745Z  INFO collection::shards::local_shard: Recovered collection layout_scope_211: 4/4 (100%)
+2026-10-04T19:10:32.995751Z  INFO storage::content_manager::toc: Loading collection: layout_scope_041
+2026-10-04T19:10:33.119761Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_041/0: 0/1 (0%)
+2026-10-04T19:10:33.127271Z  INFO collection::shards::local_shard: Recovered collection layout_scope_041: 1/1 (100%)
+2026-10-04T19:10:33.128662Z  INFO storage::content_manager::toc: Loading collection: layout_scope_013
+2026-10-04T19:10:33.159450Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_013/0: 0/1 (0%)
+2026-10-04T19:10:33.165404Z  INFO collection::shards::local_shard: Recovered collection layout_scope_013: 1/1 (100%)
+2026-10-04T19:10:33.166401Z  INFO storage::content_manager::toc: Loading collection: layout_scope_009
+2026-10-04T19:10:33.196590Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_009/0: 0/1 (0%)
+2026-10-04T19:10:33.202286Z  INFO collection::shards::local_shard: Recovered collection layout_scope_009: 1/1 (100%)
+2026-10-04T19:10:33.203460Z  INFO storage::content_manager::toc: Loading collection: layout_scope_322
+2026-10-04T19:10:33.225374Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_322/0: 0/4 (0%)
+2026-10-04T19:10:33.248250Z  INFO collection::shards::local_shard: Recovered collection layout_scope_322: 4/4 (100%)
+2026-10-04T19:10:33.248909Z  INFO storage::content_manager::toc: Loading collection: layout_scope_288
+2026-10-04T19:10:33.275198Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_288/0: 0/4 (0%)
+2026-10-04T19:10:33.297355Z  INFO collection::shards::local_shard: Recovered collection layout_scope_288: 4/4 (100%)
+2026-10-04T19:10:33.297878Z  INFO storage::content_manager::toc: Loading collection: layout_scope_308
+2026-10-04T19:10:33.325619Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_308/0: 0/4 (0%)
+2026-10-04T19:10:33.347842Z  INFO collection::shards::local_shard: Recovered collection layout_scope_308: 4/4 (100%)
+2026-10-04T19:10:33.348665Z  INFO storage::content_manager::toc: Loading collection: layout_scope_140
+2026-10-04T19:10:33.379295Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_140/0: 0/1 (0%)
+2026-10-04T19:10:33.385327Z  INFO collection::shards::local_shard: Recovered collection layout_scope_140: 1/1 (100%)
+2026-10-04T19:10:33.386198Z  INFO storage::content_manager::toc: Loading collection: layout_scope_231
+2026-10-04T19:10:33.417360Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_231/0: 0/4 (0%)
+2026-10-04T19:10:33.424138Z  INFO collection::shards::local_shard: Recovered collection layout_scope_231: 4/4 (100%)
+2026-10-04T19:10:33.425148Z  INFO storage::content_manager::toc: Loading collection: layout_scope_167
+2026-10-04T19:10:33.453248Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_167/0: 0/1 (0%)
+2026-10-04T19:10:33.459890Z  INFO collection::shards::local_shard: Recovered collection layout_scope_167: 1/1 (100%)
+2026-10-04T19:10:33.461063Z  INFO storage::content_manager::toc: Loading collection: layout_scope_064
+2026-10-04T19:10:33.492931Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_064/0: 0/1 (0%)
+2026-10-04T19:10:33.499156Z  INFO collection::shards::local_shard: Recovered collection layout_scope_064: 1/1 (100%)
+2026-10-04T19:10:33.500231Z  INFO storage::content_manager::toc: Loading collection: layout_scope_226
+2026-10-04T19:10:33.531984Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_226/0: 0/4 (0%)
+2026-10-04T19:10:33.538107Z  INFO collection::shards::local_shard: Recovered collection layout_scope_226: 4/4 (100%)
+2026-10-04T19:10:33.540280Z  INFO storage::content_manager::toc: Loading collection: layout_scope_070
+2026-10-04T19:10:33.572687Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_070/0: 0/1 (0%)
+2026-10-04T19:10:33.579170Z  INFO collection::shards::local_shard: Recovered collection layout_scope_070: 1/1 (100%)
+2026-10-04T19:10:33.580349Z  INFO storage::content_manager::toc: Loading collection: layout_scope_100
+2026-10-04T19:10:33.613581Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_100/0: 0/1 (0%)
+2026-10-04T19:10:33.620458Z  INFO collection::shards::local_shard: Recovered collection layout_scope_100: 1/1 (100%)
+2026-10-04T19:10:33.621605Z  INFO storage::content_manager::toc: Loading collection: layout_scope_094
+2026-10-04T19:10:33.660454Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_094/0: 0/1 (0%)
+2026-10-04T19:10:33.667629Z  INFO collection::shards::local_shard: Recovered collection layout_scope_094: 1/1 (100%)
+2026-10-04T19:10:33.668641Z  INFO storage::content_manager::toc: Loading collection: layout_scope_065
+2026-10-04T19:10:33.870757Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_065/0: 0/1 (0%)
+2026-10-04T19:10:33.877568Z  INFO collection::shards::local_shard: Recovered collection layout_scope_065: 1/1 (100%)
+2026-10-04T19:10:33.879755Z  INFO storage::content_manager::toc: Loading collection: layout_scope_161
+2026-10-04T19:10:34.015107Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_161/0: 0/1 (0%)
+2026-10-04T19:10:34.021320Z  INFO collection::shards::local_shard: Recovered collection layout_scope_161: 1/1 (100%)
+2026-10-04T19:10:34.022136Z  INFO storage::content_manager::toc: Loading collection: layout_scope_166
+2026-10-04T19:10:34.071272Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_166/0: 0/1 (0%)
+2026-10-04T19:10:34.085758Z  INFO collection::shards::local_shard: Recovered collection layout_scope_166: 1/1 (100%)
+2026-10-04T19:10:34.086584Z  INFO storage::content_manager::toc: Loading collection: layout_scope_006
+2026-10-04T19:10:34.147589Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/layout_scope_006/0: 0/1 (0%)
+2026-10-04T19:10:34.157836Z  INFO collection::shards::local_shard: Recovered collection layout_scope_006: 1/1 (100%)
+2026-10-04T19:10:34.213570Z  INFO qdrant: Distributed mode disabled
+2026-10-04T19:10:34.213661Z  INFO qdrant: Telemetry reporting enabled, id: 4ee276fd-293d-41f8-b581-7f59ab362644
+2026-10-04T19:10:34.334915Z  INFO qdrant::tonic: Qdrant gRPC listening on 6334
+2026-10-04T19:10:34.334966Z  INFO qdrant::tonic: TLS disabled for gRPC API
+2026-10-04T19:10:34.367380Z  INFO qdrant::actix: REST transport settings: keep_alive=5s, client_request_timeout=5s, client_disconnect_timeout=5s
+2026-10-04T19:10:34.367405Z  INFO qdrant::actix: TLS disabled for REST API
+2026-10-04T19:10:34.367483Z  INFO qdrant::actix: Qdrant HTTP listening on 6333
+2026-10-04T19:10:34.367694Z  INFO actix_server::builder: starting 3 workers
+2026-10-04T19:10:34.367711Z  INFO actix_server::server: Actix runtime found; starting in Actix runtime
+2026-10-04T19:10:34.367716Z  INFO actix_server::server: starting service: "actix-web-service-0.0.0.0:6333", workers: 3, listening on: 0.0.0.0:6333
+2026-10-04T19:11:34.536179Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_000/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.014878
+2026-10-04T19:11:34.648519Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_001/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.009986
+2026-10-04T19:11:34.759168Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_002/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.007142
+2026-10-04T19:11:34.868477Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_003/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.006878
+2026-10-04T19:11:34.980418Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_004/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.009149
+2026-10-04T19:11:35.088690Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_005/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.006107
+2026-10-04T19:11:35.191970Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_006/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001256
+2026-10-04T19:11:35.305126Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_007/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.010218
+2026-10-04T19:11:35.415012Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_008/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.007356
+2026-10-04T19:11:35.519544Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_009/points/query HTTP/1.1" 200 121 "-" "Go-http-client/1.1" 0.001956
+2026-10-04T19:11:35.630489Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_010/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.008570
+2026-10-04T19:11:35.743030Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_011/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.009884
+2026-10-04T19:11:35.851686Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_012/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.006313
+2026-10-04T19:11:35.959453Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_013/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001767
+2026-10-04T19:11:36.071911Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_014/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.009584
+2026-10-04T19:11:36.181534Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_015/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.008566
+2026-10-04T19:11:36.291420Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_016/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.007763
+2026-10-04T19:11:36.399179Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_017/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.005043
+2026-10-04T19:11:36.506119Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_018/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.004822
+2026-10-04T19:11:36.610214Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_019/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.002247
+2026-10-04T19:11:36.722276Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_020/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.009938
+2026-10-04T19:11:36.833210Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_021/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.008868
+2026-10-04T19:11:36.939994Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_022/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.004501
+2026-10-04T19:11:37.046275Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_023/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.003862
+2026-10-04T19:11:37.157723Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_024/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.009452
+2026-10-04T19:11:37.263569Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_025/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.003530
+2026-10-04T19:11:37.374375Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_026/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.008877
+2026-10-04T19:11:37.478964Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_027/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.002506
+2026-10-04T19:11:37.588821Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_028/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.007699
+2026-10-04T19:11:37.696481Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_029/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.005555
+2026-10-04T19:11:37.805170Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_030/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.006931
+2026-10-04T19:11:37.912866Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_031/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.005743
+2026-10-04T19:11:38.016553Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_032/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.001487
+2026-10-04T19:11:38.129822Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_033/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.012020
+2026-10-04T19:11:38.237234Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_034/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.004377
+2026-10-04T19:11:38.344203Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_035/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.005574
+2026-10-04T19:11:38.456054Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_036/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.009756
+2026-10-04T19:11:38.565310Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_037/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.006836
+2026-10-04T19:11:38.674546Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_038/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.006839
+2026-10-04T19:11:38.787087Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_039/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.010635
+2026-10-04T19:11:38.893097Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_040/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.003825
+2026-10-04T19:11:38.997228Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_041/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.001371
+2026-10-04T19:11:39.103143Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_042/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.003897
+2026-10-04T19:11:39.211833Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_043/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.006828
+2026-10-04T19:11:39.320377Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_044/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.006307
+2026-10-04T19:11:39.426366Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_045/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.003641
+2026-10-04T19:11:39.529436Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_046/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001209
+2026-10-04T19:11:39.637787Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_047/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.006284
+2026-10-04T19:11:39.743335Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_048/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.003147
+2026-10-04T19:11:39.861242Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_049/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.012947
+2026-10-04T19:11:39.966101Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_050/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.001095
+2026-10-04T19:11:40.074895Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_051/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.006710
+2026-10-04T19:11:40.183428Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_052/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.006805
+2026-10-04T19:11:40.294784Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_053/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.009609
+2026-10-04T19:11:40.409583Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_054/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.012825
+2026-10-04T19:11:40.523963Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_055/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.011810
+2026-10-04T19:11:40.630665Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_056/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.003388
+2026-10-04T19:11:40.746205Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_057/points/query HTTP/1.1" 200 122 "-" "Go-http-client/1.1" 0.013188
+2026-10-04T19:11:40.857726Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_058/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.008422
+2026-10-04T19:11:40.970294Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_059/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.010242
+2026-10-04T19:11:41.076935Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_060/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.002724
+2026-10-04T19:11:41.187098Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_061/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.007831
+2026-10-04T19:11:41.297404Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_062/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.007254
+2026-10-04T19:11:41.404160Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_063/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.004366
+2026-10-04T19:11:41.507730Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_064/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001397
+2026-10-04T19:11:41.611369Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_065/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001393
+2026-10-04T19:11:41.720055Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_066/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.006760
+2026-10-04T19:11:41.828461Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_067/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.006533
+2026-10-04T19:11:41.940262Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_068/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.009330
+2026-10-04T19:11:42.045700Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_069/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.003059
+2026-10-04T19:11:42.149280Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_070/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001385
+2026-10-04T19:11:42.254069Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_071/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.002947
+2026-10-04T19:11:42.359175Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_072/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.002610
+2026-10-04T19:11:42.463445Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_073/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.002230
+2026-10-04T19:11:42.574750Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_074/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.009703
+2026-10-04T19:11:42.684102Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_075/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.005177
+2026-10-04T19:11:42.788586Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_076/points/query HTTP/1.1" 200 127 "-" "Go-http-client/1.1" 0.001999
+2026-10-04T19:11:42.896080Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_077/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.005639
+2026-10-04T19:11:43.004104Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_078/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.005753
+2026-10-04T19:11:43.110920Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_079/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.004771
+2026-10-04T19:11:43.221248Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_080/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.008384
+2026-10-04T19:11:43.329485Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_081/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.006377
+2026-10-04T19:11:43.437192Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_082/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.005612
+2026-10-04T19:11:43.546775Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_083/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.007104
+2026-10-04T19:11:43.654210Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_084/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.005159
+2026-10-04T19:11:43.762476Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_085/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.006755
+2026-10-04T19:11:43.871357Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_086/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.007747
+2026-10-04T19:11:43.979773Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_087/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.005972
+2026-10-04T19:11:44.086497Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_088/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.005297
+2026-10-04T19:11:44.196479Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_089/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.007622
+2026-10-04T19:11:44.299769Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_090/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.001587
+2026-10-04T19:11:44.410132Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_091/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.009198
+2026-10-04T19:11:44.517106Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_092/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.004973
+2026-10-04T19:11:44.621980Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_093/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.002512
+2026-10-04T19:11:44.727135Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_094/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.002045
+2026-10-04T19:11:44.836773Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_095/points/query HTTP/1.1" 200 126 "-" "Go-http-client/1.1" 0.007049
+2026-10-04T19:11:44.949613Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_096/points/query HTTP/1.1" 200 124 "-" "Go-http-client/1.1" 0.010599
+2026-10-04T19:11:45.069559Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_097/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.006747
+2026-10-04T19:11:45.177506Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_098/points/query HTTP/1.1" 200 123 "-" "Go-http-client/1.1" 0.005785
+2026-10-04T19:11:45.309131Z  INFO actix_web::middleware::logger: 172.17.0.1 "POST /collections/layout_scope_099/points/query HTTP/1.1" 200 125 "-" "Go-http-client/1.1" 0.028708

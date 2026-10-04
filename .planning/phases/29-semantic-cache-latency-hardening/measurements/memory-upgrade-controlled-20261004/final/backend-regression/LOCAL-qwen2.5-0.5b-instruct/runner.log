@@ -1,0 +1,10 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+full backend exit: <nil>
+TestPhase29LocalGatewayAcceptance exit: <nil>
+TestPhase29LocalEmbeddingFault exit: <nil>
+TestPhase29LocalQueueBurst exit: <nil>
+/veloxmesh-test-redis true
+/veloxmesh-test-qdrant true
+/veloxmesh-test-postgres true

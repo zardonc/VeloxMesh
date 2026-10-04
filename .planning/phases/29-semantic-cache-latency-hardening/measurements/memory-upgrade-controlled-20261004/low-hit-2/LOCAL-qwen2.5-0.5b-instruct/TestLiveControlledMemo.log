@@ -1,0 +1,4 @@
+=== RUN   TestLiveControlledMemo
+    live_controlled_load_test.go:20: failed to load config: cache use_case reuse_mode must be disabled, exact or semantic
+--- FAIL: TestLiveControlledMemo (0.03s)
+FAIL

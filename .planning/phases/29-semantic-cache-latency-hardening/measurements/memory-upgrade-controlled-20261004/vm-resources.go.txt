@@ -1,0 +1,62 @@
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/joho/godotenv"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
+)
+
+func main() {
+	env, err := godotenv.Read(".env.local")
+	if err != nil {
+		panic(err)
+	}
+	userDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	callback, err := knownhosts.New(filepath.Join(userDir, ".ssh", "known_hosts"))
+	if err != nil {
+		panic(err)
+	}
+	port := env["DEV_SERVER_PORT"]
+	if port == "" {
+		port = "22"
+	}
+	client, err := ssh.Dial("tcp", net.JoinHostPort(env["DEV_SERVER_IP"], port), &ssh.ClientConfig{User: env["DEV_SERVER_USER"],
+		Auth: []ssh.AuthMethod{ssh.Password(env["DEV_SERVER_PW"])}, HostKeyCallback: callback, Timeout: 10 * time.Second})
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close()
+	deadline := time.AfterFunc(55*time.Second, func() { _ = client.Close() })
+	defer deadline.Stop()
+	var result strings.Builder
+	for _, command := range []string{"lscpu", "free -m", "vmstat 1 5", "cat /proc/pressure/memory /proc/pressure/cpu /proc/pressure/io", "docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}'", "docker inspect --format '{{.Name}} running={{.State.Running}} oom={{.State.OOMKilled}} restarts={{.RestartCount}} cpu_quota={{.HostConfig.CpuQuota}} cpu_period={{.HostConfig.CpuPeriod}} nano_cpus={{.HostConfig.NanoCpus}} cpuset={{.HostConfig.CpusetCpus}} memory_limit={{.HostConfig.Memory}}' veloxmesh-test-redis veloxmesh-test-qdrant veloxmesh-test-postgres", "ps -eo comm,rss,pcpu --sort=-rss", "df -h /var/lib/docker", "lsblk -d -o NAME,ROTA,SIZE,MODEL"} {
+		session, err := client.NewSession()
+		if err != nil {
+			panic(err)
+		}
+		output, runErr := session.CombinedOutput("timeout 8s " + command)
+		session.Close()
+		result.WriteString(fmt.Sprintf("command=%s\n%s\nerror=%v\n", command, output, runErr))
+	}
+	output := result.String()
+	for key, value := range env {
+		upper := strings.ToUpper(key)
+		if len(value) >= 4 && (strings.Contains(upper, "KEY") || strings.Contains(upper, "PW") || strings.Contains(upper, "SECRET") || strings.Contains(upper, "TOKEN")) {
+			output = strings.ReplaceAll(output, value, "[REDACTED]")
+		}
+	}
+	if err := os.WriteFile(".planning/phases/29-semantic-cache-latency-hardening/measurements/memory-upgrade-controlled-20261004/vm-resources-before.log", []byte(output), 0600); err != nil {
+		panic(err)
+	}
+	fmt.Print(output)
+}

@@ -1,0 +1,38 @@
+=== RUN   TestLiveGeminiCompleteBeforeCancel
+{"time":"2026-10-04T21:05:23.256537946Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:05:23.258352084Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T21:05:23.258386068Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T21:05:23.258394223Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:05:23.258428337Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:05:23.260149199Z","level":"INFO","msg":"starting config change subscriber"}
+    live_gemini_timeline_test.go:203: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+    live_gemini_timeline_test.go:59: upstream status=200 headers_ms=1558.655 stream=true
+    live_gemini_timeline_test.go:77: upstream body_end_utc=2026-10-04T21:05:24.854438963Z error_type=<nil>
+{"time":"2026-10-04T21:05:24.857577035Z","level":"INFO","msg":"request completed","request_id":"timing-210523.261554416","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1596}
+    live_gemini_timeline_test.go:214: gateway_done_utc=2026-10-04T21:05:24.857759719Z body_sha256=4e1a6ebf2abb8e7768e1b4fb163c0eba3989ab43e6838b4d23be0db4a12c29e6
+    live_gemini_timeline_test.go:215: usage_rows_all=1 usage_rows_key=1
+    live_gemini_timeline_test.go:215: settled_records=1 total_tokens=16 credits=16 exactly_once=true
+    live_gemini_timeline_test.go:219: client_close_after_settlement_utc=2026-10-04T21:05:24.880042786Z
+    live_gemini_timeline_test.go:220: usage_rows_all=1 usage_rows_key=1
+    live_gemini_timeline_test.go:220: settled_records=1 total_tokens=16 credits=16 exactly_once=true
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"net_upstream/get_connection","start_ms":5.745,"elapsed_ms":0.027}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"net_upstream/dns_start","start_ms":5.745,"elapsed_ms":0.082}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"net_upstream/dns_done","start_ms":5.745,"elapsed_ms":2.994}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"net_upstream/connect_start","start_ms":5.745,"elapsed_ms":3.029}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"net_upstream/connect_done","start_ms":5.745,"elapsed_ms":15.503}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"net_upstream/tls_start","start_ms":5.745,"elapsed_ms":15.542}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"net_upstream/tls_done","start_ms":5.745,"elapsed_ms":60.021}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"net_upstream/got_connection_new","start_ms":5.745,"elapsed_ms":60.142}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"net_upstream/request_written","start_ms":5.745,"elapsed_ms":60.333}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"net_upstream/first_byte","start_ms":5.745,"elapsed_ms":1558.529}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"upstream_headers","start_ms":5.745,"elapsed_ms":1558.779}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"sse_first_meaningful","start_ms":0.843,"elapsed_ms":1564.74}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"sse_usage","start_ms":0.843,"elapsed_ms":1564.754}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"sse_usage","start_ms":0.843,"elapsed_ms":1593.407}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"sse_finish","start_ms":0.843,"elapsed_ms":1593.408}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"upstream_http","start_ms":5.745,"elapsed_ms":1588.546}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"settlement","start_ms":1596.23,"elapsed_ms":1.051}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"sse_done","start_ms":0.843,"elapsed_ms":1596.509}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210523.261554416","name":"http_handler","start_ms":1.34,"elapsed_ms":1596.038}
+--- PASS: TestLiveGeminiCompleteBeforeCancel (1.72s)
+PASS

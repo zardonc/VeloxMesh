@@ -1,0 +1,7 @@
+{"detail":{"dimension":768,"fixture_seed":29,"image":"sha256:75eab8c4ba42096724fdcfde8b4de0b5713d529dde32f285a1f86fdcb2c9e50c","orders":["A/B","B/A","A/B"],"points":16542},"type":"preflight","utc":"2026-10-04T19:03:16.5048775Z"}
+{"detail":{"arm":"shared"},"type":"fixture-stopped","utc":"2026-10-04T19:03:21.7077945Z"}
+{"detail":{"arm":"many"},"type":"fixture-stopped","utc":"2026-10-04T19:03:43.6304637Z"}
+{"detail":{"arm":"shared","trial":"trial-01-shared"},"type":"trial-start","utc":"2026-10-04T19:03:59.8011252Z"}
+{"detail":{"start_to_ready_ms":1425.191,"trial":"trial-01-shared"},"type":"trial-ready","utc":"2026-10-04T19:04:01.2263162Z"}
+{"detail":{"trial":"trial-01-shared"},"type":"query-start","utc":"2026-10-04T19:05:01.2276031Z"}
+{"detail":{"trial":"trial-01-shared"},"type":"query-end","utc":"2026-10-04T19:05:11.5536416Z"}

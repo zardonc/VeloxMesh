@@ -1,0 +1,58 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+dependency readiness attempt=1 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=2 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=3 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=4 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=5 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=6 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=7 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=8 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=9 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=10 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=11 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=12 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=13 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=14 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=15 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=16 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=17 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+Dependencies ready; 15-second recovery period outside formal test windows
+{"label":"availability","status":0}
+{"label":"profile-smoke","status":0}
+{"label":"low-hit-1","status":0}
+{"label":"low-hit-2","status":0}
+{"label":"low-hit-3","status":0}
+{"label":"low-hit-4","status":0}
+{"label":"low-hit-5","status":0}
+{"label":"low-hit-6","status":0}
+{"label":"pure-miss-1","status":0}
+{"label":"pure-miss-2","status":0}
+{"label":"pure-miss-3","status":0}
+{"label":"pure-miss-4","status":0}
+{"label":"pure-miss-5","status":0}
+{"label":"pure-miss-6","status":0}
+{"label":"guards","status":0}
+{"label":"protected-stream","status":0}
+{"label":"backend-regression","status":0}
+/veloxmesh-test-redis false
+/veloxmesh-test-qdrant false
+/veloxmesh-test-postgres false

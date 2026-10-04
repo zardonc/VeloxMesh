@@ -364,7 +364,11 @@ func TestLiveToolNone(t *testing.T) {
 }
 
 func TestLiveToolStreaming(t *testing.T) {
-	chain := newLiveChain(t)
+	liveToolStreaming(t, newLiveChain(t))
+}
+
+func liveToolStreaming(t *testing.T, chain liveChain) {
+	t.Helper()
 	request := liveToolRequest(chain, &llm.ToolChoice{Mode: llm.ToolChoiceRequired})
 	request.Stream = true
 	response := liveHTTP(t, chain, request)

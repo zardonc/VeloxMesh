@@ -10,6 +10,10 @@ production_release_approved: false
 
 # Phase 29 验收报告
 
+**恢复与集合排查（2026-10-04）：** [最新诊断](29-RECOVERY-INVESTIGATION-20261004.md)。120s 恢复门槛失败，正式暖机对照未运行，不计为性能 PASS。七个组件隔离条件完成；Qdrant 无请求启动即触发交换/I/O，停止卷显示 63.80GiB 稀疏逻辑长度与 212.27MiB 实际分配，collection 名称保持 347。点级过期清理未关闭集合生命周期，仍需同点数/不同集合数对照和 primary engine 时序；原 P95 与业务语义安全结论保持开放。
+
+**内存升级后复测（2026-10-04）：** [完整对照结果](29-MEMORY-UPGRADE-RESULTS-20261004.md)。VM 实测 4 vCPU/7376MiB；六块低命中及六块纯 miss 共 4800 正式请求、69 选定真实测试调用全部成功，全量后端 595 顶层 PASS、0 FAIL。Residual P95=4.92–5.50ms，候选 AND 点估计通过，原 1.05 仍失败；四组基线漂移、正式时段 swap-in 和大量小集合仍需排查。347 集合已只读清点，冷态 NotFound 与业务安全未关闭，`partial` 保留。
+
 **最新继续排查（2026-10-04）：** [可用性与尾延迟调查](29-AVAILABILITY-INVESTIGATION-20261004.md)。Redis 健康状态读取失败现在明确返回 `health_state_unavailable`，维持 fail-closed；真实五路、恢复、健康 peer 与协议回归通过。全量后端 595 顶层测试通过，0 失败。新单窗口 residual P95=4.39/4.64ms、原比值=1.078，候选仅点估计通过；启动换页与慢 Redis 命令不足以归因历史故障，160 次直连未复现上游 400。性能、自然依赖停顿、业务语义与冷态证据仍开放；下文保持历史范围，`status: partial` 不变。
 
 **最新执行（2026-10-04）：** [策略与保护修正结果](29-POLICY-EXECUTION-RESULTS-20261004.md)。最终全量后端、真实六项 Provider 保护、SSE/取消/缓冲/Fusion 通过；完整同题 exact 命中、41 个变题旁路、版本隔离通过。性能候选合同、本轮 Redis 健康快照可用性、业务语义质量与真正冷态仍开放，`status: partial` 保留。本报告下文为历史验收，不替代最新证据。
@@ -87,3 +91,11 @@ go vet -tags phase29preflight ./internal/cache ./internal/gateway ./internal/con
 本轮启动前三个既有测试容器均停止；结束后实际输出确认 `veloxmesh-test-redis false`、`veloxmesh-test-qdrant false`、`veloxmesh-test-postgres false`。转发 listener 和 SSH client 已关闭，本机已有 embedding 服务继续保留。未删除测试 volumes。本机生成的传输可执行文件与 Linux binary 在记录 hash 后清理；可从保留的源码重新构建。隔离机 `/tmp/veloxmesh-phase29-acceptance-20261001.test` 中无凭据的测试 binary 保留，未保留测试配置或凭据文件。
 
 **验收结论：按照用户调整后的本地模型功能范围，通过。** 本轮不存在需要修复的新增功能性问题；在线双模型、持续压测、既有 P95 未达标及生产发布前置事项仅保留记录。尚未获得生产缓存启用许可。
+
+## 2026-10-04 硬件优先续查
+
+后续调查见 [硬件优先排查与局部修复](29-CONTINUED-INVESTIGATION-20261004.md)，证据位于 `measurements/continued-investigation-20261004/`。新建隔离空卷、保留历史资源后，两组有效 8 RPS 窗口共 1,000/1,000 请求成功，未见持续 CPU、GPU、内存或 I/O 饱和；纯 miss 的 on/memo 比值仍为 1.134–1.208，超过原 1.05 门槛。该证据支持先排查串行 embedding/查询成本，不支持先扩容；1 RPS 补测存在宿主机 CPU 尖峰和基线漂移，仅作诊断。
+
+本轮还复现并修复 Gemini 非终态流退出后的误结算，取消、终态前中断、正常完成三项真实回归均通过。首次全量暴露既有 Redis PubSub 测试的异步发布竞态，修复测试夹具后，最终全量后端 595 个顶层 PASS、0 FAIL、2 个显式 opt-in SKIP，内外均有 60 秒上限。失败日志和夹具参数错误保留，未覆盖历史结果。
+
+网关 Gemini 响应头等待超时、FAQ 种子事实错误、首次 scope 的 Collection NotFound、集合生命周期与原语义/容量发布合同仍未关闭。Phase 29 保持 partial，生产缓存保持关闭；本轮测试容器、转发和观察进程均已停止，历史卷与本轮诊断卷保留。

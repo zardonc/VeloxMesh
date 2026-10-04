@@ -1,0 +1,4 @@
+=== RUN   TestLiveGeminiNativeTimeline
+    live_ship_gemini_diagnostic_test.go:74: secret input unavailable
+--- FAIL: TestLiveGeminiNativeTimeline (0.00s)
+FAIL

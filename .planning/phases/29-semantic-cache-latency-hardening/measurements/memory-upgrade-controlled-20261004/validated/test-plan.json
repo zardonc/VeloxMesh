@@ -1,0 +1,150 @@
+{
+  "created": "2026-10-04T16:54:54.565Z",
+  "protocol": "Six bracketing blocks per scenario; alternate on/memo order; no retries",
+  "primary_model": "qwen2.5-0.5b-instruct",
+  "embedding_model": "text-embedding-embedder_collection",
+  "count_per_window": 100,
+  "interval_ms": 125,
+  "client_ceiling": 4,
+  "memo_capacity": 128,
+  "memo_ttl": "1m",
+  "cache_reuse_mode": "semantic",
+  "cache_read_timeout": "100ms",
+  "health_read_timeout": "50ms (unchanged application setting)",
+  "seed_write_wait": true,
+  "quiet_ms": 2000,
+  "windows": [
+    {
+      "label": "low-hit-1",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledOn",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "low-hit",
+      "block": 1
+    },
+    {
+      "label": "low-hit-2",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOn",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "low-hit",
+      "block": 2
+    },
+    {
+      "label": "low-hit-3",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledOn",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "low-hit",
+      "block": 3
+    },
+    {
+      "label": "low-hit-4",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOn",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "low-hit",
+      "block": 4
+    },
+    {
+      "label": "low-hit-5",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledOn",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "low-hit",
+      "block": 5
+    },
+    {
+      "label": "low-hit-6",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOn",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "low-hit",
+      "block": 6
+    },
+    {
+      "label": "pure-miss-1",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledOn",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "pure-miss",
+      "block": 1
+    },
+    {
+      "label": "pure-miss-2",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOn",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "pure-miss",
+      "block": 2
+    },
+    {
+      "label": "pure-miss-3",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledOn",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "pure-miss",
+      "block": 3
+    },
+    {
+      "label": "pure-miss-4",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOn",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "pure-miss",
+      "block": 4
+    },
+    {
+      "label": "pure-miss-5",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledOn",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "pure-miss",
+      "block": 5
+    },
+    {
+      "label": "pure-miss-6",
+      "tests": [
+        "TestLiveControlledOff",
+        "TestLiveControlledMemo",
+        "TestLiveControlledOn",
+        "TestLiveControlledOffAfter"
+      ],
+      "scenario": "pure-miss",
+      "block": 6
+    }
+  ]
+}

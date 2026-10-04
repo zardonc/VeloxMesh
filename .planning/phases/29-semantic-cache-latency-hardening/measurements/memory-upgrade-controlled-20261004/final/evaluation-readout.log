@@ -1,0 +1,221 @@
+{
+  "resources": {
+    "formal": {
+      "samples": 601,
+      "seconds_with_swap": 74,
+      "max_swap_in_kib_s": 9276,
+      "max_swap_out_kib_s": 0,
+      "max_system_cpu_pct": 8,
+      "max_iowait_pct": 2,
+      "max_block_read_kib_s": 9280,
+      "host_samples": 597,
+      "host_cpu_p95_pct": 51.353965183752415,
+      "host_cpu_max_pct": 72.3968565815324,
+      "host_available_min_bytes": 3848368128
+    },
+    "startup_and_preflight": {
+      "samples": 50,
+      "seconds_with_swap": 48,
+      "max_swap_in_kib_s": 14268,
+      "max_swap_out_kib_s": 30220,
+      "max_system_cpu_pct": 76,
+      "max_iowait_pct": 6,
+      "max_block_read_kib_s": 143644,
+      "host_samples": 50,
+      "host_cpu_p95_pct": 46.53465346534653,
+      "host_cpu_max_pct": 48.17374136229022,
+      "host_available_min_bytes": 4611395584
+    },
+    "all_observation": {
+      "samples": 874,
+      "seconds_with_swap": 176,
+      "max_swap_in_kib_s": 14268,
+      "max_swap_out_kib_s": 30220,
+      "max_system_cpu_pct": 76,
+      "max_iowait_pct": 6,
+      "max_block_read_kib_s": 143644,
+      "host_samples": 875,
+      "host_cpu_p95_pct": 56.448412698412696,
+      "host_cpu_max_pct": 100,
+      "host_available_min_bytes": 3848368128
+    },
+    "method": "one-second passive vmstat and native host APIs; first vmstat boot average excluded"
+  },
+  "stage_status": {
+    "availability": 0,
+    "profile-smoke": 0,
+    "low-hit-1": 0,
+    "low-hit-2": 0,
+    "low-hit-3": 0,
+    "low-hit-4": 0,
+    "low-hit-5": 0,
+    "low-hit-6": 0,
+    "pure-miss-1": 0,
+    "pure-miss-2": 0,
+    "pure-miss-3": 0,
+    "pure-miss-4": 0,
+    "pure-miss-5": 0,
+    "pure-miss-6": 0,
+    "guards": 0,
+    "protected-stream": 0,
+    "backend-regression": 0
+  },
+  "scenarios": {
+    "low-hit": {
+      "gates": {
+        "on": {
+          "ratio": 1.1804863175546916,
+          "delta_ms": 23.677999999999997,
+          "original_limit": 1.05,
+          "original_passed": false,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 163.9875,
+          "candidate_passed": true,
+          "proposal": true
+        },
+        "memo": {
+          "ratio": 1.1432350026678864,
+          "delta_ms": 18.790999999999997,
+          "original_limit": 1.05,
+          "original_passed": false,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 163.9875,
+          "candidate_passed": true,
+          "proposal": true
+        }
+      },
+      "miss_gates": {
+        "on": {
+          "ratio": 1.172166535837208,
+          "delta_ms": 22.810000000000002,
+          "original_limit": 1.05,
+          "original_passed": false,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 165.61,
+          "candidate_passed": true,
+          "proposal": true
+        },
+        "memo": {
+          "ratio": 1.1624298049634685,
+          "delta_ms": 21.52000000000001,
+          "original_limit": 1.05,
+          "original_passed": false,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 165.61,
+          "candidate_passed": true,
+          "proposal": true
+        }
+      },
+      "application": {
+        "off": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": true
+        },
+        "on": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": true
+        },
+        "memo": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": true
+        }
+      },
+      "drift_alerts": [
+        4,
+        5
+      ]
+    },
+    "pure-miss": {
+      "gates": {
+        "on": {
+          "ratio": 1.213264713967197,
+          "delta_ms": 27.930000000000007,
+          "original_limit": 1.05,
+          "original_passed": false,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 163.70499999999998,
+          "candidate_passed": true,
+          "proposal": true
+        },
+        "memo": {
+          "ratio": 1.173933294645857,
+          "delta_ms": 22.778999999999996,
+          "original_limit": 1.05,
+          "original_passed": false,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 163.70499999999998,
+          "candidate_passed": true,
+          "proposal": true
+        }
+      },
+      "miss_gates": {
+        "on": {
+          "ratio": 1.213264713967197,
+          "delta_ms": 27.930000000000007,
+          "original_limit": 1.05,
+          "original_passed": false,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 163.70499999999998,
+          "candidate_passed": true,
+          "proposal": true
+        },
+        "memo": {
+          "ratio": 1.173933294645857,
+          "delta_ms": 22.778999999999996,
+          "original_limit": 1.05,
+          "original_passed": false,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 163.70499999999998,
+          "candidate_passed": true,
+          "proposal": true
+        }
+      },
+      "application": {
+        "off": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": true
+        },
+        "on": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": true
+        },
+        "memo": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": true
+        }
+      },
+      "drift_alerts": [
+        2,
+        3
+      ]
+    }
+  }
+}

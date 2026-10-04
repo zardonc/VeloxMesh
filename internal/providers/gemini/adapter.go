@@ -167,11 +167,11 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 	}
 	stream := a.client.Models.GenerateContentStream(ctx, model, contents, config)
 	output := make(chan llm.StreamEvent)
-	go a.forwardStream(stream, output)
+	go a.forwardStream(ctx, stream, output)
 	return output, nil
 }
 
-func (a *Adapter) forwardStream(stream iter.Seq2[*genai.GenerateContentResponse, error], output chan<- llm.StreamEvent) {
+func (a *Adapter) forwardStream(ctx context.Context, stream iter.Seq2[*genai.GenerateContentResponse, error], output chan<- llm.StreamEvent) {
 	defer close(output)
 	state := geminiStreamState{tools: toolstream.New(toolstream.Config{GenerateID: a.generateToolCallID})}
 	for response, err := range stream {
@@ -189,7 +189,13 @@ func (a *Adapter) forwardStream(stream iter.Seq2[*genai.GenerateContentResponse,
 			output <- event
 		}
 	}
-	if state.toolCount > 0 && !state.terminal {
+	// The SDK logs scanner errors without yielding them. Iterator exhaustion is
+	// therefore insufficient evidence of successful completion.
+	if err := ctx.Err(); err != nil {
+		output <- llm.StreamEvent{Error: a.mapError(err)}
+		return
+	}
+	if !state.terminal {
 		output <- llm.StreamEvent{Error: invalidGeminiToolResponse()}
 		return
 	}
@@ -197,6 +203,9 @@ func (a *Adapter) forwardStream(stream iter.Seq2[*genai.GenerateContentResponse,
 }
 
 func (a *Adapter) mapError(err error) error {
+	if errors.Is(err, context.Canceled) {
+		return context.Canceled
+	}
 	if code, found := geminiAPIStatus(err); found {
 		return geminiStatusError(code)
 	}

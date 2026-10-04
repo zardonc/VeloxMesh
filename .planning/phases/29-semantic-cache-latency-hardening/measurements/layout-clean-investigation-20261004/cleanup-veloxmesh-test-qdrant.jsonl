@@ -1,0 +1,2 @@
+{"totals":{"files":13308,"logical_bytes":68486438960,"resident_before_bytes":6545608704,"resident_after_bytes":81920},"type":"eviction","verified":false}
+{"error":"fixture cache still has 81920 resident bytes","type":"error","utc":"2026-10-04T18:53:56.23778614Z"}

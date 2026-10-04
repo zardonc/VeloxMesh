@@ -71,7 +71,11 @@ func TestLiveGeminiNativeToolStream(t *testing.T) {
 	if os.Getenv("PHASE29_MODEL") == "" {
 		t.Skip("real native stream diagnostic opt-in")
 	}
-	env := liveEnvironment(t)
+	liveGeminiNativeToolStream(t, liveEnvironment(t))
+}
+
+func liveGeminiNativeToolStream(t *testing.T, env map[string]string) {
+	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), liveHTTPTimeout)
 	defer cancel()
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{APIKey: env["SANS_PRIMARY_API_KEY"], Backend: genai.BackendGeminiAPI, HTTPOptions: genai.HTTPOptions{BaseURL: env["SANS_BASE_URL"]}})

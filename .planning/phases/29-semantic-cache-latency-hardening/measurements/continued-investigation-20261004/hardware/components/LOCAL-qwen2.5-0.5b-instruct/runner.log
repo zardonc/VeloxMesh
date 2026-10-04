@@ -1,0 +1,10 @@
+dependency ready: veloxmesh-investigation-20261004-01a1089d-redis
+dependency ready: veloxmesh-investigation-20261004-01a1089d-qdrant
+dependency ready: veloxmesh-investigation-20261004-01a1089d-postgres
+TestLiveRedisCapacity exit: <nil>
+TestLiveQdrantCapacity exit: <nil>
+TestLiveSQLiteCapacity exit: <nil>
+TestLivePostgresCapacity exit: <nil>
+/veloxmesh-investigation-20261004-01a1089d-redis true
+/veloxmesh-investigation-20261004-01a1089d-qdrant true
+/veloxmesh-investigation-20261004-01a1089d-postgres true

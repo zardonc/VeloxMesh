@@ -5,11 +5,11 @@ milestone_name: Phases
 current_phase: 29
 current_phase_name: Semantic Cache Latency Hardening
 status: executing
-stopped_at: Local model gateway verified; 29-03 latency and second-model gates pending
-last_updated: "2026-10-01"
-last_activity: 2026-10-01
-last_activity_desc: Real local-model false hit repaired; gateway flow passes but low-hit P95 gate fails
-state_head: 757bd1755977e943dd094bc1492acf406deb5b28
+stopped_at: Recovery gate failed; Qdrant startup and sparse collection layout isolated; primary timing and business safety pending
+last_updated: "2026-10-04"
+last_activity: 2026-10-04
+last_activity_desc: Component-only diagnosis links startup pressure to Qdrant; no new formal performance pass
+state_head: 9c323d6fed24202c85f34624f2a661e83ee5bfeb
 progress:
   total_phases: 3
   completed_phases: 2
@@ -82,13 +82,14 @@ See: `.planning/PROJECT.md` (updated 2026-09-25)
 
 Phase: 29 (Semantic Cache Latency Hardening) — EXECUTING
 Plan: 3 of 3
-Status: Offline Wave 2 complete; one local-model flow passes, latency and second-model gates open
-Last activity: 2026-10-01 — Real false hit repaired; 1044 local-model timed attempts retained; corrected P95 ratios 1.143/1.511 fail; full backend/race checks pass
+Status: Functional regressions pass; stable performance, collection lifecycle and business semantic safety remain open
+Last activity: 2026-10-04 — Recovery failed before formal load; component-only diagnosis and stopped-volume layout recorded; original P95 result preserved
 
 ## Operator Next Steps
 
-- Review `29-LOCAL-MODEL-MEASUREMENT.md`; the specified local model works, but primary deadline failures and failed latency ratios prevent sign-off.
-- Resume 29-03 with stable representative primary load, clean completed warmup, longer steady state and a second distinct real-model lifecycle. Experimental bounds are not final approved parameters.
+- Review [RAM-upgrade controlled results](phases/29-semantic-cache-latency-hardening/29-MEMORY-UPGRADE-RESULTS-20261004.md): 4800 formal requests and 69 selected real checks pass, but original P95, four drifting brackets and paging remain open; 347 Qdrant collections are inventoried.
+- Review [recovery investigation](phases/29-semantic-cache-latency-hardening/29-RECOVERY-INVESTIGATION-20261004.md): no new formal windows; Qdrant-only startup pressure, sparse files and missing collection expiry motivate a controlled layout/lifecycle comparison.
+- Resume 29-03 with observed recovery completion, fixed collection-state experiments and primary queue/prefill/decode correlation; evaluate business semantic safety independently. Two distinct model lifecycles are already recorded; numeric/production gates remain separate.
 - Deployment remains separate; no deployment authorization was received.
 
 ## Deferred Items
@@ -153,6 +154,7 @@ Items acknowledged at v7.0 close:
 - [Phase 29]: The user-provided local embedding model is selected through configuration and real dimension probing. Gateway cache input is eligible user text only; system prompt remains in authorization scope, with an input-format version preventing old vectors from matching.
 - [Phase 29]: 2026-10-04 explicit disabled/exact/experimental-semantic profiles and layered Provider deadlines/shared attempt capacity implemented. Exact regression rejects 41 changed questions; final backend and real protected SSE/Fusion pass. Scenario budgets retain original 1.05 evidence and require both 1.25 ratio and +40ms; no production approval.
 - [Phase 29]: Continued 2026-10-04 investigation separates health-store read failure from provider unhealthy through fail-closed 503 health_state_unavailable. Five routing modes, readable peer, recovery and eleven selected real regressions pass; final backend is 595 top-level passes, zero failures.
+- [Phase 29]: RAM upgrade is verified at 7376MiB with the same four vCPUs. Six bracket blocks per scenario yield 4800 successful formal requests; candidate AND point estimates and residual pass, original 1.05 fails. Four drifting brackets, observed swap-in and 323 small semantic collections keep stable performance/lifecycle investigation open; no production approval.
 
 ### Blockers
 

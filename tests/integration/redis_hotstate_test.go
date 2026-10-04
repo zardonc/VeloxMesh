@@ -40,14 +40,10 @@ func TestRedisHotState_PubSub(t *testing.T) {
 		Timestamp:  time.Now().UTC().Round(time.Millisecond),
 	}
 
-	// Publish in a separate goroutine
-	go func() {
-		time.Sleep(100 * time.Millisecond)
-		err := client.PublishConfigChange(ctx, msg)
-		if err != nil {
-			t.Errorf("failed to publish: %v", err)
-		}
-	}()
+	// Wait for the publisher's acknowledgement before closing the client.
+	if err := client.PublishConfigChange(ctx, msg); err != nil {
+		t.Fatalf("failed to publish: %v", err)
+	}
 
 	select {
 	case received := <-sub.Channel():

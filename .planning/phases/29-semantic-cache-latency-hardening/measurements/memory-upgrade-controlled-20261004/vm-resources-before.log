@@ -1,0 +1,332 @@
+command=lscpu
+Architecture:                            x86_64
+CPU op-mode(s):                          32-bit, 64-bit
+Address sizes:                           45 bits physical, 48 bits virtual
+Byte Order:                              Little Endian
+CPU(s):                                  4
+On-line CPU(s) list:                     0-3
+Vendor ID:                               AuthenticAMD
+Model name:                              AMD Ryzen 9 8945HS w/ Radeon 780M Graphics
+CPU family:                              25
+Model:                                   117
+Thread(s) per core:                      1
+Core(s) per socket:                      2
+Socket(s):                               2
+Stepping:                                2
+BogoMIPS:                                7984.99
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology tsc_reliable nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext perfctr_core ssbd ibrs ibpb ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves user_shstk avx512_bf16 clzero wbnoinvd arat npt svm_lock nrip_save vmcb_clean flushbyasid decodeassists avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor fsrm flush_l1d
+Virtualization:                          AMD-V
+Hypervisor vendor:                       VMware
+Virtualization type:                     full
+L1d cache:                               128 KiB (4 instances)
+L1i cache:                               128 KiB (4 instances)
+L2 cache:                                4 MiB (4 instances)
+L3 cache:                                32 MiB (2 instances)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-3
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Ghostwrite:                Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Old microcode:             Not affected
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Vulnerable: Safe RET, no microcode
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP disabled; PBRSB-eIBRS Not affected; BHI Not affected
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Vulnerable: No microcode
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Not affected
+
+error=<nil>
+command=free -m
+               total        used        free      shared  buff/cache   available
+Mem:            7376         603        6416           1         596        6773
+Swap:           3861           0        3861
+
+error=<nil>
+command=vmstat 1 5
+procs -----------memory---------- ---swap-- -----io---- -system-- -------cpu-------
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st gu
+ 2  0      0 6570936  34528 576036    0    0   670    26  305    0  0  1 99  0  0  0
+ 0  0      0 6571012  34528 576160    0    0     0     0  261  176  0  0 100  0  0  0
+ 0  0      0 6571012  34528 576160    0    0     0     0  176  149  0  0 100  0  0  0
+ 0  0      0 6571012  34528 576160    0    0     0     0  188  159  0  0 100  0  0  0
+ 0  0      0 6571012  34528 576160    0    0     0     0  155  132  0  0 100  0  0  0
+
+error=<nil>
+command=cat /proc/pressure/memory /proc/pressure/cpu /proc/pressure/io
+some avg10=0.00 avg60=0.00 avg300=0.00 total=0
+full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+some avg10=0.00 avg60=0.00 avg300=0.03 total=3428006
+full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+some avg10=0.14 avg60=0.03 avg300=0.00 total=1156906
+full avg10=0.14 avg60=0.03 avg300=0.00 total=884296
+
+error=<nil>
+command=docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}'
+
+error=<nil>
+command=docker inspect --format '{{.Name}} running={{.State.Running}} oom={{.State.OOMKilled}} restarts={{.RestartCount}} cpu_quota={{.HostConfig.CpuQuota}} cpu_period={{.HostConfig.CpuPeriod}} nano_cpus={{.HostConfig.NanoCpus}} cpuset={{.HostConfig.CpusetCpus}} memory_limit={{.HostConfig.Memory}}' veloxmesh-test-redis veloxmesh-test-qdrant veloxmesh-test-postgres
+/veloxmesh-test-redis running=false oom=false restarts=0 cpu_quota=0 cpu_period=0 nano_cpus=0 cpuset= memory_limit=0
+/veloxmesh-test-qdrant running=false oom=false restarts=0 cpu_quota=0 cpu_period=0 nano_cpus=0 cpuset= memory_limit=0
+/veloxmesh-test-postgres running=false oom=false restarts=0 cpu_quota=0 cpu_period=0 nano_cpus=0 cpuset= memory_limit=0
+
+error=<nil>
+command=ps -eo comm,rss,pcpu --sort=-rss
+COMMAND           RSS %CPU
+dockerd         91584  0.1
+containerd      54724  0.2
+systemd-journal 51824  0.0
+unattended-upgr 32908  0.0
+networkd-dispat 30352  0.0
+systemd         16672  0.2
+systemd-udevd   15616  0.0
+udisksd         15176  0.0
+systemd-resolve 14744  0.0
+ModemManager    14292  0.0
+systemd         12888  1.5
+sshd-session    12644  0.3
+systemd-network 12412  0.1
+VGAuthService   11676  0.0
+chronyd         11424  0.0
+vmtoolsd        10924  0.1
+multipathd       9776  0.0
+systemd-logind   9616  0.0
+polkitd          8528  0.0
+sshd-session     8344  0.2
+sshd             7892  0.0
+timeout          7684  0.0
+rsyslogd         6264  0.0
+dbus-daemon      5752  0.0
+ps               4440  0.0
+(sd-pam)         4096  0.0
+cron             3504  0.0
+agetty           2916  0.0
+chronyd          2468  0.0
+chronyd-starter  2080  0.0
+kthreadd            0  0.0
+pool_workqueue_     0  0.0
+kworker/R-rcu_g     0  0.0
+kworker/R-sync_     0  0.0
+kworker/R-kvfre     0  0.0
+kworker/R-slub_     0  0.0
+kworker/R-netns     0  0.0
+kworker/0:0H-kb     0  0.0
+kworker/0:1-cgr     0  0.0
+kworker/R-mm_pe     0  0.0
+ksoftirqd/0         0  0.0
+rcu_preempt         0  0.0
+rcu_exp_par_gp_     0  0.0
+rcu_exp_gp_kthr     0  0.0
+migration/0         0  0.0
+kprobe-optimize     0  0.0
+idle_inject/0       0  0.0
+cpuhp/0             0  0.0
+cpuhp/1             0  0.0
+idle_inject/1       0  0.0
+migration/1         0  0.0
+ksoftirqd/1         0  0.0
+kworker/1:0-eve     0  0.0
+kworker/1:0H-kb     0  0.0
+cpuhp/2             0  0.0
+idle_inject/2       0  0.0
+migration/2         0  0.0
+ksoftirqd/2         0  0.0
+cpuhp/3             0  0.0
+idle_inject/3       0  0.0
+migration/3         0  0.0
+ksoftirqd/3         0  0.0
+kworker/3:0H-kb     0  0.0
+kdevtmpfs           0  0.0
+kworker/R-inet_     0  0.0
+rcu_tasks_kthre     0  0.0
+rcu_tasks_rude_     0  0.0
+kauditd             0  0.0
+khungtaskd          0  0.0
+oom_reaper          0  0.0
+kworker/R-write     0  0.0
+kcompactd0          0  0.0
+ksmd                0  0.0
+khugepaged          0  0.0
+kworker/R-kbloc     0  0.0
+kworker/R-blkcg     0  0.0
+kworker/R-kinte     0  0.0
+irq/9-acpi          0  0.0
+kworker/R-tpm_d     0  0.0
+kworker/R-ata_s     0  0.0
+kworker/R-md_bi     0  0.0
+kworker/R-md_ll     0  0.0
+kworker/R-md_ll     0  0.0
+kworker/R-edac-     0  0.0
+kworker/R-devfr     0  0.0
+watchdogd           0  0.0
+kworker/R-quota     0  0.0
+kswapd0             0  0.0
+ecryptfs-kthrea     0  0.0
+kworker/R-kthro     0  0.0
+irq/24-pciehp       0  0.0
+irq/25-pciehp       0  0.0
+irq/26-pciehp       0  0.0
+irq/27-pciehp       0  0.0
+irq/28-pciehp       0  0.0
+irq/29-pciehp       0  0.0
+irq/30-pciehp       0  0.0
+irq/31-pciehp       0  0.0
+irq/32-pciehp       0  0.0
+irq/33-pciehp       0  0.0
+irq/34-pciehp       0  0.0
+irq/35-pciehp       0  0.0
+irq/36-pciehp       0  0.0
+irq/37-pciehp       0  0.0
+irq/38-pciehp       0  0.0
+irq/39-pciehp       0  0.0
+irq/40-pciehp       0  0.0
+irq/41-pciehp       0  0.0
+irq/42-pciehp       0  0.0
+irq/43-pciehp       0  0.0
+irq/44-pciehp       0  0.0
+irq/45-pciehp       0  0.0
+irq/46-pciehp       0  0.0
+irq/47-pciehp       0  0.0
+irq/48-pciehp       0  0.0
+irq/49-pciehp       0  0.0
+irq/50-pciehp       0  0.0
+irq/51-pciehp       0  0.0
+irq/52-pciehp       0  0.0
+irq/53-pciehp       0  0.0
+irq/54-pciehp       0  0.0
+irq/55-pciehp       0  0.0
+kworker/R-acpi_     0  0.0
+kworker/u514:1-     0  0.0
+kworker/2:1-mm_     0  0.0
+scsi_eh_0           0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_1           0  0.0
+kworker/R-scsi_     0  0.0
+kworker/u514:2-     0  0.0
+kworker/u514:3-     0  0.0
+kworker/R-mld       0  0.0
+kworker/R-ipv6_     0  0.0
+kworker/u512:1-     0  0.0
+kworker/R-kstrp     0  0.0
+kworker/3:1-eve     0  0.0
+kworker/u515:0      0  0.0
+kworker/u516:0      0  0.0
+kworker/u517:0      0  0.0
+kworker/R-charg     0  0.0
+kworker/0:3-eve     0  0.0
+kworker/2:2-cgr     0  0.0
+kworker/1:2-cgr     0  0.0
+kworker/R-mpt_p     0  0.0
+kworker/R-mpt/0     0  0.0
+scsi_eh_2           0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_3           0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_4           0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_5           0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_6           0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_7           0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_8           0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_9           0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_10          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_11          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_12          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_13          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_14          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_15          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_16          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_17          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_18          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_19          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_20          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_21          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_22          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_23          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_24          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_25          0  0.0
+kworker/0:1H-kb     0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_26          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_27          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_28          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_29          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_30          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_31          0  0.0
+kworker/R-scsi_     0  0.0
+scsi_eh_32          0  0.0
+kworker/R-scsi_     0  0.0
+kworker/u513:25     0  0.0
+kworker/u513:26     0  0.0
+kworker/u513:27     0  0.0
+kworker/1:2H        0  0.0
+kworker/R-kdmfl     0  0.0
+jbd2/dm-0-8         0  0.0
+kworker/R-ext4-     0  0.0
+irq/57-vmw_vmci     0  0.0
+irq/58-vmw_vmci     0  0.0
+irq/59-vmw_vmci     0  0.0
+psimon              0  0.0
+kworker/2:1H-kb     0  0.0
+kworker/R-kmpat     0  0.0
+kworker/R-kmpat     0  0.0
+kworker/3:3-ino     0  0.0
+psimon              0  0.0
+kworker/3:1H-kb     0  0.0
+kworker/2:2H        0  0.0
+jbd2/sda2-8         0  0.0
+kworker/R-ext4-     0  0.0
+irq/16-vmwgfx       0  0.0
+kworker/R-ttm       0  0.0
+kworker/R-cfg80     0  0.0
+kworker/u512:2      0  0.0
+kworker/0:0         0  0.0
+kworker/u514:0      0  0.0
+kworker/u514:4      0  0.0
+kworker/1:1         0  0.0
+
+error=<nil>
+command=df -h /var/lib/docker
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv   38G   23G   13G  64% /
+
+error=<nil>
+command=lsblk -d -o NAME,ROTA,SIZE,MODEL
+NAME ROTA  SIZE MODEL
+sda     1   40G VMware Virtual S
+sr0     0 1024M VMware Virtual SATA CDRW Drive
+
+error=<nil>

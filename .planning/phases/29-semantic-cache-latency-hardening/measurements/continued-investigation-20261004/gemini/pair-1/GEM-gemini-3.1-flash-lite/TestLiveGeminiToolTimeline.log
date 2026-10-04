@@ -1,0 +1,4 @@
+=== RUN   TestLiveGeminiToolTimeline
+    live_ship_protocol_test.go:367: secret input unavailable
+--- FAIL: TestLiveGeminiToolTimeline (0.00s)
+FAIL

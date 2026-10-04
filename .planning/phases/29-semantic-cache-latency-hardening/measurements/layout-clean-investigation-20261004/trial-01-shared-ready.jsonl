@@ -1,0 +1,7 @@
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:39322-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:03:59.946308362Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:39330-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:04:00.148332997Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:39336-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:04:00.350454072Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:39340-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:04:00.551657099Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:39356-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:04:00.75404895Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:39366-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:04:00.956006534Z"}
+{"type":"ready","utc":"2026-10-04T19:04:01.158549813Z","version":{"title":"qdrant - vector search engine","version":"1.18.2","commit":"44ad62f8cd69642be5afa6441612525e24a0d063"},"wait_ms":1213.769}

@@ -1,0 +1,13 @@
+{"fresh_collection_count": 11, "semantic_count": 9, "names": ["component_capacity_1791146998971115263", "scheduler_training_samples", "semantic_cache_265f8cb4c4834a1cd9a1392a14d846cab1195d63d57f59fd9f3043d9de61377e", "semantic_cache_3a2eac70a611d50feec10286e3a6f3825da86cc166709647989f7a64f77ab741", "semantic_cache_3a504183313dca0a42ac03df56869092dea314073aa6b8e3f66d5617ee7b7332", "semantic_cache_4c38a4276d5688c887b14c4c53d3104976717161a782be59dff3e38fd02a780a", "semantic_cache_84d3e640c670fcb58701bf94e9e827c8d7bb38ead552b9e69983764ac4615b21", "semantic_cache_8f2c1b5f9584633cffa5dd3466cb7e49a878c65dd33a8b2c3e65682283cfd8b7", "semantic_cache_ab00a3517cf1f2f60491589de80a6da7d5289475ee896b24cd8257612b884318", "semantic_cache_da75d1ca5afb474f4981ced848c71bda848cc75b3f63c0f5b92c127f2fbaeed7", "semantic_cache_e5f2eac23c725eb6a50068f93b0a6fa44f0b03797be9b57f80e9739c0214fffe"]}
+{"removed_owned_binary": "/tmp/veloxmesh-investigation-20261004-01a1089d.test", "sha256": "02ece3d8237d68d6d4ee5d4fbaee0c531c0d93a3ca5e5108a84269afa12c4c6e", "size": 68570508}
+{"name": "/veloxmesh-investigation-20261004-01a1089d-redis", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-investigation-20261004-01a1089d-redis"]}
+{"name": "/veloxmesh-investigation-20261004-01a1089d-qdrant", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-investigation-20261004-01a1089d-qdrant"]}
+{"name": "/veloxmesh-investigation-20261004-01a1089d-postgres", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-investigation-20261004-01a1089d-postgres"]}
+{"name": "/veloxmesh-test-redis", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-test-redis"]}
+{"name": "/veloxmesh-test-qdrant", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-test-qdrant"]}
+{"name": "/veloxmesh-test-postgres", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-test-postgres"]}
+State  Recv-Q Send-Q Local Address:Port Peer Address:Port
+LISTEN 0      4096   127.0.0.53%lo:53        0.0.0.0:*   
+LISTEN 0      4096         0.0.0.0:22        0.0.0.0:*   
+LISTEN 0      4096      127.0.0.54:53        0.0.0.0:*   
+LISTEN 0      4096            [::]:22           [::]:*

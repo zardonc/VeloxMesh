@@ -1,0 +1,1 @@
+{"condition":{"label":"redis-only","container":"veloxmesh-test-redis","seconds":45},"end":"2026-10-04T18:00:03.8550409Z","start":"2026-10-04T17:59:17.7316886Z"}

@@ -1,0 +1,138 @@
+{
+  "files": 13306,
+  "groups": [
+    {
+      "family": "wal",
+      "count": 1041,
+      "bytes": 23286781247,
+      "allocated_bytes": 87490560,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/wal/open-1"
+    },
+    {
+      "family": "page_#.dat",
+      "count": 694,
+      "bytes": 23286775808,
+      "allocated_bytes": 4366336,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/payload_storage/page_0.dat"
+    },
+    {
+      "family": "chunk_#.mmap",
+      "count": 609,
+      "bytes": 20433362944,
+      "allocated_bytes": 64880640,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/vector_storage/vectors/chunk_0.mmap"
+    },
+    {
+      "family": "flags_a.dat",
+      "count": 694,
+      "bytes": 727711744,
+      "allocated_bytes": 2281472,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/vector_storage/deleted/flags_a.dat"
+    },
+    {
+      "family": "tracker.dat",
+      "count": 694,
+      "bytes": 727711744,
+      "allocated_bytes": 2891776,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/payload_storage/tracker.dat"
+    },
+    {
+      "family": "bitmask.dat",
+      "count": 694,
+      "bytes": 22740992,
+      "allocated_bytes": 2494464,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/payload_storage/bitmask.dat"
+    },
+    {
+      "family": "mutable_id_tracker.mappings",
+      "count": 557,
+      "bytes": 431728,
+      "allocated_bytes": 2363392,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/mutable_id_tracker.mappings"
+    },
+    {
+      "family": "config.json",
+      "count": 2429,
+      "bytes": 360484,
+      "allocated_bytes": 9949184,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/vector_storage/vectors/config.json"
+    },
+    {
+      "family": "segment.json",
+      "count": 694,
+      "bytes": 165259,
+      "allocated_bytes": 2842624,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/segment.json"
+    },
+    {
+      "family": "mutable_id_tracker.versions",
+      "count": 557,
+      "bytes": 164416,
+      "allocated_bytes": 2297856,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/mutable_id_tracker.versions"
+    },
+    {
+      "family": "gaps.dat",
+      "count": 694,
+      "bytes": 133248,
+      "allocated_bytes": 2842624,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/payload_storage/gaps.dat"
+    },
+    {
+      "family": "newest_clocks.json",
+      "count": 325,
+      "bytes": 36963,
+      "allocated_bytes": 1331200,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/newest_clocks.json"
+    },
+    {
+      "family": "replica_state.json",
+      "count": 347,
+      "bytes": 30189,
+      "allocated_bytes": 1421312,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/replica_state.json"
+    },
+    {
+      "family": "status.dat",
+      "count": 1388,
+      "bytes": 16656,
+      "allocated_bytes": 4562944,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/segments/a7f317dc-6d24-41c1-a0f4-de04ba201e11/vector_storage/deleted/status.dat"
+    },
+    {
+      "family": "shard_config.json",
+      "count": 347,
+      "bytes": 7287,
+      "allocated_bytes": 1421312,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/0/shard_config.json"
+    },
+    {
+      "family": "version.info",
+      "count": 1041,
+      "bytes": 5205,
+      "allocated_bytes": 4263936,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/version.info"
+    },
+    {
+      "family": "applied_seq.json",
+      "count": 153,
+      "bytes": 1995,
+      "allocated_bytes": 626688,
+      "example": "semantic_cache_3d82ea603e244d52822a0f0b694da34c6103e60efa8e893b9925a7342b53ad94/0/applied_seq.json"
+    },
+    {
+      "family": "shard_key_mapping.json",
+      "count": 347,
+      "bytes": 694,
+      "allocated_bytes": 1421312,
+      "example": "semantic_cache_4f0d22ed34cd7983b1189224cfd5e197d7d75fe526c6f4813cb3ace31a4e69c9/shard_key_mapping.json"
+    },
+    {
+      "family": "tmpfile.tmp",
+      "count": 1,
+      "bytes": 0,
+      "allocated_bytes": 0,
+      "example": "semantic_cache_e33eb668c250020071d142f89d0978f192f346d29fce36c3a5f9df725570a323/0/.atomicwritei40P3V/tmpfile.tmp"
+    }
+  ]
+}

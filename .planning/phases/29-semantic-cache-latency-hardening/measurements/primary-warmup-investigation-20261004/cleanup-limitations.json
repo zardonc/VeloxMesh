@@ -1,0 +1,15 @@
+{
+  "containers_stopped": true,
+  "managed_observers_and_tunnels_closed": true,
+  "readonly_helpers_removed": true,
+  "unmanaged_probe_subscriber": {
+    "pid": 33964,
+    "name": "lms",
+    "command_purpose": "read-only model output log subscription created in this investigation",
+    "still_running_at_check": true,
+    "termination_attempts": ["piped Ctrl-C", "targeted Stop-Process", "targeted taskkill"],
+    "termination_failure": "Windows Access denied",
+    "automatic_approval_rejection": false,
+    "not_a_model_service": true
+  }
+}
