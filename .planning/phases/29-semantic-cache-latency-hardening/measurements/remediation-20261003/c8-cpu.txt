@@ -1,0 +1,28 @@
+File: verified-linux.test
+Build ID: a427e9f80faa33238f29649e907c0d10fc01b1fd
+Type: cpu
+Time: 2026-10-03 18:15:58 PDT
+Duration: 4.68s, Total samples = 390ms ( 8.33%)
+Showing nodes accounting for 390ms, 100% of 390ms total
+Showing top 20 nodes out of 230
+      flat  flat%   sum%        cum   cum%
+     190ms 48.72% 48.72%      190ms 48.72%  internal/runtime/syscall/linux.Syscall6
+     110ms 28.21% 76.92%      110ms 28.21%  runtime.futex
+      20ms  5.13% 82.05%       30ms  7.69%  runtime.pcvalue
+      10ms  2.56% 84.62%       10ms  2.56%  internal/runtime/atomic.(*UnsafePointer).StoreNoWB (inline)
+      10ms  2.56% 87.18%       10ms  2.56%  modernc.org/libc._fstatat_kstat
+      10ms  2.56% 89.74%       40ms 10.26%  net/http.(*Client).do
+      10ms  2.56% 92.31%       10ms  2.56%  runtime.(*spanInlineMarkBits).init
+      10ms  2.56% 94.87%       10ms  2.56%  runtime.mallocgcSmallScanNoHeader
+      10ms  2.56% 97.44%       10ms  2.56%  runtime.markBits.setMarked
+      10ms  2.56%   100%       10ms  2.56%  runtime.step
+         0     0%   100%       30ms  7.69%  bufio.(*Reader).Peek
+         0     0%   100%       30ms  7.69%  bufio.(*Reader).fill
+         0     0%   100%      170ms 43.59%  bufio.(*Writer).Flush
+         0     0%   100%       20ms  5.13%  database/sql.(*DB).BeginTx
+         0     0%   100%       20ms  5.13%  database/sql.(*DB).BeginTx.func1
+         0     0%   100%       10ms  2.56%  database/sql.(*DB).Exec
+         0     0%   100%       10ms  2.56%  database/sql.(*DB).ExecContext
+         0     0%   100%       10ms  2.56%  database/sql.(*DB).ExecContext.func1
+         0     0%   100%       20ms  5.13%  database/sql.(*DB).QueryContext
+         0     0%   100%       20ms  5.13%  database/sql.(*DB).QueryContext.func1

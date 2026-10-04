@@ -1,0 +1,19 @@
+{
+  "models": [
+    {
+      "provider": "GPT",
+      "model": "gpt-6-luna"
+    },
+    {
+      "provider": "OR",
+      "model": "inclusionai/ling-3.0-flash-sante:free"
+    },
+    {
+      "provider": "OR",
+      "model": "nvidia/nemotron-3.5-lightning:free"
+    }
+  ],
+  "status": 0,
+  "output": "{\"provider\":\"GPT\",\"model\":\"gpt-6-luna\",\"label\":\"mixed-final\",\"status\":0,\"output\":\"dependency ready: veloxmesh-test-redis\\ndependency ready: veloxmesh-test-qdrant\\ndependency ready: veloxmesh-test-postgres\\ndependency readiness attempt=1 error=Qdrant readiness: Process exited with status 56 output=PONG\\n/var/run/postgresql:5432 - accepting connections\\ndependency readiness attempt=2 error=Qdrant readiness: Process exited with status 56 output=PONG\\n/var/run/postgresql:5432 - accepting connections\\ndependency readiness attempt=3 error=Qdrant readiness: Process exited with status 56 output=PONG\\n/var/run/postgresql:5432 - accepting connections\\ndependency readiness attempt=4 error=Qdrant readiness: Process exited with status 56 output=PONG\\n/var/run/postgresql:5432 - accepting connections\\ndependency readiness attempt=5 error=Qdrant readiness: Process exited with status 56 output=PONG\\n/var/run/postgresql:5432 - accepting connections\\ndependency readiness attempt=6 error=Qdrant readiness: Process exited with status 56 output=PONG\\n/var/run/postgresql:5432 - accepting connections\\ndependency readiness attempt=7 error=Qdrant readiness: Process exited with status 56 output=PONG\\n/var/run/postgresql:5432 - accepting connections\\ndependency readiness attempt=8 error=Qdrant readiness: Process exited with status 56 output=PONG\\n/var/run/postgresql:5432 - accepting connections\\ndependency readiness attempt=9 error=Qdrant readiness: Process exited with status 56 output=PONG\\n/var/run/postgresql:5432 - accepting connections\\ndependency readiness attempt=10 error=Qdrant readiness: Process exited with status 56 output=PONG\\n/var/run/postgresql:5432 - accepting connections\\nTestLiveMixedLoadOn exit: <nil>\\n/veloxmesh-test-redis false\\n/veloxmesh-test-qdrant false\\n/veloxmesh-test-postgres false\",\"stderr\":\"\"}\n",
+  "stderr": ""
+}

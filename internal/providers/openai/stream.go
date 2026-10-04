@@ -26,6 +26,7 @@ type streamReadState struct {
 	sawToolCall   bool
 	terminal      bool
 	sawFinalUsage bool
+	finishReason  string
 }
 
 type streamChunkState struct {
@@ -105,13 +106,38 @@ func emitStreamChunk(run streamRead, event llm.StreamEvent) bool {
 }
 
 func (a *Adapter) handleFinalUsage(run streamRead, state streamReadState, chunk streamChunk) (streamReadState, bool) {
-	if state.sawFinalUsage || len(chunk.Choices) != 0 || !validFinalUsage(chunk.Usage) {
+	if state.sawFinalUsage || !validFinalChoices(state, chunk) || !validFinalUsage(chunk.Usage) {
 		a.sendStreamError(run.ctx, run.events)
 		return state, false
 	}
 	next := state
 	next.sawFinalUsage = true
 	return next, sendStreamEvent(run.ctx, run.events, llm.StreamEvent{Usage: chunk.Usage, Provider: a.id, Model: run.model})
+}
+
+// OpenRouter repeats the terminal reason in a content-free accounting choice.
+// Normalize it to usage only; never emit a second terminal or new payload.
+func validFinalChoices(state streamReadState, chunk streamChunk) bool {
+	if len(chunk.Choices) == 0 {
+		return true
+	}
+	if len(chunk.Choices) != 1 || state.finishReason == "" {
+		return false
+	}
+	choice := chunk.Choices[0]
+	return choice.FinishReason != nil && *choice.FinishReason == state.finishReason &&
+		emptyAccountingDelta(choice)
+}
+
+func emptyAccountingDelta(choice chunkChoice) bool {
+	delta := choice.Delta
+	if delta.Content != "" || len(delta.ToolCalls) != 0 || delta.Reasoning != "" {
+		return false
+	}
+	if delta.Role != "" && delta.Role != "assistant" {
+		return false
+	}
+	return len(delta.ReasoningDetails) == 0 || string(delta.ReasoningDetails) == "null" || string(delta.ReasoningDetails) == "[]"
 }
 
 func validFinalUsage(usage *llm.Usage) bool {
@@ -131,6 +157,7 @@ func (a *Adapter) completeStreamEvent(state streamReadState, chunk streamChunkSt
 	if chunk.event.FinishReason == "" {
 		return next, true
 	}
+	next.finishReason = chunk.event.FinishReason
 	if !next.sawToolCall {
 		next.terminal = chunk.event.FinishReason != "tool_calls"
 		return next, next.terminal

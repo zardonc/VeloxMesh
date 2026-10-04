@@ -32,6 +32,7 @@ type liveChain struct {
 	app               *App
 	repo              *sqlite.Repository
 	url, token, model string
+	dsn               string
 	initialBalance    int
 	timing            *liveTiming
 }
@@ -64,7 +65,7 @@ func newLiveChainWithEnvironment(t *testing.T, env map[string]string) liveChain 
 	if err := repo.DBForTest().QueryRow("SELECT credit_balance FROM api_keys WHERE id = ?", token).Scan(&balance); err != nil {
 		t.Fatal(err)
 	}
-	return liveChain{app: application, repo: repo, url: server.URL, token: token, model: model, initialBalance: balance, timing: recorder}
+	return liveChain{app: application, repo: repo, url: server.URL, token: token, model: model, dsn: dsn, initialBalance: balance, timing: recorder}
 }
 
 func liveHTTP(t *testing.T, chain liveChain, payload any) *http.Response {

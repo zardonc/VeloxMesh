@@ -25,9 +25,9 @@ func TestLivePostProviderRedisDelay(t *testing.T) {
 	id := response.Header.Get("X-Request-ID")
 	liveDecodeChat(t, response)
 	gap := livePostProviderGap(t, chain.timing, id)
-	const minimumRedisDelayMS = 160
-	if !injected.Load() || proxy.delay.Load() != 0 || gap < minimumRedisDelayMS {
-		t.Fatalf("real Redis delay not observed in post-provider gap: %.3fms", gap)
+	const minimumRedisDelayMS, maximumRedisDelayMS = 40, 150
+	if !injected.Load() || proxy.delay.Load() != 0 || gap < minimumRedisDelayMS || gap >= maximumRedisDelayMS {
+		t.Fatalf("real Redis health deadline not enforced in post-provider gap: %.3fms", gap)
 	}
 	chain.app.semanticCache.Close()
 	hit := liveHTTP(t, chain, request)

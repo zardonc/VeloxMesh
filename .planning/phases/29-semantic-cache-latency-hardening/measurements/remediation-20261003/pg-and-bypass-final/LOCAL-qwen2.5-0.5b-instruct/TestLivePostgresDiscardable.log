@@ -1,0 +1,5 @@
+=== RUN   TestLivePostgresDiscardable
+2026/10/04 01:12:30 WARN postgres password configured without TLS; connection will proceed over plaintext component=controlstate host=127.0.0.1 database=veloxmesh_db
+    live_postgres_cleanup_test.go:88: SAMPLE {"active_preserved":true,"removed_pending_and_expired":2,"type":"postgres_cleanup"}
+--- PASS: TestLivePostgresDiscardable (0.56s)
+PASS

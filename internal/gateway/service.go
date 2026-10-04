@@ -292,9 +292,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 			}
 		}
 
-		s.healthStore.EndRequest(decision.ProviderID, latency, healthErr)
-		s.cb.RecordResult(decision.ProviderID, healthErr == nil)
-		s.healthStore.RecordModelOutcome(decision.ProviderID, req.Model, healthErr == nil)
+		s.recordProviderOutcome(ctx, providerOutcome{provider: decision.ProviderID, model: req.Model, latency: latency, err: healthErr})
 
 		observability.DefaultMetrics.RecordRequestOutcome(
 			req.RequestID,

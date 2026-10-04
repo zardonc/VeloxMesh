@@ -1,0 +1,4 @@
+=== RUN   TestLiveUpstreamStreamDiagnostic
+    live_ship_load_test.go:267: direct_upstream frames=35 done=1 tools=5 usage=1 finishes=map[tool_calls:1] positions=map[finish:34 usage:35] root_fields=map[choices:35 created:35 id:35 model:35 object:35 provider:35 service_tier:1 usage:1]
+--- PASS: TestLiveUpstreamStreamDiagnostic (0.92s)
+PASS

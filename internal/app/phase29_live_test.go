@@ -244,6 +244,9 @@ func liveCacheConfig(t *testing.T, env map[string]string, inputs liveCacheInputs
 		cacheConfig.Threshold = float32(value)
 	}
 	cacheConfig.ReadTimeout = os.Getenv("PHASE29_READ_TIMEOUT")
+	if ttl := os.Getenv("PHASE29_TTL"); ttl != "" {
+		cacheConfig.TTL = ttl
+	}
 	cacheConfig.ReadConcurrency = liveInteger(t, "PHASE29_READ_CONCURRENCY")
 	cacheConfig.WriteTimeout = os.Getenv("PHASE29_WRITE_TIMEOUT")
 	cacheConfig.WriteWorkers = liveInteger(t, "PHASE29_WRITE_WORKERS")

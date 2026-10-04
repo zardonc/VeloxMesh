@@ -1,0 +1,60 @@
+=== RUN   TestLiveRedisDelayBound
+{"time":"2026-10-04T00:29:23.655599129Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T00:29:23.657990038Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T00:29:23.658039912Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T00:29:23.65804932Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T00:29:23.65811343Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T00:29:23.660298803Z","level":"INFO","msg":"starting config change subscriber"}
+    live_remediation_regression_test.go:75: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T00:29:23.721311187Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_429101cfefac8644cfbafa61eea03fb24cbd251e021f1981d0a5e104a91d15dd: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_429101cfefac8644cfbafa61eea03fb24cbd251e021f1981d0a5e104a91d15dd` doesn't exist!"}
+{"time":"2026-10-04T00:29:24.046749026Z","level":"ERROR","msg":"Redis health replication failed","key":"provider:sans-primary","error":"context deadline exceeded"}
+{"time":"2026-10-04T00:29:24.049928611Z","level":"INFO","msg":"request completed","request_id":"timing-002923.661360704","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":388}
+    live_remediation_regression_test.go:94: SAMPLE {"injected_ms":200,"post_provider_gap_ms":53.58800000000002,"type":"redis_delay_bound"}
+    live_remediation_regression_test.go:98: usage_rows_all=1 usage_rows_key=1
+    live_remediation_regression_test.go:98: settled_records=1 total_tokens=65 credits=65 exactly_once=true
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"request_rules","start_ms":2.354,"elapsed_ms":0.003}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"net_embedding/get_connection","start_ms":2.401,"elapsed_ms":0.006}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"net_embedding/got_connection_reused","start_ms":2.401,"elapsed_ms":0.01}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"net_embedding/request_written","start_ms":2.401,"elapsed_ms":0.03}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"net_embedding/first_byte","start_ms":2.401,"elapsed_ms":52.538}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"embedding_headers","start_ms":2.401,"elapsed_ms":52.601}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"embedding_http","start_ms":2.401,"elapsed_ms":52.824}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"lookup_embedding","start_ms":2.371,"elapsed_ms":53.068}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"vector_search","start_ms":55.441,"elapsed_ms":5.419}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"cache_read","start_ms":2.364,"elapsed_ms":58.618}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"routing","start_ms":60.984,"elapsed_ms":0.717}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"admission","start_ms":61.703,"elapsed_ms":0.216}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"net_upstream/get_connection","start_ms":62.643,"elapsed_ms":0.009}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"net_upstream/got_connection_reused","start_ms":62.643,"elapsed_ms":0.015}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"net_upstream/request_written","start_ms":62.643,"elapsed_ms":0.033}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"net_upstream/first_byte","start_ms":62.643,"elapsed_ms":272.336}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"upstream_headers","start_ms":62.643,"elapsed_ms":272.416}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"upstream_http","start_ms":62.643,"elapsed_ms":272.472}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"provider_complete","start_ms":62.561,"elapsed_ms":272.618}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"health_provider_sync","start_ms":335.181,"elapsed_ms":51.241}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"circuit_result","start_ms":386.425,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"health_model_sync","start_ms":386.428,"elapsed_ms":2.334}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"response_rules","start_ms":388.767,"elapsed_ms":0.002}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"settlement","start_ms":388.77,"elapsed_ms":0.715}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"write_enqueue","start_ms":389.498,"elapsed_ms":0.015}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"http_handler","start_ms":0.997,"elapsed_ms":388.613}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"write_queue_wait","start_ms":389.499,"elapsed_ms":0.181}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"repo_write","start_ms":389.689,"elapsed_ms":0.521}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"vector_insert","start_ms":390.219,"elapsed_ms":31.87}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"repo_activate","start_ms":422.094,"elapsed_ms":0.164}
+    live_network_proxy_test.go:81: real TCP relay response error: readfrom tcp 127.0.0.1:37169->127.0.0.1:58484: read tcp 127.0.0.1:45244->127.0.0.1:6379: use of closed network connection
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-002923.661360704","name":"store_total","start_ms":389.681,"elapsed_ms":32.577}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":53.065,"start_ms":2.372,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":5.423,"start_ms":55.507999999999996,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":60.933,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":389.513,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.521,"start_ms":389.691,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":31.873,"start_ms":390.22,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"repo_activate","elapsed_ms":0.165,"start_ms":422.09299999999996,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":32.576,"start_ms":389.68199999999996,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":422.259,"ok":true}
+    live_network_proxy_test.go:76: real TCP relay request error: writeto tcp 127.0.0.1:37169->127.0.0.1:58494: readfrom tcp 127.0.0.1:45250->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:81: real TCP relay response error: readfrom tcp 127.0.0.1:37169->127.0.0.1:58494: read tcp 127.0.0.1:45250->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:81: real TCP relay response error: readfrom tcp 127.0.0.1:37169->127.0.0.1:58478: write tcp 127.0.0.1:37169->127.0.0.1:58478: use of closed network connection
+--- PASS: TestLiveRedisDelayBound (0.61s)
+PASS

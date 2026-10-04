@@ -1,0 +1,4 @@
+=== RUN   TestLiveRedisConcurrentSnapshots
+    live_health_concurrency_test.go:87: SAMPLE {"concurrency":8,"model_successful":200,"pending":0,"successful":200,"type":"redis_snapshot_order"}
+--- PASS: TestLiveRedisConcurrentSnapshots (0.15s)
+PASS

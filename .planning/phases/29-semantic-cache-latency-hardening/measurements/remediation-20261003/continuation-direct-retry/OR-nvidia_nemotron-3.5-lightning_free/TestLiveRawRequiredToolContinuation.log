@@ -1,0 +1,4 @@
+=== RUN   TestLiveRawRequiredToolContinuation
+    live_stream_shape_test.go:101: direct actual upstream required tool continuation passed
+--- PASS: TestLiveRawRequiredToolContinuation (9.24s)
+PASS

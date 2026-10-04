@@ -28,7 +28,7 @@ var artifacts = artifactDirectory()
 
 const remoteBinary = "/tmp/veloxmesh-phase29-acceptance-20261001.test"
 const testLimit = 60 * time.Second
-const dependencyStartupLimit = 10 * time.Second
+const dependencyStartupLimit = 30 * time.Second
 const dependencyPollInterval = 250 * time.Millisecond
 
 func artifactDirectory() string {
@@ -354,6 +354,7 @@ func (r *runner) liveTest(test string) error {
 	}
 	defer session.Close()
 	input := map[string]string{}
+	input["POSTGRES_TEST_DSN"] = (&url.URL{Scheme: "postgres", Host: "127.0.0.1:5432", User: url.UserPassword(r.env["POSTGRES_USER"], r.env["POSTGRES_PASSWORD"]), Path: r.env["POSTGRES_DB"], RawQuery: "sslmode=disable"}).String()
 	for _, key := range []string{"SANS_BASE_URL", "SANS_PRIMARY_API_KEY", "SANS_PRIMARY_DEFAULT_MODEL", "QDRANT_API_KEY", "SHIP_PROVIDER_TYPE"} {
 		input[key] = r.env[key]
 	}

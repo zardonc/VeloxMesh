@@ -1,0 +1,8 @@
+=== RUN   TestLiveRedisProviderIsolation
+2026/10/04 00:42:27 ERROR Redis health replication failed key=provider:slow error="context deadline exceeded"
+    live_health_concurrency_test.go:42: SAMPLE {"type":"redis_provider_isolation","unrelated_provider_ms":2.136}
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:40308->127.0.0.1:6379: read tcp 127.0.0.1:36211->127.0.0.1:40428: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:36211->127.0.0.1:40428: read tcp 127.0.0.1:40308->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:36211->127.0.0.1:40426: write tcp 127.0.0.1:36211->127.0.0.1:40426: use of closed network connection
+--- PASS: TestLiveRedisProviderIsolation (0.21s)
+PASS

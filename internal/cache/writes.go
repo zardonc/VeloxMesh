@@ -20,7 +20,7 @@ func (s *SemanticCacheService) startWorkers() {
 	s.writeCtx, s.cancelWrites = context.WithCancel(context.Background())
 	for i := 0; i < s.config.WriteWorkers; i++ {
 		s.workers.Add(1)
-		go s.writeWorker()
+		go s.writeWorker(i == 0)
 	}
 }
 
@@ -51,25 +51,45 @@ func (s *SemanticCacheService) Enqueue(write CacheWrite) bool {
 	}
 }
 
-func (s *SemanticCacheService) writeWorker() {
+func (s *SemanticCacheService) writeWorker(cleanup bool) {
 	defer s.workers.Done()
-	for write := range s.writes {
-		if s.writeCtx.Err() != nil {
-			recordCacheOutcome("store", "shutdown_drop")
-			continue
+	var ticks <-chan time.Time
+	if cleanup {
+		ticker := time.NewTicker(semanticCleanupInterval)
+		defer ticker.Stop()
+		ticks = ticker.C
+	}
+	for {
+		select {
+		case write, open := <-s.writes:
+			if !open {
+				return
+			}
+			s.processWrite(write)
+		case <-ticks:
+			s.cleanup()
+		case <-s.writeCtx.Done():
+			return
 		}
-		ctx, cancel := context.WithTimeout(s.writeCtx, s.config.WriteTimeout)
-		ctx = observability.WithTimingID(ctx, write.ID)
-		observeQueueWait(write.ID, write.queuedAt)
-		err := s.StoreWrite(ctx, write)
-		if ctx.Err() == context.Canceled {
-			recordCacheOutcome("store", "shutdown_cancelled")
-		} else if ctx.Err() != nil {
-			recordCacheOutcome("store", "timeout")
-		} else if err == nil {
-			recordCacheOutcome("store", "stored")
-		}
-		cancel()
+	}
+}
+
+func (s *SemanticCacheService) processWrite(write CacheWrite) {
+	if s.writeCtx.Err() != nil {
+		recordCacheOutcome("store", "shutdown_drop")
+		return
+	}
+	ctx, cancel := context.WithTimeout(s.writeCtx, s.config.WriteTimeout)
+	defer cancel()
+	ctx = observability.WithTimingID(ctx, write.ID)
+	observeQueueWait(write.ID, write.queuedAt)
+	err := s.StoreWrite(ctx, write)
+	if ctx.Err() == context.Canceled {
+		recordCacheOutcome("store", "shutdown_cancelled")
+	} else if ctx.Err() != nil {
+		recordCacheOutcome("store", "timeout")
+	} else if err == nil {
+		recordCacheOutcome("store", "stored")
 	}
 }
 

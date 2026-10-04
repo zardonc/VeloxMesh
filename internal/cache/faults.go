@@ -2,6 +2,7 @@ package cache
 
 import (
 	"errors"
+	"log/slog"
 	"math"
 	"veloxmesh/internal/observability"
 )
@@ -11,6 +12,7 @@ func (s *SemanticCacheService) fault(operation, reason string, cause error) erro
 	if cause == nil {
 		return errors.New(reason)
 	}
+	slog.Error("semantic cache operation failed", "operation", operation, "reason", reason, "error", cause)
 	return errors.Join(errors.New(reason), cause)
 }
 

@@ -28,6 +28,8 @@ func NewRedisClient(ctx context.Context, addr, password string, db int, namespac
 		return nil, err
 	}
 	redisconn.WarnPlaintextCredentials(nil, "hotstate", opts)
+	// Short health replication deadlines must also bound socket I/O.
+	opts.ContextTimeoutEnabled = true
 	client := redis.NewClient(opts)
 
 	if err := client.Ping(ctx).Err(); err != nil {

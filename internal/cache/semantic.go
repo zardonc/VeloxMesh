@@ -306,34 +306,6 @@ func (s *SemanticCacheService) writeVector(ctx context.Context, write CacheWrite
 	return write.Vector, nil
 }
 
-func (s *SemanticCacheService) persist(ctx context.Context, entry *controlstate.SemanticCacheEntry, vector []float32) error {
-	started := time.Now()
-	finish := observability.Stage(ctx, "repo_write")
-	err := s.repo.Store(ctx, entry)
-	finish()
-	measureOperation("repo_write", started, err)
-	if err != nil {
-		return s.fault("store", "repository_error", err)
-	}
-	if s.vector != nil {
-		meta := map[string]interface{}{
-			"id": entry.ID,
-		}
-		if entry.UsageID != nil {
-			meta["usage_id"] = *entry.UsageID
-		}
-		started = time.Now()
-		finish = observability.Stage(ctx, "vector_insert")
-		err = s.vector.Insert(ctx, vectorCollection(entry.Scope, entry.Model), [][]float32{vector}, []map[string]interface{}{meta})
-		finish()
-		measureOperation("vector_insert", started, err)
-		if err != nil {
-			return s.fault("store", "vector_error", err)
-		}
-	}
-	return nil
-}
-
 func (s *SemanticCacheService) lookupVectorResult(ctx context.Context, scope, model string, results []map[string]interface{}) (*controlstate.SemanticCacheEntry, error) {
 	for _, result := range results {
 		score, hasScore := result["score"].(float64)

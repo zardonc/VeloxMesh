@@ -1,0 +1,17 @@
+=== RUN   TestLiveDirectLoad
+    live_diagnostic_test.go:128: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"nvidia/nemotron-3.5-lightning:free","index":999,"start_ms":0.132,"elapsed_ms":300.902,"status":429,"ok":false,"hit":false,"concurrent":0,"planned_ms":0},"type":"warmup"}
+    live_diagnostic_test.go:130: direct upstream warmup failed
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/get_connection","start_ms":0.177,"elapsed_ms":0.032}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/dns_start","start_ms":0.177,"elapsed_ms":0.091}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/dns_done","start_ms":0.177,"elapsed_ms":76.916}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/connect_start","start_ms":0.177,"elapsed_ms":76.971}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/connect_done","start_ms":0.177,"elapsed_ms":84.263}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/tls_start","start_ms":0.177,"elapsed_ms":84.321}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/tls_done","start_ms":0.177,"elapsed_ms":154.975}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/got_connection_new","start_ms":0.177,"elapsed_ms":155.414}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/request_written","start_ms":0.177,"elapsed_ms":155.629}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/first_byte","start_ms":0.177,"elapsed_ms":299.825}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"upstream_headers","start_ms":0.177,"elapsed_ms":300.458}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"upstream_http","start_ms":0.177,"elapsed_ms":300.805}
+--- FAIL: TestLiveDirectLoad (0.30s)
+FAIL

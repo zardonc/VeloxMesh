@@ -1,0 +1,189 @@
+=== RUN   TestLiveEmbeddingModelSwitch
+{"time":"2026-10-04T01:01:24.507226525Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T01:01:24.523453052Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T01:01:24.52348928Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T01:01:24.523505761Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T01:01:24.523596472Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T01:01:24.528371538Z","level":"INFO","msg":"starting config change subscriber"}
+    live_model_switch_test.go:26: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T01:01:24.589417125Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_a856134c43517869791e480de0a114efa9439e93511ffd85775ca28d3d026af4: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_a856134c43517869791e480de0a114efa9439e93511ffd85775ca28d3d026af4` doesn't exist!"}
+{"time":"2026-10-04T01:01:24.981805738Z","level":"INFO","msg":"request completed","request_id":"timing-010124.529054224","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":452}
+{"time":"2026-10-04T01:01:25.045430861Z","level":"INFO","msg":"request completed","request_id":"timing-010125.025456950","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":19}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"request_rules","start_ms":1.722,"elapsed_ms":0.005}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"net_embedding/get_connection","start_ms":1.802,"elapsed_ms":0.028}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"net_embedding/got_connection_reused","start_ms":1.802,"elapsed_ms":0.033}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"net_embedding/request_written","start_ms":1.802,"elapsed_ms":0.061}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"net_embedding/first_byte","start_ms":1.802,"elapsed_ms":53.227}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"embedding_headers","start_ms":1.802,"elapsed_ms":53.291}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"embedding_http","start_ms":1.802,"elapsed_ms":53.536}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"lookup_embedding","start_ms":1.76,"elapsed_ms":54.069}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"vector_search","start_ms":55.832,"elapsed_ms":5.066}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"cache_read","start_ms":1.737,"elapsed_ms":59.265}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"routing","start_ms":61.004,"elapsed_ms":0.893}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"admission","start_ms":61.9,"elapsed_ms":0.272}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"net_upstream/get_connection","start_ms":62.783,"elapsed_ms":0.009}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"net_upstream/got_connection_reused","start_ms":62.783,"elapsed_ms":0.015}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"net_upstream/request_written","start_ms":62.783,"elapsed_ms":0.034}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"net_upstream/first_byte","start_ms":62.783,"elapsed_ms":387.714}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"upstream_headers","start_ms":62.783,"elapsed_ms":387.794}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"upstream_http","start_ms":62.783,"elapsed_ms":387.843}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"provider_complete","start_ms":62.713,"elapsed_ms":388.024}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"health_provider_sync","start_ms":450.739,"elapsed_ms":1.008}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"circuit_result","start_ms":451.749,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"health_model_sync","start_ms":451.751,"elapsed_ms":0.505}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"response_rules","start_ms":452.26,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"settlement","start_ms":452.262,"elapsed_ms":0.27}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"write_enqueue","start_ms":452.541,"elapsed_ms":0.006}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"http_handler","start_ms":0.613,"elapsed_ms":452.759}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"write_queue_wait","start_ms":452.541,"elapsed_ms":1.044}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"repo_write","start_ms":453.589,"elapsed_ms":0.761}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"vector_insert","start_ms":454.385,"elapsed_ms":42.177}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"repo_activate","start_ms":496.567,"elapsed_ms":0.244}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010124.529054224","name":"store_total","start_ms":453.586,"elapsed_ms":43.226}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"request_rules","start_ms":497.44,"elapsed_ms":0.003}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"net_embedding/get_connection","start_ms":497.477,"elapsed_ms":0.015}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"net_embedding/got_connection_reused","start_ms":497.477,"elapsed_ms":0.018}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"net_embedding/request_written","start_ms":497.477,"elapsed_ms":0.028}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"net_embedding/first_byte","start_ms":497.477,"elapsed_ms":14.884}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"embedding_headers","start_ms":497.477,"elapsed_ms":14.949}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"embedding_http","start_ms":497.477,"elapsed_ms":15.084}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"lookup_embedding","start_ms":497.457,"elapsed_ms":15.37}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"vector_search","start_ms":512.83,"elapsed_ms":3.848}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"repo_read","start_ms":516.682,"elapsed_ms":0.177}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"cache_read","start_ms":497.45,"elapsed_ms":19.489}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"response_rules","start_ms":516.945,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010125.025456950","name":"http_handler","start_ms":497.011,"elapsed_ms":20}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":54.066,"start_ms":1.7609999999999957,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":5.069,"start_ms":55.888,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":60.959,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":452.547,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.762,"start_ms":453.59,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":42.18,"start_ms":454.38599999999997,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"repo_activate","elapsed_ms":0.245,"start_ms":496.567,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":43.226,"start_ms":453.586,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":496.813,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":15.364,"start_ms":497.458,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":3.85,"start_ms":512.831,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.178,"start_ms":516.682,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":516.934,"ok":true}
+{"time":"2026-10-04T01:01:30.711769044Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T01:01:30.713416618Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T01:01:30.713434111Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T01:01:30.713453087Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T01:01:30.713514362Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T01:01:30.716985107Z","level":"INFO","msg":"starting config change subscriber"}
+    live_model_switch_test.go:26: model=text-embedding-nomic-embed-text-v1.5 dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T01:01:30.818943079Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"timeout","error":"context deadline exceeded"}
+{"time":"2026-10-04T01:01:30.819115504Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"embedding_error","error":"[provider_timeout] Provider request timed out"}
+{"time":"2026-10-04T01:01:30.909379488Z","level":"INFO","msg":"request completed","request_id":"timing-010130.717435105","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":191}
+{"time":"2026-10-04T01:01:30.989588933Z","level":"INFO","msg":"request completed","request_id":"timing-010130.968157492","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":21}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"request_rules","start_ms":0.797,"elapsed_ms":0.004}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_embedding/get_connection","start_ms":0.848,"elapsed_ms":0.057}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_embedding/got_connection_reused","start_ms":0.848,"elapsed_ms":0.062}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_embedding/request_written","start_ms":0.848,"elapsed_ms":0.084}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"cache_read","start_ms":0.808,"elapsed_ms":101.114}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"embedding_headers","start_ms":0.848,"elapsed_ms":101.183}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"lookup_embedding","start_ms":0.816,"elapsed_ms":101.242}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"routing","start_ms":101.926,"elapsed_ms":1.223}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"admission","start_ms":103.152,"elapsed_ms":0.381}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_upstream/get_connection","start_ms":104.561,"elapsed_ms":0.065}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_upstream/connect_start","start_ms":104.561,"elapsed_ms":0.15}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_upstream/connect_done","start_ms":104.561,"elapsed_ms":0.34}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_upstream/got_connection_new","start_ms":104.561,"elapsed_ms":0.385}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_upstream/request_written","start_ms":104.561,"elapsed_ms":0.441}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_upstream/first_byte","start_ms":104.561,"elapsed_ms":85.704}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"upstream_headers","start_ms":104.561,"elapsed_ms":85.773}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"upstream_http","start_ms":104.561,"elapsed_ms":85.816}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"provider_complete","start_ms":104.483,"elapsed_ms":85.957}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"health_provider_sync","start_ms":190.445,"elapsed_ms":0.964}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"circuit_result","start_ms":191.413,"elapsed_ms":0.002}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"health_model_sync","start_ms":191.416,"elapsed_ms":0.591}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"response_rules","start_ms":192.013,"elapsed_ms":0.003}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"settlement","start_ms":192.017,"elapsed_ms":0.256}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"write_enqueue","start_ms":192.283,"elapsed_ms":0.003}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"http_handler","start_ms":0.378,"elapsed_ms":191.995}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"write_queue_wait","start_ms":192.283,"elapsed_ms":0.156}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_embedding/get_connection","start_ms":192.485,"elapsed_ms":0.037}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_embedding/got_connection_reused","start_ms":192.485,"elapsed_ms":0.042}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_embedding/request_written","start_ms":192.485,"elapsed_ms":0.06}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"net_embedding/first_byte","start_ms":192.485,"elapsed_ms":19.836}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"embedding_headers","start_ms":192.485,"elapsed_ms":19.887}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"embedding_http","start_ms":192.485,"elapsed_ms":20.027}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"store_embedding","start_ms":192.442,"elapsed_ms":20.265}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"repo_write","start_ms":212.725,"elapsed_ms":0.259}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"vector_insert","start_ms":212.992,"elapsed_ms":37.019}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"repo_activate","start_ms":250.015,"elapsed_ms":0.221}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.717435105","name":"store_total","start_ms":192.441,"elapsed_ms":57.798}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"request_rules","start_ms":251.535,"elapsed_ms":0.004}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"net_embedding/get_connection","start_ms":251.597,"elapsed_ms":0.073}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"net_embedding/got_connection_reused","start_ms":251.597,"elapsed_ms":0.079}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"net_embedding/request_written","start_ms":251.597,"elapsed_ms":0.093}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"net_embedding/first_byte","start_ms":251.597,"elapsed_ms":18.572}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"embedding_headers","start_ms":251.597,"elapsed_ms":18.617}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"embedding_http","start_ms":251.597,"elapsed_ms":18.744}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"lookup_embedding","start_ms":251.559,"elapsed_ms":18.995}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"vector_search","start_ms":270.556,"elapsed_ms":1.549}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"repo_read","start_ms":272.108,"elapsed_ms":0.227}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"cache_read","start_ms":251.55,"elapsed_ms":20.933}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"response_rules","start_ms":272.493,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010130.968157492","name":"http_handler","start_ms":251.1,"elapsed_ms":21.442}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/timeout","elapsed_ms":0,"start_ms":101.87,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":101.225,"start_ms":0.8230000000000075,"ok":false,"error":"Unknown"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/embedding_error","elapsed_ms":0,"start_ms":102.049,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":192.286,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":20.262,"start_ms":192.443,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.26,"start_ms":212.72500000000002,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":37.021,"start_ms":212.99399999999997,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"repo_activate","elapsed_ms":0.224,"start_ms":250.01500000000001,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":57.798,"start_ms":192.441,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":250.24,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":18.993,"start_ms":251.56,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.551,"start_ms":270.55600000000004,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.228,"start_ms":272.108,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":272.477,"ok":true}
+{"time":"2026-10-04T01:01:31.012067179Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T01:01:31.013938545Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T01:01:31.013995262Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T01:01:31.014033514Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T01:01:31.014129615Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T01:01:31.016921218Z","level":"INFO","msg":"starting config change subscriber"}
+    live_model_switch_test.go:26: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T01:01:31.040301539Z","level":"INFO","msg":"request completed","request_id":"timing-010131.017688770","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":22}
+{"time":"2026-10-04T01:01:31.060934542Z","level":"INFO","msg":"request completed","request_id":"timing-010131.042196218","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"request_rules","start_ms":1.306,"elapsed_ms":0.005}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"net_embedding/get_connection","start_ms":1.369,"elapsed_ms":0.054}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"net_embedding/got_connection_reused","start_ms":1.369,"elapsed_ms":0.06}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"net_embedding/request_written","start_ms":1.369,"elapsed_ms":0.086}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"net_embedding/first_byte","start_ms":1.369,"elapsed_ms":17.863}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"embedding_headers","start_ms":1.369,"elapsed_ms":17.939}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"embedding_http","start_ms":1.369,"elapsed_ms":18.231}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"lookup_embedding","start_ms":1.346,"elapsed_ms":18.624}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"vector_search","start_ms":19.972,"elapsed_ms":2.864}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"repo_read","start_ms":22.843,"elapsed_ms":0.26}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"cache_read","start_ms":1.322,"elapsed_ms":21.934}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"response_rules","start_ms":23.266,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.017688770","name":"http_handler","start_ms":0.695,"elapsed_ms":22.638}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"request_rules","start_ms":26.298,"elapsed_ms":0.004}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"net_embedding/get_connection","start_ms":26.344,"elapsed_ms":0.054}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"net_embedding/got_connection_reused","start_ms":26.344,"elapsed_ms":0.075}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"net_embedding/request_written","start_ms":26.344,"elapsed_ms":0.104}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"net_embedding/first_byte","start_ms":26.344,"elapsed_ms":13.847}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"embedding_headers","start_ms":26.344,"elapsed_ms":13.962}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"embedding_http","start_ms":26.344,"elapsed_ms":14.3}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"lookup_embedding","start_ms":26.318,"elapsed_ms":14.536}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"vector_search","start_ms":40.856,"elapsed_ms":2.66}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"repo_read","start_ms":43.52,"elapsed_ms":0.251}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"cache_read","start_ms":26.309,"elapsed_ms":17.575}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"response_rules","start_ms":43.894,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-010131.042196218","name":"http_handler","start_ms":25.2,"elapsed_ms":18.791}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":18.62,"start_ms":1.3469999999999978,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":2.868,"start_ms":19.973000000000003,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.262,"start_ms":22.843,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":23.25,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.532,"start_ms":26.319,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":2.663,"start_ms":40.856,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.252,"start_ms":43.521,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":43.878,"ok":true}
+    live_model_switch_test.go:41: SAMPLE {"models":["text-embedding-embedder_collection","text-embedding-nomic-embed-text-v1.5"],"restored_old_hit":true,"separate_scopes":true,"type":"embedding_model_switch"}
+--- PASS: TestLiveEmbeddingModelSwitch (6.65s)
+PASS

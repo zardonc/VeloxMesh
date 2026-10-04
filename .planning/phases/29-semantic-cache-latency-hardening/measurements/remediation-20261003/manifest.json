@@ -1,0 +1,3271 @@
+{
+  "report_sha256": "8a17f77e4affba23facf5460dbcf7d54dfd0519324d746592bd512f1331b3430",
+  "baseline_head": "b2eb95ff",
+  "head": "b2eb95ff465b031539fb03c362f78ef3bb759497",
+  "latest_cases": [
+    {
+      "log": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveModelAvailability.log",
+      "passed": true
+    },
+    {
+      "log": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisCapacity.log",
+      "passed": true
+    },
+    {
+      "log": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantCapacity.log",
+      "passed": true
+    },
+    {
+      "log": "sqlite-fixed/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteCapacity.log",
+      "passed": true
+    },
+    {
+      "log": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLivePostgresCapacity.log",
+      "passed": true
+    },
+    {
+      "log": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteConnectionPragmas.log",
+      "passed": true
+    },
+    {
+      "log": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCachePendingVisibility.log",
+      "passed": true
+    },
+    {
+      "log": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveVectorPartialWriteRecovery.log",
+      "passed": true
+    },
+    {
+      "log": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisDelayBound.log",
+      "passed": true
+    },
+    {
+      "log": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisProviderIsolation.log",
+      "passed": true
+    },
+    {
+      "log": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisConcurrentSnapshots.log",
+      "passed": true
+    },
+    {
+      "log": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLivePostProviderRedisDelay.log",
+      "passed": true
+    },
+    {
+      "log": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheReplay.log",
+      "passed": true
+    },
+    {
+      "log": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheRestartCleanup.log",
+      "passed": true
+    },
+    {
+      "log": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheExpiryCleanup.log",
+      "passed": true
+    },
+    {
+      "log": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisStalePublication.log",
+      "passed": true
+    },
+    {
+      "log": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "passed": true
+    },
+    {
+      "log": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "passed": true
+    },
+    {
+      "log": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn.log",
+      "passed": true
+    },
+    {
+      "log": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.log",
+      "passed": true
+    },
+    {
+      "log": "final-scenarios/LOCAL-qwen2.5-0.5b-instruct/TestLiveMissBurst.log",
+      "passed": true
+    },
+    {
+      "log": "final-hit/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheHitSettlementLoad.log",
+      "passed": true
+    },
+    {
+      "log": "final-hit/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheHitBaseline.log",
+      "passed": true
+    },
+    {
+      "log": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveAuthentication.log",
+      "passed": true
+    },
+    {
+      "log": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheMissEmbeddingReuse.log",
+      "passed": true
+    },
+    {
+      "log": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingNetworkDeadline.log",
+      "passed": true
+    },
+    {
+      "log": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveSearchNetworkDeadline.log",
+      "passed": true
+    },
+    {
+      "log": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantCrossProcess.log",
+      "passed": true
+    },
+    {
+      "log": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantErrorClassification.log",
+      "passed": true
+    },
+    {
+      "log": "final-embedding/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingStress.log",
+      "passed": true
+    },
+    {
+      "log": "final-availability/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveModelAvailabilityBudget.log",
+      "passed": true
+    },
+    {
+      "log": "final-availability/OR-nvidia_nemotron-3.5-lightning_free/TestLiveModelAvailabilityBudget.log",
+      "passed": true
+    },
+    {
+      "log": "final-availability/GPT-gpt-6-luna/TestLiveModelAvailabilityBudget.log",
+      "passed": true
+    },
+    {
+      "log": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveStreamSettlement.log",
+      "passed": true
+    },
+    {
+      "log": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveFusionStream.log",
+      "passed": true
+    },
+    {
+      "log": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveToolAuto.log",
+      "passed": true
+    },
+    {
+      "log": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveToolStreaming.log",
+      "passed": true
+    },
+    {
+      "log": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveStreamCancellation.log",
+      "passed": true
+    },
+    {
+      "log": "continuation-direct-retry/OR-nvidia_nemotron-3.5-lightning_free/TestLiveToolRequired.log",
+      "passed": true
+    },
+    {
+      "log": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveToolOmitted.log",
+      "passed": true
+    },
+    {
+      "log": "final-protocol/GPT-gpt-6-luna/TestLiveBufferedStream.log",
+      "passed": true
+    },
+    {
+      "log": "final-protocol/GPT-gpt-6-luna/TestLiveToolNamed.log",
+      "passed": true
+    },
+    {
+      "log": "final-protocol/GPT-gpt-6-luna/TestLiveToolNone.log",
+      "passed": true
+    },
+    {
+      "log": "final-business/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveDirectBusinessFAQResponses.log",
+      "passed": true
+    },
+    {
+      "log": "final-business/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveBusinessFAQResponses.log",
+      "passed": true
+    },
+    {
+      "log": "pg-and-bypass-final/LOCAL-qwen2.5-0.5b-instruct/TestLivePGVectorCapacity.log",
+      "passed": true
+    },
+    {
+      "log": "final-supplemental/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingModelSwitch.log",
+      "passed": true
+    },
+    {
+      "log": "final-supplemental/LOCAL-qwen2.5-0.5b-instruct/TestLiveSemanticDiagnosticPositive.log",
+      "passed": false
+    },
+    {
+      "log": "final-supplemental/LOCAL-qwen2.5-0.5b-instruct/TestLiveSemanticDiagnosticNegative.log",
+      "passed": true
+    },
+    {
+      "log": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveRawGreetingStreamShape.log",
+      "passed": true
+    },
+    {
+      "log": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveRawToolStreamShape.log",
+      "passed": true
+    },
+    {
+      "log": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveUpstreamStreamDiagnostic.log",
+      "passed": true
+    },
+    {
+      "log": "continuation-direct-retry/OR-nvidia_nemotron-3.5-lightning_free/TestLiveRawRequiredToolContinuation.log",
+      "passed": true
+    },
+    {
+      "log": "pg-and-bypass-final/LOCAL-qwen2.5-0.5b-instruct/TestLivePostgresDiscardable.log",
+      "passed": true
+    },
+    {
+      "log": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveNomicPrefixComparison.log",
+      "passed": true
+    },
+    {
+      "log": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.log",
+      "passed": true
+    },
+    {
+      "log": "mixed-final/GPT-gpt-6-luna/TestLiveMixedLoadOff.log",
+      "passed": false
+    },
+    {
+      "log": "mixed-final/GPT-gpt-6-luna/TestLiveMixedLoadOn.log",
+      "passed": true
+    },
+    {
+      "log": "provider-delay-direct/OR-nvidia_nemotron-3.5-lightning_free/TestLiveDirectLoad.log",
+      "passed": false
+    },
+    {
+      "log": "final-canonical-stream/GPT-gpt-6-luna/TestLiveStreamSettlement.log",
+      "passed": true
+    },
+    {
+      "log": "final-canonical-stream/GPT-gpt-6-luna/TestLiveToolStreaming.log",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "analyze.py",
+      "sha256": "6234864302df129ba329ffb4eb13edc0960c356d88a6777d063d34bd25765012",
+      "bytes": 3577
+    },
+    {
+      "path": "c8-block.txt",
+      "sha256": "487c026a64a663bdbc8b93fff73a96fab89d937cf75726f636fae6081e08811a",
+      "bytes": 1789
+    },
+    {
+      "path": "c8-cpu.txt",
+      "sha256": "23fe0397fbec9007e3910f254d2bc3412dd1631a58ac3861090e9f39989fa615",
+      "bytes": 1755
+    },
+    {
+      "path": "c8-mutex.txt",
+      "sha256": "9fcfbde9bb001bc3799ba58a519059d9964d56889c7698c3597c0fd8e92f16fd",
+      "bytes": 1776
+    },
+    {
+      "path": "c8-sched.txt",
+      "sha256": "b47077a798e0819ebf3cf4ed1ecca9db549f6fcbe5a32a6887cb30e877beff7f",
+      "bytes": 1292
+    },
+    {
+      "path": "cleanup-inventory.log",
+      "sha256": "0391fcb48021cc21e8d6a6a3848a6ad86cd19904f8fb70fbe9b9ca56fc8e9b3c",
+      "bytes": 361
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "99d4a1ca983034e63326ec10f921dd1aa4d20a6dc66b64aa6a72a2e830e1033c",
+      "bytes": 1632
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveModelAvailability-vm-after.log",
+      "sha256": "c653c654807b902428beb2242fe9096f2b29df7dca274ba5e3c84a8c4b8ea5a8",
+      "bytes": 3399
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveModelAvailability-vm-before.log",
+      "sha256": "46e2c58c3ddd8424413f0646d8e3e9f180f90bd830c6a6151c2622352144fa67",
+      "bytes": 3399
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveModelAvailability.log",
+      "sha256": "af2e436d8b1d4da3401b0e1d1d23116d0001e17e8175b10d7eb11558169e5b1a",
+      "bytes": 2873
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLivePostgresCapacity-vm-after.log",
+      "sha256": "cefee6c12e7b6e50df1d0ac47163e092574462cede254a71056b089da76189cc",
+      "bytes": 3399
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLivePostgresCapacity-vm-before.log",
+      "sha256": "5dee3beb9d5ed41a7789bce5591b38a9fae17ec275697be27549c292df907dc9",
+      "bytes": 3399
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLivePostgresCapacity.log",
+      "sha256": "9d777643d460881592c9732c1f83b6d207574390f5a8baef4e25dd2851e70e4f",
+      "bytes": 341284
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantCapacity-vm-after.log",
+      "sha256": "20fee33db5f6d13590d3092ff8c67f6abc6e77970f61f8b15ca167872d8096b2",
+      "bytes": 3399
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantCapacity-vm-before.log",
+      "sha256": "3b714af2c592d75ed79484ce1fb91b5bdab5138683a720581513ee716bec340b",
+      "bytes": 3399
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantCapacity.log",
+      "sha256": "7d2e0293867638d1b87972d937e191da736fa045536a5463eabee3564460ee27",
+      "bytes": 645305
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisCapacity-vm-after.log",
+      "sha256": "0601a421c605376c83703a1579c32a9fc7cc51d09d19f7e682d5e97c00cdd96f",
+      "bytes": 3399
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisCapacity-vm-before.log",
+      "sha256": "90b007e5cca1596564c97aa0c6d63c1861095190655a57353b70ad7dcc0b2834",
+      "bytes": 3399
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisCapacity.log",
+      "sha256": "b74f71723556500f0fe0b3e51565655b58270f10f9a63215d653b560d11f6d2d",
+      "bytes": 648154
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteCapacity-vm-after.log",
+      "sha256": "58ef224c2174f15c417e11a771657a44eeea60ec752fc3e625c9ed8bce1c4ffd",
+      "bytes": 3399
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteCapacity-vm-before.log",
+      "sha256": "4c8213aed7360ac97ad2231fb111e680262a5994bde9c281642b73cf155b4ad4",
+      "bytes": 3399
+    },
+    {
+      "path": "component-baseline/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteCapacity.log",
+      "sha256": "9a87ba9ff8f8489e6ba481c9bf2a0770d216cecccdc1a0f7a71c113b074656c2",
+      "bytes": 177030
+    },
+    {
+      "path": "continuation-direct-retry/OR-nvidia_nemotron-3.5-lightning_free/runner.log",
+      "sha256": "13d30b4098c676007afbefd5cfeda985019d31d7b5140d3847de1dafaa4e4363",
+      "bytes": 1604
+    },
+    {
+      "path": "continuation-direct-retry/OR-nvidia_nemotron-3.5-lightning_free/TestLiveRawRequiredToolContinuation.log",
+      "sha256": "22ceb4f59d9cd66befbdbceb9635c186b1cd303241f7a71f896c57c6a1be43cd",
+      "bytes": 197
+    },
+    {
+      "path": "continuation-direct-retry/OR-nvidia_nemotron-3.5-lightning_free/TestLiveToolRequired.log",
+      "sha256": "16debe5eb699b589003f8525a6c9700a36b74dc3bd633b0c505d8bf250d2fd86",
+      "bytes": 7926
+    },
+    {
+      "path": "credential-audit.log",
+      "sha256": "a56206d003f83f24b35f4f9d2b632b517432fa36e2383989e20aa055c8681ca4",
+      "bytes": 24
+    },
+    {
+      "path": "diff-check.log",
+      "sha256": "ad923f238734826f2828941d25849097735e8c193e509c8669085f5dfe1c707d",
+      "bytes": 2208
+    },
+    {
+      "path": "evaluate.py",
+      "sha256": "d618f0da56e22a0e1db1be63560b0633bfd7770656121a3f0e93eff5f4b9f366",
+      "bytes": 6559
+    },
+    {
+      "path": "evaluation.json",
+      "sha256": "149797de249bd4e477c6064657a4eed7d6dd0aba24141945fb893776b420d22b",
+      "bytes": 2328919
+    },
+    {
+      "path": "final-availability/GPT-gpt-6-luna/runner.log",
+      "sha256": "5065446ac3b9931f39774e1d1b27f53c324f101f907aafeb1e37f2ed8ca0dd10",
+      "bytes": 1567
+    },
+    {
+      "path": "final-availability/GPT-gpt-6-luna/TestLiveModelAvailabilityBudget-vm-after.log",
+      "sha256": "7a599cab18862ef3580a9277d3ac1ad48283d91e3796885be8d6014f00ff16b5",
+      "bytes": 3401
+    },
+    {
+      "path": "final-availability/GPT-gpt-6-luna/TestLiveModelAvailabilityBudget-vm-before.log",
+      "sha256": "0743765e81fad62703accee467daac1d1db9b703f5d868d8f8468b4219a28007",
+      "bytes": 3401
+    },
+    {
+      "path": "final-availability/GPT-gpt-6-luna/TestLiveModelAvailabilityBudget.log",
+      "sha256": "275ccb266a9a87b9abab2480643eaf076ed7d59fd7363855f1d756f499e47cfa",
+      "bytes": 4319
+    },
+    {
+      "path": "final-availability/OR-inclusionai_ling-3.0-flash-sante_free/runner.log",
+      "sha256": "5065446ac3b9931f39774e1d1b27f53c324f101f907aafeb1e37f2ed8ca0dd10",
+      "bytes": 1567
+    },
+    {
+      "path": "final-availability/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveModelAvailabilityBudget-vm-after.log",
+      "sha256": "51c8c92f6a3d52466e3f4366c779a3890caeac4b11eaa9340f2dc00ac863c351",
+      "bytes": 3401
+    },
+    {
+      "path": "final-availability/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveModelAvailabilityBudget-vm-before.log",
+      "sha256": "4d4a49bf6c72b8928b6c03e15feb2cf8b2ee3786f65be0e41117bc8bfd7d75d9",
+      "bytes": 3401
+    },
+    {
+      "path": "final-availability/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveModelAvailabilityBudget.log",
+      "sha256": "029553476c127c333e8180a4c1dddc47adb37f26dd60dbe4f5da899e5cf13bc5",
+      "bytes": 4384
+    },
+    {
+      "path": "final-availability/OR-nvidia_nemotron-3.5-lightning_free/runner.log",
+      "sha256": "d5efa9ee0a60f94ca5b30a4efa791cc73c660754df5560c519778c83fa24909b",
+      "bytes": 1421
+    },
+    {
+      "path": "final-availability/OR-nvidia_nemotron-3.5-lightning_free/TestLiveModelAvailabilityBudget-vm-after.log",
+      "sha256": "cda90866274b683c20a2c3115b934811deb043cc20fade8645591d43fc845263",
+      "bytes": 3401
+    },
+    {
+      "path": "final-availability/OR-nvidia_nemotron-3.5-lightning_free/TestLiveModelAvailabilityBudget-vm-before.log",
+      "sha256": "6509f0b06c5682743002e73cadcc06694462d77ba270269c280860a9dc0563bb",
+      "bytes": 3401
+    },
+    {
+      "path": "final-availability/OR-nvidia_nemotron-3.5-lightning_free/TestLiveModelAvailabilityBudget.log",
+      "sha256": "f1116097e68ed082ba1dddbf287ab95870374dee5e1dc4cded5dbb13be55bdf6",
+      "bytes": 4368
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "6320872ecafb0b756e2da3c08e1ce3f010cfdfd4398961a0c41f3a34a17523cb",
+      "bytes": 1850
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheExpiryCleanup-vm-after.log",
+      "sha256": "5eb1c09287fe33bb2e4dac1fe1ef6310ff56c21a871f45962603e3e010a4f956",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheExpiryCleanup-vm-before.log",
+      "sha256": "c0c700bef69d66fb7ec34f281586ba86aa22ea0777ea92ec8272120a11609922",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheExpiryCleanup.log",
+      "sha256": "2e482e778f18aead055dfc25a96f1fb7c23600d0b65f6587643e4a663a943600",
+      "bytes": 16111
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCachePendingVisibility-vm-after.log",
+      "sha256": "251a0b6d32c4b39bdf2b593e46a5e0ff6b019409896e123ed00663edd2fdefe2",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCachePendingVisibility-vm-before.log",
+      "sha256": "1a63a08cbc470d2043de2b282622781e13222f8b5c4b249321c6a3f0125cd4a4",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCachePendingVisibility.log",
+      "sha256": "47676768515423b5671f4d121ccefce81117c1088344c27cefeb1dc2b70cec2c",
+      "bytes": 10956
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheReplay-vm-after.log",
+      "sha256": "d51d735b6f1174751057adde48c6fca3ed8dad1dcd746552287a495396c3a147",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheReplay-vm-before.log",
+      "sha256": "5fa89efa29aa6c7e048bdd11054bf63c26ec2e32ba8b2f8b449c9a8431759cac",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheReplay.log",
+      "sha256": "287550f81e8e5a8e40682a512bcff9d368d0075f4751b64f48269c050cc4ccb4",
+      "bytes": 13866
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheRestartCleanup-vm-after.log",
+      "sha256": "5ef14aee9e5e282c8d5a99daf08dfe3a835bd3c77f8058f1f85fcf2e4e0a7b0b",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheRestartCleanup-vm-before.log",
+      "sha256": "8cdb5d24c031c3b480a7259982a26add8de2a6a8e0c3825ec43076878a7ece33",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheRestartCleanup.log",
+      "sha256": "1bd0fc10448272d437beb426512898e59261b7cb9a284464789713561bcb14c0",
+      "bytes": 13662
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLivePostProviderRedisDelay-vm-after.log",
+      "sha256": "5c74aaa28179ae710c3f73ac728430d73e758abc9fd00dcee0291e4aedc17f33",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLivePostProviderRedisDelay-vm-before.log",
+      "sha256": "5e64dee86a76a414d64a0f76b38068890b6d8061d590afd77a278d330ec078e8",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLivePostProviderRedisDelay.log",
+      "sha256": "0ea6c1bce3d8e12deada1a74acd476c2e572f746d0a4252a5128c95dc8f3e21e",
+      "bytes": 11869
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisConcurrentSnapshots-vm-after.log",
+      "sha256": "c6d00483f5a819dfd29afc7b79730ac9eb60e9d0d3c8eb63acfac17baf2a8f99",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisConcurrentSnapshots-vm-before.log",
+      "sha256": "44f1d6092210d93335e6e42884aa5ce5cd5b220f7648e93400c7bf501bbf2547",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisConcurrentSnapshots.log",
+      "sha256": "ad0a91d15833cf2d3840ad4a50a64dc5ff689abe467cb0c6cda7c9b67b398035",
+      "bytes": 246
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisProviderIsolation-vm-after.log",
+      "sha256": "b1a29a7c1f61b27de73cf557a999a93e8d9286ccc0970ccbfae10af0b08c1b9a",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisProviderIsolation-vm-before.log",
+      "sha256": "b425f790686aabff16fdfb054e3b4879a0c5d07c41953c07a8588b1ef397a53a",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisProviderIsolation.log",
+      "sha256": "17ad92253362417476e1da6fcc2f61d36f45a2c11ddfcef3f923128043caf287",
+      "bytes": 883
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisStalePublication-vm-after.log",
+      "sha256": "a69414df2368cf2f092b9db2cda5b7807d23dde838f92156db953ec43a2c831d",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisStalePublication-vm-before.log",
+      "sha256": "7a81fd7bdfdb545d785f3b658bbcb18b3cad32b6c7c8a22f86d21976ffc8816f",
+      "bytes": 3400
+    },
+    {
+      "path": "final-boundaries/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisStalePublication.log",
+      "sha256": "f776ca9dd54b58797399ac654148aaf4630d7987f0c90d09ad0b7d1d8c41d931",
+      "bytes": 889
+    },
+    {
+      "path": "final-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "final-business/OR-inclusionai_ling-3.0-flash-sante_free/runner.log",
+      "sha256": "39615d3fee1d23894d5b05ed6d615eac4bc268aed1e3941e99838e6208c128d8",
+      "bytes": 1758
+    },
+    {
+      "path": "final-business/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveBusinessFAQResponses-vm-after.log",
+      "sha256": "141acebc053c83132185cae816bbcffbaf63b9ed5726cb538506b55332bef5c9",
+      "bytes": 3401
+    },
+    {
+      "path": "final-business/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveBusinessFAQResponses-vm-before.log",
+      "sha256": "ed6db1e57fdada749e7f2c378f6ca9c3a6ecd39f2c34f9409c8acfe45d104fcb",
+      "bytes": 3401
+    },
+    {
+      "path": "final-business/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveBusinessFAQResponses.log",
+      "sha256": "20492954b2688d6a602b2d91c3d154b9218bfd708a752f6d8114accda44fb517",
+      "bytes": 30045
+    },
+    {
+      "path": "final-business/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveDirectBusinessFAQResponses-vm-after.log",
+      "sha256": "b2bf9cdd17a754ee32aa00fd48237bc555f54fda96bde08de5d04db82bff5f02",
+      "bytes": 3401
+    },
+    {
+      "path": "final-business/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveDirectBusinessFAQResponses-vm-before.log",
+      "sha256": "ff97fd237d16a2781184ebd78c10d5d903a5fecdc7d8046bd0724d7b0152647e",
+      "bytes": 3401
+    },
+    {
+      "path": "final-business/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveDirectBusinessFAQResponses.log",
+      "sha256": "74953291bd7b957e6b25f8de63206257ddc04a8c8c379d31e01ccd052450155a",
+      "bytes": 686
+    },
+    {
+      "path": "final-canonical-stream/GPT-gpt-6-luna/runner.log",
+      "sha256": "057a141997f41cdc444eedc918ffb0036f277ea6d20fef198bb501ae2a52a8c9",
+      "bytes": 1741
+    },
+    {
+      "path": "final-canonical-stream/GPT-gpt-6-luna/TestLiveStreamSettlement.log",
+      "sha256": "9d9b7341c86db6a47196fa9678ca8733072dbfa5ed3c03df9c3a33c2678db757",
+      "bytes": 4494
+    },
+    {
+      "path": "final-canonical-stream/GPT-gpt-6-luna/TestLiveToolStreaming.log",
+      "sha256": "e4b9905516f65e390a5e766128caa1664e95e7120bdfdfec8f1a7fb1a089bafa",
+      "bytes": 7151
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "29f8101ac2355c0bfdb3b93f6ba9d01aaf81e18c424dd455bb264549c8f4601e",
+      "bytes": 1628
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveAuthentication-vm-after.log",
+      "sha256": "7657cb3de92bdfff0a620fa4bf8785a674bc0fec23ec6fdc9dc4b94c0edd03ab",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveAuthentication-vm-before.log",
+      "sha256": "08acafe4483a1c8144119c29a5f665fb8d2072669ba1e338bb0486953b71f357",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveAuthentication.log",
+      "sha256": "95044354116c737320dd6ce680e3050524f37bea580c2c4757b2916867e3b162",
+      "bytes": 1537
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheMissEmbeddingReuse-vm-after.log",
+      "sha256": "937d10f7fdb9111a2bdeffbed2213c7fb775bff4598aebd39e66ae16423dc086",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheMissEmbeddingReuse-vm-before.log",
+      "sha256": "a9b4bd16ec43402b0bb7329621674f0051eecbccec727aae7195fb80a19c7264",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheMissEmbeddingReuse.log",
+      "sha256": "5965ad3d0dd150075d85b213a4cf558c9149aecdaeeae511b042efd060bb2e1a",
+      "bytes": 11638
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingNetworkDeadline-vm-after.log",
+      "sha256": "969d27cb8d60604039d4d3f571909f503af318bad5129adeb56e20dc3faad6c8",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingNetworkDeadline-vm-before.log",
+      "sha256": "d4eacdc479491b994baaffee51fd5f41507b856853d5bf204185c2ad7165c749",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingNetworkDeadline.log",
+      "sha256": "053b23760864a8388cb6c346b81b3ca0b6dc29003bc03c387f244bf412730279",
+      "bytes": 13782
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantCrossProcess-vm-after.log",
+      "sha256": "846ba4ac989123bf3de5aef920455b7e319cb6347c1990bcf3244e911c314525",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantCrossProcess-vm-before.log",
+      "sha256": "c2552e379336d3df8abf83a98d149d31b7839c4f7ec7395f1f1a1bd40fae248e",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantCrossProcess.log",
+      "sha256": "ea6252b4a09fe7cfe82148f147b4dd305eb54e942d085eb94a129bdb53a4c0ea",
+      "bytes": 1983
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantErrorClassification-vm-after.log",
+      "sha256": "93df3aaf2ac622da7b57b6dcd2cc187c273cffb22ab31c64a5097d784d25cc5a",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantErrorClassification-vm-before.log",
+      "sha256": "2e691c55b236f51a427ca4d01201bb813ceba039f5a2cab81dfd5022a78fb706",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveQdrantErrorClassification.log",
+      "sha256": "7ec883b96e05c8421529a9a9800c39dc8dacb8048e8395fd81d37c86f0fa8e77",
+      "bytes": 2691
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveSearchNetworkDeadline-vm-after.log",
+      "sha256": "716af2a0d9e46af55fa1b9723575bd82c4d5af57bc5f21f3413793d6a2ab41a7",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveSearchNetworkDeadline-vm-before.log",
+      "sha256": "cbe6f1571f7233728aacb9d45acb4d5a5a0fffaa2a97d32db7fe0e7d1433cbc8",
+      "bytes": 3401
+    },
+    {
+      "path": "final-chain/LOCAL-qwen2.5-0.5b-instruct/TestLiveSearchNetworkDeadline.log",
+      "sha256": "2a1be09825429b5a6cd7233a75158528987d9ea09dd235fd4c96032e0149241c",
+      "bytes": 13036
+    },
+    {
+      "path": "final-embedding/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "39f608c9107f07830c2cea80f1781b232d158c4abee96405fd6ada3f3ac87f0e",
+      "bytes": 1559
+    },
+    {
+      "path": "final-embedding/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingStress-vm-after.log",
+      "sha256": "ae45493483f709258fcdd633bd327459ee6aec6d00978c5328de8c96a949b655",
+      "bytes": 3401
+    },
+    {
+      "path": "final-embedding/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingStress-vm-before.log",
+      "sha256": "e046014fbca1b9dddec61b774fca74dcec38766b87cdd70c44583f74a2e9fdca",
+      "bytes": 3401
+    },
+    {
+      "path": "final-embedding/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingStress.log",
+      "sha256": "6c953b6a83514c481b57e87a8b7bb48fa860f1ebae8604d92a67c750c848e7f6",
+      "bytes": 123703
+    },
+    {
+      "path": "final-focused-checks.log",
+      "sha256": "332b7c46853f43536656a8fde20bb533b269187ee22f7f3bd4bd869575686033",
+      "bytes": 185
+    },
+    {
+      "path": "final-hit/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "020e0871361e8b50a7ed46e8007b6abb0423dfe6fea544ce6df80471a175d38d",
+      "bytes": 1603
+    },
+    {
+      "path": "final-hit/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheHitBaseline-vm-after.log",
+      "sha256": "0bab0a37034ed57a3bdb6a0e1002e37635304d57e1e1572a033b0574289e9186",
+      "bytes": 3401
+    },
+    {
+      "path": "final-hit/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheHitBaseline-vm-before.log",
+      "sha256": "e423a6fe965b0dbe593dc9f434c2aca9dcb264712dc2cdd5e95e330581c1cba8",
+      "bytes": 3401
+    },
+    {
+      "path": "final-hit/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheHitBaseline.log",
+      "sha256": "13f10d1db9be6e124c71dc35cd296b28309f4d412b22e5cb6368f504961a58ee",
+      "bytes": 280974
+    },
+    {
+      "path": "final-hit/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheHitSettlementLoad-vm-after.log",
+      "sha256": "43e75080f2a70ac8fd1c67d8b0b0783fb2547c5165fd3e7887c41e3d2fd10930",
+      "bytes": 3401
+    },
+    {
+      "path": "final-hit/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheHitSettlementLoad-vm-before.log",
+      "sha256": "45981f59af6e036fee5a7eecf74d6202ee3960d70dfa9137bbccad6c1d4723f2",
+      "bytes": 3401
+    },
+    {
+      "path": "final-hit/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheHitSettlementLoad.log",
+      "sha256": "d82892d1ce96ba0f6e372814e7985056409023f115925e38d57df6be10a44c5e",
+      "bytes": 294162
+    },
+    {
+      "path": "final-progress.jsonl",
+      "sha256": "06588cf47229743f66d388dde76675585b94ce6a81fb41017e4eab8a555a6562",
+      "bytes": 34907
+    },
+    {
+      "path": "final-protocol/GPT-gpt-6-luna/runner.log",
+      "sha256": "6bfef373bf64a5a4f8446d0f7dbd58eac5d6c244d134a3dad301b02b42d1d6d7",
+      "bytes": 1617
+    },
+    {
+      "path": "final-protocol/GPT-gpt-6-luna/TestLiveBufferedStream-vm-after.log",
+      "sha256": "f64a8055db9ef4a95b768adfc12d235d0ccadc73d4d09d3e77d776e429da5517",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/GPT-gpt-6-luna/TestLiveBufferedStream-vm-before.log",
+      "sha256": "e1d371fc5b7e24f4d5dfdecaec25dc5608c4b6abb97ee40276856c216534795a",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/GPT-gpt-6-luna/TestLiveBufferedStream.log",
+      "sha256": "71d59430b8dcacf45f41e878ed95fd3f83ba5a30fa7729b561b86c1208e5fa28",
+      "bytes": 1781
+    },
+    {
+      "path": "final-protocol/GPT-gpt-6-luna/TestLiveToolNamed-vm-after.log",
+      "sha256": "a47b5b518da872204ac10e837a8d40e694a16d5b4bebde4e99434ea4d63a7453",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/GPT-gpt-6-luna/TestLiveToolNamed-vm-before.log",
+      "sha256": "f2d9f7a9849b79719dc17981758390070a2f3e426b85bc195120e4a3968010ac",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/GPT-gpt-6-luna/TestLiveToolNamed.log",
+      "sha256": "b14cbced1f64e2b0258c3c15497393baeb7e61d30b5967227e53dd60e7114a82",
+      "bytes": 7896
+    },
+    {
+      "path": "final-protocol/GPT-gpt-6-luna/TestLiveToolNone-vm-after.log",
+      "sha256": "3cb7dcd8f8fc0519eb48447e3d07a50c45f4fc246c9fff4c3e124737301f19a9",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/GPT-gpt-6-luna/TestLiveToolNone-vm-before.log",
+      "sha256": "cf5955a8ea79b4a7c3ba61575c6263eb6fa9ce2e54106eb3ce6942fb9a1b2f8c",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/GPT-gpt-6-luna/TestLiveToolNone.log",
+      "sha256": "54cc4a39636e7f8d1be11640847dbf832fdf3bb010399b80316b4d4cd1e81776",
+      "bytes": 5015
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/runner.log",
+      "sha256": "4ae451facf61e92e509b5d41dcc114a31015b998330fab72718621d2d6e69fa0",
+      "bytes": 1737
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveFusionStream-vm-after.log",
+      "sha256": "900e220db26c2e4419c44dd63e647a8a800d3ed9eff6d3926b14d458181e8ee3",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveFusionStream-vm-before.log",
+      "sha256": "d5beb2750f5bc85efa7b0e304f3d3a7a24466a8e9ffd8e49e85d0bb2715dd4c0",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveFusionStream.log",
+      "sha256": "6d584d39e718a5dd762fd0942e39e8fce9285b72d21003e1846591a48ec84b70",
+      "bytes": 1488
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveStreamSettlement-vm-after.log",
+      "sha256": "4bb5074683d74955e6ba5d7c520e7080ba8459b6588b572af431e8618a69659a",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveStreamSettlement-vm-before.log",
+      "sha256": "56db2c8493322e29cc60fdec8c2ab0a9c022bed326e57c7bfc6d1e4ed44e1cf8",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveStreamSettlement.log",
+      "sha256": "46fdb731ae87af0338ba65f2d65b5fb53f4e161d57be4d43abcad5ba5a55b473",
+      "bytes": 4191
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveToolAuto-vm-after.log",
+      "sha256": "f20e3727a018cd0c14a605ea27959bcc8b1f7425b3718f1e76ee9accc0ef6fd4",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveToolAuto-vm-before.log",
+      "sha256": "6f9869822a4d2f1433407b6e8adc0a8cd93e5a324a91b782ea0b9436be11e389",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveToolAuto.log",
+      "sha256": "3e4743262ece456670c206873a2a7582354bc7ee3f4a92a5281f4e0d316f9b32",
+      "bytes": 7882
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveToolStreaming-vm-after.log",
+      "sha256": "7079801ec798e5d5506d96c8cd2b13d91f1025ec96c42ef90d2aa52343c644a8",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveToolStreaming-vm-before.log",
+      "sha256": "0166f33800145a83d1298f704c9df0609248c85e4d307901cc938115ecd0fbdd",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveToolStreaming.log",
+      "sha256": "5c751f4d10651387e15623eb623935740d7db26c270a4fb6ec804b6f199011d1",
+      "bytes": 4047
+    },
+    {
+      "path": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/runner.log",
+      "sha256": "3692cd3311247e91c8604422a370902796c12fb3755dcf81538095ab14bfa366",
+      "bytes": 1701
+    },
+    {
+      "path": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveStreamCancellation-vm-after.log",
+      "sha256": "d2ff958f440020edac634dd81fc2ea2f1b84972015cb4da6819e6c7df7cee96c",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveStreamCancellation-vm-before.log",
+      "sha256": "7785afb9b4f7848413a3345ac42f9800b96a646f8cd86362a1001b87709f112a",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveStreamCancellation.log",
+      "sha256": "e83c315f0b653a352b7740bb9148554a5bc6646278a5c78e5be8298774a9fe1e",
+      "bytes": 3912
+    },
+    {
+      "path": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveToolOmitted-vm-after.log",
+      "sha256": "11bf628fa2135c7d3401a3d9635e796f71dd85152d7bc86156e100b586aff56d",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveToolOmitted-vm-before.log",
+      "sha256": "f898ba64f40d39837d5c6ac66f8ba404297a3a7c2d313fcb964b96914ba4defa",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveToolOmitted.log",
+      "sha256": "8841e38f2b118d54b197572b6be6e89e2539f192d93904e5226c2d3b57532a23",
+      "bytes": 7903
+    },
+    {
+      "path": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveToolRequired-vm-after.log",
+      "sha256": "2c14b09550bf2a92544b481865e9cd8470f4c54a5cfcb96f0c6d5552d299caca",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveToolRequired-vm-before.log",
+      "sha256": "3fab5dffc711feb41952c5e1995b024b48c4b0a997b84a89cf18bd0855a6d26f",
+      "bytes": 3401
+    },
+    {
+      "path": "final-protocol/OR-nvidia_nemotron-3.5-lightning_free/TestLiveToolRequired.log",
+      "sha256": "89fb056fc8a064ac925709acf9befda8ef426d23ef464cbd83db8d0cc350f583",
+      "bytes": 7614
+    },
+    {
+      "path": "final-scenarios/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "46c779d9a52009d94f786d310fc6efceeae6a0db7583d7569b1e3e373aa62575",
+      "bytes": 1589
+    },
+    {
+      "path": "final-scenarios/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad-vm-after.log",
+      "sha256": "3f83df923853f67b1cb47f962ea6d37162f33b888930b86fb472ffb34c129a7c",
+      "bytes": 3401
+    },
+    {
+      "path": "final-scenarios/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad-vm-before.log",
+      "sha256": "6a4e13357f2b68837edec8cbb6be0e1fab2d4d7f2d112c937496b251d1f94512",
+      "bytes": 3401
+    },
+    {
+      "path": "final-scenarios/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.log",
+      "sha256": "92ea87651b2aee59bdbd967074bfd6de506c8385c1e3f3101111500ed513ff78",
+      "bytes": 282855
+    },
+    {
+      "path": "final-scenarios/LOCAL-qwen2.5-0.5b-instruct/TestLiveMissBurst-vm-after.log",
+      "sha256": "78242237dc37a6c8684b10da0f853d65376b8e86e8603d8876ca4f2e5ea7fa2c",
+      "bytes": 3401
+    },
+    {
+      "path": "final-scenarios/LOCAL-qwen2.5-0.5b-instruct/TestLiveMissBurst-vm-before.log",
+      "sha256": "da6fccb6f6768eebfd37bbacdb8ac7ffabad4267f91768fd301509ffa13e8e6b",
+      "bytes": 3401
+    },
+    {
+      "path": "final-scenarios/LOCAL-qwen2.5-0.5b-instruct/TestLiveMissBurst.log",
+      "sha256": "89a5e8ca2b29ca94150c06b5a1c5f93bad3b21f88b47cc127a19f9e79c7e1866",
+      "bytes": 615327
+    },
+    {
+      "path": "final-stable-1/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "7873953a4135597ff860a5a071cda9804646281486435fed330dc6f29c5cd1d2",
+      "bytes": 1619
+    },
+    {
+      "path": "final-stable-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-after.log",
+      "sha256": "cad7df4eb6a714093f9ee4a044dfc7e3ae842505b92c8db7b28bd44c1a80ae46",
+      "bytes": 3400
+    },
+    {
+      "path": "final-stable-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-before.log",
+      "sha256": "5dd0aa510fd600567ba45d356b51853ff79da496e753d351ceb8ebd6d1b33c25",
+      "bytes": 3400
+    },
+    {
+      "path": "final-stable-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "sha256": "70757d2c00280de7c8af0a98e42ff7631d4dabf72a0e5f01ce3bd635454c7ed2",
+      "bytes": 280802
+    },
+    {
+      "path": "final-stable-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-after.log",
+      "sha256": "5f72d6b873896e9d4057fd57f76529d8219d1ee4a395db2d7d64edf93f69221f",
+      "bytes": 3400
+    },
+    {
+      "path": "final-stable-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-before.log",
+      "sha256": "e20e5ae32cfd3019504573d7eef06dfcdf4f490b91ed1f12b5bd8cf2131913ca",
+      "bytes": 3400
+    },
+    {
+      "path": "final-stable-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn.log",
+      "sha256": "d9969911023f84ff81d23b10de0fe19d5946d188550ed9778362a4d575e6f761",
+      "bytes": 602859
+    },
+    {
+      "path": "final-stable-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-after.log",
+      "sha256": "1e7c87256b0e38fd9cd79df2876e5c80058d07640f2b6c76148441d1cd0dc3a8",
+      "bytes": 3400
+    },
+    {
+      "path": "final-stable-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-before.log",
+      "sha256": "2a57a1122b28c960f7a32bbc8767f49d9b1341cba01a8ab19cc320150404ad84",
+      "bytes": 3400
+    },
+    {
+      "path": "final-stable-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "sha256": "7424c36088547bcf73095cdf36442b64446ea09123023c382798c14c24fc8a9f",
+      "bytes": 122797
+    },
+    {
+      "path": "final-stable-2/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "94e5ae5da3759d6658b317681a2c0b8db7e3c4ab38ea2ea55887cbaaad8c24d3",
+      "bytes": 1619
+    },
+    {
+      "path": "final-stable-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-after.log",
+      "sha256": "0826f9e108bab2f6a46cee424a0d6b9298ad0d451aa7ac232833ff22de117dcb",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-before.log",
+      "sha256": "3b2a77d5975074b39cb143954fdbf99cae1ad62f4f11806859af57e84cb4e349",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "sha256": "fd2f43988439ec3e5fc524f81224b1ac76f5e28bf0969de221a2730979490fbc",
+      "bytes": 280708
+    },
+    {
+      "path": "final-stable-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-after.log",
+      "sha256": "12f91209456e15b3b5078195842cfd89d25fb9ad50cc8da07416ec14eaf6d718",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-before.log",
+      "sha256": "4afc72d24cf64019ceb4b7c4fcf790856406fbe4c7451eff4fe677131cb9dd0a",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn.log",
+      "sha256": "d4da98936c98eaa1054172ff45b816009c39a47cc0981b566c225d0488578680",
+      "bytes": 602884
+    },
+    {
+      "path": "final-stable-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-after.log",
+      "sha256": "c7088f2d91b23d12c50799f4dff33f2444842f31c170eee9714160e77910b3b3",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-before.log",
+      "sha256": "3f6d34c9b6d3f9d3a3512c2fe7e38e9ccbcd9afbb3277b4fc965d27ed670599e",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "sha256": "53a4b755faf1e820690ec06499d2e45cc4edb87232a12fde3ec5028069491b6c",
+      "bytes": 122782
+    },
+    {
+      "path": "final-stable-3/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "6abf0f697e5f7bde41805b4e3419b9a750ec7c73c743012559c98bbc3a5ac33c",
+      "bytes": 1619
+    },
+    {
+      "path": "final-stable-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-after.log",
+      "sha256": "82472fb87376a0cddecb7b1bd6bb45d72abc40937ee1fd97a2a1fae580b6f850",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-before.log",
+      "sha256": "f88794086e68675c5c625550f87e964b27257a7f3b9773878955e5b3f3f8acbe",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "sha256": "f3519a44030f918f86a1a27aa493265d3dfa6eda23f6aba51405ead00811df82",
+      "bytes": 280726
+    },
+    {
+      "path": "final-stable-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-after.log",
+      "sha256": "22b50d6d614890e8f7514b20b4059d9c0ec6f9ce5622c9cc458c1c0911ec0975",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-before.log",
+      "sha256": "c57a1af448751016b04e7f68009adcd63bf21422c30e32afc378666f86379271",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn.log",
+      "sha256": "5810e459e2a22e620986f7318dbb03458882b58c4ea5b1c825ad40698caeb7a6",
+      "bytes": 602848
+    },
+    {
+      "path": "final-stable-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-after.log",
+      "sha256": "2824f267538e2c9295bec8e8b90c529a54261571f1f4874686b2338ee12745c8",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-before.log",
+      "sha256": "4bf356ea25b4292d22f779cf7c087ac57dc7e80350747810746eccd24c7c4100",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "sha256": "830c784e5b875072731013ac1c64a1254a5c5a11e7c9fd910533583e547f482a",
+      "bytes": 122836
+    },
+    {
+      "path": "final-stable-4/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "c0a51616da8e3398df5d9df375a5f31ee549540058d074bc40117772f71321db",
+      "bytes": 1619
+    },
+    {
+      "path": "final-stable-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-after.log",
+      "sha256": "f156ee3fd289ae326d459ae4c806ab3bdce85c5870a61a0f135c9b5c7f2e9838",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-before.log",
+      "sha256": "0bfe03ee59dd36ad882f08eeb77a6fec05fd3383072491c3e4a5e2f1553df3af",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "sha256": "6439aac1ccb93112e01a97822f9ba64ceddd7ba832391252fbd65d223de56b3a",
+      "bytes": 280625
+    },
+    {
+      "path": "final-stable-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-after.log",
+      "sha256": "432bcab7a275a2a801faae8266fb4aaf1afe02a163e70a20daa9efbe00bbd4a2",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-before.log",
+      "sha256": "46c92c941c7bc99e8a8cc4abbb9517ac53a1a254bdb14d6ead786fa7d37b22a6",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn.log",
+      "sha256": "de2b411ea7b59aeef8118feb8129a033b2d8b012e02351420fb1decac1abbbf6",
+      "bytes": 602847
+    },
+    {
+      "path": "final-stable-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-after.log",
+      "sha256": "7710a9a7426a96226e7ad9423919a7f187723ebf214307c8822c40028f4db701",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-before.log",
+      "sha256": "9c7a39966ede3060c28864b6def7997a401228d4e2489b9dfbf4ff8ed63061e1",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "sha256": "6e67effd0df9626e1322e772ed695a94588213e229a4306695365c3aec5ece18",
+      "bytes": 122777
+    },
+    {
+      "path": "final-stable-5/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "7873953a4135597ff860a5a071cda9804646281486435fed330dc6f29c5cd1d2",
+      "bytes": 1619
+    },
+    {
+      "path": "final-stable-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-after.log",
+      "sha256": "770b290bbeec236a22d82651ab37e8fd66874bf494cdd4e20e84dde97a508793",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-before.log",
+      "sha256": "95b00f3eda2895611274105a7229ea595870c9869d5ce403147a8411fb3fa5aa",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "sha256": "458e962d87920c24537a16ec45d82df4069b600101b85582b1bedf977918ab7e",
+      "bytes": 280715
+    },
+    {
+      "path": "final-stable-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-after.log",
+      "sha256": "7c5431600394b4ae068db904a5e30282a4b72cfc115cb1b201b4be459826b472",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-before.log",
+      "sha256": "6d24d5a2d648233be0ade26629b59fa72b98d17bba6046a530c027b5c051def9",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn.log",
+      "sha256": "60bb07f43e6c44ecf5fe581bca82a2915557d541d8a09cb8bf05b58d51f694dd",
+      "bytes": 603035
+    },
+    {
+      "path": "final-stable-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-after.log",
+      "sha256": "db225d96bd384ea92f31817a9c3cff8c5ebd06ceca2bab721da5d50da0574979",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-before.log",
+      "sha256": "314bf87e1a3087db7a5974f57218c2c2b947f7a90ca15252d66a848e49b09c73",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "sha256": "123255e1ed3154a32071ee0ba83139ca7a5106a35856929362957c8e4f1b418c",
+      "bytes": 122808
+    },
+    {
+      "path": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "7c4f0e3d2cbcfd12805c062a8b3df797182fd1cbf3624970ef0fcf3b1b56357c",
+      "bytes": 1766
+    },
+    {
+      "path": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-after.log",
+      "sha256": "39d724ca8824afac6051a521f2c23c005388d6f30d03d5e36591eead6170419a",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff-vm-before.log",
+      "sha256": "61ff5b5b5ee8326562de4ac24101515c2812f0de7045ad88c96e745501dfc626",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "sha256": "cb035dcb5ff98471cdecabd3f8a96b872616082e09c539c6bb2eb4b88ebe8407",
+      "bytes": 280718
+    },
+    {
+      "path": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-after.log",
+      "sha256": "7a50568d16326875c7de802a14e812e9584cf178517080224dac527aa8876bef",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn-vm-before.log",
+      "sha256": "18006cc827874ee2953d2c1d8c27092dc344221aaec849b8c6679996dba51da8",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOn.log",
+      "sha256": "dbc2c65dec8363435907ebb0595701d226d927e60b3d2b0a92ea06e326261f6d",
+      "bytes": 603097
+    },
+    {
+      "path": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-after.log",
+      "sha256": "19ce5c217a42c8d6b65921db1c0e8f9e700b12b284a07ce7057bec929e57caae",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad-vm-before.log",
+      "sha256": "3972ce6f24ba48094d9435e5342b322dd75a9f15ce8c4818d551664140e80037",
+      "bytes": 3401
+    },
+    {
+      "path": "final-stable-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "sha256": "6816c710dc128948d258471141c577625ac6ff1ca536da32189db6b36bf1ab09",
+      "bytes": 122760
+    },
+    {
+      "path": "final-suite.mjs",
+      "sha256": "c8e7780e4aaf0eacd0619f0d75efae7768999ccfb440a0dced5226fd66e6eff2",
+      "bytes": 3123
+    },
+    {
+      "path": "final-supplemental/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "852777ac32c5fc60bfe12cc436173fb7735d07c75a742d2d86db568ee2e06c5d",
+      "bytes": 1715
+    },
+    {
+      "path": "final-supplemental/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingModelSwitch.log",
+      "sha256": "76f546e5f7d9472ccf3bd05d4f761909a99ea6d5e5dfd54e88ac118e6c362069",
+      "bytes": 29095
+    },
+    {
+      "path": "final-supplemental/LOCAL-qwen2.5-0.5b-instruct/TestLivePGVectorCapacity.log",
+      "sha256": "226b4f4b62892265cfb8adf475b50e51a7f66cc004290092dcfca19692007890",
+      "bytes": 345
+    },
+    {
+      "path": "final-supplemental/LOCAL-qwen2.5-0.5b-instruct/TestLiveSemanticDiagnosticNegative.log",
+      "sha256": "7e0ce3a77cda3d291f4fcc2f4e9a9802ef9e46216cea03e3399b8a4fbba7c1fc",
+      "bytes": 482914
+    },
+    {
+      "path": "final-supplemental/LOCAL-qwen2.5-0.5b-instruct/TestLiveSemanticDiagnosticPositive.log",
+      "sha256": "af4296e9f547bb6eba23a73ca13e1e725dd2f3f525ac6a164fffabbb56b68e32",
+      "bytes": 240953
+    },
+    {
+      "path": "final-vet.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "finalize.py",
+      "sha256": "ad50c47b8946a54963624838eb047f23a0db0e5c97f7be6f1e3136997ce3112d",
+      "bytes": 2278
+    },
+    {
+      "path": "health-before/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "709420ac0f44dfcfa32b668c41c7a429c981e96355897013af950e87c2f91f6c",
+      "bytes": 1457
+    },
+    {
+      "path": "health-before-retry/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "cfa060d2572354ec434a58a53e8c0d76e0903bc9b77e932f7cf0440de74ee5fa",
+      "bytes": 1549
+    },
+    {
+      "path": "health-before-retry/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisConcurrentSnapshots.log",
+      "sha256": "34244893a79c019adb767263f8136d89b583cdaa1664f8e1064e15edd7babfa7",
+      "bytes": 246
+    },
+    {
+      "path": "health-before-retry/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisProviderIsolation.log",
+      "sha256": "c38be1818e8b4155645dd84c654a75b547b35e1dea0446f06ea6572716dfda0b",
+      "bytes": 684
+    },
+    {
+      "path": "lifecycle-after/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "4b8b78b8a49db1868b13f47ba0fb280deb947db918ee30f9861e95fcbf20b2ca",
+      "bytes": 1423
+    },
+    {
+      "path": "lifecycle-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheExpiryCleanup.log",
+      "sha256": "9b6471c11e1223d9b3b5bb021a77e4fccec91373ce21b1f663b1307ccf1db552",
+      "bytes": 16145
+    },
+    {
+      "path": "lifecycle-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheReplay.log",
+      "sha256": "c40a5e31054e16df4543782723a5524abcdcfe6481c695d7f9551f19e9de8b31",
+      "bytes": 13865
+    },
+    {
+      "path": "lifecycle-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheRestartCleanup.log",
+      "sha256": "658943aaa85adef54ff082f1672244f001db77740de9fc22dc9a054b31786a2f",
+      "bytes": 11492
+    },
+    {
+      "path": "mixed-final/GPT-gpt-6-luna/runner.log",
+      "sha256": "1f149ab67b2253b3fa27c5b85bbd7c74f7a5de3ae002467926a677951b14e9a4",
+      "bytes": 1702
+    },
+    {
+      "path": "mixed-final/GPT-gpt-6-luna/TestLiveMixedLoadOff.log",
+      "sha256": "71f54299c1e0df9207ed49f540d8feda8a3a694ed32ff684cf19d4e136fd8a2d",
+      "bytes": 77513
+    },
+    {
+      "path": "mixed-final/GPT-gpt-6-luna/TestLiveMixedLoadOn.log",
+      "sha256": "570f7f3db226344b3bfcc61a2c3f316a1c683019a0e1f8ddb07f58e0386f06aa",
+      "bytes": 170668
+    },
+    {
+      "path": "mixed-final/TestLiveMixedLoadOff-dispatch.json",
+      "sha256": "d7f1f0f4ee7f59c6ef37143897f0b2b7b237cb4abbc0ceb75cd61b8f822e2643",
+      "bytes": 2111
+    },
+    {
+      "path": "mixed-final/TestLiveMixedLoadOn-dispatch.json",
+      "sha256": "ce9e6de5eebd6ab387b1f9b581338b1f1819a0aa66cfb368cd3edb3196dbe906",
+      "bytes": 2188
+    },
+    {
+      "path": "mixed.mjs",
+      "sha256": "b256f8b11b020e613680b1c6abc84db90c0c756b46c4e9c7d580f427ca0252bf",
+      "bytes": 2082
+    },
+    {
+      "path": "pg-and-bypass-final/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "dfcde50607eb0dcd6e7860422b472338bb1af7dc43d894431f702779ec637eab",
+      "bytes": 1783
+    },
+    {
+      "path": "pg-and-bypass-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.log",
+      "sha256": "36cc01c198df510ee150fc308c3ddabf2806dcb670b6fc0805cd059f4cf6a6cf",
+      "bytes": 281637
+    },
+    {
+      "path": "pg-and-bypass-final/LOCAL-qwen2.5-0.5b-instruct/TestLivePGVectorCapacity.log",
+      "sha256": "48c0829e2d0620903cfd553ee34f0a9e7061ed22a60809c8ea1ad465448a3a9e",
+      "bytes": 673168
+    },
+    {
+      "path": "pg-and-bypass-final/LOCAL-qwen2.5-0.5b-instruct/TestLivePostgresDiscardable.log",
+      "sha256": "6f790ae7963b67f3f3b15eae85dc9b0c960fb486953209dd9f968c274c09cab3",
+      "bytes": 384
+    },
+    {
+      "path": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/runner.log",
+      "sha256": "d8469745294b16d2edbde82316fef60b6d7854fdaf38964dd0fed64977f306f1",
+      "bytes": 1754
+    },
+    {
+      "path": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveFusionStream.log",
+      "sha256": "3459ec5342d14b077d44a8568c6ea3d70007ec6d0b77752c6b54b4431068a9dd",
+      "bytes": 1640
+    },
+    {
+      "path": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveRawGreetingStreamShape.log",
+      "sha256": "86f439a2152da99c1f7ec19ea6ef6a3b65497273227dbbba3d8a9f9646e85f70",
+      "bytes": 9490
+    },
+    {
+      "path": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveRawToolStreamShape.log",
+      "sha256": "f499ce923412f517c0e111cf9b777a452e1791ecbab5267c3521d43df273619e",
+      "bytes": 15056
+    },
+    {
+      "path": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveStreamSettlement.log",
+      "sha256": "d53a451bc1df1092189f527f132a5fc7aecb4a9f31dca690f93a7e5ce538cdff",
+      "bytes": 4513
+    },
+    {
+      "path": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveToolStreaming.log",
+      "sha256": "d997221ce5bdfb6c45f40443465ef8bdfcd19909b237aded3fbbbb718a83c640",
+      "bytes": 7149
+    },
+    {
+      "path": "protocol-after/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveUpstreamStreamDiagnostic.log",
+      "sha256": "3ef4616bcc7b24aca21a7d94cc8a491005ffe79b0b20d4f29935e7b1201dc1e4",
+      "bytes": 340
+    },
+    {
+      "path": "provider-delay-direct/OR-nvidia_nemotron-3.5-lightning_free/runner.log",
+      "sha256": "c15649deffefb1a51b58854ce7fd024662d0f9b7237d0a0dafdb8ff4859376ab",
+      "bytes": 1773
+    },
+    {
+      "path": "provider-delay-direct/OR-nvidia_nemotron-3.5-lightning_free/TestLiveDirectLoad.log",
+      "sha256": "2e36cbb9c43fb0c290403a1fc9c67da87d3a21c97bfa59d78cecfb989b4a95c8",
+      "bytes": 2145
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "a87b70cd893be15e8075216af43efc5cf90ac17d30cbeec2a644f7a57bdc7631",
+      "bytes": 1992
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveCachePendingVisibility-vm-after.log",
+      "sha256": "fd6b6b37fd49f05667284c4987736a5d8f5957d8f38ec42e48839ab4fbc87925",
+      "bytes": 3399
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveCachePendingVisibility-vm-before.log",
+      "sha256": "dc771994d681f33e0b31c21ea8191a1554e45f05d4793b932ff980e61b10c2cb",
+      "bytes": 3399
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveCachePendingVisibility.log",
+      "sha256": "583bf87f788b45ef85eb439bc705f5d3379e94da9444509a1012e62255fece21",
+      "bytes": 6800
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisDelayBound-vm-after.log",
+      "sha256": "1634b9c3a3eeb1b03d9de0a79b53fe9cb19051fc3d8b85f25d35c82cdd1a75f0",
+      "bytes": 3399
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisDelayBound-vm-before.log",
+      "sha256": "864afab249ea1dd38ecc9571239b008dc5bf89d9ac7e8f39a755f2bed36b8f27",
+      "bytes": 3399
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisDelayBound.log",
+      "sha256": "c658ab2e78a024ca5abe2a0fd0fb2af5fca23757564b7cc863ea9d8ed58b3fc3",
+      "bytes": 7460
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteCapacity-vm-after.log",
+      "sha256": "e2a3af756fe1e582dfbe791742d4ba81de43417c817fe442b64da54c785d108b",
+      "bytes": 3399
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteCapacity-vm-before.log",
+      "sha256": "509e866ee71804e62e1846ec0fed6dbdfdeaf98779a262ef137708d6edcab888",
+      "bytes": 3399
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteCapacity.log",
+      "sha256": "28fbd11ba821e70ac585a2df64722f72c030575caa7cb9f3c0814bc008b86d28",
+      "bytes": 379283
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteConnectionPragmas-vm-after.log",
+      "sha256": "eb8d26a9fdcb409b512bc8497ef95d2edd9cd92a08eb193390c79500cb95f77f",
+      "bytes": 3399
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteConnectionPragmas-vm-before.log",
+      "sha256": "cdf853e6771da106c53f1c52cf2e122cfbed72289349952f16d0b3295f3577c1",
+      "bytes": 3399
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteConnectionPragmas.log",
+      "sha256": "ab4be8effcfe8a6326253555cfba87878862f07d26baf25547ddc2d7120da81d",
+      "bytes": 2202
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveVectorPartialWriteRecovery-vm-after.log",
+      "sha256": "476d1460de7ae7becaccdf078d357199567c3d060bba8d3e85f28649f208de58",
+      "bytes": 3399
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveVectorPartialWriteRecovery-vm-before.log",
+      "sha256": "c84605160afd7334a1a44e9f28e812cc15b8f33fb2afbba84b938c0485362025",
+      "bytes": 3399
+    },
+    {
+      "path": "regression-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveVectorPartialWriteRecovery.log",
+      "sha256": "6eb9d1e1ee255e30530644a1cead208549c0cff9588b08bd222305ded3832c3b",
+      "bytes": 7563
+    },
+    {
+      "path": "sqlite-fixed/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "392e5aca22231f1cd99a1a07b75601bf6f6ec66d7e54ad53e3940c3f45ff1823",
+      "bytes": 1456
+    },
+    {
+      "path": "sqlite-fixed/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteCapacity-vm-after.log",
+      "sha256": "51528495d1c70dfe1a16eabe9d5171e53c9777104a4d82309f3a9198fcb90ff1",
+      "bytes": 3399
+    },
+    {
+      "path": "sqlite-fixed/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteCapacity-vm-before.log",
+      "sha256": "ef9a8bfd503fa6f004042ed8e02a8a7af9bcaba71acaf3a9373f6f155e6b7912",
+      "bytes": 3399
+    },
+    {
+      "path": "sqlite-fixed/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteCapacity.log",
+      "sha256": "6ce293d1aa85e9a6de6f8b1be29ed55d944cca98cb08fe3a4d156e9008526ba4",
+      "bytes": 341166
+    },
+    {
+      "path": "sqlite-fixed/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteConnectionPragmas-vm-after.log",
+      "sha256": "0fe40b4f7add72ed9ece1063ba76e8d503bae28ac1742f911265d24ca6d1be7b",
+      "bytes": 3399
+    },
+    {
+      "path": "sqlite-fixed/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteConnectionPragmas-vm-before.log",
+      "sha256": "56d033188fe50783727e5cffcc8164d01ad50379543fb0133abccf55d0aebee4",
+      "bytes": 3399
+    },
+    {
+      "path": "sqlite-fixed/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteConnectionPragmas.log",
+      "sha256": "f07e3faeec79e53398ae18c853ea193d202f33596a974ea3f82177601564f73e",
+      "bytes": 1369
+    },
+    {
+      "path": "stale-before/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "abdbe2163395686c796c6a1b8a442e6dc7ceb90034f92ce3ab1ba80a65a85976",
+      "bytes": 1542
+    },
+    {
+      "path": "stale-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheRestartCleanup.log",
+      "sha256": "2f0cd0f03798c2dca3ab310ae5a98152ef5d1837076b0c1b4cca365d40420fc3",
+      "bytes": 13693
+    },
+    {
+      "path": "stale-before/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisStalePublication.log",
+      "sha256": "c5cbbe189217acfd61c6dfa1a4c1f26001c19673d7e1160c6c742c06c094d111",
+      "bytes": 1000
+    },
+    {
+      "path": "stream-direct/OR-inclusionai_ling-3.0-flash-sante_free/runner.log",
+      "sha256": "8e6d766cf0f03f3710196a03c6c0ea30abe4ab87614f216364b6e776b29c5d84",
+      "bytes": 1736
+    },
+    {
+      "path": "stream-direct/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveRawGreetingStreamShape.log",
+      "sha256": "d006416623ff8724afe9b89b7b5f26163749cae21412883a6c0df2ef25a49d72",
+      "bytes": 7798
+    },
+    {
+      "path": "stream-direct/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveRawToolStreamShape.log",
+      "sha256": "03121db56238bf008ce4d9cfdc00c22a3d16ff663c9103e5c0950ced59b1731f",
+      "bytes": 7066
+    },
+    {
+      "path": "stream-direct/OR-inclusionai_ling-3.0-flash-sante_free/TestLiveUpstreamStreamDiagnostic.log",
+      "sha256": "d4c42d95542afe926138f36ba7b4fb8ee84c5e5f49aef4bd7290231ce9488891",
+      "bytes": 434
+    },
+    {
+      "path": "summary.json",
+      "sha256": "e76298cb2eaa28793d43aeb06b2f96a2e98c1045483800bd1bba13052fa3d3b8",
+      "bytes": 543259
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "baa0b4ce26248538376b72e6e82bd23a3e0391278881d0f3e1d4c1a8b8b88d67",
+      "bytes": 1494
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad-vm-after.log",
+      "sha256": "7288ae3fd6e449952e93f183c537ccfae6983a471e9d2eb33c4c692ae0aaf951",
+      "bytes": 3402
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad-vm-before.log",
+      "sha256": "44fb1b63f43aaf4f0c451d47dd7072b60b8092f496e19b9d0d9650a4e4361a76",
+      "bytes": 3402
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.blockprofile",
+      "sha256": "9a2849e07e33c3b73b459ebcbfc5657fabf033040e15ca79597b09ade03c3bee",
+      "bytes": 17838
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.cpuprofile",
+      "sha256": "4aa76ee29f680fbeca3cbd8b9ce829bd0156e6fc9b2ee687c4cbdc06342333d6",
+      "bytes": 10752
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.log",
+      "sha256": "5dabe79e3cbd59ac1b1052cfbbe6aa59b4fdd0a9c6cac9833466585ce2e79f6a",
+      "bytes": 282687
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.memprofile",
+      "sha256": "dad1a4632805f93d060bc2b34acf01541656fccaf0aaea05e74dd611886f96ce",
+      "bytes": 11027
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.mutexprofile",
+      "sha256": "deb3c3894bc06c6073bfa4b552cf91731da699548563e41fee9f67860fc121da",
+      "bytes": 14584
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.trace",
+      "sha256": "1a78298993d8b6695b291e3d72afad7b5a112d7def2bd3716dfb53938b867032",
+      "bytes": 719826
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveNomicPrefixComparison-vm-after.log",
+      "sha256": "51534a9f664031e213a20a4d6e1eb96b93d51986cc567e0a93bb1092741d6d75",
+      "bytes": 3402
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveNomicPrefixComparison-vm-before.log",
+      "sha256": "3dccfb7f9437526afadd6bfbedab742dcefad092399b83b0a4cdf3ae5d18008c",
+      "bytes": 3402
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveNomicPrefixComparison.blockprofile",
+      "sha256": "3b7febce0f7c3f4cdbceb87e9c4c945ba66e7ff86ba42226c4e5bff6b8ef5e86",
+      "bytes": 2614
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveNomicPrefixComparison.cpuprofile",
+      "sha256": "3365bf62694e5654dce940cb25d597a062b09bad5e12a9878cb37bf6c711fdbb",
+      "bytes": 5833
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveNomicPrefixComparison.log",
+      "sha256": "eedaa8048907865151d7e87e5b23e3664c1d4f4929f00e8992e0f50eddb8959f",
+      "bytes": 95476
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveNomicPrefixComparison.memprofile",
+      "sha256": "8f5a7a19778ecdb4d36829c9ee9398953a51ff1e524908c9ad7ec96a7a0f48fc",
+      "bytes": 5416
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveNomicPrefixComparison.mutexprofile",
+      "sha256": "c6f47183fb43f00de1bce240b72454aed61594bbb2bb6d74024dadf07e95d541",
+      "bytes": 3124
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestLiveNomicPrefixComparison.trace",
+      "sha256": "18924bce4480be8e9ff98932efeb27f448ed6d47f5670d06c556ae90ffa27586",
+      "bytes": 213579
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst-vm-after.log",
+      "sha256": "b60c563313297c4694a72c5c1df0bc2e50a09a6f6b85714eb21417b5ddd191e6",
+      "bytes": 3402
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst-vm-before.log",
+      "sha256": "00c2ca1b07c051c113fc3440afbb7f24be6a093567741da39a0e609614cfde9e",
+      "bytes": 3402
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.blockprofile",
+      "sha256": "6f7a49abe58cf3446986df57501e49485ad14253d279bbbe0b888f7b00ceddd7",
+      "bytes": 12481
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.cpuprofile",
+      "sha256": "fa9fa8eb2e468ad9410728a9a13987bd07da6f53c54423b37728f1dcb9633efa",
+      "bytes": 5967
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.log",
+      "sha256": "ccff657b324d249f6eb216ed56b3d9f4bef5908ef636e2184c6ea05715f38215",
+      "bytes": 2139
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.memprofile",
+      "sha256": "c2f26819a899b0a0259b436ad4380e2f86f6c31d85f8f65c813518f9eb03cde4",
+      "bytes": 7682
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.mutexprofile",
+      "sha256": "806f4854b2050260353d14414c1a5cdc11de9cefbce69d8445d93787e9ca9d58",
+      "bytes": 4084
+    },
+    {
+      "path": "supplemental-profile/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.trace",
+      "sha256": "786b5d00a7c48068d82d8ffd419df05f68b392864b611174677187a12cf68a22",
+      "bytes": 316193
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+      "sha256": "9017d08835a56c68187511354858328b2cb95016bdf5985220a42b63b3a5b910",
+      "bytes": 1678
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveCachePendingVisibility-vm-after.log",
+      "sha256": "11360180eccaa535d810647725a7b4791468e4539e6d14b02a8f7d0d5ecd1cd7",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveCachePendingVisibility-vm-before.log",
+      "sha256": "4e8be41c7f56e616a809aaa483d02dee4824c97a098ca23d7072e2c47c27fea6",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveCachePendingVisibility.log",
+      "sha256": "16f6b72f68b92a33fcd215dd85ec2ea7b8fd40e8ad0b04e0d427e32349af9337",
+      "bytes": 10973
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLivePostProviderRedisDelay-vm-after.log",
+      "sha256": "70e1b889fd261d5fbb814301ef767a507b614a950993a623d80d4bdc2349b7ad",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLivePostProviderRedisDelay-vm-before.log",
+      "sha256": "e6312f7f1ee0d5ac68d70522d545ef4941636bc8e3e8d880eceea1d3abaecf11",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLivePostProviderRedisDelay.log",
+      "sha256": "9c2942becb9e2030ecba48ebe3b5c473481b1c00b51156682fb54257b9d7e90b",
+      "bytes": 11881
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisConcurrentSnapshots-vm-after.log",
+      "sha256": "1da2b969b760e1c5831495833f07d728da1213bf1fc21d5a2296cb1772463e9f",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisConcurrentSnapshots-vm-before.log",
+      "sha256": "bc06b87fa123ae35aa879aa220e101465f9a76f11856e1521579e8c2a8a98957",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisConcurrentSnapshots.log",
+      "sha256": "77de5616b88e8c8cdb8c443030555c5d4f7ecd824446facb6c06dd02e80a1425",
+      "bytes": 246
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisDelayBound-vm-after.log",
+      "sha256": "53f2f603b496cc976a6fa98e00cca114e75ba8b9810b5c38935585f207f9509f",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisDelayBound-vm-before.log",
+      "sha256": "3231a082b5445b6c7deac8b05ce2cf2e0c691d160089b682761b5f5fc485ab43",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisDelayBound.log",
+      "sha256": "d976704d1afc48f9432f8eacfd8066d19080e0e19ba33d96e252a4c0679f2cec",
+      "bytes": 9131
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisProviderIsolation-vm-after.log",
+      "sha256": "53beddb1d301eb54c46b7c28139353f5bbfb4320ffb723eeed7301f25f1289f3",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisProviderIsolation-vm-before.log",
+      "sha256": "77eeac6aaf7984e471a58a64d58219a824a2086bb843f52ef65cf8334a2707b2",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisProviderIsolation.log",
+      "sha256": "94a095d049a54c1638392c0507803ab4067d5e9eda8a57b2671d30197bfe9d17",
+      "bytes": 885
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteConnectionPragmas-vm-after.log",
+      "sha256": "229f9351f84d2b6a123d83db00fdc53ed12496e4098782396ddf9efb07fec656",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteConnectionPragmas-vm-before.log",
+      "sha256": "6a2854eb253de7d51ca011946b18e6e75979f68cab469f1e79e145211a37c511",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveSQLiteConnectionPragmas.log",
+      "sha256": "743d954acaa0c42ec4a27d7f4e81877e4a96a8dc7d0c0ddbd9b544044642cfab",
+      "bytes": 1369
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveVectorPartialWriteRecovery-vm-after.log",
+      "sha256": "6c422f4dcdaafa3112f7352f62ce1723fec0a477d8879124446350930788d06d",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveVectorPartialWriteRecovery-vm-before.log",
+      "sha256": "5c8dcf06b48a6907e29f2b324da22cbb74198ed0d73718e720ee4d9feb3196af",
+      "bytes": 3400
+    },
+    {
+      "path": "targeted-after/LOCAL-qwen2.5-0.5b-instruct/TestLiveVectorPartialWriteRecovery.log",
+      "sha256": "d9833561e2eb98f68f1b326a8b271d5b99d77fa6c8e03c880363a0390fe71b83",
+      "bytes": 42861
+    }
+  ],
+  "binaries": [
+    {
+      "path": ".tmp/phase29-remediation-20261003/all-fixed-linux.test",
+      "sha256": "65c685a0746c9160c1d2f78e61a14a25d06d2e6773a0e3742f3e3927ac73cd2e"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/baseline-linux.test",
+      "sha256": "8e46780be6ca4163efdc1c401fd9c47683220932f5061cf04396403d8f676f11"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/candidate-linux.test",
+      "sha256": "d29d15c5e778c1005a308244193607d726a8b6cc2c6772a8f42623011aae0a7b"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/delivery-linux.test",
+      "sha256": "31112b0423c7a9c4bc7e435d771dc1c079f0fbe0e3dd1ff9be413776da40caed"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/diagnostic-linux.test",
+      "sha256": "40fd8ddea97cf540e612667f6e195ade820369035ff732af2296a00c8744916e"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/final-linux.test",
+      "sha256": "48412390c73850c04fa3f46d8f807d848ecdf9e7942104fedc7c8803165e17de"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/health-before-linux.test",
+      "sha256": "a05a1426337e828a36c383ba3d3ac197eba3197f6c9a291058ba2f93b4bf88e5"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/lifecycle-linux.test",
+      "sha256": "3f288a33b083397394f39291ce113d83ff0983f279e7a9cd7c19635e2562e69c"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/protocol-fixed-linux.test",
+      "sha256": "5a2e8790546238f6526f4903de971c26e6d7873ec3276ef9752d7f5cef46ebca"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/regression-before-linux.test",
+      "sha256": "86773d71f6fe8e03f1e927f3472e8ec2d833940c77d166f06956cc18de0cda06"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/runner-wait.exe",
+      "sha256": "52ecaa8a93bb3c5be6f4241c7efdeaf1bcd02ad7d59469fb8838f8bd6643eda5"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/runner.exe",
+      "sha256": "b63798eed60f4b14f7bccf019a55c0c099d4d657a903f0e25e7f220c26dd564c"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/sqlite-fixed-linux.test",
+      "sha256": "65f3b20e74248fafea3518fa2e1b63e58ce1e81c6596c2641964bf1086000d74"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/stale-before-linux.test",
+      "sha256": "d3bfccea1955c867f61909d0eabbae8efc860db8fe31a810a7cd21d3bd7b2163"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/supplemental-linux.test",
+      "sha256": "7549859f76de6098acc5d9517da2fe69660722838a2d1abc4fe60af85e2b7866"
+    },
+    {
+      "path": ".tmp/phase29-remediation-20261003/verified-linux.test",
+      "sha256": "092cba1fc2fe0fc0e1c581578421016ac3d28ae0491862ac2b8e629c5dd96082"
+    }
+  ],
+  "source": [
+    {
+      "path": "cmd/controlstate-migrate/main.go",
+      "sha256": "66195d596512e432b1e58f30bcb6b45465fc9fe93e68e8069a546a7ae4016244"
+    },
+    {
+      "path": "cmd/gateway/main.go",
+      "sha256": "e11a348c13a8ee8b3f061d93122c066fe53074d456e4db9fda6557d6191e9db7"
+    },
+    {
+      "path": "cmd/scheduler/main.go",
+      "sha256": "e4a700fd19032f510665d27eb7666435181abb20c132c24962d498af45f89d7e"
+    },
+    {
+      "path": "cmd/scheduler/main_test.go",
+      "sha256": "9023158be7e9610c01f3ee7c6a717c52b9deacd7c803d1d7b388cd6ebf88cc4a"
+    },
+    {
+      "path": "go.mod",
+      "sha256": "fdeeb70f71729d14f02d358ea74f6d8bd196440f2fa013b7c10cf2ef302423a2"
+    },
+    {
+      "path": "go.sum",
+      "sha256": "ddbfbd13f5848697c80131440bcd82ea162dbfe25359ed95f4f7661e11113a62"
+    },
+    {
+      "path": "internal/admission/controller.go",
+      "sha256": "b905bf4122b8235ba9010bb262fab6fd354f29f720f1380ed2bb56f986eab2e7"
+    },
+    {
+      "path": "internal/admission/controller_test.go",
+      "sha256": "12177016c8f382c8d2c8be3e03047de7e7b98122270e747186368136d8c8545d"
+    },
+    {
+      "path": "internal/app/app.go",
+      "sha256": "dfd62e5c4495054de3a8fe7df5f75ba2545951825a0bb891823bb256fc6bf3f3"
+    },
+    {
+      "path": "internal/app/app_test.go",
+      "sha256": "e1d73dd6d7480a716324e13dd4b3ce926d6f8e24c119bb4cb1cd55e116e0197e"
+    },
+    {
+      "path": "internal/app/live_business_faq_test.go",
+      "sha256": "6fadecf77d072ec39c0bba977d70f1b35eca5ae668cf32073ba8bdcc83b085e2"
+    },
+    {
+      "path": "internal/app/live_cache_lifecycle_test.go",
+      "sha256": "b7b8fbc01e16cb1cec048478b765a2990580c50e00ed23bb59770cd37da60a99"
+    },
+    {
+      "path": "internal/app/live_cache_reuse_test.go",
+      "sha256": "596c940e0872aa32ad07b1870191ad1b5b7f830c441b734f10383770c18d0fbb"
+    },
+    {
+      "path": "internal/app/live_component_capacity_test.go",
+      "sha256": "159722039b1bb97b9831d7cb04736603e8b55a311a7f61784b9bd3c49da1b866"
+    },
+    {
+      "path": "internal/app/live_diagnostic_test.go",
+      "sha256": "631a75595dceffd1fee7bc28593c7ece36b6a759dbe280a3f22128bd793608e5"
+    },
+    {
+      "path": "internal/app/live_dimension_fault_test.go",
+      "sha256": "7f53f2bea9931cb32a8ced856e87210f3f351dd5ad010d836958159cd180974d"
+    },
+    {
+      "path": "internal/app/live_embedding_scores_test.go",
+      "sha256": "36fceecf7b9c84e2209b7c7b7ad172fdf34789e32011c089b2b371cddef6cba5"
+    },
+    {
+      "path": "internal/app/live_embedding_stress_test.go",
+      "sha256": "5cb7e6f57e934d321a4d53932e13e2023c1ec035e8dfc0531fa2aa9e6e174a9a"
+    },
+    {
+      "path": "internal/app/live_health_concurrency_test.go",
+      "sha256": "d6061f017286df3008c0175dcb02e2c6c7dba3836aed9b74de34adf2fa4da9cc"
+    },
+    {
+      "path": "internal/app/live_model_switch_test.go",
+      "sha256": "a0770a7f0b1a8f0fd77a84203297d5199b3802434f4ab2f771b30ee5b13a1f42"
+    },
+    {
+      "path": "internal/app/live_network_fault_test.go",
+      "sha256": "3c2c33ffbc3a929754ef5af77f11b31486f56a3b5ea7113c316cbb2291538db3"
+    },
+    {
+      "path": "internal/app/live_network_proxy_test.go",
+      "sha256": "b1a1ebb20eb62e0048c54ff983197c5ec837e6d1756d736923a0e1f8c4ad310a"
+    },
+    {
+      "path": "internal/app/live_nomic_input_test.go",
+      "sha256": "2093db57703831b99f4ac39f899362401ec2729e42a81ae39f48bcaa98d62f9c"
+    },
+    {
+      "path": "internal/app/live_pgvector_capacity_test.go",
+      "sha256": "e7b538c5424212c858cc53c097c54395dcd93fb847da827e8a1b57e168792a3b"
+    },
+    {
+      "path": "internal/app/live_postgres_cleanup_test.go",
+      "sha256": "9c2e38b40e441a4d0a298d57291a83f4babf7e70d080e0f0d030eb0d22453619"
+    },
+    {
+      "path": "internal/app/live_qdrant_error_test.go",
+      "sha256": "89e438ac883d37903314f26caada00fa9776ee83cf6bdfbc679acd8a5b190fe7"
+    },
+    {
+      "path": "internal/app/live_qdrant_process_test.go",
+      "sha256": "848c1e6c6df9ca64f5380b0d6575bb0500ea70d7295434eddaf183b32fc4d9ce"
+    },
+    {
+      "path": "internal/app/live_redis_delay_test.go",
+      "sha256": "44cf5eb7db9af38ea9e40662ed4e138df46ad6efb4ded26774415079707be1c7"
+    },
+    {
+      "path": "internal/app/live_remediation_regression_test.go",
+      "sha256": "b432c359f38d0ae92e14bb8a949d1b469831f3118a62abb7bbe5360f12f8d4c3"
+    },
+    {
+      "path": "internal/app/live_scenario_test.go",
+      "sha256": "9081183e672369ab19681abaefddbbc2d375fbd5589095041575bd4c2e17c86a"
+    },
+    {
+      "path": "internal/app/live_semantic_diagnostic_test.go",
+      "sha256": "117c0eeb8a3cf84b8ea8704dabf8cb3fc22c9243ccd4bd3ef1de147113a1bc43"
+    },
+    {
+      "path": "internal/app/live_ship_features_test.go",
+      "sha256": "97ce2ef9c113ee74f873d43b8abcb6dcf7004d1898df4fab23384c07e06a66fc"
+    },
+    {
+      "path": "internal/app/live_ship_gemini_diagnostic_test.go",
+      "sha256": "087d4662705e2e597f391b51d8ceff105c3221b15a1bc44353460e24cd957db5"
+    },
+    {
+      "path": "internal/app/live_ship_load_test.go",
+      "sha256": "3e71b3b80f65595a6a52ce064656e46b2d438cf56b92e7330dc98bfdef75c617"
+    },
+    {
+      "path": "internal/app/live_ship_protocol_test.go",
+      "sha256": "446226b9aeb56958cb26d4c3cac58049fb9ef764d2e74532bb9332c5dd072624"
+    },
+    {
+      "path": "internal/app/live_sse_timing_test.go",
+      "sha256": "b2b8f7c3e3b34c81a1ab12e165aebcb19bb04f0ab223e5adb1d8f84c36b18094"
+    },
+    {
+      "path": "internal/app/live_stream_shape_test.go",
+      "sha256": "200f4abcc8237dd117f4502e93f7b9156ebdbe681de6c3d45425fa7dc17bd11c"
+    },
+    {
+      "path": "internal/app/live_timing_test.go",
+      "sha256": "e1b357da42e2e30ff13bc4473f24dc76648c9dd27ccadaee2402fbd880752ab2"
+    },
+    {
+      "path": "internal/app/live_upstream_probe_test.go",
+      "sha256": "91c22c99e1db1ce98f3567836fa78719e2b02aff75357b189c13060b70174725"
+    },
+    {
+      "path": "internal/app/phase29_acceptance_test.go",
+      "sha256": "44fa57f83bc2b278116f0c1a15ca25bc1450d379b9b15b4e1ac4ba715d3e8cf7"
+    },
+    {
+      "path": "internal/app/phase29_burst_acceptance_test.go",
+      "sha256": "a2151122452be76c1dbdd774e25a5caa7fdefb687f353441d27cbef8cc24c3f4"
+    },
+    {
+      "path": "internal/app/phase29_fault_acceptance_test.go",
+      "sha256": "9d21c4f25cc402f224298ed5951a66705d3b2c08d083e03341d3624dc3e04452"
+    },
+    {
+      "path": "internal/app/phase29_hit_measure_test.go",
+      "sha256": "e2995f17a861450fd4dc10ed001689b0e24d078fd902c20fb5260ea80537135c"
+    },
+    {
+      "path": "internal/app/phase29_live_test.go",
+      "sha256": "04086033350b1c3115f0ed2ce76761d454a1db17e19e11b970503412468fcefe"
+    },
+    {
+      "path": "internal/app/provider_reload.go",
+      "sha256": "9eb3d1b2ead27f4cd90c901ea5c3d3769ce7f840caa8f3a23beda61749f5461f"
+    },
+    {
+      "path": "internal/app/semantic_cache.go",
+      "sha256": "8ec44dd16411cf629595b1dcfc1dbe10cd2dd215024d8288d4090278fefffa98"
+    },
+    {
+      "path": "internal/app/semantic_cache_startup_test.go",
+      "sha256": "df6536877114ccab74bf05361c256cac54444e4aad3871e86e481b4209bd56f7"
+    },
+    {
+      "path": "internal/app/semantic_cache_test.go",
+      "sha256": "e47e4b286a867fb9f5c1d5fc8db7db446cb1122d1a0f558d26a39f5154fa3c53"
+    },
+    {
+      "path": "internal/app/semantic_neighbors.go",
+      "sha256": "dcfdd3c501348819219e053f369a10d91ab02ef5623549b02e887229829c37a9"
+    },
+    {
+      "path": "internal/cache/cleanup.go",
+      "sha256": "5675e4ebc09b8634bbddcc0b6c6059bce5568d8bce706f4ad0110b7bd0b6380e"
+    },
+    {
+      "path": "internal/cache/faults.go",
+      "sha256": "1aaeb32da3512c5ecacc77a01ab7f0d7bc9686a8be8ba4bbd3eb7646f32d9b3d"
+    },
+    {
+      "path": "internal/cache/measurement.go",
+      "sha256": "754fa040b7d5f5c2ae24b109680adde434cf34314bd9df076dfd1dd5c8c54859"
+    },
+    {
+      "path": "internal/cache/persistence.go",
+      "sha256": "ff6831f13222763338f4a0756f6b11a8c31a63e4b1e89ab24be27a2828eba8e1"
+    },
+    {
+      "path": "internal/cache/semantic.go",
+      "sha256": "5296c40514488172af46eb37afa2fb6db4a8857fae9849c5e7fd0b6fdaad211b"
+    },
+    {
+      "path": "internal/cache/semantic_acceptance_test.go",
+      "sha256": "53532598e0afadac285b4beaf1b4939cabdf658bb242e1413ea70b8e50dc7e69"
+    },
+    {
+      "path": "internal/cache/semantic_bounds_test.go",
+      "sha256": "f7c2e07aa9db1e35167890ac615f7e06e4158374025b4297096e54a18ce1dea4"
+    },
+    {
+      "path": "internal/cache/semantic_collection_test.go",
+      "sha256": "dc3b7a75ee0f67bbfc58550e2ecb21b5845a92b2ecd92bbce271338517af9d4e"
+    },
+    {
+      "path": "internal/cache/semantic_provider_scope_test.go",
+      "sha256": "afb32de0508d71e7cbad07c15a78d2edb0bce682f7a7443a46959eecf3c2dce8"
+    },
+    {
+      "path": "internal/cache/semantic_test.go",
+      "sha256": "5d369bc217b0f2397c28f83efb148f38939da03b73c7ba338e67f38740a96ed4"
+    },
+    {
+      "path": "internal/cache/semantic_vector_fault_test.go",
+      "sha256": "266acc0292328c37c6ece6429f26ddf40a5432017c35402d18051a4557659392"
+    },
+    {
+      "path": "internal/cache/writes.go",
+      "sha256": "cfcf8193bc06ca68d152f3b373a65b84de2aeb4aae7aa0c43650aefbb8c823f9"
+    },
+    {
+      "path": "internal/config/cache_bounds.go",
+      "sha256": "7dae1eb366418787ec4c55f3d668731b17f9435e821a1556535a1c2c0bf0679e"
+    },
+    {
+      "path": "internal/config/cache_bounds_test.go",
+      "sha256": "7627e0501cde0816149e11525f9aaabb8ec4d240d278abd3bcdd9d0ef1201521"
+    },
+    {
+      "path": "internal/config/cache_file.go",
+      "sha256": "09d437edc20bc9c12f344cd1360502aca579efd5431d47811bee3f17be3ac16c"
+    },
+    {
+      "path": "internal/config/config.go",
+      "sha256": "5da22aa855e878641e5196ab2f0b7852985ba4901fef1a30cf3a2c33d95193a9"
+    },
+    {
+      "path": "internal/config/config_file.go",
+      "sha256": "7e18bcec920376c15c1068901183c83e79be75c93d349bc8ad4d0c7581db9a56"
+    },
+    {
+      "path": "internal/config/config_test.go",
+      "sha256": "2d1d2020cd9347a64338033458ae7ddda6d75a20adcf7e0b972e08ce942b33b3"
+    },
+    {
+      "path": "internal/config/config_types.go",
+      "sha256": "0550d6dd2e29c051c8949ed31e2be2548de97a5e12d2c66b8bd25a6f793262b4"
+    },
+    {
+      "path": "internal/config/config_validation.go",
+      "sha256": "4a30e399c11f5646f52f6b642730429ddeef2d9ef2f84d7e4779e02f8ceab4c3"
+    },
+    {
+      "path": "internal/config/deploy_examples_test.go",
+      "sha256": "7929b1e9433391e9f91a3a4a77f2a57926afb6119075e3f4d226bc4121484872"
+    },
+    {
+      "path": "internal/config/env.go",
+      "sha256": "945489e881cc43343c963ff8f56c0329869b85e3fb23988f68f100605bfa773c"
+    },
+    {
+      "path": "internal/controlstate/admin_combo_service.go",
+      "sha256": "8827d0404bc0cf4a4b94e49b26fcd7f66deed8e5dfb11623c152d571c0a0cbaf"
+    },
+    {
+      "path": "internal/controlstate/admin_semantic_rules_service.go",
+      "sha256": "1b025b52f138a038cf1a50593a5935bec0ddaa28f7491440675daefe4db49be7"
+    },
+    {
+      "path": "internal/controlstate/admin_service.go",
+      "sha256": "712d8046b88edc8c0da4c36f98ba99507c1bfa42b396ab537c5987a4bf509a24"
+    },
+    {
+      "path": "internal/controlstate/admin_service_test.go",
+      "sha256": "a13ca14d80a7f97c5ebb35886c34ff811c9ed0ca0f57f6989c59d0f4ef6fe93d"
+    },
+    {
+      "path": "internal/controlstate/audit.go",
+      "sha256": "c025bdbe5abc757a4d32dd1e82d0883f547506fd1794971dc748996cd72eb3f3"
+    },
+    {
+      "path": "internal/controlstate/audit_test.go",
+      "sha256": "d6c98372ad0d30c73e46572a6188040a574fe9911669031d42c79c6aa79e0b21"
+    },
+    {
+      "path": "internal/controlstate/capabilities.go",
+      "sha256": "840c7ad1e6b2b78bf8ca2d94187e27a2821385ad8b789e0e1c8c5845f965202f"
+    },
+    {
+      "path": "internal/controlstate/controlstate_test.go",
+      "sha256": "5145a34d160e4fe48628cc645841365576d30426fe431e75e9b27ecd296fa1df"
+    },
+    {
+      "path": "internal/controlstate/idempotency.go",
+      "sha256": "77c7ed08498a6f629982b44f745d3b34cad9a940489ec33b7673b32832b1f19f"
+    },
+    {
+      "path": "internal/controlstate/idempotency_test.go",
+      "sha256": "436e35991dbbd09f55af01ac52eec9d6d94e6e6d1c4edba1633364e8bb8ef9e3"
+    },
+    {
+      "path": "internal/controlstate/limits.go",
+      "sha256": "5326def60ff45dd19362bf83561da9d7ad2f240e95d72b503fd592ddb567db79"
+    },
+    {
+      "path": "internal/controlstate/migration/sqlite_to_postgres.go",
+      "sha256": "602e3a2e337ea904bd78113066b0515ea62444fc4ed289ff0d5cdad33787567a"
+    },
+    {
+      "path": "internal/controlstate/migration/sqlite_to_postgres_test.go",
+      "sha256": "321820fe2fdeb0af3838fbef0ddb9fe124da7af1128ccfe5c2ba7dd982253936"
+    },
+    {
+      "path": "internal/controlstate/migrations.go",
+      "sha256": "59746864ebd3d54622e5b8a35ae0e0dfde378e46e8067af43136a7ee2e262a4d"
+    },
+    {
+      "path": "internal/controlstate/postgres/cache_cleanup.go",
+      "sha256": "e23e541d69682953b0b3fb5196ef201fa8ca371f46c0d4230a55a5bf06fbb5fd"
+    },
+    {
+      "path": "internal/controlstate/postgres/limits.go",
+      "sha256": "7c8feea519e365995879a4f6a194f713a4c5c10b7bbc57471bbb10dbd694c973"
+    },
+    {
+      "path": "internal/controlstate/postgres/migrations.go",
+      "sha256": "2b4078cc9c50933901608bb0044a3194bc06d8f144b89d6bda05f97ab24d1d13"
+    },
+    {
+      "path": "internal/controlstate/postgres/repository.go",
+      "sha256": "e059cb7547fc5d43d03c7b6d660d572bd883368be2040b2cb56d871dcff8e858"
+    },
+    {
+      "path": "internal/controlstate/postgres/repository_test.go",
+      "sha256": "8f8b54f9a6b489a2838a20a43b32b0a2f545c48279aa1dbad6c3b51ca7981119"
+    },
+    {
+      "path": "internal/controlstate/postgres/scheduler_quality_rollups.go",
+      "sha256": "681f37a681fb2dd50a5e0c676ccc47254c2e73bdb3c476d5e117483778e31d10"
+    },
+    {
+      "path": "internal/controlstate/postgres/scheduler_quality_rollups_test.go",
+      "sha256": "8a12ec52dca2bb22467eef4758c680103e7934f6b272689a313dfa294d1b68f1"
+    },
+    {
+      "path": "internal/controlstate/postgres/scheduler_training_samples.go",
+      "sha256": "5e3e8e3bfe01c4af1ce93138f7bde1afeb0cddae19f1ae62e859e3f9629f5fe1"
+    },
+    {
+      "path": "internal/controlstate/postgres/scheduler_training_samples_test.go",
+      "sha256": "b6cbfcb8553eb420504d6497c6651799314a9df255f768d0ac4ddc32d7152b3b"
+    },
+    {
+      "path": "internal/controlstate/postgres/semantic_rules.go",
+      "sha256": "d2b01a3740c2da76d90ba3c25cd5771c2b5bfeb380508f0c1dd2037e06d6454a"
+    },
+    {
+      "path": "internal/controlstate/postgres/session_blacklist.go",
+      "sha256": "73688cf70cbd037f6a5269fad530ca43896721702f78640c68fc8f115a792bb1"
+    },
+    {
+      "path": "internal/controlstate/replication/consumer.go",
+      "sha256": "97b47ab042c2a96a482c1ec0785d7d6a55cd0f223c2b16cfc7e69b4be0d17d2b"
+    },
+    {
+      "path": "internal/controlstate/replication/recovery.go",
+      "sha256": "90acda3c831102546af281f8200272c0fad66e7ce84647ef2c0d203e0d066d8f"
+    },
+    {
+      "path": "internal/controlstate/replication/recovery_test.go",
+      "sha256": "172ee774ddbaf8187b74736211e2e03391ce5273b443cf0b0f71acb2c9a3020b"
+    },
+    {
+      "path": "internal/controlstate/replication/repository.go",
+      "sha256": "9ec5cd7bf739170214ec884947b2e401ffbef863b83db7a05b4e782c15fc2694"
+    },
+    {
+      "path": "internal/controlstate/replication/repository_sub1.go",
+      "sha256": "c5d3704576e256b446f65b0d4d9427ac79f2ea1ed2030f7c04bedf34fa247064"
+    },
+    {
+      "path": "internal/controlstate/replication/repository_sub2.go",
+      "sha256": "3a4ef6c2884d95934756713e2f0e665599b81facb36574b128719aa42295b8a7"
+    },
+    {
+      "path": "internal/controlstate/replication/repository_sub3.go",
+      "sha256": "d1df486a22aba69f5d1a0e79af1bf9cfe608d308e7f522770b42de6140f7c2ff"
+    },
+    {
+      "path": "internal/controlstate/replication/repository_test.go",
+      "sha256": "69af0b5c6681fb2312f4454db7835de4390b25ffcb18a4f516ecd1e00e9a6e4b"
+    },
+    {
+      "path": "internal/controlstate/replication/stream.go",
+      "sha256": "23af0ca4c581c1a46854dd73e919c1a74a9cac21a2ac99c8ee12ad575d605f44"
+    },
+    {
+      "path": "internal/controlstate/replication/types.go",
+      "sha256": "7eb041b5d5e2d80241c096831c3d9b673378b156c48bbc9f4d025f41548092a6"
+    },
+    {
+      "path": "internal/controlstate/repository.go",
+      "sha256": "2e9fb095ab04b115e0329d277460d32f4535322a2beab73dc493cb4be6df91e4"
+    },
+    {
+      "path": "internal/controlstate/runtime.go",
+      "sha256": "d766da6b2434465508fdb3c7ffa6ec687a4883b479226611ee9a0137109e636c"
+    },
+    {
+      "path": "internal/controlstate/runtime_test.go",
+      "sha256": "5e718a61bd7ce604b1e63ae40d6dee3bc543932c090eb73612831285698fd550"
+    },
+    {
+      "path": "internal/controlstate/scheduler_quality_rollup.go",
+      "sha256": "05caa87ebd1ce4421c9974a923922c46a0bf9e387c6d9bbab75669d24cb2ad26"
+    },
+    {
+      "path": "internal/controlstate/secrets.go",
+      "sha256": "027167dcae8eb7eead337e4d1a2bb61b1301453ad80a5292f155e12205bdf195"
+    },
+    {
+      "path": "internal/controlstate/seed.go",
+      "sha256": "4e919c02453d39f053a2bdbec8d1b84094c957a73e4595a5a9978155742294ef"
+    },
+    {
+      "path": "internal/controlstate/seed_test.go",
+      "sha256": "fd5006a2ea7a89517ee973aa8f8a12098a7ec430af83a11165af5663c0da8472"
+    },
+    {
+      "path": "internal/controlstate/semantic_rules.go",
+      "sha256": "5be8c4d52d6ab011608a10168d0463f97880a31e8dc644b7fc5af8416e1d24f8"
+    },
+    {
+      "path": "internal/controlstate/session_blacklist.go",
+      "sha256": "127d368d7a9f23450bf3bb2a425b0258eb2ae0a8deff85326811e938bd5eaed1"
+    },
+    {
+      "path": "internal/controlstate/sqlite/cache_cleanup.go",
+      "sha256": "320dd7af8c579b48b4c16452fc2b8755a29370f88fc95c8e69217cd62f91b1f8"
+    },
+    {
+      "path": "internal/controlstate/sqlite/connections.go",
+      "sha256": "4b5aedbe9acd861712403b75153174e83c1a79f68d3585d6d110aeb4d393fa27"
+    },
+    {
+      "path": "internal/controlstate/sqlite/limits.go",
+      "sha256": "2cb08579454f13dea64e44392f4a7eac5536bb9779fe26f61b3d8d6174feee10"
+    },
+    {
+      "path": "internal/controlstate/sqlite/limits_test.go",
+      "sha256": "c57877c5b16557110b2852d229f80e9f8f5b59685d91aac8fdfc8d8a86af9c3c"
+    },
+    {
+      "path": "internal/controlstate/sqlite/migrations.go",
+      "sha256": "eec370ecdbc4e0c36368947f0422ac95e450c93d88c6c121b87ceed156a6564a"
+    },
+    {
+      "path": "internal/controlstate/sqlite/repository.go",
+      "sha256": "e3b4cbf7d84552cd61ff0e1367f8d557aca9b75a2d7f06ed2d1aee5a64202bae"
+    },
+    {
+      "path": "internal/controlstate/sqlite/repository_test.go",
+      "sha256": "5d7541378dd90ee3ef9fb4a69efde1108c27922b5c1c2e0763db594f4d014f78"
+    },
+    {
+      "path": "internal/controlstate/sqlite/scheduler_quality_rollups.go",
+      "sha256": "89e732eb6ae1a58efdb957de995301269cab44edabe819b8a278a649f2e2fca6"
+    },
+    {
+      "path": "internal/controlstate/sqlite/scheduler_quality_rollups_test.go",
+      "sha256": "3878cd2b986b5b23d837a4c4971cc6acfff028554a4f09b19e45d9f66299b484"
+    },
+    {
+      "path": "internal/controlstate/sqlite/scheduler_training_samples.go",
+      "sha256": "13b497d92bd2b64bde74f31c5a605fe57da7a5f576b05dc0529ef2a30d36dfa5"
+    },
+    {
+      "path": "internal/controlstate/sqlite/scheduler_training_samples_test.go",
+      "sha256": "73aaafb45caae8d67edf8260d8b0aaee095615e3f5852e790cc738653035e496"
+    },
+    {
+      "path": "internal/controlstate/sqlite/semantic_rules.go",
+      "sha256": "11d8837639623e2e7fdc0da7b450fae030a7c22520949194ff79d2b03bad2cf0"
+    },
+    {
+      "path": "internal/controlstate/sqlite/semantic_rules_test.go",
+      "sha256": "09e246df58dc201f34c4f842fd805bc27b50d81ef9d4212afc9565afe9e4b27a"
+    },
+    {
+      "path": "internal/controlstate/sqlite/session_blacklist.go",
+      "sha256": "61b46c09945864ad31d82586087a816c52ec9d5beba158be8ee2066545a5d938"
+    },
+    {
+      "path": "internal/controlstate/sqlite/session_blacklist_test.go",
+      "sha256": "cfc476fd82805f4460ade2efc8a4b176e31025d9dd68b752a59e4aa5f809b505"
+    },
+    {
+      "path": "internal/controlstate/types.go",
+      "sha256": "f9f8f8786481dbd02371d0ce4475afb3b12290fa8b65993aea2b43bef9abebdb"
+    },
+    {
+      "path": "internal/controlstate/validation.go",
+      "sha256": "77f132171f5f9d58efe95ead6474862dcccc614e418fba1212f7c7962437a1a8"
+    },
+    {
+      "path": "internal/controlstate/validation_test.go",
+      "sha256": "1a79d171fc2ebc0872dc5028015e6614354a3875593ff8e8be42e69184cae85b"
+    },
+    {
+      "path": "internal/coordination/coordination_test.go",
+      "sha256": "fdfbd1bda786c1c56153169e447e5ab1400d9361e5207a9f8298ded469646068"
+    },
+    {
+      "path": "internal/coordination/fake.go",
+      "sha256": "ad72c32787420c1e119e63e47141518f1bd596d172fbd3f1de6096104c39f8d5"
+    },
+    {
+      "path": "internal/coordination/redis.go",
+      "sha256": "ed66b2c95b23f2069d48a495e2322f16311b243d73d1f839c37cb91310bd70ea"
+    },
+    {
+      "path": "internal/coordination/types.go",
+      "sha256": "e58f1b4cf84734982ad432fcb12acd92503f2972c15f7b0e8024cfe7660d2442"
+    },
+    {
+      "path": "internal/errors/errors.go",
+      "sha256": "59802a7be4bd572e535d995e5bfd5bebc8df2e1ce1e26f02c40925ad8faad954"
+    },
+    {
+      "path": "internal/errors/errors_test.go",
+      "sha256": "8d705cb022d2a777693f26d356945f9a7e0d3b9466073d8337d7ac5c78d6c093"
+    },
+    {
+      "path": "internal/gateway/circuitbreaker.go",
+      "sha256": "6b41ab15099b11f3a6ed721caeb8307da790de59856f59f1a81ac7bc0ce45a34"
+    },
+    {
+      "path": "internal/gateway/circuitbreaker_test.go",
+      "sha256": "0695e6d10c157d13938835a145a3c0e1305653fc840178fd1bb978bd8add5b47"
+    },
+    {
+      "path": "internal/gateway/fusion.go",
+      "sha256": "fa581cfdbe3be5beb6aae3b576976c05af32ecf17ce83f83e38ac4bc74637c58"
+    },
+    {
+      "path": "internal/gateway/fusion_terminal.go",
+      "sha256": "9904a6d231f45e487172bf0dc2e76f7c250dad0cc85c9d870c658417460f00f9"
+    },
+    {
+      "path": "internal/gateway/fusion_terminal_test.go",
+      "sha256": "96b056ae84352caa8eb1e2c73921cd4d4b5d5a30dfcb7678afd0ad2b63be9487"
+    },
+    {
+      "path": "internal/gateway/scheduler_error_test.go",
+      "sha256": "a19975e52ecc02895e710ef2d903a269fb86c7e5a5cf03cf7713fb188380cdbf"
+    },
+    {
+      "path": "internal/gateway/service.go",
+      "sha256": "d103c20ff49a200e4ef8ff8b9eb0a8bcb0cb12bb95c6cedce6196406c99c3dec"
+    },
+    {
+      "path": "internal/gateway/service_health.go",
+      "sha256": "97e558811b3f5c3591055f32419bf2b200808d9d3790d15fafc92b2d7425ae33"
+    },
+    {
+      "path": "internal/gateway/service_settlement.go",
+      "sha256": "a3aa19d9e118820d8ea9a6789996257e56b1576a4f815f822c261dcaf6c5c052"
+    },
+    {
+      "path": "internal/gateway/service_settlement_test.go",
+      "sha256": "47dc0a395e86bb73fe75969813f160a1c82555bf905fb21b910043fa6bb9ff64"
+    },
+    {
+      "path": "internal/gateway/service_stream.go",
+      "sha256": "1b70de0558eb3064caa23bf7fd5126a0398ccc643df6ca15f84f2c615af55f7c"
+    },
+    {
+      "path": "internal/gateway/service_stream_terminal.go",
+      "sha256": "fa574f4b2c1fd3d1f9c13f0273f75da8f685ae277807bfc29bcd1c1a42cce724"
+    },
+    {
+      "path": "internal/gateway/service_stream_test.go",
+      "sha256": "04624a71bf7fac3c2b2f2c2fce794aea12f04c3a1aa0d79f5298e94cdf0d0fb3"
+    },
+    {
+      "path": "internal/gateway/service_stream_tool_test.go",
+      "sha256": "986a7ff09640fa51695d101e800b6eb9940cf7bd385c44c593c76d63d55258aa"
+    },
+    {
+      "path": "internal/gateway/service_test.go",
+      "sha256": "1d0d466fbede2c08d0226020f9127b95e85ee06fc43ae7dfb027ea5a7c7dfd54"
+    },
+    {
+      "path": "internal/gateway/service_tool_test.go",
+      "sha256": "f205d5217ab302867d7df65eefcd8084c3443e6e7334ca20fe0522189717c907"
+    },
+    {
+      "path": "internal/gateway/stream_terminal.go",
+      "sha256": "10a462aee49bf0f0bd6bf908b421e35c977fdf0e8255f9247e2496ed70ff368f"
+    },
+    {
+      "path": "internal/gateway/stream_terminal_test.go",
+      "sha256": "760245335bdde9e260affe74cda56a401baf01f4bd7da696674f81625e8f5173"
+    },
+    {
+      "path": "internal/health/prober.go",
+      "sha256": "22eafd9b8278321cc7db673a0d4967f1b26a900f0a85301c892bfe69107b840a"
+    },
+    {
+      "path": "internal/health/prober_test.go",
+      "sha256": "4c4b90df50239dc071bf0e8cb2a2fedb2746f0b8606f259c31b4bc7ce9bf46c1"
+    },
+    {
+      "path": "internal/health/redis_publication.go",
+      "sha256": "d18bc3b12ce081296a89a901e7ec22e50a6586fe16e61d06730e8dce15481a6e"
+    },
+    {
+      "path": "internal/health/redis_snapshots.go",
+      "sha256": "571f17eac84ecc60f2bb81fedf24c6fe41fa3ed8ac0a49abfc0729aab9226702"
+    },
+    {
+      "path": "internal/health/redis_store.go",
+      "sha256": "3fde30f4e4061397936ab0e8497c9b48079e74eaa00ef058c523d377c92cd350"
+    },
+    {
+      "path": "internal/health/redis_store_test.go",
+      "sha256": "2f0ddba25b18753d315e4d199b8af19a9f9c2fc6219171530c07ae29683cfee3"
+    },
+    {
+      "path": "internal/health/store.go",
+      "sha256": "4b8d903bfc81ab16819a0512481c045d83a53ae41abaa8c51faac46f69ce8676"
+    },
+    {
+      "path": "internal/health/store_test.go",
+      "sha256": "92fc6063bdce76360a3aa1926c14a21126274f4c48c931822c063bb4c974c81e"
+    },
+    {
+      "path": "internal/hotstate/hotstate.go",
+      "sha256": "9a63af043e00b0ecc833d88a05d15be675f9dea0650536fd37e171f84770fece"
+    },
+    {
+      "path": "internal/hotstate/hotstate_test.go",
+      "sha256": "582a788b45f9089fb9c41639ca4df3e9394b7efef290678b6127f2a29694668d"
+    },
+    {
+      "path": "internal/hotstate/local.go",
+      "sha256": "f39961298f2a70e9f8ffb1dd7500860be1bd8270fbfe9dd48d2fe51f2be614f6"
+    },
+    {
+      "path": "internal/hotstate/ordered_snapshots.go",
+      "sha256": "72f4b3d13a61ee6a9b8eaa85f6d160a756e04e04fc669023d67271b30e13078c"
+    },
+    {
+      "path": "internal/hotstate/redis.go",
+      "sha256": "3debaad78bf59364b7dd3ebb7be3b87e04da97ee2e0622f628195adbfffa570f"
+    },
+    {
+      "path": "internal/http/handlers/admin_combos.go",
+      "sha256": "40c58ba6e6e8456716ce07dbfdae56f228f806f2f1e888b6c6c639d128411430"
+    },
+    {
+      "path": "internal/http/handlers/admin_providers.go",
+      "sha256": "af98e89056569f6a1779153f6bd000c6640f9c22055ccbaeb8b6a83abe19121b"
+    },
+    {
+      "path": "internal/http/handlers/admin_providers_test.go",
+      "sha256": "d0b3e376e15f5981d785cb81dca6a8e35653f537c0cd898943b7e295a3d9147f"
+    },
+    {
+      "path": "internal/http/handlers/admin_scheduler.go",
+      "sha256": "4c68a316e09144a2ccbf4bd3df3d45ab48862ed2e293b5a268f45c733ee14e8f"
+    },
+    {
+      "path": "internal/http/handlers/admin_scheduler_test.go",
+      "sha256": "1660064095db941efbeaccdaaad5001b4ab3e5eef7fd0c0774b91f77ef4650ba"
+    },
+    {
+      "path": "internal/http/handlers/admin_semantic_rules.go",
+      "sha256": "d36c272d629976b3ff8ee99d6d86bab7317afdff11eb396d6d33ab81520d9d6e"
+    },
+    {
+      "path": "internal/http/handlers/chat.go",
+      "sha256": "edfe745966211b0c3b2e47a09fb54e7dd4d43690b0f9c2427c0a3e6a5e55e88b"
+    },
+    {
+      "path": "internal/http/handlers/chat_stream.go",
+      "sha256": "2012a85e5f9e1874d6752516600edae2d9cbd52171814d6613ef1dd5f7c74c29"
+    },
+    {
+      "path": "internal/http/handlers/chat_stream_test.go",
+      "sha256": "634edcbdb329174d204abbd9a473b302470c6206c67b33a66fc23178046ba759"
+    },
+    {
+      "path": "internal/http/handlers/chat_test.go",
+      "sha256": "b761af165da39b0f658cf73094136dcc1babed3be4a4953af4624375adabbea7"
+    },
+    {
+      "path": "internal/http/handlers/chat_tool_test.go",
+      "sha256": "9a18c211230bc7a22e3f3b2a4051e478ecaf6a6ef1f997a128d9d29c518c7106"
+    },
+    {
+      "path": "internal/http/handlers/health.go",
+      "sha256": "4d9627897dead7438d61d788ed0593fdd1f8326d41bfe1543293b68cfcfa27a3"
+    },
+    {
+      "path": "internal/http/handlers/models.go",
+      "sha256": "0d561d16feffe617552b771dec3b7ec695d9465284a6a4c991d4c6de64c1e3ba"
+    },
+    {
+      "path": "internal/http/middleware/adminauth.go",
+      "sha256": "182536f7bace9becdc2e4ead797a44f071fbb57c82bf64df804f70df8a41deba"
+    },
+    {
+      "path": "internal/http/middleware/adminauth_test.go",
+      "sha256": "95e4c0512b8f9596c330633a35091309994a7ac14510e8a6173b54ea56a74252"
+    },
+    {
+      "path": "internal/http/middleware/auth.go",
+      "sha256": "1def4519bb2c9751187bd8416fbaa43dd6671d9c821550ffe00a32f8862ac7d1"
+    },
+    {
+      "path": "internal/http/middleware/auth_test.go",
+      "sha256": "2dab9f97f554b9c9d6e62b6d8a462500fae3742b226e395ff2c5aa856ca766f9"
+    },
+    {
+      "path": "internal/http/middleware/logging.go",
+      "sha256": "8bfcc67859139397534c7d2f1ded983ebebb3c12426318db11eb2a60f154691b"
+    },
+    {
+      "path": "internal/http/middleware/recover.go",
+      "sha256": "d5fcdc7ee1d27415b26eac417f0bbe1345d65e99b3e5779f226173544df89326"
+    },
+    {
+      "path": "internal/http/middleware/requestid.go",
+      "sha256": "7ac44862a2e45da1edd4d23701c4e0d848e739fb0e01ec24b6340b53411b444c"
+    },
+    {
+      "path": "internal/http/middleware/writable.go",
+      "sha256": "07454668933ec89245b8846b6fc530c2602059168c0628e2d9ec69df96f885ff"
+    },
+    {
+      "path": "internal/http/router.go",
+      "sha256": "1371512e355b4239234932364338298d6866e3b6bd33dd1b940ad7ef9459bd29"
+    },
+    {
+      "path": "internal/http/router_observability_test.go",
+      "sha256": "964497f56e44cdfdd3afc31b8732cea042e070726955c7cde1317bc1112c743e"
+    },
+    {
+      "path": "internal/http/router_semantic_rules_test.go",
+      "sha256": "f844464315dae17c4a5b6f816193b07f3da263704b19a72ce69f7db9338d3faf"
+    },
+    {
+      "path": "internal/llm/tool_protocol.go",
+      "sha256": "131acab3a05c0504631bb80a365f6964a503b595bfa609d294dcc4e34ae586f8"
+    },
+    {
+      "path": "internal/llm/tool_protocol_test.go",
+      "sha256": "28cd7b0c0ab226030df8fd4d4df2b5a495816b532b2eff3b5858ff92cd4a0beb"
+    },
+    {
+      "path": "internal/llm/types.go",
+      "sha256": "c9991efdf9c7bd7730840b1540ac4deb6dde27a58235d52213874d22bffa896a"
+    },
+    {
+      "path": "internal/observability/cache.go",
+      "sha256": "f66f1be551210377142d7983a3c459043fa66c5ce3318e32cbc1e369f644aa58"
+    },
+    {
+      "path": "internal/observability/logging.go",
+      "sha256": "c2884b055b8cdfaba690968de132ae241bc0d6145c1b7ef7329f081cde3b739c"
+    },
+    {
+      "path": "internal/observability/metrics.go",
+      "sha256": "4b49bbac9be0014c1e760261754d3846caebef88ec959fa07cc88a979083bfdd"
+    },
+    {
+      "path": "internal/observability/prometheus.go",
+      "sha256": "a4b80ad9fc562c9b38411a9c8d418471364412c3a4da919a7e8317a025c81955"
+    },
+    {
+      "path": "internal/observability/prometheus_test.go",
+      "sha256": "77b93e6b05c7c976daea1368d85fdb90c4c8ae47aaf15cbcf217d1dc4a53323f"
+    },
+    {
+      "path": "internal/observability/stages.go",
+      "sha256": "a262056aa269843d1e1b31c6cbad2db26d5175acd48204b0cef02c85af438bb3"
+    },
+    {
+      "path": "internal/observability/tracing.go",
+      "sha256": "6644c3b24374f25da41b3130402987f4772d0945724dc11b300238ddda5585f4"
+    },
+    {
+      "path": "internal/observability/tracing_test.go",
+      "sha256": "f3f532ea8abe325fe1459b3dc0d92ede978d2590709ba30ca039a845ed198dcc"
+    },
+    {
+      "path": "internal/pipeline/config.go",
+      "sha256": "3625df57d82cecfd95c49694118c9f44d13f70ef5665a2ea60a10e4f6e6c92ec"
+    },
+    {
+      "path": "internal/pipeline/config_test.go",
+      "sha256": "a4d5aedc27bafc0a380b8d836a0eab827b80ec8c79eeb5593460ccac633e97aa"
+    },
+    {
+      "path": "internal/pipeline/pipeline.go",
+      "sha256": "d9aeee24b2a8c06f84fb96d179e67f0d93b8281db5da5fb8f2e3569447db7cf4"
+    },
+    {
+      "path": "internal/pipeline/pipeline_test.go",
+      "sha256": "0c63079f9e3d811b6fffda7104f5238827882b1e055c397e22857f18e81280f7"
+    },
+    {
+      "path": "internal/pipeline/registry.go",
+      "sha256": "c53b1fe2e71ac890e5ccb05834544b010bbdc33010ba66de93b8982767be7c65"
+    },
+    {
+      "path": "internal/pipeline/rules.go",
+      "sha256": "50237b7a37572bc12ac3615eee7238e25b2e82bb375630cd56ca04efa905de12"
+    },
+    {
+      "path": "internal/pipeline/rules_test.go",
+      "sha256": "f65069dc53a758355491d789107785e5803d4a61df2f430304d199961de241db"
+    },
+    {
+      "path": "internal/postgresconn/pool.go",
+      "sha256": "75260733f04a0e745caf30a4818c3966c10123cff8bbfa6e09c1f582117f4831"
+    },
+    {
+      "path": "internal/postgresconn/pool_test.go",
+      "sha256": "d36ddc999b80b1f911275105b8b343f61b5d689ff525005f85769a26f7634eff"
+    },
+    {
+      "path": "internal/providers/adapter.go",
+      "sha256": "dae525852d5c1d0e74790d3b192848dd3a9677c14ef3bec37fc011aa9e790653"
+    },
+    {
+      "path": "internal/providers/adaptertest/harness.go",
+      "sha256": "d7a61c6879114b18ea36e64965ffa3e7c3b68e2c939bbc5cbf3ca2dc0925a79b"
+    },
+    {
+      "path": "internal/providers/adaptertest/harness_test.go",
+      "sha256": "cf27d9281d405dda387cfa233c5475a3c61a1098069ce4a7b07521f4727774e6"
+    },
+    {
+      "path": "internal/providers/adaptertest/tool_contract.go",
+      "sha256": "433aa9751c216b594b5cf167509b888b9a71299441a9d084081e0c275fac526b"
+    },
+    {
+      "path": "internal/providers/adaptertest/tool_contract_test.go",
+      "sha256": "b136f71dad66b3d262b6ba76cc46b1db7bfd099d73fd6835c6eb74c16b6974a8"
+    },
+    {
+      "path": "internal/providers/anthropic/adapter.go",
+      "sha256": "3e1cfde4550a4537e86ccd2790746d2ecd44deef82b77eb834aaf0c85230a105"
+    },
+    {
+      "path": "internal/providers/anthropic/adapter_test.go",
+      "sha256": "1ac962922ee51d8693f1723c88b4af607d9cae0406bf48d493c39e2dfd6e129e"
+    },
+    {
+      "path": "internal/providers/anthropic/adapter_tool_test.go",
+      "sha256": "652a76a8ce18af09dfbf7fdbbc95dc28a6863e7c919760ea3300d021f6f04200"
+    },
+    {
+      "path": "internal/providers/anthropic/tool_protocol.go",
+      "sha256": "e632623747f98ac3b5a6c8df47c434c5409aaa8fd4dbc36440c198f877492170"
+    },
+    {
+      "path": "internal/providers/capabilities.go",
+      "sha256": "6fa8e4a665031861573fadb4cba7a973feb8eb80968e4668214d15c7fa454509"
+    },
+    {
+      "path": "internal/providers/catalog.go",
+      "sha256": "e1c8f5385970e92ba30aec1f1869a0972f18e0c029103acc1ad16cbb6951411b"
+    },
+    {
+      "path": "internal/providers/gemini/adapter.go",
+      "sha256": "52dc61d727b0487abfee123992776405d584f6d1018902d11415a81bcc088da3"
+    },
+    {
+      "path": "internal/providers/gemini/adapter_test.go",
+      "sha256": "8af8e7e5f97f1a21145daa6cd6c0f74d480bbb166e80835c32b52558850faeac"
+    },
+    {
+      "path": "internal/providers/gemini/adapter_tool_test.go",
+      "sha256": "dc1e05ba7d9069b8f326ec14ad6a9df861b1880f4348e2de851b788e95032df9"
+    },
+    {
+      "path": "internal/providers/gemini/embedding.go",
+      "sha256": "3215e31832014347894d8652cbf73b6c206a2ce2b6b114cc7c9b8cea7ec5777d"
+    },
+    {
+      "path": "internal/providers/gemini/embedding_test.go",
+      "sha256": "44ef9e5fa024ee306fdeb09c44b7c326c59089722c5982946746294401bb862b"
+    },
+    {
+      "path": "internal/providers/gemini/tool_protocol.go",
+      "sha256": "1cfefc6f07054bcde095ce25666bc1e3f744b6ade440e93ae9bb5524a1fdd08d"
+    },
+    {
+      "path": "internal/providers/openai/adapter.go",
+      "sha256": "49c23cebae5188918a488ecd7013d2b97ac96d4e71e6ce0a25933681526098a4"
+    },
+    {
+      "path": "internal/providers/openai/adapter_test.go",
+      "sha256": "7b2fe762bdce802c3a87510f2374e70cc275a918eb5f51a82e8c983f103192e1"
+    },
+    {
+      "path": "internal/providers/openai/adapter_tool_test.go",
+      "sha256": "913836863b049d16d3381e3058188bb5d2439de8cdb4cdfed28e4349aba962ca"
+    },
+    {
+      "path": "internal/providers/openai/stream.go",
+      "sha256": "db1fc54574546656ef97d7e197b69e65bf6dc58ae2d40a6b1eed1e028a71cc77"
+    },
+    {
+      "path": "internal/providers/registry.go",
+      "sha256": "64c00c5e86f9ddb3cd16f8f99e661a32521aa1c802299038f4d42b7dc147b2d7"
+    },
+    {
+      "path": "internal/providers/registry_test.go",
+      "sha256": "4ff2f1e9437aa7474c4556278e98a76d9389c576a3fbc9a1633ea895ba2ed76e"
+    },
+    {
+      "path": "internal/providers/toolstream/state.go",
+      "sha256": "1ddb19768d5652ab76b90d25abb58fec16e38fe0393cf3699f6d6b8f638a3f36"
+    },
+    {
+      "path": "internal/providers/toolstream/state_test.go",
+      "sha256": "c6d865a6c0886d5af65735be3b92b9673e3dbb974a5d073399017644645a44e9"
+    },
+    {
+      "path": "internal/redisconn/options.go",
+      "sha256": "fcc6d300b764a335417452d270e64d2001117f90ef9cfbf5be6cf2d9dbf46ca1"
+    },
+    {
+      "path": "internal/redisconn/options_test.go",
+      "sha256": "4671fa5430f5cc21e25c8d21ae63f45354c87ea31fa11936b2ac9f5a4e2c35ec"
+    },
+    {
+      "path": "internal/routing/composite.go",
+      "sha256": "56deeaf36f6a9c3d1c32270829a1ac5c846f8854cd7df53d05176bbfdf73bbc4"
+    },
+    {
+      "path": "internal/routing/composite_test.go",
+      "sha256": "50a09aeaca01281c81ee2d4a30f45464dd5e173323e008d0028d1fc317bda639"
+    },
+    {
+      "path": "internal/routing/router.go",
+      "sha256": "dd51a0578be577ad3f2badabf7057e39f9c4f39bc06f96d38b2c75d590c96cec"
+    },
+    {
+      "path": "internal/routing/router_test.go",
+      "sha256": "5cdccadf48a238755bfc8ee4c76816609175c1c55843fc2fe4303eeaf877e699"
+    },
+    {
+      "path": "internal/routing/router_tool_test.go",
+      "sha256": "69bbdd2ee5b385efc909ea59adff70ce8140c81bd7bf00397eeca93c43c22b8b"
+    },
+    {
+      "path": "internal/scheduler/admin_scheduler_service.go",
+      "sha256": "31ce133187760a1526e8f992719e7c7d2630962da98a12f6ce57401dab80fbbe"
+    },
+    {
+      "path": "internal/scheduler/breaker.go",
+      "sha256": "deec89cf5c32a043bada066c307616a00edb04d4054919e19f0e22b83c6c9e52"
+    },
+    {
+      "path": "internal/scheduler/client.go",
+      "sha256": "4fc05c1b85dee9d8f358127323ac6d4760e4bfc1cdedd761f500c744bb168d74"
+    },
+    {
+      "path": "internal/scheduler/client_test.go",
+      "sha256": "c5743bfd5ec574ba1bdba7843c952d102879a574cf64eb32cde36476de555638"
+    },
+    {
+      "path": "internal/scheduler/executor.go",
+      "sha256": "250bd7c5e3a8fc9c1e42a493cb60c372eef793728f46c0217071190123fe0e55"
+    },
+    {
+      "path": "internal/scheduler/executor_test.go",
+      "sha256": "5145e3b24fdfe06725e9a64d8702110236aa06f650c35e3ff224b70f74be8660"
+    },
+    {
+      "path": "internal/scheduler/features.go",
+      "sha256": "646d81814af9ab37d6a62551af8568dc0ab9cfced228bc139dc07260c03bb173"
+    },
+    {
+      "path": "internal/scheduler/features_test.go",
+      "sha256": "48ec5defa83a3549e42a6195d126fb07b0bed2f27817e763360bac84db472a03"
+    },
+    {
+      "path": "internal/scheduler/heuristic/classifier.go",
+      "sha256": "51b3035ec2933f4a34d5c8aa97708dcdbbec3de3f0a6350cf903c5e584e73f1f"
+    },
+    {
+      "path": "internal/scheduler/heuristic/config.go",
+      "sha256": "280c5fd8dd041a5a2280b1a41a6efc8b108bd331a31cd72215ea33f53c4a8fad"
+    },
+    {
+      "path": "internal/scheduler/heuristic/metrics.go",
+      "sha256": "c177a70f940615f1e9613697f2fde3ee8500a5df8b1ed93db8673a06a1d3a06c"
+    },
+    {
+      "path": "internal/scheduler/heuristic/score.go",
+      "sha256": "a8141be2f2e808af26c1295fe9adad790617a50883963f197172452934e54317"
+    },
+    {
+      "path": "internal/scheduler/heuristic/score_test.go",
+      "sha256": "faabc91f464a203d907fe7573dc9e876a3be23e227c8792754e0bbf6b8025a82"
+    },
+    {
+      "path": "internal/scheduler/heuristic/server.go",
+      "sha256": "e273865a8abeb23bbdff15cc58f48d82d504cb715d868a5768bedfc73e0fa274"
+    },
+    {
+      "path": "internal/scheduler/heuristic/server_test.go",
+      "sha256": "2d2c8990da1ec425e9a056adcef31a1b4126dbd6885ff97c3492c47bd30c6f00"
+    },
+    {
+      "path": "internal/scheduler/intake.go",
+      "sha256": "af1681571614d28e349a6d895613354faeca89e810cadcecfd315d5bb9b88044"
+    },
+    {
+      "path": "internal/scheduler/intake_test.go",
+      "sha256": "14fdceef25cd1e09943df4915521360ef255cd350f07702f69d5f56773ce2314"
+    },
+    {
+      "path": "internal/scheduler/onnx/artifact.go",
+      "sha256": "f46af44aed391127aa56938a9e37dcae5fe6e8847ea7a51eb39ebc1bfc07f49a"
+    },
+    {
+      "path": "internal/scheduler/onnx/artifact_test.go",
+      "sha256": "325b67ee874a318d74c283078b03de80ba0de84ac3d2d6719109d574c0bbf86e"
+    },
+    {
+      "path": "internal/scheduler/onnx/model.go",
+      "sha256": "153aa31b185d81a974598e87c44f9d464839b42cc929e343df09fb4567fc840c"
+    },
+    {
+      "path": "internal/scheduler/onnx/scorer.go",
+      "sha256": "18ac987f8532044a4a9b549136409a7281c0833a74d73e519b1223cff4c730ce"
+    },
+    {
+      "path": "internal/scheduler/onnx/scorer_test.go",
+      "sha256": "a4cce8dd38ae96646b386d0b9ec378144a6cb6e170b2b5efe611cb4de3885fa9"
+    },
+    {
+      "path": "internal/scheduler/onnx/server.go",
+      "sha256": "dc73c3408aae7ecc4fff059303df30037e10f6603fc6170c13c22f7f54ff3331"
+    },
+    {
+      "path": "internal/scheduler/onnx/server_test.go",
+      "sha256": "1cdababdef6014594aae62231fe34aef5004198d2aa042e33cec41444d5bce08"
+    },
+    {
+      "path": "internal/scheduler/predictive/scorer.go",
+      "sha256": "383e06a7cfdc680687783d665903e3ff3ba1b7e56a8169962c6c0719a632b449"
+    },
+    {
+      "path": "internal/scheduler/predictive/scorer_test.go",
+      "sha256": "5bd87e997d57ed2fa26cee7be0ec1e0c9eb5a8a99d5f8555adb41bc90f785705"
+    },
+    {
+      "path": "internal/scheduler/predictive/server.go",
+      "sha256": "c491561a651b62716916e1984ece846fe53de617e166a5a397a28affe9171bd8"
+    },
+    {
+      "path": "internal/scheduler/predictive/server_test.go",
+      "sha256": "09e114c66c684d5678e7e8639c903ab0c231ab4dcc15d1dd4e40a9d8ebbec119"
+    },
+    {
+      "path": "internal/scheduler/predictor/breaker.go",
+      "sha256": "115690d45514531d4a71310286f246c4622fb56b254b49748f0c67106afc772d"
+    },
+    {
+      "path": "internal/scheduler/predictor/manifest.go",
+      "sha256": "b54599f9d6a4622f0d7a005adbdf6cc9a0ed43a6597b2d28203917397d9f9291"
+    },
+    {
+      "path": "internal/scheduler/predictor/manifest_test.go",
+      "sha256": "7838b7362984c998654d2ab1cf13d5f790fd4006c93d04dd7a4739bbb68965fe"
+    },
+    {
+      "path": "internal/scheduler/predictor/noop.go",
+      "sha256": "9cccd363ddaf899ce01669e8548d0fd4001dec3af81967c6666b11c9f6069f62"
+    },
+    {
+      "path": "internal/scheduler/predictor/noop_test.go",
+      "sha256": "4b74d657b34ff19a007f2120d5000c8a767f8370ed2e3f2f26fa36fde3947cfe"
+    },
+    {
+      "path": "internal/scheduler/predictor/process.go",
+      "sha256": "fcff538823c1c3fe185b6619b822b7e7e09432e51fd9a96c6f9758144461958f"
+    },
+    {
+      "path": "internal/scheduler/predictor/process_test.go",
+      "sha256": "84919a4ac2ccff21a01ec5b6d5b9156764977ef4a5ab2c7703fdecc37f68e210"
+    },
+    {
+      "path": "internal/scheduler/predictor/proto.go",
+      "sha256": "6cc4a7f464daf7f129f7c7b81a8a026ae7da484932c1da964d2c32fd3b6d3bab"
+    },
+    {
+      "path": "internal/scheduler/predictor/python_client.go",
+      "sha256": "e1b50d44d402ecd5eecc66c2b937a1fadb57b823cd6efeef39d750eff7fc0145"
+    },
+    {
+      "path": "internal/scheduler/predictor/python_client_test.go",
+      "sha256": "90b28bb1f651c1fbd933c5dcd63da5f6b5d362014a50dadcbac12032bb4d60df"
+    },
+    {
+      "path": "internal/scheduler/predictor/router.go",
+      "sha256": "23d68254a80e7ccc90d177f9bb84ef231c44de0e185f3249f3492e2948be9793"
+    },
+    {
+      "path": "internal/scheduler/predictor/router_test.go",
+      "sha256": "869b5aee90e6d1b5c3bfe33214c3c8db057a0b82d8eea34e2ae557570c652084"
+    },
+    {
+      "path": "internal/scheduler/predictor/types.go",
+      "sha256": "8803de019de0deea5ad9892a2142b268232c65eb8b11594db2aa0762559e5ee3"
+    },
+    {
+      "path": "internal/scheduler/predictor/types_test.go",
+      "sha256": "94793494e254b9ddcd202575fc5ccf9248d22d01165c77903303310bfeb20656"
+    },
+    {
+      "path": "internal/scheduler/predictorv1/predictor.pb.go",
+      "sha256": "43d88c41f8af09dbfff02fbfca887760ab63bf65bc7c8827b4f67834525e5e3a"
+    },
+    {
+      "path": "internal/scheduler/predictorv1/predictor_grpc.pb.go",
+      "sha256": "ab9ab5b568eafee3ff5a20d556934a8d9d51da5ec20420aca70a117331b187ab"
+    },
+    {
+      "path": "internal/scheduler/priority.go",
+      "sha256": "55960d9e238a054d06b93f4aa5a5f9e87759a8d146d11b778aeae3a7dacbf176"
+    },
+    {
+      "path": "internal/scheduler/priority_test.go",
+      "sha256": "f692195fa0dfb97219b99bd962ae12b71103c98e942306ee6f1099737de75eeb"
+    },
+    {
+      "path": "internal/scheduler/privacy_contract_test.go",
+      "sha256": "9ba15fe5c2c57bde930e0b610a713f09ac357a8fd55af737e3efb2de9710b2be"
+    },
+    {
+      "path": "internal/scheduler/quality.go",
+      "sha256": "1b8e27b29702c356408221302e2ef3595c3bd4e3953dc09674dde6c5f05b571b"
+    },
+    {
+      "path": "internal/scheduler/quality_test.go",
+      "sha256": "5b1bd1d2e2c0754cd3e4781aedbe2d96518a9babc7b1f6906047050ff45d30c9"
+    },
+    {
+      "path": "internal/scheduler/queue.go",
+      "sha256": "409fc5ccad48469ec0c3ed63f61eef22d70aa96852a2d4806094b25525a216b5"
+    },
+    {
+      "path": "internal/scheduler/queue_fallback.go",
+      "sha256": "bf9f1c6778347c8d5afac209ffb49dfcbc0423f4e421174cf140c9b244cf7bf2"
+    },
+    {
+      "path": "internal/scheduler/queue_fallback_test.go",
+      "sha256": "f1a101f9f3ec863f98dc7cc6b0cfd5b81908567694a5b04f363220c8de74d595"
+    },
+    {
+      "path": "internal/scheduler/queue_guard.go",
+      "sha256": "715e1e10163b3ecec44eabb57cd684f5961727de24bac24314199f66359ac897"
+    },
+    {
+      "path": "internal/scheduler/queue_guard_test.go",
+      "sha256": "7d03bfed20bc462590d3313431004b789cd94dd65b65504056191b0eee4ad0ed"
+    },
+    {
+      "path": "internal/scheduler/queue_memory.go",
+      "sha256": "55e7318df0e641a54863820cf0cfd440ec6b9dfd73041fa5f38f7db64ce02743"
+    },
+    {
+      "path": "internal/scheduler/queue_memory_test.go",
+      "sha256": "38d8a43914a7326de93f36a7bfef0faccdbe5dc671042e2a7abceb4f0a97eb02"
+    },
+    {
+      "path": "internal/scheduler/queue_redis.go",
+      "sha256": "b121f5d42e0fbc5584bb7e082c8d2f9ee8f92cc4a1021bf8d37490e857784484"
+    },
+    {
+      "path": "internal/scheduler/queue_redis_test.go",
+      "sha256": "33bd268bc3aa1c188560b64f418fb7cf47cedc69865ffd8219a82ec34176beac"
+    },
+    {
+      "path": "internal/scheduler/request_kind.go",
+      "sha256": "c542f8d8cc5602cb2b57da377459faf2ff7988bcd94315d6a7cd70ff2e65dba2"
+    },
+    {
+      "path": "internal/scheduler/request_kind_test.go",
+      "sha256": "7f52db9d6e7c069c8b376b3631735ed771ca416c86f723b8765606a68e504b7e"
+    },
+    {
+      "path": "internal/scheduler/result_registry.go",
+      "sha256": "7ca8b63de4d186c69f7695b438c0f78b469db91677a608ffe6d965c058cdffe0"
+    },
+    {
+      "path": "internal/scheduler/result_registry_test.go",
+      "sha256": "e5b621a23298721e203221b1e4bc16d6949c9143d00654b2371e9d2d7424b5cf"
+    },
+    {
+      "path": "internal/scheduler/rollout_control.go",
+      "sha256": "28abd5c93f1cf79f5a70a5b4f327b41b2a67de5ed083e65838ac9f6c18eb888e"
+    },
+    {
+      "path": "internal/scheduler/rollout_control_test.go",
+      "sha256": "ef71370357ef7d80217e766c7b61d03b539fb8b88e324b974e6cb67b4a40749f"
+    },
+    {
+      "path": "internal/scheduler/schedulerv1/scheduler.pb.go",
+      "sha256": "9ddbf0b1bea6532bb95e4d28fb8cb37e9fc12674c0a3ca3a6d6fe9b8c57bfe77"
+    },
+    {
+      "path": "internal/scheduler/schedulerv1/scheduler_grpc.pb.go",
+      "sha256": "eb9abb8d39673534e9ed1d459d4d9909bd6b52554d4a81cd7dcfeb9e6e0433a6"
+    },
+    {
+      "path": "internal/scheduler/semantic_neighbors.go",
+      "sha256": "4dbcb627932d269a65103638a29d18cfd8744816cce39f609b921cd8e71786b0"
+    },
+    {
+      "path": "internal/scheduler/semantic_neighbors_test.go",
+      "sha256": "f4e205b64616afb8588e2875970ac9c17641e6d3e54aeb98b19ab7c0cd411023"
+    },
+    {
+      "path": "internal/scheduler/sla_promotion.go",
+      "sha256": "014c893a2a3c0ffc010bbce91eadabaa237c2659c37e84910977cefad72f9225"
+    },
+    {
+      "path": "internal/scheduler/sla_promotion_test.go",
+      "sha256": "84f494afa1439239d7c1b1700a7647e0d0091186f6caec9196036c57c436b91f"
+    },
+    {
+      "path": "internal/scheduler/task.go",
+      "sha256": "e8a8471939139209d94a014c06a6fb96b2851922f4cddb38c06c3f920ffbeaa0"
+    },
+    {
+      "path": "internal/scheduler/training.go",
+      "sha256": "8112abd487f534ebc97f31b7e2732d6b6f2fb81e0245b534a4d300be1f9994dd"
+    },
+    {
+      "path": "internal/scheduler/training_test.go",
+      "sha256": "e196f436afb79344b81f53f6e307526f823d33767fe3e29021988347f9b67fdc"
+    },
+    {
+      "path": "internal/scheduler/types.go",
+      "sha256": "7ec36fbf9f3774e477e45266f8c7d90502e094abf4280ea4660ad26bb9b731e1"
+    },
+    {
+      "path": "internal/scheduler/types_test.go",
+      "sha256": "06eea8d32a904365ac0687c708f9a66129fc0784b51d5265453c1617b4fe87a2"
+    },
+    {
+      "path": "internal/storage/adapters.go",
+      "sha256": "7a95e095530a1e109acfc4a86d2388afd5c5e3956a6e39e33a782f5fdaebf6aa"
+    },
+    {
+      "path": "internal/storage/interfaces.go",
+      "sha256": "e31bcd8893eb34fa388b237b251d0f754716a7cc0ac48be8962338cef91e1e9b"
+    },
+    {
+      "path": "internal/storage/lancedb_linux.go",
+      "sha256": "9df2bea7549679a8bbe152d5bdcdab4493cd22d2c75f6c61443311c762caf122"
+    },
+    {
+      "path": "internal/storage/lancedb_stub.go",
+      "sha256": "533b1ed75c74dd251fa082ea66739f00516f774f57c5028467dce7a6c884665a"
+    },
+    {
+      "path": "internal/storage/lancedb_windows.go",
+      "sha256": "86fa95dd98a490c594ac9618b6f38947b12010d0be0e88311541987ec2654a76"
+    },
+    {
+      "path": "internal/storage/pgvector.go",
+      "sha256": "131cf6583228033df4b1d972141b9b9307f0b832608b43dc8316645b9990951f"
+    },
+    {
+      "path": "internal/storage/pgvector_test.go",
+      "sha256": "12ae06762e04261c8e000de537413118be3afba4243082cf2672140ef140432d"
+    },
+    {
+      "path": "internal/storage/qdrant.go",
+      "sha256": "6b9d91be99edbc834ae61c929b8831f9058d22b3d0ec15f2faf83fdbfb5c37b9"
+    },
+    {
+      "path": "internal/storage/qdrant_cache.go",
+      "sha256": "ea75ef34b0c6273eedb5e111b8c776a3019dd7216aa56e8491ebb4e1045d0f34"
+    },
+    {
+      "path": "internal/storage/qdrant_test.go",
+      "sha256": "e4369b84855155612ac83324b09cc9c0e0e2bcab42f5061e01dbb5114902c902"
+    },
+    {
+      "path": "internal/storage/redis_vss.go",
+      "sha256": "e8561f152d5cd617d37385c50921c7d3a54f454b541013400718aa0e0abecc52"
+    },
+    {
+      "path": "internal/storage/redis_vss_test.go",
+      "sha256": "48fbdbb1e29cf089abec4af088c7b90a75f5ac2c04c9864466f348d256e7609e"
+    },
+    {
+      "path": "internal/testenv/testenv.go",
+      "sha256": "858b7dc655ad017831fee23dbfc02d495ca414bedaf3c420a50f7a8067f92320"
+    },
+    {
+      "path": "internal/testenv/testenv_test.go",
+      "sha256": "c8c8ead262761edb2a28df5b95eb1edb17b3ee4c74bbeebe886cbbf837ceaf00"
+    }
+  ]
+}

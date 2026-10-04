@@ -295,7 +295,7 @@ func liveDiagnoseFrames(t *testing.T, body io.Reader) {
 		}
 		for _, choice := range chunk.Choices {
 			tools += len(choice.Delta.ToolCalls)
-			if choice.FinishReason != nil {
+			if choice.FinishReason != nil && !(chunk.Usage != nil && choice.Delta.Content == "" && len(choice.Delta.ToolCalls) == 0) {
 				finishes[*choice.FinishReason]++
 				positions["finish"] = frames
 			}

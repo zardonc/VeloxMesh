@@ -1,0 +1,28 @@
+File: verified-linux.test
+Build ID: a427e9f80faa33238f29649e907c0d10fc01b1fd
+Type: delay
+Time: 2026-10-03 18:16:02 PDT
+Showing nodes accounting for 500.87s, 100% of 500.88s total
+Dropped 300 nodes (cum <= 2.50s)
+Showing top 20 nodes out of 62
+      flat  flat%   sum%        cum   cum%
+   288.97s 57.69% 57.69%    288.97s 57.69%  runtime.selectgo
+      189s 37.73% 95.43%       189s 37.73%  runtime.chansend1
+    14.11s  2.82% 98.24%     14.11s  2.82%  runtime.chanrecv1
+     4.56s  0.91% 99.15%      4.56s  0.91%  runtime.chanrecv2
+     4.23s  0.84%   100%      4.23s  0.84%  sync.(*WaitGroup).Wait
+         0     0%   100%      4.68s  0.93%  database/sql.(*DB).connectionOpener
+         0     0%   100%      4.68s  0.93%  database/sql.OpenDB.gowrap1
+         0     0%   100%     32.98s  6.58%  github.com/go-chi/chi/v5.(*ChainHandler).ServeHTTP
+         0     0%   100%     32.98s  6.58%  github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+         0     0%   100%     32.98s  6.58%  github.com/go-chi/chi/v5.(*Mux).routeHTTP
+         0     0%   100%     32.98s  6.58%  github.com/go-chi/chi/v5.(*Mux).routeHTTP-fm
+         0     0%   100%      4.55s  0.91%  github.com/redis/go-redis/v9.(*channel).initHealthCheck.func1
+         0     0%   100%      4.68s  0.93%  main.main
+         0     0%   100%     66.46s 13.27%  net/http.(*Client).Do (inline)
+         0     0%   100%     66.46s 13.27%  net/http.(*Client).do
+         0     0%   100%     66.46s 13.27%  net/http.(*Client).send
+         0     0%   100%     32.98s  6.58%  net/http.(*Server).Serve.gowrap3
+         0     0%   100%     66.46s 13.27%  net/http.(*Transport).RoundTrip
+         0     0%   100%     66.73s 13.32%  net/http.(*Transport).dialConn.gowrap3
+         0     0%   100%     66.46s 13.27%  net/http.(*Transport).roundTrip

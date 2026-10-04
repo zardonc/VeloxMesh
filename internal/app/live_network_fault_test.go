@@ -133,7 +133,7 @@ func TestLiveVectorPartialWriteRecovery(t *testing.T) {
 	liveDecodeChat(t, liveHTTP(t, chain, request))
 	liveWaitOutcomes(t, chain.timing, "store/vector_error")
 	var before int
-	if err := chain.repo.DBForTest().QueryRow("SELECT COUNT(*) FROM semantic_cache_entries").Scan(&before); err != nil || before != 1 {
+	if err := chain.repo.DBForTest().QueryRow("SELECT COUNT(*) FROM semantic_cache_entries WHERE enabled = 1").Scan(&before); err != nil || before != 0 {
 		t.Fatalf("partial persistence count=%d error=%v", before, err)
 	}
 	proxy.broken.Store(false)
@@ -158,12 +158,29 @@ func TestLiveVectorPartialWriteRecovery(t *testing.T) {
 	}
 	liveDecodeChat(t, hit)
 	liveAssertSettlement(t, chain, upstreamRequests)
+	liveWaitDiscardedRows(t, chain)
 	var after int
 	if err := chain.repo.DBForTest().QueryRow("SELECT COUNT(*) FROM semantic_cache_entries").Scan(&after); err != nil {
 		t.Fatal(err)
 	}
 	shipLogJSON(t, map[string]any{"type": "partial_write", "unindexed_rows_before": before, "rows_after": after,
 		"false_hit": false, "recovered": true, "upstream_requests": upstreamRequests})
+}
+
+func liveWaitDiscardedRows(t *testing.T, chain liveChain) {
+	const cleanupDeadline = 30 * time.Second
+	deadline := time.Now().Add(cleanupDeadline)
+	for time.Now().Before(deadline) {
+		var pending int
+		if err := chain.repo.DBForTest().QueryRow("SELECT COUNT(*) FROM semantic_cache_entries WHERE enabled = 0").Scan(&pending); err != nil {
+			t.Fatal(err)
+		}
+		if pending == 0 {
+			return
+		}
+		time.Sleep(liveInjectedNetworkDelay)
+	}
+	t.Fatal("failed pending cache rows did not reach cleanup terminal state")
 }
 
 func liveRetryRecoveredWrite(t *testing.T, chain liveChain, request llm.ChatCompletionRequest) int {

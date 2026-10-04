@@ -199,8 +199,11 @@ type streamChunk struct {
 
 type chunkChoice struct {
 	Delta struct {
-		Content   string              `json:"content"`
-		ToolCalls []llm.ToolCallChunk `json:"tool_calls,omitempty"`
+		Content          string              `json:"content"`
+		ToolCalls        []llm.ToolCallChunk `json:"tool_calls,omitempty"`
+		Role             string              `json:"role,omitempty"`
+		Reasoning        string              `json:"reasoning,omitempty"`
+		ReasoningDetails json.RawMessage     `json:"reasoning_details,omitempty"`
 	} `json:"delta"`
 	FinishReason *string `json:"finish_reason"`
 }

@@ -13,14 +13,15 @@ import (
 
 // A byte-for-byte TCP relay: no model or storage response is synthesized.
 type liveNetworkProxy struct {
-	listener    net.Listener
-	target      string
-	delay       atomic.Int64
-	broken      atomic.Bool
-	mu          sync.Mutex
-	connections map[net.Conn]bool
-	workers     sync.WaitGroup
-	t           *testing.T
+	listener     net.Listener
+	target       string
+	delay        atomic.Int64
+	requestDelay atomic.Int64
+	broken       atomic.Bool
+	mu           sync.Mutex
+	connections  map[net.Conn]bool
+	workers      sync.WaitGroup
+	t            *testing.T
 }
 
 func newLiveNetworkProxy(t *testing.T, target string) *liveNetworkProxy {
@@ -72,12 +73,12 @@ func (proxy *liveNetworkProxy) relay(connection net.Conn) {
 	copies.Add(1)
 	go func() {
 		defer copies.Done()
-		if _, err := io.Copy(upstream, connection); err != nil {
+		if _, err := io.Copy(upstream, liveDelayedReader{Conn: connection, delay: &proxy.requestDelay}); err != nil {
 			proxy.t.Logf("real TCP relay request error: %v", err)
 		}
 		upstream.Close()
 	}()
-	if _, err := io.Copy(connection, liveDelayedReader{Conn: upstream, proxy: proxy}); err != nil {
+	if _, err := io.Copy(connection, liveDelayedReader{Conn: upstream, delay: &proxy.delay}); err != nil {
 		proxy.t.Logf("real TCP relay response error: %v", err)
 	}
 	connection.Close()
@@ -108,13 +109,13 @@ func (proxy *liveNetworkProxy) close() {
 
 type liveDelayedReader struct {
 	net.Conn
-	proxy *liveNetworkProxy
+	delay *atomic.Int64
 }
 
 func (reader liveDelayedReader) Read(buffer []byte) (int, error) {
 	n, err := reader.Conn.Read(buffer)
 	if n > 0 {
-		if delay := reader.proxy.delay.Swap(0); delay > 0 {
+		if delay := reader.delay.Swap(0); delay > 0 {
 			time.Sleep(time.Duration(delay))
 		}
 	}
