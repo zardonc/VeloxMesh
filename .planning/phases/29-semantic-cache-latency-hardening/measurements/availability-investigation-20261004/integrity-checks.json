@@ -1,0 +1,20 @@
+{
+  "phase_fingerprints": [
+    {
+      "file": ".planning/phases/27-stream-terminal-settlement-consistency/27-VERIFICATION.md",
+      "covered": 37,
+      "digest": "v1:sha256:df73c77afebb2feca87f20052bc22e8169713fc3b2edef96004a010fbc25e0a9",
+      "pass": true
+    },
+    {
+      "file": ".planning/phases/28-tool-calling-protocol-completion/28-VERIFICATION.md",
+      "covered": 35,
+      "digest": "v1:sha256:2074ab88b4c1d4a322731c3471a9c2cda932cec98af72c272414b50bd908b555",
+      "pass": true
+    }
+  ],
+  "previous_evidence_files_verified": 197,
+  "previous_raw_evidence_unchanged": true,
+  "previous_report_unchanged": true,
+  "previous_source_hashes_are_historical": true
+}

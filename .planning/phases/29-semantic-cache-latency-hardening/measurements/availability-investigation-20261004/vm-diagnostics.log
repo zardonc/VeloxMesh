@@ -1,0 +1,48 @@
+command=uptime
+ 15:15:47 up 34 min,  1 user,  load average: 0.75, 0.56, 0.29
+
+error=<nil>
+command=free -m
+               total        used        free      shared  buff/cache   available
+Mem:            2534         533         215          65        2020        2001
+Swap:           3861         113        3748
+
+error=<nil>
+command=vmstat 1 6
+procs -----------memory---------- ---swap-- -----io---- -system-- -------cpu-------
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st gu
+ 1  0 115740 220440  26496 2042384  441  574  8872   849 1317    2  0  3 97  0  0  0
+ 0  0 115740 220440  26496 2042476    0    0     0     0  153  106  0  0 100  0  0  0
+ 0  0 115740 220440  26496 2042476    0    0     0     0  130  119  0  0 100  0  0  0
+ 0  0 115740 220440  26496 2042476    0    0     0     0  151  122  0  0 100  0  0  0
+ 0  0 115740 220440  26496 2042476    0    0     0     0  190  146  0  0 100  0  0  0
+ 0  0 115740 220440  26504 2042468    0    0     0    48  158  133  0  0 100  0  0  0
+
+error=<nil>
+command=docker exec veloxmesh-test-redis redis-cli INFO stats
+Error response from daemon: container 530617927ea481190bfd6fe919cba3b167e425bf8da36594d116e57eafa07605 is not running
+
+error=Process exited with status 1
+command=docker exec veloxmesh-test-redis redis-cli INFO commandstats
+Error response from daemon: container 530617927ea481190bfd6fe919cba3b167e425bf8da36594d116e57eafa07605 is not running
+
+error=Process exited with status 1
+command=docker exec veloxmesh-test-redis redis-cli SLOWLOG LEN
+Error response from daemon: container 530617927ea481190bfd6fe919cba3b167e425bf8da36594d116e57eafa07605 is not running
+
+error=Process exited with status 1
+command=docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}'
+
+error=<nil>
+command=docker inspect --format '{{.Name}} running={{.State.Running}} oom={{.State.OOMKilled}} exit={{.State.ExitCode}} restarts={{.RestartCount}}' veloxmesh-test-redis veloxmesh-test-qdrant veloxmesh-test-postgres
+/veloxmesh-test-redis running=false oom=false exit=143 restarts=0
+/veloxmesh-test-qdrant running=false oom=false exit=143 restarts=0
+/veloxmesh-test-postgres running=false oom=false exit=0 restarts=0
+
+error=<nil>
+command=docker inspect --format '{{.Name}} cpu_quota={{.HostConfig.CpuQuota}} cpu_period={{.HostConfig.CpuPeriod}} cpuset={{.HostConfig.CpusetCpus}} memory_limit={{.HostConfig.Memory}}' veloxmesh-test-redis veloxmesh-test-qdrant veloxmesh-test-postgres
+/veloxmesh-test-redis cpu_quota=0 cpu_period=0 cpuset= memory_limit=0
+/veloxmesh-test-qdrant cpu_quota=0 cpu_period=0 cpuset= memory_limit=0
+/veloxmesh-test-postgres cpu_quota=0 cpu_period=0 cpuset= memory_limit=0
+
+error=<nil>

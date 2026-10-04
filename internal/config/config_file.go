@@ -7,14 +7,15 @@ import (
 )
 
 type fileConfig struct {
-	MultiNodeEnabled *bool             `json:"multi_node_enabled"`
-	NodeID           string            `json:"node_id"`
-	RoutingStrategy  string            `json:"routing_strategy"`
-	DefaultProvider  string            `json:"default_provider"`
-	FallbackEnabled  *bool             `json:"fallback_enabled"`
-	MaxAttempts      *int              `json:"max_attempts"`
-	HealthCheck      HealthCheckConfig `json:"health_check"`
-	Providers        []ProviderConfig  `json:"providers"`
+	MultiNodeEnabled   *bool                               `json:"multi_node_enabled"`
+	NodeID             string                              `json:"node_id"`
+	RoutingStrategy    string                              `json:"routing_strategy"`
+	DefaultProvider    string                              `json:"default_provider"`
+	FallbackEnabled    *bool                               `json:"fallback_enabled"`
+	MaxAttempts        *int                                `json:"max_attempts"`
+	HealthCheck        HealthCheckConfig                   `json:"health_check"`
+	Providers          []ProviderConfig                    `json:"providers"`
+	ProviderProtection map[string]ProviderProtectionConfig `json:"provider_protection"`
 
 	ControlState *controlStateFileConfig `json:"control_state"`
 	Redis        *redisFileConfig        `json:"redis"`
@@ -180,6 +181,12 @@ func applyRootFileConfig(cfg *Config, fileCfg fileConfig) {
 	}
 	cfg.HealthCheck = fileCfg.HealthCheck
 	cfg.Providers = fileCfg.Providers
+	if fileCfg.ProviderProtection != nil {
+		cfg.ProviderProtection = make(map[string]ProviderProtectionConfig, len(fileCfg.ProviderProtection))
+		for id, policy := range fileCfg.ProviderProtection {
+			cfg.ProviderProtection[id] = policy
+		}
+	}
 	if fileCfg.SemanticPipelineConfigFile != "" {
 		cfg.SemanticPipelineConfigFile = fileCfg.SemanticPipelineConfigFile
 	}

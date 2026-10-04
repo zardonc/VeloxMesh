@@ -18,7 +18,7 @@ func TestSemanticCacheEmbeddingProviderChangesScope(t *testing.T) {
 
 func TestSemanticCacheFreezesTrustedConfiguration(t *testing.T) {
 	config := boundsConfig()
-	config.UseCases = []SemanticCacheUseCase{{APIKeyIDs: []string{"key-one"}, UseCaseID: "FAQ", KnowledgeVersion: "v1", TargetModel: "model", SystemPrompt: "FAQ"}}
+	config.UseCases = []SemanticCacheUseCase{{ReuseMode: "semantic", APIKeyIDs: []string{"key-one"}, UseCaseID: "FAQ", KnowledgeVersion: "v1", TargetModel: "model", SystemPrompt: "FAQ"}}
 	service := NewSemanticCacheService(config, nil, nil, nil)
 	t.Cleanup(service.Close)
 	temperature, maxTokens := 0.0, 256

@@ -1,0 +1,113 @@
+{
+  "output": "C:\\Users\\inthe\\IdeaProjects\\VeloxMesh\\.planning\\phases\\29-semantic-cache-latency-hardening\\measurements\\policy-execution-20261003\\warm-batch\\evaluation.json",
+  "scenarios": {
+    "low-hit": {
+      "p95_ms": {
+        "direct": 140.882,
+        "off": 249.497,
+        "on": 297.043,
+        "memo": 379.297
+      },
+      "gates": {
+        "on": {
+          "ratio": 1.1905674216523645,
+          "delta_ms": 47.54599999999999,
+          "original_limit": 1.05,
+          "original_passed": false,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 289.497,
+          "candidate_passed": false,
+          "proposal": true
+        },
+        "memo": {
+          "ratio": 1.5202467364337047,
+          "delta_ms": 129.8,
+          "original_limit": 1.05,
+          "original_passed": false,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 289.497,
+          "candidate_passed": false,
+          "proposal": true
+        }
+      },
+      "application_budgets": {
+        "off": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": false
+        },
+        "on": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": false
+        },
+        "memo": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": false
+        }
+      }
+    },
+    "pure-miss": {
+      "p95_ms": {
+        "direct": 235.256,
+        "off": 305.689,
+        "on": 199.349,
+        "memo": 207.638
+      },
+      "gates": {
+        "on": {
+          "ratio": 0.6521301060882138,
+          "delta_ms": -106.34000000000003,
+          "original_limit": 1.05,
+          "original_passed": true,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 345.689,
+          "candidate_passed": true,
+          "proposal": true
+        },
+        "memo": {
+          "ratio": 0.6792459002450202,
+          "delta_ms": -98.05100000000002,
+          "original_limit": 1.05,
+          "original_passed": true,
+          "candidate_ratio_limit": 1.25,
+          "candidate_delta_limit_ms": 40,
+          "candidate_operator": "AND",
+          "candidate_limit_ms": 345.689,
+          "candidate_passed": true,
+          "proposal": true
+        }
+      },
+      "application_budgets": {
+        "off": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": false
+        },
+        "on": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": false
+        },
+        "memo": {
+          "proposal": true,
+          "p95_limit_ms": 10,
+          "p99_limit_ms": 15,
+          "passed": false
+        }
+      }
+    }
+  }
+}

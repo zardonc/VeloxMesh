@@ -4,9 +4,13 @@ from pathlib import Path
 import json
 import math
 import random
+import sys
 
 ROOT = Path(__file__).resolve().parent
 MODEL = "LOCAL-qwen2.5-0.5b-instruct"
+REPO_ROOT = next(parent for parent in ROOT.parents if (parent/"go.mod").exists())
+sys.path.insert(0, str(REPO_ROOT/"scripts"))
+from phase29_metrics import summarize_windows, comparison_gate
 
 
 def records(path):
@@ -38,14 +42,7 @@ def requests(path):
 
 
 def window(samples):
-    return {"n": len(samples), "failed": sum(not s["ok"] for s in samples), "hits": sum(s["hit"] for s in samples),
-            "actual_max_concurrency": max((s["concurrent"] for s in samples), default=0),
-            "latency": stats([s["elapsed_ms"] for s in samples]),
-            "application": stats([s["application_ms"] for s in samples if "application_ms" in s]),
-            "send_lag": stats([max(0, s["start_ms"]-s["planned_ms"]) for s in samples]),
-            "actual_rps": len(samples)*1000/max((s["start_ms"]+s["elapsed_ms"] for s in samples), default=1),
-            "stages": {name: stats([s["stages"][name] for s in samples if name in s["stages"]])
-                       for name in sorted(set(name for s in samples for name in s["stages"]))}}
+    return summarize_windows([samples])
 
 
 def request_window(folder, name):
@@ -54,7 +51,7 @@ def request_window(folder, name):
 
 def stable():
     names = {"direct": "TestLiveDirectLoad", "off": "TestLiveCacheLoadOff", "on": "TestLiveCacheLoadOnWithoutMemo", "memo": "TestLiveCacheLoadOnMemo"}
-    pooled, blocks = defaultdict(list), []
+    pooled, blocks, condition_windows = defaultdict(list), [], defaultdict(list)
     for block in range(1, 7):
         windows = {}
         for mode, name in names.items():
@@ -70,15 +67,13 @@ def stable():
                     raise ValueError(f"memo activation/reuse mismatch: {path}, {len(outcomes)} hits")
             windows[mode] = window(samples)
             pooled[mode].extend(samples)
+            condition_windows[mode].append(samples)
         blocks.append(windows)
-    return {mode: window(samples) for mode, samples in pooled.items()}, blocks, pooled
+    return {mode: summarize_windows(windows) for mode, windows in condition_windows.items()}, blocks, pooled
 
 
 def diagnostic_gate(on, off):
-    ratio = on["latency"]["p95_ms"] / off["latency"]["p95_ms"]
-    return {"ratio": ratio, "original_limit": 1.05, "original_passed": on["failed"] == 0 and ratio <= 1.05,
-            "candidate_ratio_limit": 1.25, "candidate_delta_limit_ms": 40,
-            "candidate_passed": on["failed"] == 0 and (ratio <= 1.25 or on["latency"]["p95_ms"] <= off["latency"]["p95_ms"]+40)}
+    return comparison_gate(on["latency"]["p95_ms"], off["latency"]["p95_ms"], on["failed"]+off["failed"])
 
 
 def normal_budget(sample):
@@ -135,9 +130,12 @@ for name in ("hit", "memo_hit"):
 result = {"standards_status": "diagnostic proposals; original release gate preserved", "stable": pooled,
           "per_block": blocks, "normal_budgets": {mode: normal_budget(window) for mode, window in pooled.items() if mode != "direct"},
           "gates": {mode: diagnostic_gate(pooled[mode], pooled["off"]) for mode in ("on", "memo")},
-          "miss_only": {mode: window([s for s in samples[mode] if not s["hit"]]) for mode in ("on", "memo")},
+          "miss_only": {mode: pooled[mode]["miss_only"] for mode in ("on", "memo")},
           "scenarios": scenarios, "holdouts": holdouts(), "requests": samples,
           "c8_standards": "capacity boundary report only; no approved saturation SLO"}
 result["bootstrap"] = bootstrap()
-(ROOT/"evaluation.json").write_text(json.dumps(result, indent=2)+"\n")
-print(json.dumps({k: v for k, v in result.items() if k not in ("requests", "per_block")}, indent=2))
+result["method_version"] = "window-aware-v2; candidate AND; legacy evaluation.json preserved"
+(ROOT/"evaluation-v2.json").write_text(json.dumps(result, indent=2)+"\n")
+print(json.dumps({"output": "evaluation-v2.json", "method_version": result["method_version"],
+                  "stable": {mode: {"n": value["n"], "actual_rps": value["actual_rps"], "p95_ms": value["latency"]["p95_ms"]}
+                             for mode, value in pooled.items()}, "gates": result["gates"]}, indent=2))

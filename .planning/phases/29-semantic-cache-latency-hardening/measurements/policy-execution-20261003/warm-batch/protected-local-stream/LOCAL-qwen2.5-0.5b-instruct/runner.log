@@ -1,0 +1,13 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+TestLiveStreamSettlement exit: Process exited with status 1
+TestLiveStreamCancellation exit: <nil>
+TestLiveBufferedStream exit: Process exited with status 1
+TestLiveFusionStream exit: Process exited with status 1
+/veloxmesh-test-redis true
+/veloxmesh-test-qdrant true
+/veloxmesh-test-postgres true
+TestLiveStreamSettlement: Process exited with status 1
+TestLiveBufferedStream: Process exited with status 1
+TestLiveFusionStream: Process exited with status 1

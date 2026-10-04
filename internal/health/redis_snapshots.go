@@ -23,12 +23,12 @@ func (s *RedisStore) Snapshot(id string) ProviderSnapshot {
 			return s.buildSnapshot(state)
 		}
 		s.logger.Error("Redis health snapshot read failed", "provider", id, "error", err)
-		return ProviderSnapshot{ID: id, Status: StatusUnhealthy}
+		return ProviderSnapshot{ID: id, Status: StatusUnhealthy, ReadError: err}
 	}
 	var remote RedisProviderState
 	if err := json.Unmarshal(data, &remote); err != nil {
 		s.logger.Error("Redis health snapshot decode failed", "provider", id, "error", err)
-		return ProviderSnapshot{ID: id, Status: StatusUnhealthy}
+		return ProviderSnapshot{ID: id, Status: StatusUnhealthy, ReadError: err}
 	}
 	s.mu.Lock()
 	chosen := remote

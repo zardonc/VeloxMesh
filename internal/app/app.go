@@ -340,7 +340,7 @@ func New() (*App, error) {
 		admissionCtrl = admission.NewPassThroughController()
 	}
 
-	semanticCache := newSemanticCacheService(context.Background(), cfg, logger, m, repo)
+	semanticCache := newSemanticCacheService(context.Background(), semanticCacheDeps{cfg: cfg, logger: logger, manager: m}, repo)
 
 	var lagReporter handlers.LagReporter
 	var consumer *replication.Consumer

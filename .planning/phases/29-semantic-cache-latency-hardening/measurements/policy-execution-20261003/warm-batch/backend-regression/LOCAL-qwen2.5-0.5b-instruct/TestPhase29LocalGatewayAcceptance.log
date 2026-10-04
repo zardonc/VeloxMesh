@@ -1,0 +1,28 @@
+=== RUN   TestPhase29LocalGatewayAcceptance
+{"time":"2026-10-04T06:47:06.091708411Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:47:06.095155229Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T06:47:06.095210664Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T06:47:06.095226483Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:47:06.095333084Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:47:06.09868825Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_acceptance_test.go:47: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T06:47:06.124201909Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_6ca7fef6f001d6397286e464114007ead136249a26c84331e71664c26acade13: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_6ca7fef6f001d6397286e464114007ead136249a26c84331e71664c26acade13` doesn't exist!"}
+{"time":"2026-10-04T06:47:06.401550775Z","level":"INFO","msg":"request completed","request_id":"e65f2944b687a0542767f207f4ae3fd7","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":301}
+{"time":"2026-10-04T06:47:06.435831397Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_6ca7fef6f001d6397286e464114007ead136249a26c84331e71664c26acade13: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_6ca7fef6f001d6397286e464114007ead136249a26c84331e71664c26acade13` doesn't exist!"}
+{"time":"2026-10-04T06:47:06.496382797Z","level":"INFO","msg":"request completed","request_id":"e10fb396e1d4d37971f0f8789dafaac5","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":24}
+    phase29_acceptance_test.go:62: positive paraphrase 1/1 hit, complete_response_ms=24.625, identical_answer=true
+{"time":"2026-10-04T06:47:06.648834703Z","level":"INFO","msg":"request completed","request_id":"7f336a4d0292f01d664256c66c669696","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":151}
+{"time":"2026-10-04T06:47:06.863580609Z","level":"INFO","msg":"request completed","request_id":"01146e622fb82975d2ea0f9c2be1c1e4","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":214}
+    phase29_acceptance_test.go:70: different-answer negatives 2/2 miss
+{"time":"2026-10-04T06:47:06.913946258Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:47:06.925403309Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T06:47:06.925431632Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T06:47:06.925445058Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:47:06.925600431Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:47:06.930151455Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_acceptance_test.go:73: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T06:47:06.958000292Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_3ac5b2cb9b100b3c411ba6f449b57a1836418f4a15fe04499ee282489371e7cf: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_3ac5b2cb9b100b3c411ba6f449b57a1836418f4a15fe04499ee282489371e7cf` doesn't exist!"}
+{"time":"2026-10-04T06:47:07.145151395Z","level":"INFO","msg":"request completed","request_id":"b758d3ae92778819d3caf1c0f9ad2570","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":213}
+    phase29_acceptance_test.go:73: same authenticated key, model and repository: faq-v1 -> faq-v2 old entry missed immediately
+--- PASS: TestPhase29LocalGatewayAcceptance (1.15s)
+PASS

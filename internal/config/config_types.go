@@ -64,8 +64,9 @@ type Config struct {
 	FallbackEnabled bool
 	MaxAttempts     int
 
-	HealthCheck HealthCheckConfig
-	Providers   []ProviderConfig
+	HealthCheck        HealthCheckConfig
+	Providers          []ProviderConfig
+	ProviderProtection map[string]ProviderProtectionConfig `json:"provider_protection"`
 
 	ControlState ControlStateConfig `json:"control_state"`
 	Redis        RedisConfig        `json:"redis"`
@@ -151,6 +152,7 @@ type CacheConfig struct {
 }
 
 type CacheUseCaseConfig struct {
+	ReuseMode        string   `json:"reuse_mode"`
 	UseCaseID        string   `json:"use_case_id"`
 	APIKeyIDs        []string `json:"api_key_ids"`
 	KnowledgeVersion string   `json:"knowledge_version"`

@@ -1,0 +1,94 @@
+[
+  {
+    "time": "2026-10-04T15:27:51.6665703Z",
+    "command": "docker exec veloxmesh-test-redis redis-cli INFO commandstats",
+    "output": "# Commandstats\r\ncmdstat_info:calls=6,usec=84,usec_per_call=14.00,rejected_calls=0,failed_calls=0\r\ncmdstat_config|get:calls=2,usec=6,usec_per_call=3.00,rejected_calls=0,failed_calls=0\r\ncmdstat_ping:calls=9,usec=523,usec_per_call=58.11,rejected_calls=0,failed_calls=0\r\n"
+  },
+  {
+    "time": "2026-10-04T15:27:53.3407223Z",
+    "command": "docker exec veloxmesh-test-redis redis-cli INFO commandstats",
+    "output": "# Commandstats\r\ncmdstat_info:calls=7,usec=18060,usec_per_call=2580.00,rejected_calls=0,failed_calls=0\r\ncmdstat_config|get:calls=2,usec=6,usec_per_call=3.00,rejected_calls=0,failed_calls=0\r\ncmdstat_ping:calls=10,usec=526,usec_per_call=52.60,rejected_calls=0,failed_calls=0\r\n"
+  },
+  {
+    "time": "2026-10-04T15:27:54.5556301Z",
+    "command": "docker exec veloxmesh-test-redis redis-cli INFO commandstats",
+    "output": "# Commandstats\r\ncmdstat_info:calls=8,usec=18171,usec_per_call=2271.38,rejected_calls=0,failed_calls=0\r\ncmdstat_config|get:calls=2,usec=6,usec_per_call=3.00,rejected_calls=0,failed_calls=0\r\ncmdstat_ping:calls=11,usec=662,usec_per_call=60.18,rejected_calls=0,failed_calls=0\r\n"
+  },
+  {
+    "time": "2026-10-04T15:27:56.171129Z",
+    "command": "docker exec veloxmesh-test-redis redis-cli INFO commandstats",
+    "output": "# Commandstats\r\ncmdstat_info:calls=9,usec=36624,usec_per_call=4069.33,rejected_calls=0,failed_calls=0\r\ncmdstat_config|get:calls=2,usec=6,usec_per_call=3.00,rejected_calls=0,failed_calls=0\r\ncmdstat_ping:calls=12,usec=665,usec_per_call=55.42,rejected_calls=0,failed_calls=0\r\n"
+  },
+  {
+    "time": "2026-10-04T15:27:57.502272Z",
+    "command": "docker exec veloxmesh-test-redis redis-cli INFO commandstats",
+    "output": "# Commandstats\r\ncmdstat_info:calls=10,usec=47880,usec_per_call=4788.00,rejected_calls=0,failed_calls=0\r\ncmdstat_config|get:calls=2,usec=6,usec_per_call=3.00,rejected_calls=0,failed_calls=0\r\ncmdstat_ping:calls=13,usec=668,usec_per_call=51.38,rejected_calls=0,failed_calls=0\r\n"
+  },
+  {
+    "time": "2026-10-04T15:27:58.6195968Z",
+    "command": "docker exec veloxmesh-test-redis redis-cli INFO commandstats",
+    "output": "# Commandstats\r\ncmdstat_info:calls=11,usec=58868,usec_per_call=5351.64,rejected_calls=0,failed_calls=0\r\ncmdstat_config|get:calls=2,usec=6,usec_per_call=3.00,rejected_calls=0,failed_calls=0\r\ncmdstat_ping:calls=13,usec=668,usec_per_call=51.38,rejected_calls=0,failed_calls=0\r\n"
+  },
+  {
+    "time": "2026-10-04T15:27:51.6665703Z",
+    "command": "vmstat 1 8",
+    "output": "procs -----------memory---------- ---swap-- -----io---- -system-- -------cpu-------\n r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st gu\n 9  1 265808 363032  12168 1876680  455  608  9404   900 1379    2  0  3 97  0  0  0\n 4  0 266840 156140  11144 2114492 12904 18740 256148 26012 29326 14799  3 74 17  7  0  0\n 2  4 268040 160436   8308 2102300 15616 11212 237668 18208 32575 17168  4 76 16  4  0  0\n 8  0 267948 108052   6912 2145032 17092 15324 340128 22072 28629 15600  3 79 13  6  0  0\n 2  1 271676 196668   7140 2055436 14220 8140 257568 16156 33592 14092  2 73 20  5  0  0\n 5  0 273032 117988  10644 2111184 12844 12012 251652 17320 26452 17650  3 65 26  6  0  0\n 1  1 208400 178512   9304 2042592 8520 7124 205188  9276 15644 14080  2 31 64  3  0  0\n 0  0 208312 156480  10236 2065316 3852  160  4480  2196 10164 9547  1 21 77  1  0  0\n"
+  },
+  {
+    "time": "2026-10-04T15:27:59.8307219Z",
+    "command": "docker exec veloxmesh-test-redis redis-cli INFO commandstats",
+    "output": "# Commandstats\r\ncmdstat_info:calls=12,usec=58926,usec_per_call=4910.50,rejected_calls=0,failed_calls=0\r\ncmdstat_get:calls=28,usec=563,usec_per_call=20.11,rejected_calls=0,failed_calls=0\r\ncmdstat_config|get:calls=2,usec=6,usec_per_call=3.00,rejected_calls=0,failed_calls=0\r\ncmdstat_ping:calls=14,usec=669,usec_per_call=47.79,rejected_calls=0,failed_calls=0\r\ncmdstat_set:calls=25,usec=10560,usec_per_call=422.40,rejected_calls=0,failed_calls=0\r\ncmdstat_eval:calls=1,usec=14651,usec_per_call=14651.00,rejected_calls=0,failed_calls=0\r\ncmdstat_hello:calls=2,usec=435,usec_per_call=217.50,rejected_calls=0,failed_calls=0\r\ncmdstat_subscribe:calls=1,usec=5,usec_per_call=5.00,rejected_calls=0,failed_calls=0\r\ncmdstat_evalsha:calls=12,usec=3323,usec_per_call=276.92,rejected_calls=0,failed_calls=1\r\ncmdstat_client|setinfo:calls=4,usec=4,usec_per_call=1.00,rejected_calls=0,failed_calls=0\r\n"
+  },
+  {
+    "time": "2026-10-04T15:27:59.9403254Z",
+    "command": "docker exec veloxmesh-test-redis redis-cli INFO stats",
+    "output": "# Stats\r\ntotal_connections_received:23\r\ntotal_commands_processed:118\r\ninstantaneous_ops_per_sec:46\r\ntotal_net_input_bytes:12476\r\ntotal_net_output_bytes:11027\r\ntotal_net_repl_input_bytes:0\r\ntotal_net_repl_output_bytes:0\r\ninstantaneous_input_kbps:6.06\r\ninstantaneous_output_kbps:5.00\r\ninstantaneous_input_repl_kbps:0.00\r\ninstantaneous_output_repl_kbps:0.00\r\nrejected_connections:0\r\nsync_full:0\r\nsync_partial_ok:0\r\nsync_partial_err:0\r\nexpired_subkeys:0\r\nexpired_keys:0\r\nexpired_stale_perc:0.00\r\nexpired_time_cap_reached_count:0\r\nexpire_cycle_cpu_milliseconds:0\r\nevicted_keys:0\r\nevicted_clients:0\r\nevicted_scripts:0\r\ntotal_eviction_exceeded_time:0\r\ncurrent_eviction_exceeded_time:0\r\nkeyspace_hits:51\r\nkeyspace_misses:4\r\npubsub_channels:1\r\npubsub_patterns:0\r\npubsubshard_channels:0\r\nlatest_fork_usec:0\r\ntotal_forks:0\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\ntotal_active_defrag_time:0\r\ncurrent_active_defrag_time:0\r\ntracking_total_keys:0\r\ntracking_total_items:0\r\ntracking_total_prefixes:0\r\nunexpected_error_replies:0\r\ntotal_error_replies:2\r\ndump_payload_sanitizations:0\r\ntotal_reads_processed:85\r\ntotal_writes_processed:64\r\nio_threaded_reads_processed:0\r\nio_threaded_writes_processed:0\r\nclient_query_buffer_limit_disconnections:0\r\nclient_output_buffer_limit_disconnections:0\r\nreply_buffer_shrinks:2\r\nreply_buffer_expands:0\r\neventloop_cycles:323\r\neventloop_duration_sum:248133\r\neventloop_duration_cmd_sum:78507\r\ninstantaneous_eventloop_cycles_per_sec:37\r\ninstantaneous_eventloop_duration_usec:394\r\nacl_access_denied_auth:0\r\nacl_access_denied_cmd:0\r\nacl_access_denied_key:0\r\nacl_access_denied_channel:0\r\n"
+  },
+  {
+    "time": "2026-10-04T15:28:00.0491639Z",
+    "command": "docker exec veloxmesh-test-redis redis-cli --json SLOWLOG GET 16",
+    "slow": [
+      {
+        "command": "eval",
+        "duration_us": 14651,
+        "id": 5,
+        "unix_time": 1791127678
+      },
+      {
+        "command": "SET",
+        "duration_us": 10329,
+        "id": 4,
+        "unix_time": 1791127678
+      },
+      {
+        "command": "INFO",
+        "duration_us": 10988,
+        "id": 3,
+        "unix_time": 1791127677
+      },
+      {
+        "command": "INFO",
+        "duration_us": 11256,
+        "id": 2,
+        "unix_time": 1791127676
+      },
+      {
+        "command": "INFO",
+        "duration_us": 18453,
+        "id": 1,
+        "unix_time": 1791127674
+      },
+      {
+        "command": "INFO",
+        "duration_us": 17976,
+        "id": 0,
+        "unix_time": 1791127672
+      }
+    ]
+  },
+  {
+    "time": "2026-10-04T15:28:00.1574576Z",
+    "command": "docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}'",
+    "output": "veloxmesh-test-redis 20.81MiB / 2.475GiB 1.12%\nveloxmesh-test-qdrant 182.5MiB / 2.475GiB 9.73%\nveloxmesh-test-postgres 5.844MiB / 2.475GiB 0.09%\n"
+  }
+]

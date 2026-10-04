@@ -75,6 +75,9 @@ func validateFallback(c *Config) error {
 
 func validateSemanticCacheConfig(c *Config) error {
 	cache := c.Cache
+	if cache.Enabled && len(cache.UseCases) > 0 && !cache.HasSemanticReuse() {
+		return validateNonSemanticCache(cache)
+	}
 	if cache.VectorDimension <= 0 {
 		return fmt.Errorf("semantic_cache_vector_dimension must be >= 1")
 	}
@@ -101,6 +104,10 @@ func validateSemanticCacheConfig(c *Config) error {
 	if len(cache.UseCases) == 0 {
 		return nil
 	}
+	return validateSemanticCacheProfile(cache)
+}
+
+func validateSemanticCacheProfile(cache CacheConfig) error {
 	if cache.Provider == "" || cache.EmbeddingModel == "" {
 		return fmt.Errorf("semantic cache provider and embedding_model are required when enabled")
 	}
@@ -127,9 +134,22 @@ func validateCacheUseCases(useCases []CacheUseCaseConfig) error {
 	if len(useCases) == 0 {
 		return fmt.Errorf("semantic cache use_cases are required when enabled")
 	}
+	seen := make(map[string]bool)
 	for _, useCase := range useCases {
+		switch useCase.ReuseMode {
+		case "", CacheReuseDisabled, CacheReuseExact, CacheReuseSemantic:
+		default:
+			return fmt.Errorf("cache use_case reuse_mode must be disabled, exact or semantic")
+		}
 		if useCase.UseCaseID == "" || useCase.KnowledgeVersion == "" || useCase.TargetModel == "" || useCase.SystemPrompt == "" || len(useCase.APIKeyIDs) == 0 {
 			return fmt.Errorf("semantic cache use_case must define api_key_ids, use_case_id, knowledge_version, target_model, and system_prompt")
+		}
+		for _, id := range useCase.APIKeyIDs {
+			key := fmt.Sprintf("%q/%q/%q", id, useCase.TargetModel, useCase.SystemPrompt)
+			if id == "" || seen[key] {
+				return fmt.Errorf("cache use_cases must not contain empty or overlapping api_key/model/system profiles")
+			}
+			seen[key] = true
 		}
 	}
 	return nil

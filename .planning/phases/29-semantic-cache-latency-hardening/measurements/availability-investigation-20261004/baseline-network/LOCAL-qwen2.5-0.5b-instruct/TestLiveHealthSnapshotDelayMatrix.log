@@ -1,0 +1,35 @@
+=== RUN   TestLiveHealthSnapshotDelayMatrix
+=== RUN   TestLiveHealthSnapshotDelayMatrix/40ms/unhealthy=false
+    live_health_snapshot_diagnostic_test.go:63: SAMPLE {"after":"healthy","before":"healthy","delay_ms":40,"during":"healthy","elapsed_ms":41.841,"errors":"","local":"healthy","type":"health_snapshot_delay"}
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:48556->127.0.0.1:6379: read tcp 127.0.0.1:39485->127.0.0.1:50914: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:39485->127.0.0.1:50914: read tcp 127.0.0.1:48556->127.0.0.1:6379: use of closed network connection
+=== RUN   TestLiveHealthSnapshotDelayMatrix/40ms/unhealthy=true
+    live_health_snapshot_diagnostic_test.go:63: SAMPLE {"after":"unhealthy","before":"unhealthy","delay_ms":40,"during":"unhealthy","elapsed_ms":41.224,"errors":"","local":"unhealthy","type":"health_snapshot_delay"}
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:48558->127.0.0.1:6379: read tcp 127.0.0.1:42241->127.0.0.1:59768: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:42241->127.0.0.1:59768: read tcp 127.0.0.1:48558->127.0.0.1:6379: use of closed network connection
+=== RUN   TestLiveHealthSnapshotDelayMatrix/60ms/unhealthy=false
+    live_health_snapshot_diagnostic_test.go:63: SAMPLE {"after":"healthy","before":"healthy","delay_ms":60,"during":"unhealthy","elapsed_ms":50.966,"errors":"{\"time\":\"2026-10-04T14:57:37.117763242Z\",\"level\":\"ERROR\",\"msg\":\"Redis health snapshot read failed\",\"provider\":\"diagnostic\",\"error\":\"context deadline exceeded\"}\n","local":"healthy","type":"health_snapshot_delay"}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:39173->127.0.0.1:44590: read tcp 127.0.0.1:48570->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:39173->127.0.0.1:44576: write tcp 127.0.0.1:39173->127.0.0.1:44576: use of closed network connection
+=== RUN   TestLiveHealthSnapshotDelayMatrix/60ms/unhealthy=true
+    live_health_snapshot_diagnostic_test.go:63: SAMPLE {"after":"unhealthy","before":"unhealthy","delay_ms":60,"during":"unhealthy","elapsed_ms":51.579,"errors":"{\"time\":\"2026-10-04T14:57:37.18237934Z\",\"level\":\"ERROR\",\"msg\":\"Redis health snapshot read failed\",\"provider\":\"diagnostic\",\"error\":\"context deadline exceeded\"}\n","local":"unhealthy","type":"health_snapshot_delay"}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:35659->127.0.0.1:44796: read tcp 127.0.0.1:48592->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:35659->127.0.0.1:44782: write tcp 127.0.0.1:35659->127.0.0.1:44782: use of closed network connection
+=== RUN   TestLiveHealthSnapshotDelayMatrix/100ms/unhealthy=false
+    live_health_snapshot_diagnostic_test.go:63: SAMPLE {"after":"healthy","before":"healthy","delay_ms":100,"during":"unhealthy","elapsed_ms":51.05,"errors":"{\"time\":\"2026-10-04T14:57:37.247725194Z\",\"level\":\"ERROR\",\"msg\":\"Redis health snapshot read failed\",\"provider\":\"diagnostic\",\"error\":\"context deadline exceeded\"}\n","local":"healthy","type":"health_snapshot_delay"}
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:48620->127.0.0.1:6379: read tcp 127.0.0.1:38293->127.0.0.1:49084: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:38293->127.0.0.1:49084: read tcp 127.0.0.1:48620->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:38293->127.0.0.1:49076: write tcp 127.0.0.1:38293->127.0.0.1:49076: use of closed network connection
+=== RUN   TestLiveHealthSnapshotDelayMatrix/100ms/unhealthy=true
+    live_health_snapshot_diagnostic_test.go:63: SAMPLE {"after":"unhealthy","before":"unhealthy","delay_ms":100,"during":"unhealthy","elapsed_ms":50.886,"errors":"{\"time\":\"2026-10-04T14:57:37.352324431Z\",\"level\":\"ERROR\",\"msg\":\"Redis health snapshot read failed\",\"provider\":\"diagnostic\",\"error\":\"context deadline exceeded\"}\n","local":"unhealthy","type":"health_snapshot_delay"}
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:48642->127.0.0.1:6379: read tcp 127.0.0.1:40581->127.0.0.1:41342: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:40581->127.0.0.1:41342: read tcp 127.0.0.1:48642->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:40581->127.0.0.1:41326: write tcp 127.0.0.1:40581->127.0.0.1:41326: use of closed network connection
+--- PASS: TestLiveHealthSnapshotDelayMatrix (0.48s)
+    --- PASS: TestLiveHealthSnapshotDelayMatrix/40ms/unhealthy=false (0.09s)
+    --- PASS: TestLiveHealthSnapshotDelayMatrix/40ms/unhealthy=true (0.05s)
+    --- PASS: TestLiveHealthSnapshotDelayMatrix/60ms/unhealthy=false (0.06s)
+    --- PASS: TestLiveHealthSnapshotDelayMatrix/60ms/unhealthy=true (0.07s)
+    --- PASS: TestLiveHealthSnapshotDelayMatrix/100ms/unhealthy=false (0.11s)
+    --- PASS: TestLiveHealthSnapshotDelayMatrix/100ms/unhealthy=true (0.10s)
+PASS

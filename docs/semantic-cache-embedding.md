@@ -1,6 +1,6 @@
 # Semantic cache embedding representation and short-term reuse
 
-The cache remains opt-in and restricted by its existing use-case allowlist. These options do not enable caching or change its similarity threshold.
+The cache remains opt-in and restricted by its trusted use-case allowlist and explicit [answer reuse policy](cache-reuse-policy.md). These options do not enable caching or change its similarity threshold. Embedding options apply to `semantic` profiles; `exact` profiles use the relational answer cache without embedding.
 
 | Cache field | Environment variable | Default | Meaning |
 | --- | --- | --- | --- |

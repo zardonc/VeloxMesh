@@ -1,0 +1,65 @@
+command=uptime
+ 06:28:04 up 11:31,  2 users,  load average: 3.09, 3.96, 2.14
+
+error=<nil>
+command=free -m
+               total        used        free      shared  buff/cache   available
+Mem:            2534         470         107           0        2121        2064
+Swap:           3861         266        3595
+
+error=<nil>
+command=df -h /
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv   38G   23G   13G  64% /
+
+error=<nil>
+command=docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}'
+veloxmesh-test-redis 2.465MiB / 2.475GiB 4.17%
+veloxmesh-test-qdrant 292.3MiB / 2.475GiB 132.75%
+veloxmesh-test-postgres 9.859MiB / 2.475GiB 15.12%
+
+error=<nil>
+command=docker inspect --format '{{.Name}} running={{.State.Running}} oom={{.State.OOMKilled}} exit={{.State.ExitCode}} restarts={{.RestartCount}}' veloxmesh-test-redis veloxmesh-test-qdrant veloxmesh-test-postgres
+/veloxmesh-test-redis running=true oom=false exit=0 restarts=0
+/veloxmesh-test-qdrant running=true oom=false exit=0 restarts=0
+/veloxmesh-test-postgres running=true oom=false exit=0 restarts=0
+
+error=<nil>
+command=docker logs --tail 35 veloxmesh-test-qdrant
+2026-10-04T06:28:08.857722Z  INFO storage::content_manager::toc: Loading collection: semantic_cache_f4e81917cd02cc0f42ac578d8344136ebac203a3d61f0571e325a09e8223d878
+2026-10-04T06:28:08.891676Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/semantic_cache_f4e81917cd02cc0f42ac578d8344136ebac203a3d61f0571e325a09e8223d878/0: 0/1 (0%)
+2026-10-04T06:28:08.894729Z  INFO collection::shards::local_shard: Recovered collection semantic_cache_f4e81917cd02cc0f42ac578d8344136ebac203a3d61f0571e325a09e8223d878: 1/1 (100%)
+2026-10-04T06:28:08.895831Z  INFO storage::content_manager::toc: Loading collection: semantic_cache_12539814aeb5e7a26deb86783e33e63abaa82f8e2f1d0909654e6bd2eb1ee792
+2026-10-04T06:28:08.930120Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/semantic_cache_12539814aeb5e7a26deb86783e33e63abaa82f8e2f1d0909654e6bd2eb1ee792/0: 0/1 (0%)
+2026-10-04T06:28:08.934748Z  INFO collection::shards::local_shard: Recovered collection semantic_cache_12539814aeb5e7a26deb86783e33e63abaa82f8e2f1d0909654e6bd2eb1ee792: 1/1 (100%)
+2026-10-04T06:28:08.937328Z  INFO storage::content_manager::toc: Loading collection: semantic_cache_3f23a3833819d48feb8f3006f7642b2122458675db02483e84f1c692b194714e
+2026-10-04T06:28:09.053770Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/semantic_cache_3f23a3833819d48feb8f3006f7642b2122458675db02483e84f1c692b194714e/0: 0/1 (0%)
+2026-10-04T06:28:09.066226Z  INFO collection::shards::local_shard: Recovered collection semantic_cache_3f23a3833819d48feb8f3006f7642b2122458675db02483e84f1c692b194714e: 1/1 (100%)
+2026-10-04T06:28:09.067995Z  INFO storage::content_manager::toc: Loading collection: reuse_race_1791061678279427321_0
+2026-10-04T06:28:09.105576Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/reuse_race_1791061678279427321_0/0: 0/1 (0%)
+2026-10-04T06:28:09.106150Z  INFO collection::shards::local_shard: Recovered collection reuse_race_1791061678279427321_0: 1/1 (100%)
+2026-10-04T06:28:09.111108Z  INFO storage::content_manager::toc: Loading collection: semantic_cache_98d21b6299ea2ea04e496f7b579b67f1bc88aa2dd39e3789f98bfa46f8a0c8c6
+2026-10-04T06:28:09.366024Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/semantic_cache_98d21b6299ea2ea04e496f7b579b67f1bc88aa2dd39e3789f98bfa46f8a0c8c6/0: 0/1 (0%)
+2026-10-04T06:28:09.379587Z  INFO collection::shards::local_shard: Recovered collection semantic_cache_98d21b6299ea2ea04e496f7b579b67f1bc88aa2dd39e3789f98bfa46f8a0c8c6: 1/1 (100%)
+2026-10-04T06:28:09.384591Z  INFO storage::content_manager::toc: Loading collection: semantic_cache_d34cd2ef881d2964d817ec05784affcca79572754cb4b1c11d9cdaa61867b324
+2026-10-04T06:28:09.439108Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/semantic_cache_d34cd2ef881d2964d817ec05784affcca79572754cb4b1c11d9cdaa61867b324/0: 0/1 (0%)
+2026-10-04T06:28:09.441967Z  INFO collection::shards::local_shard: Recovered collection semantic_cache_d34cd2ef881d2964d817ec05784affcca79572754cb4b1c11d9cdaa61867b324: 1/1 (100%)
+2026-10-04T06:28:09.443086Z  INFO storage::content_manager::toc: Loading collection: semantic_cache_790add4bb342d5f44b2218d69e30af9bb31fa989558fadf7f207819ca6149c02
+2026-10-04T06:28:09.484311Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/semantic_cache_790add4bb342d5f44b2218d69e30af9bb31fa989558fadf7f207819ca6149c02/0: 0/1 (0%)
+2026-10-04T06:28:09.491467Z  INFO collection::shards::local_shard: Recovered collection semantic_cache_790add4bb342d5f44b2218d69e30af9bb31fa989558fadf7f207819ca6149c02: 1/1 (100%)
+2026-10-04T06:28:09.494945Z  INFO storage::content_manager::toc: Loading collection: semantic_cache_aa404d4cc2e4a0d2ec7881dae9c42711ba2d6205c37addaa36bd397d3e5624da
+2026-10-04T06:28:09.572593Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/semantic_cache_aa404d4cc2e4a0d2ec7881dae9c42711ba2d6205c37addaa36bd397d3e5624da/0: 0/1 (0%)
+2026-10-04T06:28:09.579911Z  INFO collection::shards::local_shard: Recovered collection semantic_cache_aa404d4cc2e4a0d2ec7881dae9c42711ba2d6205c37addaa36bd397d3e5624da: 1/1 (100%)
+2026-10-04T06:28:09.580576Z  INFO storage::content_manager::toc: Loading collection: reuse_race_1791062965418371836_2
+2026-10-04T06:28:09.608760Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/reuse_race_1791062965418371836_2/0: 0/1 (0%)
+2026-10-04T06:28:09.608963Z  INFO collection::shards::local_shard: Recovered collection reuse_race_1791062965418371836_2: 1/1 (100%)
+2026-10-04T06:28:09.618059Z  INFO storage::content_manager::toc: Loading collection: semantic_cache_cdfb23a78d58b1b44a3582fdb268ef9351ae6fc088e7ffae78743f9b8572d4af
+2026-10-04T06:28:09.664542Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/semantic_cache_cdfb23a78d58b1b44a3582fdb268ef9351ae6fc088e7ffae78743f9b8572d4af/0: 0/1 (0%)
+2026-10-04T06:28:09.666500Z  INFO collection::shards::local_shard: Recovered collection semantic_cache_cdfb23a78d58b1b44a3582fdb268ef9351ae6fc088e7ffae78743f9b8572d4af: 1/1 (100%)
+2026-10-04T06:28:09.667263Z  INFO storage::content_manager::toc: Loading collection: semantic_cache_3d2a16face62e39cfba49528bc30021e05660aa8ae292031b4e1955eeb9805a8
+2026-10-04T06:28:09.728576Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/semantic_cache_3d2a16face62e39cfba49528bc30021e05660aa8ae292031b4e1955eeb9805a8/0: 0/1 (0%)
+2026-10-04T06:28:09.734915Z  INFO collection::shards::local_shard: Recovered collection semantic_cache_3d2a16face62e39cfba49528bc30021e05660aa8ae292031b4e1955eeb9805a8: 1/1 (100%)
+2026-10-04T06:28:09.737080Z  INFO storage::content_manager::toc: Loading collection: semantic_cache_6a0494663fb37aa17003bb9b9c5215c40b67c35b9db835b086554edacce899d2
+2026-10-04T06:28:09.783744Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/semantic_cache_6a0494663fb37aa17003bb9b9c5215c40b67c35b9db835b086554edacce899d2/0: 0/1 (0%)
+
+error=<nil>

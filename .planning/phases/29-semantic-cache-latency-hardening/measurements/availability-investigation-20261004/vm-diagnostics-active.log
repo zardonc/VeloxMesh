@@ -1,0 +1,125 @@
+command=uptime
+ 15:17:47 up 36 min,  2 users,  load average: 1.48, 0.68, 0.35
+
+error=<nil>
+command=free -m
+               total        used        free      shared  buff/cache   available
+Mem:            2534         559         315           3        1897        1974
+Swap:           3861         261        3600
+
+error=<nil>
+command=sh -c 'for n in 1 2 3 4 5; do docker inspect --format {{.State.Running}} veloxmesh-test-redis | rg true && exit 0; sleep 1; done; exit 1'
+sh: 1: rg: not found
+sh: 1: rg: not found
+sh: 1: rg: not found
+sh: 1: rg: not found
+sh: 1: rg: not found
+
+error=Process exited with status 1
+command=vmstat 1 6
+procs -----------memory---------- ---swap-- -----io---- -system-- -------cpu-------
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st gu
+ 1  0 262580 217140  17380 1954956  501  657 10263   978 1485    2  0  3 96  0  0  0
+ 0  0 262572 212292  17384 1958916  164    0  4028     0 2440 1869  0  3 96  1  0  0
+ 3  0 262560 211092  17384 1958928   20    0    20     0 2303 1622  0  2 98  0  0  0
+ 0  0 262444 204124  17412 1961636  704    0  2556    32 3195 2379  1  5 94  1  0  0
+ 1  0 262280 195016  17536 1965652  312    0  2476   152 5842 5251  2 12 84  1  0  0
+ 0  0 262220 192800  17536 1966980   68    0   740   168 5366 5227  2  9 89  0  0  0
+
+error=<nil>
+command=docker exec veloxmesh-test-redis redis-cli INFO stats
+# Stats
+total_connections_received:16
+total_commands_processed:23
+instantaneous_ops_per_sec:0
+total_net_input_bytes:235
+total_net_output_bytes:105
+total_net_repl_input_bytes:0
+total_net_repl_output_bytes:0
+instantaneous_input_kbps:0.00
+instantaneous_output_kbps:0.00
+instantaneous_input_repl_kbps:0.00
+instantaneous_output_repl_kbps:0.00
+rejected_connections:0
+sync_full:0
+sync_partial_ok:0
+sync_partial_err:0
+expired_subkeys:0
+expired_keys:0
+expired_stale_perc:0.00
+expired_time_cap_reached_count:0
+expire_cycle_cpu_milliseconds:0
+evicted_keys:0
+evicted_clients:0
+evicted_scripts:0
+total_eviction_exceeded_time:0
+current_eviction_exceeded_time:0
+keyspace_hits:20
+keyspace_misses:0
+pubsub_channels:0
+pubsub_patterns:0
+pubsubshard_channels:0
+latest_fork_usec:0
+total_forks:0
+migrate_cached_sockets:0
+slave_expires_tracked_keys:0
+active_defrag_hits:0
+active_defrag_misses:0
+active_defrag_key_hits:0
+active_defrag_key_misses:0
+total_active_defrag_time:0
+current_active_defrag_time:0
+tracking_total_keys:0
+tracking_total_items:0
+tracking_total_prefixes:0
+unexpected_error_replies:0
+total_error_replies:0
+dump_payload_sanitizations:0
+total_reads_processed:31
+total_writes_processed:15
+io_threaded_reads_processed:0
+io_threaded_writes_processed:0
+client_query_buffer_limit_disconnections:0
+client_output_buffer_limit_disconnections:0
+reply_buffer_shrinks:0
+reply_buffer_expands:0
+eventloop_cycles:319
+eventloop_duration_sum:204518
+eventloop_duration_cmd_sum:118
+instantaneous_eventloop_cycles_per_sec:9
+instantaneous_eventloop_duration_usec:361
+acl_access_denied_auth:0
+acl_access_denied_cmd:0
+acl_access_denied_key:0
+acl_access_denied_channel:0
+
+error=<nil>
+command=docker exec veloxmesh-test-redis redis-cli INFO commandstats
+# Commandstats
+cmdstat_config|get:calls=2,usec=5,usec_per_call=2.50,rejected_calls=0,failed_calls=0
+cmdstat_ping:calls=15,usec=118,usec_per_call=7.87,rejected_calls=0,failed_calls=0
+cmdstat_info:calls=7,usec=14359,usec_per_call=2051.29,rejected_calls=0,failed_calls=0
+
+error=<nil>
+command=docker exec veloxmesh-test-redis redis-cli SLOWLOG LEN
+1
+
+error=<nil>
+command=docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}'
+veloxmesh-test-redis 27.89MiB / 2.475GiB 2.06%
+veloxmesh-test-qdrant 948.2MiB / 2.475GiB 16.39%
+veloxmesh-test-postgres 26.04MiB / 2.475GiB 15.93%
+
+error=<nil>
+command=docker inspect --format '{{.Name}} running={{.State.Running}} oom={{.State.OOMKilled}} exit={{.State.ExitCode}} restarts={{.RestartCount}}' veloxmesh-test-redis veloxmesh-test-qdrant veloxmesh-test-postgres
+/veloxmesh-test-redis running=true oom=false exit=0 restarts=0
+/veloxmesh-test-qdrant running=true oom=false exit=0 restarts=0
+/veloxmesh-test-postgres running=true oom=false exit=0 restarts=0
+
+error=<nil>
+command=docker inspect --format '{{.Name}} cpu_quota={{.HostConfig.CpuQuota}} cpu_period={{.HostConfig.CpuPeriod}} cpuset={{.HostConfig.CpusetCpus}} memory_limit={{.HostConfig.Memory}}' veloxmesh-test-redis veloxmesh-test-qdrant veloxmesh-test-postgres
+/veloxmesh-test-redis cpu_quota=0 cpu_period=0 cpuset= memory_limit=0
+/veloxmesh-test-qdrant cpu_quota=0 cpu_period=0 cpuset= memory_limit=0
+/veloxmesh-test-postgres cpu_quota=0 cpu_period=0 cpuset= memory_limit=0
+
+error=<nil>

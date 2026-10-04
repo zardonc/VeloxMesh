@@ -1,0 +1,11 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+TestLiveDirectLoad exit: <nil>
+TestLiveCacheLoadOff exit: Process exited with status 1
+TestLiveCacheLoadOnWithoutMemo exit: <nil>
+TestLiveCacheLoadOnMemo exit: <nil>
+/veloxmesh-test-redis true
+/veloxmesh-test-qdrant true
+/veloxmesh-test-postgres true
+TestLiveCacheLoadOff: Process exited with status 1

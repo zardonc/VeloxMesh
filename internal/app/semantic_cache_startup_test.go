@@ -18,7 +18,7 @@ func TestSemanticCacheDurableStartup(t *testing.T) {
 		Enabled: true, Provider: "openai-primary", EmbeddingModel: "embedding-fixture",
 		VectorDimension: 3, TTL: "1h", Threshold: 0.99, MaxCandidates: 10,
 		ReadTimeout: "100ms", ReadConcurrency: 4, WriteTimeout: "2s", WriteWorkers: 2, QueueCapacity: 32, ShutdownGrace: "1s",
-		UseCases: []config.CacheUseCaseConfig{{UseCaseID: "phase29-static-faq",
+		UseCases: []config.CacheUseCaseConfig{{ReuseMode: "semantic", UseCaseID: "phase29-static-faq",
 			APIKeyIDs: []string{"startup-fixture-key"}, KnowledgeVersion: "faq-v1",
 			TargetModel: "gpt-4o-mini", SystemPrompt: "Static test FAQ."}},
 	}

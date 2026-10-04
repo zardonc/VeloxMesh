@@ -29,11 +29,9 @@ import (
 )
 
 type mockEmbedAdapter struct {
-	id           string
-	calls        atomic.Int64
-	completions  atomic.Int64
-	storeStarted chan struct{}
-	releaseStore chan struct{}
+	id          string
+	calls       atomic.Int64
+	completions atomic.Int64
 }
 
 func (m *mockEmbedAdapter) ID() string       { return m.id }
@@ -61,26 +59,30 @@ func (m *mockEmbedAdapter) HealthCheck(ctx context.Context) providers.HealthStat
 	return providers.HealthStatus{}
 }
 func (m *mockEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
-	if m.calls.Add(1) == 2 && m.storeStarted != nil {
-		close(m.storeStarted)
-		select {
-		case <-m.releaseStore:
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		}
-	}
+	m.calls.Add(1)
 	return &llm.EmbeddingResponse{
 		Data: []llm.Embedding{{Index: 0, Embedding: []float32{1.0, 0.0, 0.0}}},
 	}, nil
 }
 
 type memorySemanticCacheRepo struct {
-	mu      sync.RWMutex
-	entries []*controlstate.SemanticCacheEntry
-	stored  chan struct{}
+	mu           sync.RWMutex
+	entries      []*controlstate.SemanticCacheEntry
+	stored       chan struct{}
+	storeStarted chan struct{}
+	releaseStore chan struct{}
+	startOnce    sync.Once
 }
 
 func (m *memorySemanticCacheRepo) Store(ctx context.Context, entry *controlstate.SemanticCacheEntry) error {
+	if m.storeStarted != nil {
+		m.startOnce.Do(func() { close(m.storeStarted) })
+		select {
+		case <-m.releaseStore:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.entries = append(m.entries, entry)
@@ -133,18 +135,20 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 
 	cfg := &config.Config{}
 
-	p1 := &mockEmbedAdapter{id: "p1", storeStarted: make(chan struct{}), releaseStore: make(chan struct{})}
-	release := sync.OnceFunc(func() { close(p1.releaseStore) })
+	p1 := &mockEmbedAdapter{id: "p1"}
+	storeStarted, releaseStore := make(chan struct{}), make(chan struct{})
+	release := sync.OnceFunc(func() { close(releaseStore) })
 	t.Cleanup(release)
 	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1}, nil)
 	route := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
 
-	cacheRepo := &memorySemanticCacheRepo{stored: make(chan struct{}, 1)}
+	cacheRepo := &memorySemanticCacheRepo{stored: make(chan struct{}, 1), storeStarted: storeStarted, releaseStore: releaseStore}
 	semanticCacheSvc := cache.NewSemanticCacheService(cache.SemanticCacheConfig{
 		Enabled: true, Threshold: 0.9, MaxCandidates: 10, TTL: time.Hour,
 		EmbeddingModel: "emb", VectorDimension: 3,
 		ReadTimeout: 100 * time.Millisecond, ReadConcurrency: 4, WriteTimeout: time.Second, WriteWorkers: 1, QueueCapacity: 2, ShutdownGrace: time.Second,
 		UseCases: []cache.SemanticCacheUseCase{{
+			ReuseMode: "semantic",
 			APIKeyIDs: []string{keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: "faq-v1", TargetModel: "emb", SystemPrompt: "Static FAQ only",
 		}},
 	}, cacheRepo, nil, p1)
@@ -181,7 +185,7 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 
 	// Second Request - Hit
 	select {
-	case <-p1.storeStarted:
+	case <-cacheRepo.storeStarted:
 	case <-time.After(time.Second):
 		t.Fatal("write worker did not start")
 	}

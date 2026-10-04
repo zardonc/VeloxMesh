@@ -123,7 +123,8 @@ func liveAssertSettlement(t *testing.T, chain liveChain, expected int) {
 		t.Fatal(err)
 	}
 	t.Logf("usage_rows_all=%d usage_rows_key=%d", allRows, count)
-	if count != expected || settled != expected || tokens <= 0 || credits != tokens {
+	validTokens := (expected == 0 && tokens == 0) || (expected > 0 && tokens > 0)
+	if count != expected || settled != expected || !validTokens || credits != tokens {
 		t.Fatalf("settlement count=%d expected=%d settled=%d tokens=%d credits=%d", count, expected, settled, tokens, credits)
 	}
 	liveAssertDebit(t, chain, credits)

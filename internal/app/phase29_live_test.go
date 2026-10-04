@@ -164,13 +164,19 @@ func liveApplicationWithDatabase(t *testing.T, env map[string]string, database l
 	t.Setenv("REDIS_NAMESPACE", "phase29-"+database.keyID)
 	cacheConfig := liveCacheConfig(t, env, liveCacheInputs{database: database, dimension: len(probe.Data[0].Embedding)})
 	cacheConfig = liveExpandCacheUseCases(cacheConfig, providers[2:])
-	t.Setenv("CONFIG_FILE", liveJSON(t, map[string]any{"providers": providers, "default_provider": "sans-primary", "cache": cacheConfig}))
+	var protection map[string]config.ProviderProtectionConfig
+	if value := os.Getenv("PHASE29_PROVIDER_PROTECTION"); value != "" {
+		if err := json.Unmarshal([]byte(value), &protection); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Setenv("CONFIG_FILE", liveJSON(t, map[string]any{"providers": providers, "default_provider": "sans-primary", "cache": cacheConfig, "provider_protection": protection}))
 	application, err := New()
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(application.Close)
-	if cacheConfig.Enabled && application.semanticCache == nil {
+	if cacheConfig.Enabled && cacheConfig.HasAnswerReuse() && application.semanticCache == nil {
 		t.Fatal("real cache wiring unavailable")
 	}
 	t.Logf("model=%s dimension=%d primary=%s", model, cacheConfig.VectorDimension, env["SANS_PRIMARY_DEFAULT_MODEL"])
@@ -205,11 +211,19 @@ func liveProviders(t *testing.T, env map[string]string, embedding config.Provide
 func liveExpandCacheUseCases(original config.CacheConfig, providers []config.ProviderConfig) config.CacheConfig {
 	result := original
 	result.UseCases = append([]config.CacheUseCaseConfig(nil), original.UseCases...)
+	seen := make(map[string]bool)
+	for _, profile := range original.UseCases {
+		seen[profile.TargetModel] = true
+	}
 	for _, provider := range providers {
 		for _, model := range provider.Models {
+			if seen[model] {
+				continue
+			}
 			useCase := original.UseCases[0]
 			useCase.TargetModel = model
 			result.UseCases = append(result.UseCases, useCase)
+			seen[model] = true
 		}
 	}
 	return result
@@ -229,7 +243,13 @@ func liveCacheConfig(t *testing.T, env map[string]string, inputs liveCacheInputs
 	if system == "" {
 		system = liveFAQSystem
 	}
-	cacheConfig := config.CacheConfig{Enabled: os.Getenv("PHASE29_MODE") != "off", Provider: "phase29-embedding", EmbeddingModel: os.Getenv("PHASE29_MODEL"), VectorStore: "qdrant", VectorDimension: inputs.dimension, TTL: "1h", Threshold: 0.99999, MaxCandidates: 10, Qdrant: config.QdrantConfig{Addr: "127.0.0.1:6334", APIKey: os.Getenv("QDRANT_API_KEY")}, UseCases: []config.CacheUseCaseConfig{{APIKeyIDs: []string{inputs.database.keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: version, TargetModel: env["SANS_PRIMARY_DEFAULT_MODEL"], SystemPrompt: system}}}
+	mode := os.Getenv("PHASE29_REUSE_MODE")
+	if mode == "" {
+		mode = config.CacheReuseSemantic // Explicit opt-in for these isolated real-model probes.
+	} else if mode == "implicit" {
+		mode = ""
+	}
+	cacheConfig := config.CacheConfig{Enabled: os.Getenv("PHASE29_MODE") != "off", Provider: "phase29-embedding", EmbeddingModel: os.Getenv("PHASE29_MODEL"), VectorStore: "qdrant", VectorDimension: inputs.dimension, TTL: "1h", Threshold: 0.99999, MaxCandidates: 10, Qdrant: config.QdrantConfig{Addr: "127.0.0.1:6334", APIKey: os.Getenv("QDRANT_API_KEY")}, UseCases: []config.CacheUseCaseConfig{{ReuseMode: mode, APIKeyIDs: []string{inputs.database.keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: version, TargetModel: env["SANS_PRIMARY_DEFAULT_MODEL"], SystemPrompt: system}}}
 	if addr := os.Getenv("PHASE29_QDRANT_ADDR"); addr != "" {
 		cacheConfig.Qdrant.Addr = addr
 	}
@@ -312,6 +332,7 @@ type liveRequestOptions struct {
 	url, token, model string
 	system, question  string
 	index             int
+	hitEvery          int
 	origin            time.Time
 	concurrent        int64
 	finish            func()

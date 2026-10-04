@@ -1,0 +1,65 @@
+command=uptime
+ 06:36:34 up 11:40,  3 users,  load average: 1.60, 2.00, 1.87
+
+error=<nil>
+command=free -m
+               total        used        free      shared  buff/cache   available
+Mem:            2534         705         180          70        1886        1828
+Swap:           3861         197        3664
+
+error=<nil>
+command=df -h /
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv   38G   23G   13G  64% /
+
+error=<nil>
+command=docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}'
+veloxmesh-test-redis 8.07MiB / 2.475GiB 1.68%
+veloxmesh-test-qdrant 454.7MiB / 2.475GiB 12.71%
+veloxmesh-test-postgres 22.07MiB / 2.475GiB 0.00%
+
+error=<nil>
+command=docker inspect --format '{{.Name}} running={{.State.Running}} oom={{.State.OOMKilled}} exit={{.State.ExitCode}} restarts={{.RestartCount}}' veloxmesh-test-redis veloxmesh-test-qdrant veloxmesh-test-postgres
+/veloxmesh-test-redis running=true oom=false exit=0 restarts=0
+/veloxmesh-test-qdrant running=true oom=false exit=0 restarts=0
+/veloxmesh-test-postgres running=true oom=false exit=0 restarts=0
+
+error=<nil>
+command=docker logs --tail 35 veloxmesh-test-qdrant
+2026-10-04T06:32:57.888025Z  INFO qdrant::tonic: TLS disabled for gRPC API
+2026-10-04T06:32:57.916656Z  INFO qdrant::actix: REST transport settings: keep_alive=5s, client_request_timeout=5s, client_disconnect_timeout=5s
+2026-10-04T06:32:57.916701Z  INFO qdrant::actix: TLS disabled for REST API
+2026-10-04T06:32:57.916821Z  INFO qdrant::actix: Qdrant HTTP listening on 6333
+2026-10-04T06:32:57.917622Z  INFO actix_server::builder: starting 3 workers
+2026-10-04T06:32:57.917662Z  INFO actix_server::server: Actix runtime found; starting in Actix runtime
+2026-10-04T06:32:57.917673Z  INFO actix_server::server: starting service: "actix-web-service-0.0.0.0:6333", workers: 3, listening on: 0.0.0.0:6333
+2026-10-04T06:33:24.577905Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_8c879e63ead829fcaba11fd94968bce3e21391518daf4d572889c0a0a654de70` doesn't exist!" 0.009037
+2026-10-04T06:33:24.720820Z  INFO storage::content_manager::toc::collection_meta_ops: Creating collection semantic_cache_8c879e63ead829fcaba11fd94968bce3e21391518daf4d572889c0a0a654de70
+2026-10-04T06:33:24.873376Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_3f710eb3c6e631e1412e5d352c6598811300c3e63e344cb902eeac4482b2796f` doesn't exist!" 0.000639
+2026-10-04T06:33:24.964022Z  INFO storage::content_manager::toc::collection_meta_ops: Creating collection semantic_cache_3f710eb3c6e631e1412e5d352c6598811300c3e63e344cb902eeac4482b2796f
+2026-10-04T06:33:56.602743Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_80585eaea8272a23fd5ebb699d4fb090512f2acdb3f614a4c5e51c4b3078eda3` doesn't exist!" 0.004468
+2026-10-04T06:33:56.718672Z  INFO storage::content_manager::toc::collection_meta_ops: Creating collection semantic_cache_80585eaea8272a23fd5ebb699d4fb090512f2acdb3f614a4c5e51c4b3078eda3
+2026-10-04T06:33:56.735361Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_80585eaea8272a23fd5ebb699d4fb090512f2acdb3f614a4c5e51c4b3078eda3` doesn't exist!" 0.000130
+2026-10-04T06:34:09.363373Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_8253b6271eaab74c2cc7b48fc1c20cbf48a6e83b7ec147633744019e1f8f9c42` doesn't exist!" 0.001731
+2026-10-04T06:34:09.468136Z  INFO storage::content_manager::toc::collection_meta_ops: Creating collection semantic_cache_8253b6271eaab74c2cc7b48fc1c20cbf48a6e83b7ec147633744019e1f8f9c42
+2026-10-04T06:34:09.484944Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_8253b6271eaab74c2cc7b48fc1c20cbf48a6e83b7ec147633744019e1f8f9c42` doesn't exist!" 0.000252
+2026-10-04T06:34:27.054359Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_9d4e3d29067ff8c1a667aca6adb3e767ee71a10349873fe43bce64043c6efb43` doesn't exist!" 0.003472
+2026-10-04T06:34:27.157563Z  INFO storage::content_manager::toc::collection_meta_ops: Creating collection semantic_cache_9d4e3d29067ff8c1a667aca6adb3e767ee71a10349873fe43bce64043c6efb43
+2026-10-04T06:34:27.181455Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_9d4e3d29067ff8c1a667aca6adb3e767ee71a10349873fe43bce64043c6efb43` doesn't exist!" 0.000289
+2026-10-04T06:34:39.833008Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_c9e7a884508320a8afae6ee9b3e3cd45652a9b68f31a99cc9c6502f100d53a60` doesn't exist!" 0.004601
+2026-10-04T06:34:39.933445Z  INFO storage::content_manager::toc::collection_meta_ops: Creating collection semantic_cache_c9e7a884508320a8afae6ee9b3e3cd45652a9b68f31a99cc9c6502f100d53a60
+2026-10-04T06:34:39.951572Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_c9e7a884508320a8afae6ee9b3e3cd45652a9b68f31a99cc9c6502f100d53a60` doesn't exist!" 0.000180
+2026-10-04T06:35:46.470711Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_ba6b8b6fed69f6922f64cf5fa5539e13836c235c9802e5af8577882133e1c8d6` doesn't exist!" 0.004219
+2026-10-04T06:35:46.579641Z  INFO storage::content_manager::toc::collection_meta_ops: Creating collection semantic_cache_ba6b8b6fed69f6922f64cf5fa5539e13836c235c9802e5af8577882133e1c8d6
+2026-10-04T06:35:46.601614Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_ba6b8b6fed69f6922f64cf5fa5539e13836c235c9802e5af8577882133e1c8d6` doesn't exist!" 0.000222
+2026-10-04T06:35:59.254613Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_fa2b3af4166d6720719d6adac25072c3c1d5e4c49ebc68d3d63c9a67286d21cb` doesn't exist!" 0.003424
+2026-10-04T06:35:59.355603Z  INFO storage::content_manager::toc::collection_meta_ops: Creating collection semantic_cache_fa2b3af4166d6720719d6adac25072c3c1d5e4c49ebc68d3d63c9a67286d21cb
+2026-10-04T06:35:59.378118Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_fa2b3af4166d6720719d6adac25072c3c1d5e4c49ebc68d3d63c9a67286d21cb` doesn't exist!" 0.000145
+2026-10-04T06:36:17.731451Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_393e3f3d91ae77e0cfc6b6d8e1c2b4d773f10b98d3a8bee0b7a8a5f4aa1adaea` doesn't exist!" 0.002392
+2026-10-04T06:36:17.865505Z  INFO storage::content_manager::toc::collection_meta_ops: Creating collection semantic_cache_393e3f3d91ae77e0cfc6b6d8e1c2b4d773f10b98d3a8bee0b7a8a5f4aa1adaea
+2026-10-04T06:36:17.891245Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_393e3f3d91ae77e0cfc6b6d8e1c2b4d773f10b98d3a8bee0b7a8a5f4aa1adaea` doesn't exist!" 0.000169
+2026-10-04T06:36:30.637884Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_fc9efae959d53f59c97203b738a13950639b46a784b6b5a34ec78545f7bfe52e` doesn't exist!" 0.006119
+2026-10-04T06:36:30.753321Z  INFO storage::content_manager::toc::collection_meta_ops: Creating collection semantic_cache_fc9efae959d53f59c97203b738a13950639b46a784b6b5a34ec78545f7bfe52e
+2026-10-04T06:36:30.772935Z  INFO qdrant::tonic::logging: gRPC /qdrant.Points/Query failed with Some requested entity was not found "Not found: Collection `semantic_cache_fc9efae959d53f59c97203b738a13950639b46a784b6b5a34ec78545f7bfe52e` doesn't exist!" 0.000173
+
+error=<nil>

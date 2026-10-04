@@ -13,26 +13,50 @@ import (
 	"veloxmesh/internal/storage"
 )
 
-func newSemanticCacheService(ctx context.Context, cfg *config.Config, logger *slog.Logger, m *controlstate.RuntimeProviderManager, repo controlstate.Repository) *cache.SemanticCacheService {
-	if !cfg.SemanticCacheEnabled || repo == nil || cfg.SemanticCacheProvider == "" || cfg.Cache.EmbeddingModel == "" || len(cfg.Cache.UseCases) == 0 {
+func newSemanticCacheService(ctx context.Context, deps semanticCacheDeps, repo controlstate.Repository) *cache.SemanticCacheService {
+	cfg := deps.cfg
+	if !cfg.SemanticCacheEnabled || repo == nil || !cfg.Cache.HasAnswerReuse() {
 		return nil
 	}
+	var embedAdapter providers.EmbedAdapter
+	var vector storage.VectorAdapter
+	if cfg.Cache.HasSemanticReuse() {
+		embedAdapter, vector = semanticCacheAdapters(ctx, deps)
+		if embedAdapter == nil {
+			return nil
+		}
+	}
+	return cache.NewSemanticCacheService(semanticCacheOptions(cfg), repo.SemanticCache(), vector, embedAdapter)
+}
+
+type semanticCacheDeps struct {
+	cfg     *config.Config
+	logger  *slog.Logger
+	manager *controlstate.RuntimeProviderManager
+}
+
+func semanticCacheAdapters(ctx context.Context, deps semanticCacheDeps) (providers.EmbedAdapter, storage.VectorAdapter) {
+	cfg, logger, m := deps.cfg, deps.logger, deps.manager
 	snapshot := m.Snapshot()
 	if snapshot == nil || snapshot.Registry == nil {
 		logger.Warn("cannot initialize semantic cache: provider registry not ready")
-		return nil
+		return nil, nil
 	}
 	adapter, err := snapshot.Registry.Get(cfg.SemanticCacheProvider)
 	if err != nil {
 		logger.Warn("semantic cache provider not found", "provider", cfg.SemanticCacheProvider)
-		return nil
+		return nil, nil
 	}
 	embedAdapter, ok := adapter.(providers.EmbedAdapter)
 	if !ok {
 		logger.Warn("semantic cache provider is not an embed adapter", "provider", cfg.SemanticCacheProvider)
-		return nil
+		return nil, nil
 	}
-	return cache.NewSemanticCacheService(cache.SemanticCacheConfig{
+	return embedAdapter, newVectorAdapter(ctx, cfg, logger)
+}
+
+func semanticCacheOptions(cfg *config.Config) cache.SemanticCacheConfig {
+	return cache.SemanticCacheConfig{
 		Enabled:               true,
 		Threshold:             cfg.Cache.Threshold,
 		MaxCandidates:         cfg.Cache.MaxCandidates,
@@ -47,7 +71,7 @@ func newSemanticCacheService(ctx context.Context, cfg *config.Config, logger *sl
 		ReadTimeout:           cacheTTL(cfg.Cache.ReadTimeout), ReadConcurrency: cfg.Cache.ReadConcurrency,
 		WriteTimeout: cacheTTL(cfg.Cache.WriteTimeout), WriteWorkers: cfg.Cache.WriteWorkers,
 		QueueCapacity: cfg.Cache.QueueCapacity, ShutdownGrace: cacheTTL(cfg.Cache.ShutdownGrace),
-	}, repo.SemanticCache(), newVectorAdapter(ctx, cfg, logger), embedAdapter)
+	}
 }
 
 func cacheTTL(value string) time.Duration {
@@ -59,6 +83,7 @@ func cacheUseCases(useCases []config.CacheUseCaseConfig) []cache.SemanticCacheUs
 	result := make([]cache.SemanticCacheUseCase, 0, len(useCases))
 	for _, useCase := range useCases {
 		result = append(result, cache.SemanticCacheUseCase{
+			ReuseMode: useCase.ReuseMode,
 			APIKeyIDs: append([]string(nil), useCase.APIKeyIDs...), UseCaseID: useCase.UseCaseID,
 			KnowledgeVersion: useCase.KnowledgeVersion, TargetModel: useCase.TargetModel, SystemPrompt: useCase.SystemPrompt,
 		})

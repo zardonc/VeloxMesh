@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/llm"
 	"veloxmesh/internal/observability"
@@ -40,6 +41,7 @@ type SemanticCacheConfig struct {
 }
 
 type SemanticCacheUseCase struct {
+	ReuseMode        string
 	APIKeyIDs        []string
 	UseCaseID        string
 	KnowledgeVersion string
@@ -91,6 +93,9 @@ func (s *SemanticCacheService) Eligible(identityID, role string, req *llm.LLMReq
 		return "", false
 	}
 	for _, useCase := range s.config.UseCases {
+		if config.EffectiveCacheReuseMode(useCase.ReuseMode) == config.CacheReuseDisabled {
+			continue
+		}
 		if useCase.TargetModel == req.Model && useCase.SystemPrompt == req.Messages[0].Content && contains(useCase.APIKeyIDs, identityID) {
 			return cacheScope(identityID, useCase, s.config), true
 		}
@@ -113,8 +118,13 @@ func cacheScope(identityID string, useCase SemanticCacheUseCase, config Semantic
 	if config.EmbeddingInputPrefix != "" {
 		identity += "\x00embedding-input=prefix-user-text-v2\x00" + config.EmbeddingInputPrefix
 	}
+	identity += "\x00cache-reuse=" + useCase.ReuseMode + "-v1"
 	digest := sha256.Sum256([]byte(identity))
-	return hex.EncodeToString(digest[:])
+	scope := hex.EncodeToString(digest[:])
+	if useCase.ReuseMode == "exact" {
+		return exactScopePrefix + scope
+	}
+	return scope
 }
 
 func contains(values []string, value string) bool {
@@ -190,6 +200,10 @@ func (s *SemanticCacheService) readTimeout(ctx context.Context, vectors <-chan [
 }
 
 func (s *SemanticCacheService) lookup(ctx context.Context, query CacheLookup, vectors chan<- []float32) (CacheLookupResult, error) {
+	if isExactScope(query.Scope) {
+		entry, err := s.lookupExact(ctx, query)
+		return CacheLookupResult{Entry: entry}, err
+	}
 	if s.repo == nil || s.adapter == nil {
 		return CacheLookupResult{}, nil
 	}
@@ -277,11 +291,17 @@ func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model strin
 
 func (s *SemanticCacheService) StoreWrite(ctx context.Context, write CacheWrite) (storeErr error) {
 	defer observability.Stage(ctx, "store_total")()
-	if !s.config.Enabled || s.repo == nil || s.adapter == nil {
+	if !s.config.Enabled || s.repo == nil {
 		return nil
 	}
 	storeStarted := time.Now()
 	defer func() { measureOperation("store_total", storeStarted, storeErr) }()
+	if isExactScope(write.Scope) {
+		return s.storeExact(ctx, write)
+	}
+	if s.adapter == nil {
+		return nil
+	}
 
 	vector, err := s.writeVector(ctx, write)
 	if err != nil {

@@ -166,6 +166,10 @@ func shipScheduledLoad(t *testing.T, application *App, options liveRequestOption
 	t.Helper()
 	count, concurrency := liveInteger(t, "PHASE29_COUNT"), liveInteger(t, "PHASE29_CLIENT_CONCURRENCY")
 	interval := liveLoadInterval(t, count, concurrency)
+	options.hitEvery = liveLowHitEvery
+	if os.Getenv("PHASE29_PURE_MISS") == "true" {
+		options.hitEvery = 0
+	}
 	sem, samples := make(chan struct{}, concurrency), make([]shipSample, count)
 	modelLimits := liveModelLimits(options.models)
 	var group sync.WaitGroup
@@ -225,8 +229,8 @@ func (task liveScheduledRequest) execute() {
 	}
 	request.concurrent = task.active.Add(1)
 	defer task.active.Add(-1)
-	if task.index%liveLowHitEvery == 0 {
-		request.index = task.index - liveLowHitEvery + 1
+	if request.hitEvery > 0 && task.index%request.hitEvery == 0 {
+		request.index = task.index - request.hitEvery + 1
 	}
 	task.samples[task.index-1] = shipRequest(request)
 	task.samples[task.index-1].PlannedMS = float64(time.Duration(task.index-1)*task.interval) / float64(time.Millisecond)

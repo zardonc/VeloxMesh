@@ -1,5 +1,7 @@
-import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {existsSync,readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
+// A task-local pause finishes the active runner first, preserving its cleanup.
+if (process.env.SHIP_RESULTS_ROOT && existsSync(`${process.env.SHIP_RESULTS_ROOT}/PAUSE`)) process.exit(2);
 const cfg=Object.fromEntries(readFileSync('.env.local','utf8').split(/\r?\n/).filter(x=>/^\w+=/.test(x)).map(x=>{const i=x.indexOf('=');return [x.slice(0,i),x.slice(i+1).replace(/^['"]|['"]$/g,'')];}));
 const [provider,model,tests='TestLiveModelAvailability',label='preflight',count='16',interval='1000',concurrency='2']=process.argv.slice(2);
 const out=`${process.env.SHIP_RESULTS_ROOT??'.planning/phases/29-semantic-cache-latency-hardening/measurements/diagnostic-20261003'}/${label}/${provider}-${model.replace(/[^\w.-]/g,'_')}`;

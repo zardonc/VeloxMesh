@@ -91,19 +91,27 @@ func (a *Adapter) Capabilities() providers.CapabilitySet {
 }
 
 type chatRequestPayload struct {
-	Model       string           `json:"model"`
-	Messages    []map[string]any `json:"messages"`
-	Stream      bool             `json:"stream,omitempty"`
-	Temperature *float64         `json:"temperature,omitempty"`
-	MaxTokens   *int             `json:"max_tokens,omitempty"`
-	Tools       []llm.Tool       `json:"tools,omitempty"`
-	ToolChoice  *llm.ToolChoice  `json:"tool_choice,omitempty"`
+	Model         string             `json:"model"`
+	Messages      []map[string]any   `json:"messages"`
+	Stream        bool               `json:"stream,omitempty"`
+	StreamOptions *chatStreamOptions `json:"stream_options,omitempty"`
+	Temperature   *float64           `json:"temperature,omitempty"`
+	MaxTokens     *int               `json:"max_tokens,omitempty"`
+	Tools         []llm.Tool         `json:"tools,omitempty"`
+	ToolChoice    *llm.ToolChoice    `json:"tool_choice,omitempty"`
+}
+
+type chatStreamOptions struct {
+	IncludeUsage bool `json:"include_usage"`
 }
 
 func newChatRequestPayload(req *llm.LLMRequest, stream bool) chatRequestPayload {
 	payload := chatRequestPayload{
 		Model: req.Model, Messages: mapMessages(req.Messages), Stream: stream,
 		Temperature: req.Temperature, MaxTokens: req.MaxTokens, Tools: req.Tools,
+	}
+	if stream {
+		payload.StreamOptions = &chatStreamOptions{IncludeUsage: true}
 	}
 	if req.ToolChoice != nil {
 		choice := *req.ToolChoice

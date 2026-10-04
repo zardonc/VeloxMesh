@@ -1,0 +1,16 @@
+=== RUN   TestLiveHealthDependencyRoutes
+2026/10/04 15:04:48 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[no_healthy_provider] no healthy providers available","model":"qwen2.5-0.5b-instruct","override":"","type":"health_dependency_route"}
+    live_health_routing_modes_test.go:61: health read failure lost its category: [no_healthy_provider] no healthy providers available
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:34155->127.0.0.1:58176: read tcp 127.0.0.1:50408->127.0.0.1:6379: use of closed network connection
+2026/10/04 15:04:48 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[unhealthy_provider_override] requested provider override is unhealthy","model":"qwen2.5-0.5b-instruct","override":"diagnostic","type":"health_dependency_route"}
+    live_health_routing_modes_test.go:61: health read failure lost its category: [unhealthy_provider_override] requested provider override is unhealthy
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[no_eligible_provider] no configured provider supports the requested model and operation","model":"round-robin","override":"","type":"health_dependency_route"}
+    live_health_routing_modes_test.go:61: health read failure lost its category: [no_eligible_provider] no configured provider supports the requested model and operation
+    live_health_routing_modes_test.go:65: dependency recovery failed: [no_eligible_provider] no configured provider supports the requested model and operation
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:34155->127.0.0.1:58206: read tcp 127.0.0.1:50424->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:50424->127.0.0.1:6379: read tcp 127.0.0.1:34155->127.0.0.1:58206: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:34155->127.0.0.1:58192: write tcp 127.0.0.1:34155->127.0.0.1:58192: use of closed network connection
+--- FAIL: TestLiveHealthDependencyRoutes (0.17s)
+FAIL

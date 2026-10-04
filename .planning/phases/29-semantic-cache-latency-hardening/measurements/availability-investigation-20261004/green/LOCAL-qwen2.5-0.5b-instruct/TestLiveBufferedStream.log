@@ -1,0 +1,15 @@
+=== RUN   TestLiveBufferedStream
+{"time":"2026-10-04T15:14:34.817915997Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T15:14:34.819981994Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T15:14:34.820011169Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T15:14:34.820025987Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T15:14:34.820084778Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T15:14:34.822840049Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_features_test.go:138: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+    live_ship_features_test.go:138: response rules persisted, published and verified enabled
+{"time":"2026-10-04T15:14:35.179843442Z","level":"INFO","msg":"request completed","request_id":"deeb5f59ed4db7ff233991dd01754ddb","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":355}
+    live_ship_features_test.go:138: feature=buffered done=1 fragments=1 provider=sans-primary strategy=least-latency-cold-start-rr
+    live_ship_features_test.go:138: usage_rows_all=1 usage_rows_key=1
+    live_ship_features_test.go:138: settled_records=1 total_tokens=45 credits=45 exactly_once=true
+--- PASS: TestLiveBufferedStream (0.43s)
+PASS

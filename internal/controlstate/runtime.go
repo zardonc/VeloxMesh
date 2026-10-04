@@ -45,6 +45,7 @@ type RuntimeProviderManager struct {
 	mu           sync.Mutex
 	baseCtx      context.Context
 	proberCancel context.CancelFunc
+	protection   *providers.ProtectionSet
 }
 
 func NewRuntimeProviderManager(cfg *config.Config, logger *slog.Logger, healthStore health.Store) *RuntimeProviderManager {
@@ -124,22 +125,66 @@ func (m *RuntimeProviderManager) ActivateStatic(providersCfg []config.ProviderCo
 		}
 		semRules = &SemanticRuleSnapshot{Global: global}
 	}
-	return m.activateInternal(providersCfg, adapters, nil, nil, semRules, nil)
+	return m.activateInternal(runtimeActivation{providers: providersCfg, adapters: adapters, semanticRules: semRules})
 }
 
-func (m *RuntimeProviderManager) activateInternal(providersCfg []config.ProviderConfig, adapters []providers.ProviderAdapter, rCfg *RoutingConfig, combos []providers.Combo, semRules *SemanticRuleSnapshot, compCfg *routing.CompositeConfig) error {
+type runtimeActivation struct {
+	providers     []config.ProviderConfig
+	adapters      []providers.ProviderAdapter
+	routing       *RoutingConfig
+	combos        []providers.Combo
+	semanticRules *SemanticRuleSnapshot
+	composite     *routing.CompositeConfig
+}
+
+func (m *RuntimeProviderManager) activateInternal(options runtimeActivation) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
-	cfgClone := *m.cfg
-	cfgClone.Providers = providersCfg
-
-	strategy := cfgClone.RoutingStrategy
-	if rCfg != nil {
-		strategy = rCfg.Strategy
+	protected, err := m.protectAdapters(options.adapters)
+	if err != nil {
+		return err
 	}
+	cfgClone := *m.cfg
+	cfgClone.Providers = options.providers
+	strategy := cfgClone.RoutingStrategy
+	if options.routing != nil {
+		strategy = options.routing.Strategy
+	}
+	m.ensureProviderHealth(options.providers)
+	registry := providers.NewRegistry(&cfgClone, protected, options.combos)
+	router := routing.NewHealthAwareRouter(registry, m.healthStore, strategy, options.composite)
+	prober := health.NewProber(registry, m.healthStore, &cfgClone, m.logger)
+	snap := &RuntimeSnapshot{Registry: registry, Router: router, Prober: prober,
+		RoutingConfig: options.routing, SemanticRules: options.semanticRules}
+	m.snapshot.Store(snap)
+	if m.baseCtx != nil {
+		if m.proberCancel != nil {
+			m.proberCancel()
+		}
+		pCtx, cancel := context.WithCancel(m.baseCtx)
+		m.proberCancel = cancel
+		go prober.Start(pCtx)
+	}
+	return nil
+}
 
-	for _, p := range providersCfg {
+func (m *RuntimeProviderManager) protectAdapters(adapters []providers.ProviderAdapter) ([]providers.ProviderAdapter, error) {
+	if m.protection == nil {
+		protection, err := providers.NewProtectionSet(m.cfg.ProviderProtection)
+		if err != nil {
+			return nil, err
+		}
+		m.protection = protection
+	}
+	protected := make([]providers.ProviderAdapter, 0, len(adapters))
+	for _, adapter := range adapters {
+		protected = append(protected, m.protection.Wrap(adapter))
+	}
+	return protected, nil
+}
+
+func (m *RuntimeProviderManager) ensureProviderHealth(configured []config.ProviderConfig) {
+	for _, p := range configured {
 		fail := 3
 		succ := 1
 		if p.HealthCheck != nil {
@@ -152,31 +197,6 @@ func (m *RuntimeProviderManager) activateInternal(providersCfg []config.Provider
 		}
 		m.healthStore.EnsureProvider(p.ID, fail, succ)
 	}
-
-	registry := providers.NewRegistry(&cfgClone, adapters, combos)
-	router := routing.NewHealthAwareRouter(registry, m.healthStore, strategy, compCfg)
-	prober := health.NewProber(registry, m.healthStore, &cfgClone, m.logger)
-
-	snap := &RuntimeSnapshot{
-		Registry:      registry,
-		Router:        router,
-		Prober:        prober,
-		RoutingConfig: rCfg,
-		SemanticRules: semRules,
-	}
-
-	m.snapshot.Store(snap)
-
-	if m.baseCtx != nil {
-		if m.proberCancel != nil {
-			m.proberCancel()
-		}
-		pCtx, cancel := context.WithCancel(m.baseCtx)
-		m.proberCancel = cancel
-		go prober.Start(pCtx)
-	}
-
-	return nil
 }
 
 func (m *RuntimeProviderManager) UpdateSemanticRules(semRules *SemanticRuleSnapshot) {
@@ -260,7 +280,8 @@ func (m *RuntimeProviderManager) ActivateDurable(ctx context.Context, records []
 		compCfg = &def
 	}
 
-	return m.activateInternal(providerConfigs, adapters, rCfg, combos, semRules, compCfg)
+	return m.activateInternal(runtimeActivation{providers: providerConfigs, adapters: adapters, routing: rCfg,
+		combos: combos, semanticRules: semRules, composite: compCfg})
 }
 
 // Router delegates

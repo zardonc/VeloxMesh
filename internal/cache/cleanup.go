@@ -43,7 +43,7 @@ func (s *SemanticCacheService) cleanup() {
 }
 
 func (s *SemanticCacheService) discard(ctx context.Context, repo controlstate.SemanticCacheCleanupRepository, entry controlstate.CacheGarbage) error {
-	if s.vector != nil {
+	if s.vector != nil && !isExactScope(entry.Scope) {
 		err := s.vector.Delete(ctx, vectorCollection(entry.Scope, entry.Model), map[string]interface{}{"id": entry.ID})
 		// A missing collection confirms that no points remain for this entry.
 		if err != nil && status.Code(err) != codes.NotFound {

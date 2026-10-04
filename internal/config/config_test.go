@@ -254,6 +254,7 @@ func TestCacheConfigRequiresACompleteTrustedProfile(t *testing.T) {
 		ReadTimeout:     "100ms", ReadConcurrency: 4, WriteTimeout: "2s", WriteWorkers: 2, QueueCapacity: 32, ShutdownGrace: "1s",
 		PGVector: PGVectorConfig{IndexType: "hnsw", HNSWM: 1, HNSWEFConstruct: 1, SearchEF: 1},
 		UseCases: []CacheUseCaseConfig{{
+			ReuseMode: "semantic",
 			UseCaseID: "phase29-static-faq", APIKeyIDs: []string{fmt.Sprintf("test-key-%d", time.Now().UnixNano())},
 			KnowledgeVersion: "faq-v1", TargetModel: "faq-model", SystemPrompt: "Static FAQ only",
 		}},

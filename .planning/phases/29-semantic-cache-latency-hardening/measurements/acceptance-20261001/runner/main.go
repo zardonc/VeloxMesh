@@ -28,7 +28,10 @@ var artifacts = artifactDirectory()
 
 const remoteBinary = "/tmp/veloxmesh-phase29-acceptance-20261001.test"
 const testLimit = 60 * time.Second
-const dependencyStartupLimit = 30 * time.Second
+
+// Existing isolated volumes contain prior test collections. Startup is separate
+// from the unchanged hard 60-second backend test limit.
+const dependencyStartupLimit = 2 * time.Minute
 const dependencyPollInterval = 250 * time.Millisecond
 
 func artifactDirectory() string {
@@ -78,6 +81,9 @@ func run() error {
 	}
 	r := &runner{client: client, env: env}
 	defer r.cleanup()
+	if len(os.Args) > 1 && os.Args[1] == "batch" {
+		return r.batchChecks()
+	}
 	return r.checks()
 }
 
@@ -365,6 +371,9 @@ func (r *runner) liveTest(test string) error {
 		input[key] = os.Getenv(key)
 	}
 	for _, key := range []string{"PHASE29_MEMO_CAPACITY", "PHASE29_MEMO_TTL", "PHASE29_INPUT_PREFIX", "PHASE29_THRESHOLD"} {
+		input[key] = os.Getenv(key)
+	}
+	for _, key := range []string{"PHASE29_REUSE_MODE", "PHASE29_PROVIDER_PROTECTION", "PHASE29_PURE_MISS"} {
 		input[key] = os.Getenv(key)
 	}
 	payload, err := json.Marshal(input)

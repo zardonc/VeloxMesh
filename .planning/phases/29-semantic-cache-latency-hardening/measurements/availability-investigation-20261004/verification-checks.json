@@ -1,0 +1,17 @@
+{
+  "production_source_checks": {
+    "gofmt": "PASS",
+    "go_vet_tagged_repository": "PASS",
+    "go_build_repository": "PASS",
+    "diff_check": "PASS",
+    "go_complexity_limit_new_changes": "PASS"
+  },
+  "observer_replay_helper": {
+    "initial_default_go_cache": "FAIL: trim.txt access denied",
+    "retry_with_workspace_go_cache": "PASS: go vet, go build, function and file limits",
+    "measurement_repeated_after_helper_refactor": false
+  },
+  "script_syntax": "PASS: upstream-replay.mjs and summarize.mjs",
+  "backend_timeout_seconds": 60,
+  "phase_27_28_fingerprint_method": ".codex/gsd-core/bin/lib/verification.cjs computeCoveredDigest"
+}

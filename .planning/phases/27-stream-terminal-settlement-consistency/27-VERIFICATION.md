@@ -41,7 +41,7 @@ covered_files:
   - internal/providers/openai/adapter_test.go
   - tests/integration/chat_stream_test.go
   - tests/integration/chat_test.go
-covered_digest: "v1:sha256:30d233b614d6b349c9e8fe1286a577c34c7b09686063d1634b93f044e5c83b10"
+covered_digest: "v1:sha256:df73c77afebb2feca87f20052bc22e8169713fc3b2edef96004a010fbc25e0a9"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -56,6 +56,8 @@ gaps: []
 ---
 
 # Phase 27: Stream Terminal and Settlement Consistency Verification Report
+
+**Incremental verification (2026-10-04):** Phase 29 added provider deadlines/capacity protection and requested streaming usage from the OpenAI-compatible adapter. The final full backend suite and real protected SSE, cancellation, buffered-stream and Fusion settlement checks passed; see [execution evidence](../29-semantic-cache-latency-hardening/29-POLICY-EXECUTION-RESULTS-20261004.md). The subsequent [health dependency classification repair](../29-semantic-cache-latency-hardening/29-AVAILABILITY-INVESTIGATION-20261004.md) also passes the full backend and those real terminal/settlement checks. The coverage fingerprint reflects the current source and roadmap. Historical verification below remains scoped to its original environment; this is not a production or remote-provider approval.
 
 **Phase Goal:** Every streaming request ends with one authoritative terminal outcome driving client output, provider health, circuit breaker, observability, admission release, and usage settlement consistently.
 **Verified:** 2026-09-25T05:14:53Z

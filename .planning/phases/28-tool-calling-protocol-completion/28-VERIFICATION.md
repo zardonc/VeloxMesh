@@ -39,13 +39,15 @@ covered_files:
   - internal/providers/gemini/adapter.go
   - internal/providers/gemini/tool_protocol.go
   - tests/integration/chat_tools_test.go
-covered_digest: "v1:sha256:695a62047b5dda018f923adff08707270b4c0ca11b305afb38d684ede65c1885"
+covered_digest: "v1:sha256:2074ab88b4c1d4a322731c3471a9c2cda932cec98af72c272414b50bd908b555"
 behavior_unverified: 0
 overrides_applied: 0
 gaps: []
 ---
 
 # Phase 28: Tool Calling Protocol Completion Verification Report
+
+**Incremental verification (2026-10-04):** The final backend suite passed after Phase 29 provider protection and the OpenAI-compatible streaming usage option were added. Real protected SSE, cancellation, buffered-stream and Fusion checks also passed; see [execution evidence](../29-semantic-cache-latency-hardening/29-POLICY-EXECUTION-RESULTS-20261004.md). The subsequent [health dependency classification repair](../29-semantic-cache-latency-hardening/29-AVAILABILITY-INVESTIGATION-20261004.md) passes the full backend and real routing/protocol regressions. The coverage fingerprint reflects the current source and roadmap. The original tool-protocol evidence below retains its original scope; this does not add production or remote-provider approval.
 
 **Phase Goal:** Complete the OpenAI-compatible /v1/chat/completions tool-calling protocol across normalized public requests, capability-aware routing, non-stream and stream responses, and multi-turn tool-result continuation, while preserving Phase 27 as the sole terminal and Usage-settlement owner.
 

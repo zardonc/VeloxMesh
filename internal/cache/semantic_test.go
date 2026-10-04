@@ -294,6 +294,7 @@ func TestSemanticCacheKnowledgeVersionChangesScope(t *testing.T) {
 
 func testSemanticCacheConfig(keyID, version string) SemanticCacheConfig {
 	return SemanticCacheConfig{Enabled: true, EmbeddingModel: "mock-model", VectorDimension: 2, UseCases: []SemanticCacheUseCase{{
+		ReuseMode: "semantic",
 		APIKeyIDs: []string{keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: version, TargetModel: "faq-model", SystemPrompt: "Static FAQ only",
 	}}}
 }

@@ -1,8 +1,8 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Updated:** 2026-09-25
-**Current focus:** Phase 29 offline Wave 2 verified; repeated baseline and two-model release gates pending exhausted external quota. No deployment recorded.
+**Updated:** 2026-10-04
+**Current focus:** Phase 29 explicit reuse policy, exact cache and Provider protection implemented. Redis health-read failures now have an explicit fail-closed dependency category; real routing/protocol and full backend regressions pass. Natural Redis stalls, stable scenario latency, upstream 400 attribution, semantic quality and true cold-start evidence remain open. No deployment recorded.
 
 ## Overview
 
@@ -100,6 +100,10 @@ Plans:
 **Depends on:** Phase 28
 **Plans:** 2/3 plans executed; Phase 29 remains incomplete
 
+**Latest execution:** [2026-10-04 availability investigation](phases/29-semantic-cache-latency-hardening/29-AVAILABILITY-INVESTIGATION-20261004.md). Health-state read faults now return `health_state_unavailable`, preserving unhealthy rejection and readable-peer routing. Eleven real regressions and the full backend pass. Trusted profiles choose disabled/exact/experimental semantic; production remains disabled with an empty allowlist. Two real embedding model lifecycles pass.
+
+**Performance contract under validation:** preserve the original 1.05 result; evaluate local miss against both 1.25×off and off+40ms, plus normal residual P95≤10/P99≤15ms. These are scenario candidates, not production approval. Prior six-block measurements failed the combined contract; a new single diagnostic pair has residual P95 4.39/4.64ms and ratio 1.078, passing candidate point estimates but failing 1.05. Changed actual concurrency and VM reboot prevent replacing the previous evidence. Redis snapshot deadlines still reject unreadable state with 503. Do not complete Phase 29 by changing the threshold alone.
+
 Plans:
 **Wave 1**
 
@@ -109,7 +113,7 @@ Plans:
 
 - [x] 29-02-PLAN.md
 
-**Wave 3** *(blocked on sustainable SANS test quota and final real-model/latency evidence)*
+**Wave 3** *(open: Redis health availability, stable latency, approved semantic quality, cold state and production decisions; remote quota remains a separate limit)*
 
 - [ ] 29-03-PLAN.md
 
