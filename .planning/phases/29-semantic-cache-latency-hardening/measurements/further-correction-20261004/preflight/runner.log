@@ -1,0 +1,9 @@
+dependency ready: veloxmesh-further-20261004-01a1089d-redis
+dependency ready: veloxmesh-further-20261004-01a1089d-qdrant
+dependency ready: veloxmesh-further-20261004-01a1089d-postgres
+dependency readiness attempt=1 error=Process exited with status 2 output=PONG
+/var/run/postgresql:5432 - no response
+TestLiveModelAvailability exit: <nil>
+/veloxmesh-further-20261004-01a1089d-redis false
+/veloxmesh-further-20261004-01a1089d-qdrant false
+/veloxmesh-further-20261004-01a1089d-postgres false

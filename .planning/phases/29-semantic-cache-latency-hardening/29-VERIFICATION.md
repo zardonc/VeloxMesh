@@ -5,10 +5,14 @@ status: partial
 functional_status: passed
 acceptance_scope: local-model-functional
 source_revision: 90dfd695156d7f78d8f3cb7ee63b319502ee3a15
+latest_source_revision: 9606669104617ea84c32f4959697fdb50f33f653
+latest_source_uncommitted: true
 production_release_approved: false
 ---
 
 # Phase 29 验收报告
+
+**2026-10-04 最新增量：** [进一步排查与局部修正](29-FURTHER-CORRECTION-20261004.md) 已修复空/待激活 scope 的不存在集合查询及 Gemini 终态后错误接受。599 个后端顶层 PASS、0 FAIL、2 个明确 SKIP，真实 SQLite/Qdrant、PostgreSQL 与 Gemini 边界通过。exact miss 的零 embedding 与成本得到单块验证；semantic 仍有约 21ms 前台读取成本且基线漂移。持久集合回收、业务答案安全及稳定性能合同保持开放，状态保持 partial。该增量不覆盖或替代文末各历史验收范围。
 
 **恢复与集合排查（2026-10-04）：** [最新诊断](29-RECOVERY-INVESTIGATION-20261004.md)。120s 恢复门槛失败，正式暖机对照未运行，不计为性能 PASS。七个组件隔离条件完成；Qdrant 无请求启动即触发交换/I/O，停止卷显示 63.80GiB 稀疏逻辑长度与 212.27MiB 实际分配，collection 名称保持 347。点级过期清理未关闭集合生命周期，仍需同点数/不同集合数对照和 primary engine 时序；原 P95 与业务语义安全结论保持开放。
 

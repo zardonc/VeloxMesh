@@ -38,14 +38,19 @@ covered_files:
   - internal/providers/anthropic/tool_protocol.go
   - internal/providers/gemini/adapter.go
   - internal/providers/gemini/tool_protocol.go
+  - internal/providers/gemini/stream_audit.go
+  - internal/providers/gemini/stream_boundary_test.go
+  - internal/app/live_gemini_wire_test.go
   - tests/integration/chat_tools_test.go
-covered_digest: "v1:sha256:2074ab88b4c1d4a322731c3471a9c2cda932cec98af72c272414b50bd908b555"
+covered_digest: "v1:sha256:4f8703cfba15e357988023ec9771be9a361e7e54e02802577f1195372991734d"
 behavior_unverified: 0
 overrides_applied: 0
 gaps: []
 ---
 
 # Phase 28: Tool Calling Protocol Completion Verification Report
+
+**Latest wire comparison (2026-10-04):** [Further correction](../29-semantic-cache-latency-hardening/29-FURTHER-CORRECTION-20261004.md) records one successful real native/gateway stream pair with identical canonical JSON parameters, endpoint/method and selected auth/HTTP headers. Real opaque signatures and tool-result continuation pass. Fixed order and different connection reuse prevent attributing the historical 12-second header timeout to a unique cause; that intermittent issue remains open. New stream-tail checks and the final 599-test backend suite pass, without production approval.
 
 **Incremental verification (2026-10-04):** The final backend suite passed after Phase 29 provider protection and the OpenAI-compatible streaming usage option were added. Real protected SSE, cancellation, buffered-stream and Fusion checks also passed; see [execution evidence](../29-semantic-cache-latency-hardening/29-POLICY-EXECUTION-RESULTS-20261004.md). The subsequent [health dependency classification repair](../29-semantic-cache-latency-hardening/29-AVAILABILITY-INVESTIGATION-20261004.md) passes the full backend and real routing/protocol regressions. The coverage fingerprint reflects the current source and roadmap. The original tool-protocol evidence below retains its original scope; this does not add production or remote-provider approval.
 

@@ -5,11 +5,11 @@ milestone_name: Phases
 current_phase: 29
 current_phase_name: Semantic Cache Latency Hardening
 status: executing
-stopped_at: Recovery gate failed; Qdrant startup and sparse collection layout isolated; primary timing and business safety pending
+stopped_at: Gemini terminal-tail and empty-scope readiness repaired; stable semantic performance, lifecycle and business safety pending
 last_updated: "2026-10-04"
 last_activity: 2026-10-04
-last_activity_desc: Component-only diagnosis links startup pressure to Qdrant; no new formal performance pass
-state_head: 9c323d6fed24202c85f34624f2a661e83ee5bfeb
+last_activity_desc: 599 backend passes and real Gemini/cache readiness regressions; isolated path costs measured, no production performance approval
+state_head: 9606669104617ea84c32f4959697fdb50f33f653
 progress:
   total_phases: 3
   completed_phases: 2
@@ -70,7 +70,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-25)
 
 ## Planned Next
 
-1. Start the next milestone after selecting scope; deferred candidates are semantic-cache latency hardening, staged timeouts/cancellation, BFF/Admin Console, or Scheduler automation.
+1. Continue Phase 29 with stable semantic-path measurement, persistent collection ownership/reclamation and business-approved answer policy; preserve original performance evidence and production-disabled boundaries.
 
 ## Useful Commands
 
@@ -83,10 +83,12 @@ See: `.planning/PROJECT.md` (updated 2026-09-25)
 Phase: 29 (Semantic Cache Latency Hardening) — EXECUTING
 Plan: 3 of 3
 Status: Functional regressions pass; stable performance, collection lifecycle and business semantic safety remain open
-Last activity: 2026-10-04 — Recovery failed before formal load; component-only diagnosis and stopped-volume layout recorded; original P95 result preserved
+Last activity: 2026-10-04 — Gemini terminal-tail and empty-scope readiness repaired; 599 backend passes; exact and semantic paths diagnosed with drift retained
 
 ## Operator Next Steps
 
+- Review [further correction](phases/29-semantic-cache-latency-hardening/29-FURTHER-CORRECTION-20261004.md): real Gemini tail faults reject with zero settlement; wire parameters match for one successful pair; fresh scope readiness and PostgreSQL pass. Exact miss avoids embedding, while semantic miss still has about 21ms read cost and drifting baseline.
+- Use [hardware-first evidence](phases/29-semantic-cache-latency-hardening/29-CONTINUED-INVESTIGATION-20261004.md) to avoid repeating VM expansion as the first remedy: fresh volumes pass recovery, but original stable 8 RPS ratios failed. Persistent collection ownership/reclamation and business seed/semantic approval remain open.
 - Review [RAM-upgrade controlled results](phases/29-semantic-cache-latency-hardening/29-MEMORY-UPGRADE-RESULTS-20261004.md): 4800 formal requests and 69 selected real checks pass, but original P95, four drifting brackets and paging remain open; 347 Qdrant collections are inventoried.
 - Review [recovery investigation](phases/29-semantic-cache-latency-hardening/29-RECOVERY-INVESTIGATION-20261004.md): no new formal windows; Qdrant-only startup pressure, sparse files and missing collection expiry motivate a controlled layout/lifecycle comparison.
 - Resume 29-03 with observed recovery completion, fixed collection-state experiments and primary queue/prefill/decode correlation; evaluate business semantic safety independently. Two distinct model lifecycles are already recorded; numeric/production gates remain separate.
@@ -134,8 +136,8 @@ Items acknowledged at v7.0 close:
 
 ## Session
 
-**Last session:** 2026-10-01
-**Stopped at:** Local-model semantic/version/fault/burst validation passes; latency and second-model gates pending
+**Last session:** 2026-10-04
+**Stopped at:** Gemini terminal-tail and scope readiness repaired; stable semantic performance/lifecycle/business gates pending
 **Resume file:** 29-03-PLAN.md
 
 ## Decisions
@@ -158,6 +160,7 @@ Items acknowledged at v7.0 close:
 
 ### Blockers
 
+- New empty/pending-scope readiness is repaired and real SQLite/Qdrant/PostgreSQL regressions pass. Persistent collection reclamation remains open; semantic reads still pay embedding cost. One wire-equivalent Gemini pair passes but does not close historical intermittent headers timeouts. See 29-FURTHER-CORRECTION-20261004.md.
 - Remote SANS embedding quota remains a separate external limit. Two real local embedding model scope lifecycles now pass; independent business-approved semantic recall and true isolated model cold state remain unverified.
-- Prior six-block ordinary residual P95 was 13–27ms and failed the combined candidate contract. A fresh single pair reaches 4.39/4.64ms with zero HTTP failures, but ratio 1.078 still fails 1.05 and actual peak concurrency changed to two. Startup paging/slow Redis commands raise environment attribution priority; natural health-read stalls, new-scope Qdrant initialization, historical upstream 400 and stable capacity/SLO confidence remain open. See 29-AVAILABILITY-INVESTIGATION-20261004.md; previous failed evidence remains intact.
+- Historical six-block ordinary residual P95 was 13–27ms and failed the combined candidate contract. Later fresh-volume hardware-first results had low steady resource utilization but failed original 1.05 ratios; the latest semantic bracket drifted -14.37%, preventing acceptance. Natural health-read stalls, historical upstream 400 and stable capacity/SLO confidence remain open. See 29-AVAILABILITY-INVESTIGATION-20261004.md and the newer investigation reports; previous failed evidence remains intact.
 - Production FAQ publisher, atomic version-switch procedure and deployment stop deadline are unconfirmed; production enablement requires separate approval.

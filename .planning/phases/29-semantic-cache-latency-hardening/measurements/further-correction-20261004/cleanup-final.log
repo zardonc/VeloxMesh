@@ -1,0 +1,13 @@
+{"fresh_collection_count": 10, "semantic_count": 9, "names": ["scheduler_training_samples", "semantic_cache_090e5c402a2426048595c4212c2b888c64ad183db48e8984e4349368088fe69a", "semantic_cache_128fae723206312facdfb89c9d1e20540e7fd7f2377a14153b802f8b4f936bad", "semantic_cache_1c28898a638841c4a7959acf6139665f44c8bc5630559ffff29801f2d7b856db", "semantic_cache_237272a69dba8aaae08dd84ebd5de64365c654792e215fa66b7188e543f66102", "semantic_cache_4d11d1f6722630374d788d021293124270dab48d696e82fcd53a90403a60b82b", "semantic_cache_57055b054808a81895ec9ed7087ecb451ff65bc548f3f8a2d286746990a2383c", "semantic_cache_70b08805b566de423ff6b0d9fcf5cf74a4a7e3c2d4b7fb54535ee81c22d76467", "semantic_cache_79d329cc94fc3c9acd9dbb605b99d1e42ef43a4af4d6d21a0557af0d1166720c", "semantic_cache_bb320020a08f83028cde2cc32c00e9a983ef2acb4db28ca09f815adc8b490018"]}
+{"removed_owned_binary": "/tmp/veloxmesh-further-20261004-01a1089d.test", "sha256": "b2a991298e83f7b043e3180cc2aef7b33c3eada5a048272655dafa5893c8f271", "size": 68629298}
+{"name": "/veloxmesh-further-20261004-01a1089d-redis", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-further-20261004-01a1089d-redis"]}
+{"name": "/veloxmesh-further-20261004-01a1089d-qdrant", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-further-20261004-01a1089d-qdrant"]}
+{"name": "/veloxmesh-further-20261004-01a1089d-postgres", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-further-20261004-01a1089d-postgres"]}
+{"name": "/veloxmesh-test-redis", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-test-redis"]}
+{"name": "/veloxmesh-test-qdrant", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-test-qdrant"]}
+{"name": "/veloxmesh-test-postgres", "running": false, "oom": false, "restarts": 0, "volume_preserved": ["veloxmesh-test-postgres"]}
+State  Recv-Q Send-Q Local Address:Port Peer Address:Port
+LISTEN 0      4096   127.0.0.53%lo:53        0.0.0.0:*   
+LISTEN 0      4096         0.0.0.0:22        0.0.0.0:*   
+LISTEN 0      4096      127.0.0.54:53        0.0.0.0:*   
+LISTEN 0      4096            [::]:22           [::]:*

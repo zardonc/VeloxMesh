@@ -1,0 +1,21 @@
+=== RUN   TestLiveGeminiInterruptedBody
+{"time":"2026-10-04T21:45:07.083055509Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:07.085117324Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T21:45:07.085149574Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T21:45:07.08515797Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:07.085205259Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:07.088151866Z","level":"INFO","msg":"starting config change subscriber"}
+    live_gemini_timeline_test.go:249: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+    live_gemini_timeline_test.go:59: upstream status=200 headers_ms=2690.484 stream=true
+    live_gemini_timeline_test.go:114: real_nonterminal_frame_sha256=844e49106f0737c015b88919baf8ec65bb79cde437679eac38bc1af76e4fa7a0 delivered_utc=2026-10-04T21:45:09.784248256Z
+{"time":"2026-10-04T21:45:09.784325606Z","level":"INFO","msg":"Error unexpected EOF"}
+{"time":"2026-10-04T21:45:09.785428114Z","level":"INFO","msg":"request completed","request_id":"timing-214507.089373066","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2696}
+    live_gemini_timeline_test.go:260: usage_rows_all=0 usage_rows_key=0
+    live_gemini_timeline_test.go:260: settled_records=0 total_tokens=0 credits=0 exactly_once=true
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214507.089373066","name":"sse_first_meaningful","start_ms":0.678,"elapsed_ms":2695.473}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214507.089373066","name":"sse_usage","start_ms":0.678,"elapsed_ms":2695.479}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214507.089373066","name":"settlement","start_ms":2697.121,"elapsed_ms":0}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214507.089373066","name":"http_handler","start_ms":1.147,"elapsed_ms":2696.073}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214507.089373066","name":"sse_done","start_ms":0.678,"elapsed_ms":2696.549}
+--- PASS: TestLiveGeminiInterruptedBody (2.80s)
+PASS

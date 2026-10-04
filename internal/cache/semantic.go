@@ -207,6 +207,9 @@ func (s *SemanticCacheService) lookup(ctx context.Context, query CacheLookup, ve
 	if s.repo == nil || s.adapter == nil {
 		return CacheLookupResult{}, nil
 	}
+	if ready, err := s.scopeReady(ctx, query); err != nil || !ready {
+		return CacheLookupResult{}, err
+	}
 
 	inputVector, err := s.embed(ctx, query, "lookup")
 	if err != nil {
@@ -217,24 +220,8 @@ func (s *SemanticCacheService) lookup(ctx context.Context, query CacheLookup, ve
 		vectors <- inputVector
 	}
 
-	// 2. If vector adapter is configured, use it for search
-	if s.vector != nil {
-		started := time.Now()
-		finish := observability.Stage(ctx, "vector_search")
-		results, err := s.vector.Search(ctx, vectorCollection(query.Scope, query.Model), inputVector, s.config.MaxCandidates)
-		finish()
-		measureOperation("vector_search", started, err)
-		if err != nil {
-			return result, s.fault("lookup", "vector_error", err)
-		}
-		entry, err := s.lookupVectorResult(ctx, query.Scope, query.Model, results)
-		if err != nil || entry != nil {
-			return CacheLookupResult{Entry: entry, Vector: inputVector}, err
-		}
-		if _, offlineFallback := s.vector.(*storage.NoopVectorAdapter); !offlineFallback {
-			recordCacheOutcome("lookup", "miss")
-			return result, nil
-		}
+	if vectorResult, complete, err := s.searchVector(ctx, query, result); complete {
+		return vectorResult, err
 	}
 
 	entry, err := s.lookupRepository(ctx, CacheWrite{Scope: query.Scope, Model: query.Model}, inputVector)

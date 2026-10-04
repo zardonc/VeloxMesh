@@ -33,6 +33,7 @@ type AdapterConfig struct {
 
 func NewAdapter(config AdapterConfig) providers.ProviderAdapter {
 	clientConfig := &genai.ClientConfig{APIKey: config.APIKey, Backend: genai.BackendGeminiAPI}
+	clientConfig.HTTPClient = &http.Client{Transport: streamAuditTransport{base: http.DefaultTransport}}
 	if config.BaseURL != "" {
 		clientConfig.HTTPOptions = genai.HTTPOptions{BaseURL: config.BaseURL}
 	}
@@ -165,6 +166,7 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 	if err != nil {
 		return nil, err
 	}
+	ctx = auditedStreamContext(ctx)
 	stream := a.client.Models.GenerateContentStream(ctx, model, contents, config)
 	output := make(chan llm.StreamEvent)
 	go a.forwardStream(ctx, stream, output)
@@ -197,6 +199,10 @@ func (a *Adapter) forwardStream(ctx context.Context, stream iter.Seq2[*genai.Gen
 	}
 	if !state.terminal {
 		output <- llm.StreamEvent{Error: invalidGeminiToolResponse()}
+		return
+	}
+	if err := streamReadFailure(ctx); err != nil {
+		output <- llm.StreamEvent{Error: err}
 		return
 	}
 	output <- llm.StreamEvent{Done: true}

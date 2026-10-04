@@ -38,10 +38,16 @@ covered_files:
   - internal/http/handlers/chat_stream_test.go
   - internal/http/handlers/chat_test.go
   - internal/providers/openai/adapter.go
+  - internal/providers/gemini/adapter.go
+  - internal/providers/gemini/tool_protocol.go
+  - internal/providers/gemini/stream_audit.go
+  - internal/providers/gemini/stream_boundary_test.go
+  - internal/app/live_gemini_timeline_test.go
+  - internal/app/live_gemini_tail_test.go
   - internal/providers/openai/adapter_test.go
   - tests/integration/chat_stream_test.go
   - tests/integration/chat_test.go
-covered_digest: "v1:sha256:df73c77afebb2feca87f20052bc22e8169713fc3b2edef96004a010fbc25e0a9"
+covered_digest: "v1:sha256:ae731375cf2a25384b79bbc506e24a4fd818ecf15ef9b9ad84fb7be96fa7a006"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -56,6 +62,8 @@ gaps: []
 ---
 
 # Phase 27: Stream Terminal and Settlement Consistency Verification Report
+
+**Latest incremental repair (2026-10-04):** [Further correction](../29-semantic-cache-latency-hardening/29-FURTHER-CORRECTION-20261004.md) rejects Gemini terminal-tail truncation and duplicate/content frames after terminal. Real tail fault injections settle zero Usage; cancellation and normal completion still pass. Full backend: 599 top-level PASS, zero FAIL, two explicit opt-in SKIP. Native finish without clean gateway completion remains insufficient to settle; cancellation before clean EOF is client-cancelled. Real Gemini buffered/Fusion simultaneous-cancel coverage and exhaustive tail-frame shapes remain unverified. The older results below keep their original scope.
 
 **Incremental verification (2026-10-04):** Phase 29 added provider deadlines/capacity protection and requested streaming usage from the OpenAI-compatible adapter. The final full backend suite and real protected SSE, cancellation, buffered-stream and Fusion settlement checks passed; see [execution evidence](../29-semantic-cache-latency-hardening/29-POLICY-EXECUTION-RESULTS-20261004.md). The subsequent [health dependency classification repair](../29-semantic-cache-latency-hardening/29-AVAILABILITY-INVESTIGATION-20261004.md) also passes the full backend and those real terminal/settlement checks. The coverage fingerprint reflects the current source and roadmap. Historical verification below remains scoped to its original environment; this is not a production or remote-provider approval.
 

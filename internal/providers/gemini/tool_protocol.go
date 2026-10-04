@@ -345,6 +345,9 @@ func usageFromGemini(usage *genai.GenerateContentResponseUsageMetadata) *llm.Usa
 }
 
 func geminiStreamEvents(state geminiStreamState, response *genai.GenerateContentResponse) (geminiStreamState, []llm.StreamEvent, error) {
+	if response == nil || (state.terminal && len(response.Candidates) > 0) {
+		return state, nil, invalidGeminiToolResponse()
+	}
 	usage := usageFromGemini(response.UsageMetadata)
 	if len(response.Candidates) == 0 {
 		return state, geminiUsageEvents(nil, usage, -1), nil

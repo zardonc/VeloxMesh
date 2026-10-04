@@ -1,0 +1,156 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "command": "go",
+      "args": [
+        "build",
+        "./..."
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "go",
+      "args": [
+        "vet",
+        "-tags",
+        "phase29preflight",
+        "./..."
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "gofmt",
+      "args": [
+        "-l",
+        "internal/app/live_controlled_load_test.go",
+        "internal/cache/semantic.go",
+        "internal/providers/gemini/adapter.go",
+        "internal/providers/gemini/tool_protocol.go",
+        "internal/app/live_exact_controlled_test.go",
+        "internal/app/live_gemini_tail_test.go",
+        "internal/app/live_gemini_wire_test.go",
+        "internal/app/live_readiness_postgres_test.go",
+        "internal/app/live_scope_readiness_test.go",
+        "internal/cache/readiness.go",
+        "internal/cache/scope_readiness_test.go",
+        "internal/cache/vector_lookup.go",
+        "internal/controlstate/cache_readiness.go",
+        "internal/controlstate/postgres/cache_readiness.go",
+        "internal/controlstate/replication/cache_readiness.go",
+        "internal/controlstate/sqlite/cache_readiness.go",
+        "internal/providers/gemini/stream_audit.go",
+        "internal/providers/gemini/stream_boundary_test.go"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "git",
+      "args": [
+        "diff",
+        "--check"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "warning: in the working copy of '.planning/STATE.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.planning/phases/27-stream-terminal-settlement-consistency/27-VERIFICATION.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.planning/phases/28-tool-calling-protocol-completion/28-VERIFICATION.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.planning/phases/29-semantic-cache-latency-hardening/29-VERIFICATION.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/app/live_controlled_load_test.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/cache/semantic.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/providers/gemini/adapter.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/providers/gemini/tool_protocol.go', LF will be replaced by CRLF the next time Git touches it\n"
+    },
+    {
+      "command": ".tmp/further-correction-20261004/check-functions.exe",
+      "args": [
+        "internal/app/live_controlled_load_test.go",
+        "internal/cache/semantic.go",
+        "internal/providers/gemini/adapter.go",
+        "internal/providers/gemini/tool_protocol.go",
+        "internal/app/live_exact_controlled_test.go",
+        "internal/app/live_gemini_tail_test.go",
+        "internal/app/live_gemini_wire_test.go",
+        "internal/app/live_readiness_postgres_test.go",
+        "internal/app/live_scope_readiness_test.go",
+        "internal/cache/readiness.go",
+        "internal/cache/scope_readiness_test.go",
+        "internal/cache/vector_lookup.go",
+        "internal/controlstate/cache_readiness.go",
+        "internal/controlstate/postgres/cache_readiness.go",
+        "internal/controlstate/replication/cache_readiness.go",
+        "internal/controlstate/sqlite/cache_readiness.go",
+        "internal/providers/gemini/stream_audit.go",
+        "internal/providers/gemini/stream_boundary_test.go"
+      ],
+      "status": 0,
+      "stdout": "[{\"file\":\"internal/cache/semantic.go\",\"function\":\"NewSemanticCacheService\",\"nonempty_lines\":22,\"parameters\":4},{\"file\":\"internal/cache/semantic.go\",\"function\":\"Lookup\",\"nonempty_lines\":4,\"parameters\":4},{\"file\":\"internal/cache/semantic.go\",\"function\":\"Store\",\"nonempty_lines\":3,\"parameters\":7},{\"file\":\"internal/cache/semantic.go\",\"function\":\"lookupVectorResult\",\"nonempty_lines\":31,\"parameters\":4},{\"file\":\"internal/providers/gemini/adapter.go\",\"function\":\"geminiGenerateConfig\",\"nonempty_lines\":14,\"parameters\":4}]\n",
+      "stderr": ""
+    },
+    {
+      "command": "node",
+      "args": [
+        "--check",
+        ".planning\\phases\\29-semantic-cache-latency-hardening\\measurements\\further-correction-20261004\\controlled-suite.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node",
+      "args": [
+        "--check",
+        ".planning\\phases\\29-semantic-cache-latency-hardening\\measurements\\further-correction-20261004\\final-checks.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node",
+      "args": [
+        "--check",
+        ".planning\\phases\\29-semantic-cache-latency-hardening\\measurements\\further-correction-20261004\\run.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node",
+      "args": [
+        "--check",
+        ".planning\\phases\\29-semantic-cache-latency-hardening\\measurements\\further-correction-20261004\\seal.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node",
+      "args": [
+        "--check",
+        ".planning\\phases\\29-semantic-cache-latency-hardening\\measurements\\further-correction-20261004\\setup.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "-c",
+        "import ast,pathlib,sys; [ast.parse(pathlib.Path(p).read_text(encoding=\"utf-8\"),filename=p) for p in sys.argv[1:]]",
+        ".planning\\phases\\29-semantic-cache-latency-hardening\\measurements\\further-correction-20261004\\cleanup.py",
+        ".planning\\phases\\29-semantic-cache-latency-hardening\\measurements\\further-correction-20261004\\evaluate.py",
+        ".planning\\phases\\29-semantic-cache-latency-hardening\\measurements\\further-correction-20261004\\preflight.py",
+        ".planning\\phases\\29-semantic-cache-latency-hardening\\measurements\\further-correction-20261004\\prepare.py"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

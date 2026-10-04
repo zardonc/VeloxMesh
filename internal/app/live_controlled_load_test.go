@@ -5,6 +5,7 @@ package app
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 )
@@ -20,15 +21,29 @@ func TestLiveControlledOn(t *testing.T)       { controlledLoad(t, "on", "0") }
 func TestLiveControlledMemo(t *testing.T)     { controlledLoad(t, "on", "128") }
 
 func controlledLoad(t *testing.T, mode, capacity string) {
+	controlledLoadProfile(t, controlledProfile{mode: mode, capacity: capacity})
+}
+
+type controlledProfile struct{ mode, capacity, reuseMode string }
+
+func configureControlledProfile(t *testing.T, profile controlledProfile) {
 	t.Helper()
-	env := liveEnvironment(t)
-	t.Setenv("PHASE29_MODE", mode)
-	t.Setenv("PHASE29_MEMO_CAPACITY", capacity)
+	t.Setenv("PHASE29_MODE", profile.mode)
+	t.Setenv("PHASE29_MEMO_CAPACITY", profile.capacity)
+	if profile.reuseMode != "" {
+		t.Setenv("PHASE29_REUSE_MODE", profile.reuseMode)
+	}
 	ttl := ""
-	if capacity != "0" {
+	if profile.capacity != "0" {
 		ttl = "1m"
 	}
 	t.Setenv("PHASE29_MEMO_TTL", ttl)
+}
+
+func controlledLoadProfile(t *testing.T, profile controlledProfile) {
+	t.Helper()
+	env := liveEnvironment(t)
+	configureControlledProfile(t, profile)
 	application, token := liveApplication(t, env)
 	recorder := installLiveTiming(t, application, time.Now())
 	t.Cleanup(func() { application.Close(); recorder.dump(t) })
@@ -41,12 +56,12 @@ func controlledLoad(t *testing.T, mode, capacity string) {
 	if !warm.OK {
 		t.Fatal("primary warmup failed; formal measurement not started")
 	}
-	if mode == "on" {
+	if profile.mode == "on" {
 		liveWaitStoreCount(t, recorder, 1)
 	}
 	time.Sleep(controlledQuietPeriod)
-	shipLogJSON(t, map[string]any{"type": "effective_cache_profile", "memo_capacity": capacity,
-		"memo_ttl": ttl, "seed_persisted": mode == "on", "quiet_ms": controlledQuietPeriod.Milliseconds()})
+	shipLogJSON(t, map[string]any{"type": "effective_cache_profile", "memo_capacity": profile.capacity,
+		"memo_ttl": os.Getenv("PHASE29_MEMO_TTL"), "reuse_mode": os.Getenv("PHASE29_REUSE_MODE"), "seed_persisted": profile.mode == "on", "quiet_ms": controlledQuietPeriod.Milliseconds()})
 	shipLogJSON(t, map[string]any{"type": "measurement_start", "utc": time.Now().UTC().Format(time.RFC3339Nano)})
 	options.origin = time.Now()
 	failures := shipScheduledLoad(t, application, options)

@@ -1,0 +1,5 @@
+=== RUN   TestLivePostgresScopeReadiness
+2026/10/04 22:08:55 WARN postgres password configured without TLS; connection will proceed over plaintext component=controlstate host=127.0.0.1 database=veloxmesh_db
+    live_readiness_postgres_test.go:59: PostgreSQL absent/pending/active/foreign/expired/error readiness passed
+--- PASS: TestLivePostgresScopeReadiness (0.02s)
+PASS
