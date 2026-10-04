@@ -364,6 +364,9 @@ func (r *runner) liveTest(test string) error {
 	for _, key := range []string{"PHASE29_COUNT", "PHASE29_INTERVAL_MS", "PHASE29_CLIENT_CONCURRENCY", "PHASE29_EXTRA_PROVIDERS", "PHASE29_MIXED_MODELS", "OR_PRIMARY_API_KEY", "PHASE29_SECOND_EMBEDDING_MODEL", "PHASE29_EMBEDDING_PARALLEL_WARMUP"} {
 		input[key] = os.Getenv(key)
 	}
+	for _, key := range []string{"PHASE29_MEMO_CAPACITY", "PHASE29_MEMO_TTL", "PHASE29_INPUT_PREFIX", "PHASE29_THRESHOLD"} {
+		input[key] = os.Getenv(key)
+	}
 	payload, err := json.Marshal(input)
 	if err != nil {
 		return err
@@ -388,6 +391,9 @@ func (r *runner) finishLiveTest(test string, output []byte, err error) error {
 	}
 	if err == nil && strings.Contains(string(output), "--- SKIP:") {
 		err = fmt.Errorf("selected live test was skipped")
+	}
+	if err == nil && !strings.Contains(string(output), "--- PASS: "+test+" (") {
+		err = fmt.Errorf("selected live test did not execute and pass: %s", test)
 	}
 	fmt.Printf("%s exit: %v\n", test, err)
 	if err != nil {

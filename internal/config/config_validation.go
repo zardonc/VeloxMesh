@@ -117,6 +117,9 @@ func validateSemanticCacheConfig(c *Config) error {
 	if err := validateCacheUseCases(cache.UseCases); err != nil {
 		return err
 	}
+	if err := validateCacheEmbedding(cache); err != nil {
+		return err
+	}
 	return validateCacheBounds(cache)
 }
 

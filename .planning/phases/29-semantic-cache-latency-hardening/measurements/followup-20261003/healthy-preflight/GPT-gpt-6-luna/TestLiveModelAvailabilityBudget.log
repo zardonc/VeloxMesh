@@ -1,0 +1,31 @@
+=== RUN   TestLiveModelAvailabilityBudget
+{"time":"2026-10-04T04:23:32.514732624Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:35: model=text-embedding-embedder_collection dimension=768 primary=gpt-6-luna
+{"time":"2026-10-04T04:23:33.862097836Z","level":"INFO","msg":"request completed","request_id":"timing-042332.515809963","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1346}
+    live_diagnostic_test.go:48: usage_rows_all=1 usage_rows_key=1
+    live_diagnostic_test.go:48: settled_records=1 total_tokens=15 credits=15 exactly_once=true
+    live_diagnostic_test.go:49: SAMPLE {"elapsed_ms":1368.899,"model":"gpt-6-luna","type":"availability","usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"request_rules","start_ms":1.79,"elapsed_ms":0.003}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"routing","start_ms":1.794,"elapsed_ms":0.624}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"admission","start_ms":2.421,"elapsed_ms":0.268}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"net_upstream/get_connection","start_ms":3.679,"elapsed_ms":0.017}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"net_upstream/dns_start","start_ms":3.679,"elapsed_ms":0.101}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"net_upstream/dns_done","start_ms":3.679,"elapsed_ms":0.945}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"net_upstream/connect_start","start_ms":3.679,"elapsed_ms":0.957}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"net_upstream/connect_done","start_ms":3.679,"elapsed_ms":30.243}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"net_upstream/tls_start","start_ms":3.679,"elapsed_ms":30.308}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"net_upstream/tls_done","start_ms":3.679,"elapsed_ms":103.727}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"net_upstream/got_connection_new","start_ms":3.679,"elapsed_ms":104.17}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"net_upstream/request_written","start_ms":3.679,"elapsed_ms":104.274}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"net_upstream/first_byte","start_ms":3.679,"elapsed_ms":1340.814}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"upstream_headers","start_ms":3.679,"elapsed_ms":1340.905}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"upstream_http","start_ms":3.679,"elapsed_ms":1341.017}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"provider_complete","start_ms":3.554,"elapsed_ms":1341.146}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"health_provider_sync","start_ms":1344.702,"elapsed_ms":0.931}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"circuit_result","start_ms":1345.634,"elapsed_ms":0}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"health_model_sync","start_ms":1345.642,"elapsed_ms":0.715}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"response_rules","start_ms":1346.361,"elapsed_ms":0.002}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"settlement","start_ms":1346.363,"elapsed_ms":0.9}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-042332.515809963","name":"http_handler","start_ms":1.025,"elapsed_ms":1346.301}
+--- PASS: TestLiveModelAvailabilityBudget (1.48s)
+PASS

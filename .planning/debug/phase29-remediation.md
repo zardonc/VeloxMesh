@@ -8,15 +8,15 @@ updated: 2026-10-03
 ## Symptoms
 
 Expected: cache writes become readable only after indexing; dependency faults have bounded latency and visible errors; scenario-specific performance and correctness evidence precede release.
-Actual: partial writes leave enabled SQL rows; Redis health writes hold a global lock and ignore errors; low-hit full-response P95 ratio remains 1.220; semantic recall needs independent evaluation.
+Actual: persistence/health/SQLite/stream defects have passing scoped regressions. Current low-hit ratios1.140/1.190 still exceed original1.05, independent .92 recall is0/12, and prefix/.84 has3/20 unsafe hits. Scenario release SLOs and embedding backend/first-concurrent-tail evidence remain open.
 Reproduction: existing real Phase 29 test runner, VM Redis/Qdrant/PostgreSQL, local SQLite and actual model APIs. No mock services or replies.
 
 ## Current Focus
 
 hypothesis: remaining low-hit costs include real embedding round trips; recall depends on representation/threshold calibration. Nemotron long waits occur after upstream headers, outside gateway processing.
-test: completed six balanced direct/off/on blocks, actual C4/C8 scenarios, Redis delayed/stale publications, real cache lifecycle, pgvector/PostgreSQL component checks, two embedding lifecycles and raw input-prefix comparisons.
+test: completed six verified direct/off/on/memo blocks, actual C4/C8/hit scenarios, independent semantic holdouts, memo/configuration/fault boundaries, healthy GPT protocol/business checks, host independent-arrival experiment and sanitized backend timing extraction. Earlier Redis/lifecycle/pgvector/two-model evidence is retained as history.
 expecting: scoped code defects have passing real regressions; retain failed release gates and upstream resource evidence.
-next_action: obtain Provider body-generation/queue evidence after HTTP 429 clears, and model-service effective-input/model-version metadata plus an independent semantic gold set and scenario SLOs before another release decision. Do not enable production cache or merge main on current evidence.
+next_action: obtain a business-approved scope/recall contract, a safe independent semantic policy, explicit per-scenario release SLOs and embedding backend queue/inference timing. Six verified blocks, host independent-arrival experiment, backend timing extraction and configuration boundaries are complete. HTTP429/known-resource Providers are skipped without clearing historical failures; no quota retry needed this round. Do not enable production cache or merge main on current evidence.
 
 ## Failure cases recorded before implementation
 
@@ -59,6 +59,18 @@ next_action: obtain Provider body-generation/queue evidence after HTTP 429 clear
 
 - hypothesis: VM network hop is already proven the main stable embedding bottleneck.
   evidence: matched warmed Go client host/VM C4 differed by about 1ms in previous real tests; cold windows remain separate.
+
+## Follow-up evidence (baseline f19f316)
+
+- Real memo regression first failed because the second identical query made another embedding HTTP request. Added default-disabled bounded per-service vector memo with scope/model isolation, copied vectors, TTL/LRU eviction and visible error handling; real boundary, cancelled-context, disconnect/recovery and 100-hit billing tests pass.
+- Explicit input prefix participates in a representation version in scope; empty prefix restores the old scope. Actual write/hit/prefix-switch/restore and two-seed billing pass. No default prefix or production threshold was changed.
+- Independent, frozen multi-FAQ set: collection/raw/.92 and nomic/raw/.92 each retrieve 0/12 same-answer questions and have 0/20 unsafe negative hits. Nomic/search_query/.84 retrieves 4/12 positives but falsely hits 3/20 negatives (eighth-day refund, seven-day trial, fourteen-day refund). Seen-set calibration did not generalize. Nominal recall targets remain diagnostic proposals, not approved business contracts.
+- Actual GPT availability, SSE/buffered/Fusion/cancellation, all selected tool modes/continuation, direct and gateway business facts pass. OR/Gemini/SANS not dispatched because of authorized resource exclusions.
+- VM fresh capacity: Redis/Qdrant/PostgreSQL and SQLite windows have zero errors. SQLite C16 P99 39.113ms/max90.677ms remains a saturation boundary. Model API identifies collection as nomic-bert-moe Q8_0 and Nomic as nomic-bert Q4_K_M, both 768 returned dimensions; API does not expose effective task prefix/pooling/inference queue timing.
+- Test-harness corrections: nonexistent test selection had incorrectly returned PASS; runner now requires a named PASS marker. First three stable windows did not activate memo because stdin environment reset test parameters; these windows and interrupted dispatches are preserved and excluded from optimized results. Corrected wrappers set options after environment loading, log effective profile, and analysis requires four observed memo hits per stable window.
+- Final follow-up: 2,400 formal requests succeed; exact-hit P95 36.511→6.444ms, embedding calls101→1 including seed, only seed billed. Normal application P95 off/on/memo5.665/5.221/4.981ms. Low-hit ratios1.140005/1.189665 fail original1.05, pass proposed1.25/+40ms; joint block bootstrap does not establish memo low-hit P95 improvement. C8 miss application P95 10.718ms, no approved saturation SLO. Two normal residual>15ms samples retained.
+- Actual model host independent-arrival windows:300 successful samples; no gateway/SSH involved, co-load embedding P99101.456ms. LM Studio C8-window logs show193 parseable tasks, four observed simultaneous slots, decode P95245.07ms/total271.19ms; this supports model generation/scheduling as upstream contributors, not a configured slot-limit assertion. No per-request gateway ID correlation or embedding inference timing available.
+- Full details: ../phases/29-semantic-cache-latency-hardening/29-FOLLOWUP-RESULTS-20261003.md. Build/vet, cache/config/gateway regressions and eight real invalid-config startup cases pass; isolated containers/tunnels stopped. Production cache and input threshold remain unchanged; no main merge.
 
 ## Resolution
 

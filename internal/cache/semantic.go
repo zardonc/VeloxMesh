@@ -20,20 +20,23 @@ import (
 )
 
 type SemanticCacheConfig struct {
-	Enabled           bool
-	Threshold         float32
-	MaxCandidates     int
-	TTL               time.Duration
-	EmbeddingModel    string
-	EmbeddingProvider string
-	VectorDimension   int
-	UseCases          []SemanticCacheUseCase
-	ReadTimeout       time.Duration
-	ReadConcurrency   int
-	WriteTimeout      time.Duration
-	WriteWorkers      int
-	QueueCapacity     int
-	ShutdownGrace     time.Duration
+	Enabled               bool
+	Threshold             float32
+	MaxCandidates         int
+	TTL                   time.Duration
+	EmbeddingModel        string
+	EmbeddingInputPrefix  string
+	EmbeddingMemoCapacity int
+	EmbeddingMemoTTL      time.Duration
+	EmbeddingProvider     string
+	VectorDimension       int
+	UseCases              []SemanticCacheUseCase
+	ReadTimeout           time.Duration
+	ReadConcurrency       int
+	WriteTimeout          time.Duration
+	WriteWorkers          int
+	QueueCapacity         int
+	ShutdownGrace         time.Duration
 }
 
 type SemanticCacheUseCase struct {
@@ -49,6 +52,7 @@ type SemanticCacheService struct {
 	repo         controlstate.SemanticCacheRepository
 	vector       storage.VectorAdapter
 	adapter      providers.EmbedAdapter
+	embeddings   *embeddingMemo
 	reads        chan struct{}
 	writes       chan CacheWrite
 	writeCtx     context.Context
@@ -67,10 +71,11 @@ func NewSemanticCacheService(config SemanticCacheConfig, repo controlstate.Seman
 	}
 	config.UseCases = profiles
 	service := &SemanticCacheService{
-		config:  config,
-		repo:    repo,
-		vector:  vector,
-		adapter: adapter,
+		config:     config,
+		repo:       repo,
+		vector:     vector,
+		adapter:    adapter,
+		embeddings: newEmbeddingMemo(config),
 	}
 	if config.Enabled && config.ReadConcurrency > 0 {
 		service.reads = make(chan struct{}, config.ReadConcurrency)
@@ -105,6 +110,9 @@ func validCacheRequest(req *llm.LLMRequest) bool {
 
 func cacheScope(identityID string, useCase SemanticCacheUseCase, config SemanticCacheConfig) string {
 	identity := strings.Join([]string{identityID, useCase.UseCaseID, useCase.KnowledgeVersion, useCase.TargetModel, useCase.SystemPrompt, config.EmbeddingProvider, config.EmbeddingModel, fmt.Sprint(config.VectorDimension), "temperature=0", "max_tokens=256", "embedding-input=user-text-v1"}, "\x00")
+	if config.EmbeddingInputPrefix != "" {
+		identity += "\x00embedding-input=prefix-user-text-v2\x00" + config.EmbeddingInputPrefix
+	}
 	digest := sha256.Sum256([]byte(identity))
 	return hex.EncodeToString(digest[:])
 }
@@ -186,7 +194,7 @@ func (s *SemanticCacheService) lookup(ctx context.Context, query CacheLookup, ve
 		return CacheLookupResult{}, nil
 	}
 
-	inputVector, err := s.embed(ctx, query.Text, "lookup")
+	inputVector, err := s.embed(ctx, query, "lookup")
 	if err != nil {
 		return CacheLookupResult{}, err
 	}
@@ -298,7 +306,7 @@ func (s *SemanticCacheService) StoreWrite(ctx context.Context, write CacheWrite)
 
 func (s *SemanticCacheService) writeVector(ctx context.Context, write CacheWrite) ([]float32, error) {
 	if write.Vector == nil {
-		return s.embed(ctx, write.Text, "store")
+		return s.embed(ctx, CacheLookup{Scope: write.Scope, Model: write.Model, Text: write.Text}, "store")
 	}
 	if !validVector(write.Vector, s.config.VectorDimension) {
 		return nil, s.fault("store", "invalid_embedding", nil)
@@ -338,10 +346,21 @@ func (s *SemanticCacheService) lookupVectorResult(ctx context.Context, scope, mo
 	return nil, nil
 }
 
-func (s *SemanticCacheService) embed(ctx context.Context, text, operation string) ([]float32, error) {
+func (s *SemanticCacheService) embed(ctx context.Context, query CacheLookup, operation string) ([]float32, error) {
 	defer observability.Stage(ctx, operation+"_embedding")()
 	started := time.Now()
-	response, err := s.adapter.Embed(ctx, &llm.EmbeddingRequest{Model: s.config.EmbeddingModel, Input: []string{text}})
+	if err := ctx.Err(); err != nil {
+		return nil, s.fault(operation, "embedding_error", err)
+	}
+	if vector, ok := s.embeddings.get(query); ok {
+		recordCacheOutcome("embedding_memo", "hit")
+		measureOperation(operation+"_embedding", started, nil)
+		return vector, nil
+	}
+	if s.embeddings != nil {
+		recordCacheOutcome("embedding_memo", "miss")
+	}
+	response, err := s.adapter.Embed(ctx, &llm.EmbeddingRequest{Model: s.config.EmbeddingModel, Input: []string{s.config.EmbeddingInputPrefix + query.Text}})
 	measureOperation(operation+"_embedding", started, err)
 	if err != nil || response == nil || len(response.Data) != 1 {
 		return nil, s.fault(operation, "embedding_error", err)
@@ -350,6 +369,10 @@ func (s *SemanticCacheService) embed(ctx context.Context, text, operation string
 	if !validVector(vector, s.config.VectorDimension) {
 		return nil, s.fault(operation, "invalid_embedding", nil)
 	}
+	if err := ctx.Err(); err != nil {
+		return nil, s.fault(operation, "embedding_error", err)
+	}
+	s.embeddings.put(query, vector)
 	return vector, nil
 }
 

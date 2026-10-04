@@ -128,23 +128,26 @@ type RedisConfig struct {
 }
 
 type CacheConfig struct {
-	Enabled         bool                 `json:"enabled"`
-	Provider        string               `json:"provider"`
-	EmbeddingModel  string               `json:"embedding_model"`
-	VectorStore     string               `json:"vector_store"`
-	VectorDimension int                  `json:"vector_dimension"`
-	TTL             string               `json:"ttl"`
-	Threshold       float32              `json:"threshold"`
-	MaxCandidates   int                  `json:"max_candidates"`
-	UseCases        []CacheUseCaseConfig `json:"use_cases"`
-	ReadTimeout     string               `json:"read_timeout"`
-	ReadConcurrency int                  `json:"read_concurrency"`
-	WriteTimeout    string               `json:"write_timeout"`
-	WriteWorkers    int                  `json:"write_workers"`
-	QueueCapacity   int                  `json:"queue_capacity"`
-	ShutdownGrace   string               `json:"shutdown_grace"`
-	PGVector        PGVectorConfig       `json:"pgvector"`
-	Qdrant          QdrantConfig         `json:"qdrant"`
+	Enabled               bool                 `json:"enabled"`
+	Provider              string               `json:"provider"`
+	EmbeddingModel        string               `json:"embedding_model"`
+	EmbeddingInputPrefix  string               `json:"embedding_input_prefix"`
+	EmbeddingMemoCapacity int                  `json:"embedding_memo_capacity"`
+	EmbeddingMemoTTL      string               `json:"embedding_memo_ttl"`
+	VectorStore           string               `json:"vector_store"`
+	VectorDimension       int                  `json:"vector_dimension"`
+	TTL                   string               `json:"ttl"`
+	Threshold             float32              `json:"threshold"`
+	MaxCandidates         int                  `json:"max_candidates"`
+	UseCases              []CacheUseCaseConfig `json:"use_cases"`
+	ReadTimeout           string               `json:"read_timeout"`
+	ReadConcurrency       int                  `json:"read_concurrency"`
+	WriteTimeout          string               `json:"write_timeout"`
+	WriteWorkers          int                  `json:"write_workers"`
+	QueueCapacity         int                  `json:"queue_capacity"`
+	ShutdownGrace         string               `json:"shutdown_grace"`
+	PGVector              PGVectorConfig       `json:"pgvector"`
+	Qdrant                QdrantConfig         `json:"qdrant"`
 }
 
 type CacheUseCaseConfig struct {

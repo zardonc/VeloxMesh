@@ -1,0 +1,65 @@
+=== RUN   TestLiveEmbeddingMemoFailureRecovery
+{"time":"2026-10-04T04:18:24.389374117Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T04:18:24.391818107Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T04:18:24.391876627Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T04:18:24.391887688Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T04:18:24.39195783Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T04:18:24.394927144Z","level":"INFO","msg":"starting config change subscriber"}
+    live_embedding_memo_test.go:87: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T04:18:24.434381001Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_0e6a65648d452d9e8466593547490e35484af60d7896277be49a06bb0f91340e: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_0e6a65648d452d9e8466593547490e35484af60d7896277be49a06bb0f91340e` doesn't exist!"}
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:46710->127.0.0.1:11234: read tcp 127.0.0.1:44775->127.0.0.1:32842: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:44775->127.0.0.1:32842: read tcp 127.0.0.1:46710->127.0.0.1:11234: use of closed network connection
+{"time":"2026-10-04T04:18:24.436421365Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_0e6a65648d452d9e8466593547490e35484af60d7896277be49a06bb0f91340e: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_0e6a65648d452d9e8466593547490e35484af60d7896277be49a06bb0f91340e` doesn't exist!"}
+{"time":"2026-10-04T04:18:24.437082381Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"embedding_error","error":"[provider_unavailable] Provider unavailable"}
+{"time":"2026-10-04T04:18:24.470836405Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_0e6a65648d452d9e8466593547490e35484af60d7896277be49a06bb0f91340e: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_0e6a65648d452d9e8466593547490e35484af60d7896277be49a06bb0f91340e` doesn't exist!"}
+    live_embedding_memo_test.go:98: SAMPLE {"error_visible":true,"failed_vector_not_cached":true,"type":"memo_fault_recovery"}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-before-disconnect","name":"net_embedding/get_connection","start_ms":0.677,"elapsed_ms":0.023}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-before-disconnect","name":"net_embedding/got_connection_reused","start_ms":0.677,"elapsed_ms":0.037}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-before-disconnect","name":"net_embedding/request_written","start_ms":0.677,"elapsed_ms":0.06}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-before-disconnect","name":"net_embedding/first_byte","start_ms":0.677,"elapsed_ms":32.899}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-before-disconnect","name":"embedding_headers","start_ms":0.677,"elapsed_ms":32.944}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-before-disconnect","name":"embedding_http","start_ms":0.677,"elapsed_ms":33.064}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-before-disconnect","name":"lookup_embedding","start_ms":0.607,"elapsed_ms":33.36}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-before-disconnect","name":"vector_search","start_ms":33.97,"elapsed_ms":5.268}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-before-disconnect","name":"cache_read","start_ms":0.576,"elapsed_ms":38.808}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-during-disconnect","name":"lookup_embedding","start_ms":39.629,"elapsed_ms":0.017}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-during-disconnect","name":"vector_search","start_ms":39.648,"elapsed_ms":1.702}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-during-disconnect","name":"cache_read","start_ms":39.616,"elapsed_ms":1.8}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-fault","name":"net_embedding/get_connection","start_ms":41.458,"elapsed_ms":0.021}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-fault","name":"net_embedding/connect_start","start_ms":41.458,"elapsed_ms":0.141}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-fault","name":"net_embedding/connect_done","start_ms":41.458,"elapsed_ms":0.376}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-fault","name":"net_embedding/got_connection_new","start_ms":41.458,"elapsed_ms":0.395}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-fault","name":"net_embedding/request_written","start_ms":41.458,"elapsed_ms":0.437}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-fault","name":"embedding_headers","start_ms":41.458,"elapsed_ms":0.531}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-fault","name":"lookup_embedding","start_ms":41.425,"elapsed_ms":0.625}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-fault","name":"cache_read","start_ms":41.419,"elapsed_ms":0.632}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"net_embedding/get_connection","start_ms":42.078,"elapsed_ms":0.013}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"net_embedding/connect_start","start_ms":42.078,"elapsed_ms":0.032}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"net_embedding/connect_done","start_ms":42.078,"elapsed_ms":0.111}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"net_embedding/got_connection_new","start_ms":42.078,"elapsed_ms":0.116}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"net_embedding/request_written","start_ms":42.078,"elapsed_ms":0.137}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"net_embedding/first_byte","start_ms":42.078,"elapsed_ms":32.576}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"embedding_headers","start_ms":42.078,"elapsed_ms":32.622}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"embedding_http","start_ms":42.078,"elapsed_ms":32.787}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"lookup_embedding","start_ms":42.06,"elapsed_ms":33.046}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"vector_search","start_ms":75.108,"elapsed_ms":0.653}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-recovered","name":"cache_read","start_ms":42.056,"elapsed_ms":33.777}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/miss","elapsed_ms":0,"start_ms":0.621,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":33.347,"start_ms":0.607999999999997,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":5.271,"start_ms":34.045,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":39.318,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/hit","elapsed_ms":0,"start_ms":39.645,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":0.017,"start_ms":39.629999999999995,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.703,"start_ms":39.657,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":41.36,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/miss","elapsed_ms":0,"start_ms":41.432,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":0.576,"start_ms":41.429,"ok":false,"error":"Unknown"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/embedding_error","elapsed_ms":0,"start_ms":42.024,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/miss","elapsed_ms":0,"start_ms":42.065,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":33.034,"start_ms":42.061,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":0.656,"start_ms":75.11699999999999,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":75.773,"ok":true}
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:46712->127.0.0.1:11234: read tcp 127.0.0.1:44775->127.0.0.1:32864: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:44775->127.0.0.1:32864: read tcp 127.0.0.1:46712->127.0.0.1:11234: use of closed network connection
+--- PASS: TestLiveEmbeddingMemoFailureRecovery (0.13s)
+PASS

@@ -252,6 +252,9 @@ func liveCacheConfig(t *testing.T, env map[string]string, inputs liveCacheInputs
 	cacheConfig.WriteWorkers = liveInteger(t, "PHASE29_WRITE_WORKERS")
 	cacheConfig.QueueCapacity = liveInteger(t, "PHASE29_QUEUE_CAPACITY")
 	cacheConfig.ShutdownGrace = os.Getenv("PHASE29_SHUTDOWN_GRACE")
+	cacheConfig.EmbeddingInputPrefix = os.Getenv("PHASE29_INPUT_PREFIX")
+	cacheConfig.EmbeddingMemoCapacity = liveInteger(t, "PHASE29_MEMO_CAPACITY")
+	cacheConfig.EmbeddingMemoTTL = os.Getenv("PHASE29_MEMO_TTL")
 	return cacheConfig
 }
 

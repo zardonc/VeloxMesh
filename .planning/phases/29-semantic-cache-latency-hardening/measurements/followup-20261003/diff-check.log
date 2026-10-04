@@ -1,0 +1,10 @@
+warning: in the working copy of '.planning/debug/phase29-remediation.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001/runner/main.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/live_ship_load_test.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/phase29_live_test.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/semantic_cache.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/cache/semantic.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/config/cache_file.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/config/config_file.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/config/config_types.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/config/config_validation.go', LF will be replaced by CRLF the next time Git touches it

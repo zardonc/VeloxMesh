@@ -135,8 +135,15 @@ func shipLoad(t *testing.T, mode string) {
 		t.Skip("real application load opt-in")
 	}
 	env := liveEnvironment(t)
+	shipLoadEnvironment(t, mode, env)
+}
+
+func shipLoadEnvironment(t *testing.T, mode string, env map[string]string) {
+	t.Helper()
 	t.Setenv("PHASE29_MODE", mode)
 	application, token := liveApplication(t, env)
+	shipLogJSON(t, map[string]any{"type": "effective_cache_profile", "memo_capacity": os.Getenv("PHASE29_MEMO_CAPACITY"),
+		"memo_ttl": os.Getenv("PHASE29_MEMO_TTL"), "input_prefix": os.Getenv("PHASE29_INPUT_PREFIX")})
 	recorder := installLiveTiming(t, application, time.Now())
 	t.Cleanup(func() { application.Close(); recorder.dump(t) })
 	server := httptest.NewServer(application.Router)

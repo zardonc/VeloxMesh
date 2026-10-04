@@ -1,0 +1,2476 @@
+{
+  "standards_status": "diagnostic proposals; original release gate preserved",
+  "stable": {
+    "direct": {
+      "n": 600,
+      "failed": 0,
+      "hits": 0,
+      "actual_max_concurrency": 2,
+      "latency": {
+        "n": 600,
+        "p50_ms": 94.169,
+        "p95_ms": 125.649,
+        "p99_ms": 196.993,
+        "max_ms": 217.368
+      },
+      "application": null,
+      "send_lag": {
+        "n": 600,
+        "p50_ms": 0.9480000000003201,
+        "p95_ms": 1.637000000000171,
+        "p99_ms": 1.9909999999999854,
+        "max_ms": 2.2959999999998217
+      },
+      "actual_rps": 48.07057914712698,
+      "stages": {
+        "net_upstream/connect_done": {
+          "n": 6,
+          "p50_ms": 0.296,
+          "p95_ms": 0.938,
+          "p99_ms": 0.938,
+          "max_ms": 0.938
+        },
+        "net_upstream/connect_start": {
+          "n": 6,
+          "p50_ms": 0.071,
+          "p95_ms": 0.142,
+          "p99_ms": 0.142,
+          "max_ms": 0.142
+        },
+        "net_upstream/first_byte": {
+          "n": 600,
+          "p50_ms": 93.921,
+          "p95_ms": 125.07,
+          "p99_ms": 196.687,
+          "max_ms": 217.14
+        },
+        "net_upstream/get_connection": {
+          "n": 600,
+          "p50_ms": 0.018,
+          "p95_ms": 0.05,
+          "p99_ms": 0.086,
+          "max_ms": 0.147
+        },
+        "net_upstream/got_connection_new": {
+          "n": 6,
+          "p50_ms": 0.369,
+          "p95_ms": 0.974,
+          "p99_ms": 0.974,
+          "max_ms": 0.974
+        },
+        "net_upstream/got_connection_reused": {
+          "n": 594,
+          "p50_ms": 0.028,
+          "p95_ms": 0.065,
+          "p99_ms": 0.115,
+          "max_ms": 0.172
+        },
+        "net_upstream/request_written": {
+          "n": 600,
+          "p50_ms": 0.055,
+          "p95_ms": 0.12,
+          "p99_ms": 0.303,
+          "max_ms": 1.028
+        },
+        "upstream_headers": {
+          "n": 600,
+          "p50_ms": 93.985,
+          "p95_ms": 125.428,
+          "p99_ms": 196.778,
+          "max_ms": 217.185
+        },
+        "upstream_http": {
+          "n": 600,
+          "p50_ms": 94.019,
+          "p95_ms": 125.585,
+          "p99_ms": 196.861,
+          "max_ms": 217.222
+        }
+      }
+    },
+    "off": {
+      "n": 600,
+      "failed": 0,
+      "hits": 0,
+      "actual_max_concurrency": 2,
+      "latency": {
+        "n": 600,
+        "p50_ms": 98.319,
+        "p95_ms": 130.145,
+        "p99_ms": 197.072,
+        "max_ms": 224.907
+      },
+      "application": {
+        "n": 600,
+        "p50_ms": 3.747,
+        "p95_ms": 5.665000000000006,
+        "p99_ms": 7.533000000000001,
+        "max_ms": 15.036000000000001
+      },
+      "send_lag": {
+        "n": 600,
+        "p50_ms": 0.9570000000003347,
+        "p95_ms": 1.6049999999995634,
+        "p99_ms": 1.900000000000091,
+        "max_ms": 2.737999999999829
+      },
+      "actual_rps": 48.05484403239729,
+      "stages": {
+        "admission": {
+          "n": 600,
+          "p50_ms": 0.242,
+          "p95_ms": 0.404,
+          "p99_ms": 0.591,
+          "max_ms": 1.049
+        },
+        "circuit_result": {
+          "n": 600,
+          "p50_ms": 0.001,
+          "p95_ms": 0.002,
+          "p99_ms": 0.004,
+          "max_ms": 0.019
+        },
+        "health_model_sync": {
+          "n": 600,
+          "p50_ms": 0.414,
+          "p95_ms": 0.81,
+          "p99_ms": 1.759,
+          "max_ms": 3.657
+        },
+        "health_provider_sync": {
+          "n": 600,
+          "p50_ms": 0.641,
+          "p95_ms": 1.052,
+          "p99_ms": 2.375,
+          "max_ms": 5.163
+        },
+        "http_handler": {
+          "n": 600,
+          "p50_ms": 97.87,
+          "p95_ms": 129.674,
+          "p99_ms": 196.651,
+          "max_ms": 224.388
+        },
+        "net_upstream/connect_done": {
+          "n": 6,
+          "p50_ms": 0.238,
+          "p95_ms": 0.439,
+          "p99_ms": 0.439,
+          "max_ms": 0.439
+        },
+        "net_upstream/connect_start": {
+          "n": 6,
+          "p50_ms": 0.056,
+          "p95_ms": 0.083,
+          "p99_ms": 0.083,
+          "max_ms": 0.083
+        },
+        "net_upstream/first_byte": {
+          "n": 600,
+          "p50_ms": 93.523,
+          "p95_ms": 124.977,
+          "p99_ms": 190.568,
+          "max_ms": 220.839
+        },
+        "net_upstream/get_connection": {
+          "n": 600,
+          "p50_ms": 0.01,
+          "p95_ms": 0.024,
+          "p99_ms": 0.06,
+          "max_ms": 0.152
+        },
+        "net_upstream/got_connection_new": {
+          "n": 6,
+          "p50_ms": 0.263,
+          "p95_ms": 0.461,
+          "p99_ms": 0.461,
+          "max_ms": 0.461
+        },
+        "net_upstream/got_connection_reused": {
+          "n": 594,
+          "p50_ms": 0.017,
+          "p95_ms": 0.042,
+          "p99_ms": 0.075,
+          "max_ms": 0.68
+        },
+        "net_upstream/request_written": {
+          "n": 600,
+          "p50_ms": 0.035,
+          "p95_ms": 0.08,
+          "p99_ms": 0.236,
+          "max_ms": 0.725
+        },
+        "provider_complete": {
+          "n": 600,
+          "p50_ms": 93.695,
+          "p95_ms": 125.252,
+          "p99_ms": 190.767,
+          "max_ms": 220.999
+        },
+        "request_rules": {
+          "n": 600,
+          "p50_ms": 0.005,
+          "p95_ms": 0.01,
+          "p99_ms": 0.049,
+          "max_ms": 0.103
+        },
+        "response_rules": {
+          "n": 600,
+          "p50_ms": 0.002,
+          "p95_ms": 0.004,
+          "p99_ms": 0.007,
+          "max_ms": 0.022
+        },
+        "routing": {
+          "n": 600,
+          "p50_ms": 0.663,
+          "p95_ms": 1.109,
+          "p99_ms": 1.713,
+          "max_ms": 4.462
+        },
+        "settlement": {
+          "n": 600,
+          "p50_ms": 0.269,
+          "p95_ms": 0.403,
+          "p99_ms": 0.484,
+          "max_ms": 1.829
+        },
+        "upstream_headers": {
+          "n": 600,
+          "p50_ms": 93.578,
+          "p95_ms": 125.15,
+          "p99_ms": 190.622,
+          "max_ms": 220.892
+        },
+        "upstream_http": {
+          "n": 600,
+          "p50_ms": 93.614,
+          "p95_ms": 125.192,
+          "p99_ms": 190.661,
+          "max_ms": 220.925
+        }
+      }
+    },
+    "on": {
+      "n": 600,
+      "failed": 0,
+      "hits": 24,
+      "actual_max_concurrency": 3,
+      "latency": {
+        "n": 600,
+        "p50_ms": 113.102,
+        "p95_ms": 148.366,
+        "p99_ms": 188.909,
+        "max_ms": 251.39
+      },
+      "application": {
+        "n": 600,
+        "p50_ms": 3.6810000000000116,
+        "p95_ms": 5.221000000000004,
+        "p99_ms": 7.832000000000008,
+        "max_ms": 10.466999999999985
+      },
+      "send_lag": {
+        "n": 600,
+        "p50_ms": 0.8790000000008149,
+        "p95_ms": 1.6710000000002765,
+        "p99_ms": 2.0429999999996653,
+        "max_ms": 5.242999999999938
+      },
+      "actual_rps": 47.91060647401652,
+      "stages": {
+        "admission": {
+          "n": 576,
+          "p50_ms": 0.232,
+          "p95_ms": 0.369,
+          "p99_ms": 0.654,
+          "max_ms": 0.909
+        },
+        "cache_read": {
+          "n": 600,
+          "p50_ms": 14.881,
+          "p95_ms": 22.944,
+          "p99_ms": 26.309,
+          "max_ms": 31.329
+        },
+        "circuit_result": {
+          "n": 576,
+          "p50_ms": 0.001,
+          "p95_ms": 0.003,
+          "p99_ms": 0.004,
+          "max_ms": 0.014
+        },
+        "embedding_headers": {
+          "n": 600,
+          "p50_ms": 12.551,
+          "p95_ms": 21.104,
+          "p99_ms": 24.153,
+          "max_ms": 28.925
+        },
+        "embedding_http": {
+          "n": 600,
+          "p50_ms": 12.825,
+          "p95_ms": 21.276,
+          "p99_ms": 24.316,
+          "max_ms": 29.168
+        },
+        "health_model_sync": {
+          "n": 576,
+          "p50_ms": 0.405,
+          "p95_ms": 0.654,
+          "p99_ms": 1.136,
+          "max_ms": 2.27
+        },
+        "health_provider_sync": {
+          "n": 576,
+          "p50_ms": 0.63,
+          "p95_ms": 1.009,
+          "p99_ms": 1.667,
+          "max_ms": 5.542
+        },
+        "http_handler": {
+          "n": 600,
+          "p50_ms": 112.452,
+          "p95_ms": 147.845,
+          "p99_ms": 188.556,
+          "max_ms": 251.15
+        },
+        "lookup_embedding": {
+          "n": 600,
+          "p50_ms": 13.152,
+          "p95_ms": 21.531,
+          "p99_ms": 24.637,
+          "max_ms": 29.606
+        },
+        "net_embedding/connect_done": {
+          "n": 6,
+          "p50_ms": 0.169,
+          "p95_ms": 0.449,
+          "p99_ms": 0.449,
+          "max_ms": 0.449
+        },
+        "net_embedding/connect_start": {
+          "n": 6,
+          "p50_ms": 0.045,
+          "p95_ms": 0.097,
+          "p99_ms": 0.097,
+          "max_ms": 0.097
+        },
+        "net_embedding/first_byte": {
+          "n": 600,
+          "p50_ms": 12.49,
+          "p95_ms": 21.045,
+          "p99_ms": 24.094,
+          "max_ms": 28.847
+        },
+        "net_embedding/get_connection": {
+          "n": 600,
+          "p50_ms": 0.021,
+          "p95_ms": 0.046,
+          "p99_ms": 0.136,
+          "max_ms": 0.375
+        },
+        "net_embedding/got_connection_new": {
+          "n": 6,
+          "p50_ms": 0.177,
+          "p95_ms": 0.46,
+          "p99_ms": 0.46,
+          "max_ms": 0.46
+        },
+        "net_embedding/got_connection_reused": {
+          "n": 594,
+          "p50_ms": 0.027,
+          "p95_ms": 0.054,
+          "p99_ms": 0.166,
+          "max_ms": 0.396
+        },
+        "net_embedding/request_written": {
+          "n": 600,
+          "p50_ms": 0.042,
+          "p95_ms": 0.094,
+          "p99_ms": 0.263,
+          "max_ms": 0.505
+        },
+        "net_upstream/first_byte": {
+          "n": 576,
+          "p50_ms": 92.324,
+          "p95_ms": 128.152,
+          "p99_ms": 170.281,
+          "max_ms": 228.315
+        },
+        "net_upstream/get_connection": {
+          "n": 576,
+          "p50_ms": 0.012,
+          "p95_ms": 0.025,
+          "p99_ms": 0.052,
+          "max_ms": 0.089
+        },
+        "net_upstream/got_connection_reused": {
+          "n": 576,
+          "p50_ms": 0.018,
+          "p95_ms": 0.033,
+          "p99_ms": 0.068,
+          "max_ms": 0.122
+        },
+        "net_upstream/request_written": {
+          "n": 576,
+          "p50_ms": 0.037,
+          "p95_ms": 0.065,
+          "p99_ms": 0.102,
+          "max_ms": 0.346
+        },
+        "provider_complete": {
+          "n": 576,
+          "p50_ms": 92.541,
+          "p95_ms": 128.346,
+          "p99_ms": 170.506,
+          "max_ms": 228.514
+        },
+        "repo_activate": {
+          "n": 576,
+          "p50_ms": 0.2,
+          "p95_ms": 0.332,
+          "p99_ms": 0.459,
+          "max_ms": 1.314
+        },
+        "repo_read": {
+          "n": 24,
+          "p50_ms": 0.197,
+          "p95_ms": 0.394,
+          "p99_ms": 1.763,
+          "max_ms": 1.763
+        },
+        "repo_write": {
+          "n": 576,
+          "p50_ms": 0.17,
+          "p95_ms": 0.321,
+          "p99_ms": 0.49,
+          "max_ms": 0.63
+        },
+        "request_rules": {
+          "n": 600,
+          "p50_ms": 0.005,
+          "p95_ms": 0.01,
+          "p99_ms": 0.031,
+          "max_ms": 0.264
+        },
+        "response_rules": {
+          "n": 600,
+          "p50_ms": 0.002,
+          "p95_ms": 0.004,
+          "p99_ms": 0.005,
+          "max_ms": 0.058
+        },
+        "routing": {
+          "n": 576,
+          "p50_ms": 0.69,
+          "p95_ms": 1.158,
+          "p99_ms": 1.88,
+          "max_ms": 4.463
+        },
+        "settlement": {
+          "n": 576,
+          "p50_ms": 0.264,
+          "p95_ms": 0.392,
+          "p99_ms": 0.466,
+          "max_ms": 0.932
+        },
+        "store_total": {
+          "n": 576,
+          "p50_ms": 4.271,
+          "p95_ms": 6.964,
+          "p99_ms": 11.322,
+          "max_ms": 26.301
+        },
+        "upstream_headers": {
+          "n": 576,
+          "p50_ms": 92.389,
+          "p95_ms": 128.198,
+          "p99_ms": 170.344,
+          "max_ms": 228.343
+        },
+        "upstream_http": {
+          "n": 576,
+          "p50_ms": 92.436,
+          "p95_ms": 128.239,
+          "p99_ms": 170.402,
+          "max_ms": 228.376
+        },
+        "vector_insert": {
+          "n": 576,
+          "p50_ms": 3.858,
+          "p95_ms": 6.49,
+          "p99_ms": 10.778,
+          "max_ms": 25.748
+        },
+        "vector_search": {
+          "n": 600,
+          "p50_ms": 1.612,
+          "p95_ms": 2.424,
+          "p99_ms": 3.077,
+          "max_ms": 5.529
+        },
+        "write_enqueue": {
+          "n": 576,
+          "p50_ms": 0.005,
+          "p95_ms": 0.029,
+          "p99_ms": 0.052,
+          "max_ms": 0.094
+        },
+        "write_queue_wait": {
+          "n": 576,
+          "p50_ms": 0.14,
+          "p95_ms": 0.236,
+          "p99_ms": 0.303,
+          "max_ms": 0.435
+        }
+      }
+    },
+    "memo": {
+      "n": 600,
+      "failed": 0,
+      "hits": 24,
+      "actual_max_concurrency": 2,
+      "latency": {
+        "n": 600,
+        "p50_ms": 114.647,
+        "p95_ms": 154.829,
+        "p99_ms": 214.548,
+        "max_ms": 235.459
+      },
+      "application": {
+        "n": 600,
+        "p50_ms": 3.6670000000000016,
+        "p95_ms": 4.9809999999999945,
+        "p99_ms": 5.814000000000021,
+        "max_ms": 17.25200000000001
+      },
+      "send_lag": {
+        "n": 600,
+        "p50_ms": 0.8549999999995634,
+        "p95_ms": 1.6619999999998072,
+        "p99_ms": 2.0329999999999018,
+        "max_ms": 11.199999999999818
+      },
+      "actual_rps": 47.97634574249512,
+      "stages": {
+        "admission": {
+          "n": 576,
+          "p50_ms": 0.229,
+          "p95_ms": 0.355,
+          "p99_ms": 0.781,
+          "max_ms": 1.112
+        },
+        "cache_read": {
+          "n": 600,
+          "p50_ms": 14.91,
+          "p95_ms": 23.522,
+          "p99_ms": 29.451,
+          "max_ms": 33.195
+        },
+        "circuit_result": {
+          "n": 576,
+          "p50_ms": 0.001,
+          "p95_ms": 0.002,
+          "p99_ms": 0.007,
+          "max_ms": 0.052
+        },
+        "embedding_headers": {
+          "n": 576,
+          "p50_ms": 12.896,
+          "p95_ms": 21.264,
+          "p99_ms": 27.391,
+          "max_ms": 30.453
+        },
+        "embedding_http": {
+          "n": 576,
+          "p50_ms": 13.072,
+          "p95_ms": 21.43,
+          "p99_ms": 27.524,
+          "max_ms": 30.567
+        },
+        "health_model_sync": {
+          "n": 576,
+          "p50_ms": 0.395,
+          "p95_ms": 0.676,
+          "p99_ms": 1.037,
+          "max_ms": 1.537
+        },
+        "health_provider_sync": {
+          "n": 576,
+          "p50_ms": 0.625,
+          "p95_ms": 0.999,
+          "p99_ms": 1.705,
+          "max_ms": 3.706
+        },
+        "http_handler": {
+          "n": 600,
+          "p50_ms": 114.013,
+          "p95_ms": 154.023,
+          "p99_ms": 214.035,
+          "max_ms": 234.997
+        },
+        "lookup_embedding": {
+          "n": 600,
+          "p50_ms": 13.31,
+          "p95_ms": 21.728,
+          "p99_ms": 26.964,
+          "max_ms": 30.81
+        },
+        "net_embedding/connect_done": {
+          "n": 6,
+          "p50_ms": 0.198,
+          "p95_ms": 0.573,
+          "p99_ms": 0.573,
+          "max_ms": 0.573
+        },
+        "net_embedding/connect_start": {
+          "n": 6,
+          "p50_ms": 0.051,
+          "p95_ms": 0.088,
+          "p99_ms": 0.088,
+          "max_ms": 0.088
+        },
+        "net_embedding/first_byte": {
+          "n": 576,
+          "p50_ms": 12.806,
+          "p95_ms": 21.197,
+          "p99_ms": 27.3,
+          "max_ms": 30.404
+        },
+        "net_embedding/get_connection": {
+          "n": 576,
+          "p50_ms": 0.023,
+          "p95_ms": 0.037,
+          "p99_ms": 0.079,
+          "max_ms": 0.155
+        },
+        "net_embedding/got_connection_new": {
+          "n": 6,
+          "p50_ms": 0.217,
+          "p95_ms": 0.753,
+          "p99_ms": 0.753,
+          "max_ms": 0.753
+        },
+        "net_embedding/got_connection_reused": {
+          "n": 570,
+          "p50_ms": 0.028,
+          "p95_ms": 0.048,
+          "p99_ms": 0.095,
+          "max_ms": 0.161
+        },
+        "net_embedding/request_written": {
+          "n": 576,
+          "p50_ms": 0.043,
+          "p95_ms": 0.076,
+          "p99_ms": 0.18,
+          "max_ms": 0.809
+        },
+        "net_upstream/first_byte": {
+          "n": 576,
+          "p50_ms": 94.027,
+          "p95_ms": 135.042,
+          "p99_ms": 196.89,
+          "max_ms": 218.084
+        },
+        "net_upstream/get_connection": {
+          "n": 576,
+          "p50_ms": 0.012,
+          "p95_ms": 0.021,
+          "p99_ms": 0.044,
+          "max_ms": 0.076
+        },
+        "net_upstream/got_connection_reused": {
+          "n": 576,
+          "p50_ms": 0.018,
+          "p95_ms": 0.032,
+          "p99_ms": 0.056,
+          "max_ms": 0.117
+        },
+        "net_upstream/request_written": {
+          "n": 576,
+          "p50_ms": 0.037,
+          "p95_ms": 0.065,
+          "p99_ms": 0.092,
+          "max_ms": 0.174
+        },
+        "provider_complete": {
+          "n": 576,
+          "p50_ms": 94.39,
+          "p95_ms": 135.22,
+          "p99_ms": 197.186,
+          "max_ms": 218.312
+        },
+        "repo_activate": {
+          "n": 576,
+          "p50_ms": 0.195,
+          "p95_ms": 0.336,
+          "p99_ms": 0.491,
+          "max_ms": 0.856
+        },
+        "repo_read": {
+          "n": 24,
+          "p50_ms": 0.201,
+          "p95_ms": 0.273,
+          "p99_ms": 0.313,
+          "max_ms": 0.313
+        },
+        "repo_write": {
+          "n": 576,
+          "p50_ms": 0.163,
+          "p95_ms": 0.335,
+          "p99_ms": 0.49,
+          "max_ms": 0.72
+        },
+        "request_rules": {
+          "n": 600,
+          "p50_ms": 0.005,
+          "p95_ms": 0.01,
+          "p99_ms": 0.023,
+          "max_ms": 0.063
+        },
+        "response_rules": {
+          "n": 600,
+          "p50_ms": 0.002,
+          "p95_ms": 0.003,
+          "p99_ms": 0.005,
+          "max_ms": 0.041
+        },
+        "routing": {
+          "n": 576,
+          "p50_ms": 0.681,
+          "p95_ms": 1.065,
+          "p99_ms": 1.955,
+          "max_ms": 4.494
+        },
+        "settlement": {
+          "n": 576,
+          "p50_ms": 0.254,
+          "p95_ms": 0.39,
+          "p99_ms": 0.507,
+          "max_ms": 1.078
+        },
+        "store_total": {
+          "n": 576,
+          "p50_ms": 4.2,
+          "p95_ms": 6.026,
+          "p99_ms": 7.988,
+          "max_ms": 14.066
+        },
+        "upstream_headers": {
+          "n": 576,
+          "p50_ms": 94.078,
+          "p95_ms": 135.096,
+          "p99_ms": 197.055,
+          "max_ms": 218.145
+        },
+        "upstream_http": {
+          "n": 576,
+          "p50_ms": 94.173,
+          "p95_ms": 135.137,
+          "p99_ms": 197.096,
+          "max_ms": 218.207
+        },
+        "vector_insert": {
+          "n": 576,
+          "p50_ms": 3.808,
+          "p95_ms": 5.528,
+          "p99_ms": 7.302,
+          "max_ms": 13.605
+        },
+        "vector_search": {
+          "n": 600,
+          "p50_ms": 1.588,
+          "p95_ms": 2.312,
+          "p99_ms": 3.409,
+          "max_ms": 7.413
+        },
+        "write_enqueue": {
+          "n": 576,
+          "p50_ms": 0.004,
+          "p95_ms": 0.022,
+          "p99_ms": 0.039,
+          "max_ms": 0.061
+        },
+        "write_queue_wait": {
+          "n": 576,
+          "p50_ms": 0.135,
+          "p95_ms": 0.219,
+          "p99_ms": 0.259,
+          "max_ms": 0.356
+        }
+      }
+    }
+  },
+  "normal_budgets": {
+    "off": {
+      "proposal": true,
+      "p95_limit_ms": 10,
+      "p99_limit_ms": 15,
+      "passed": true
+    },
+    "on": {
+      "proposal": true,
+      "p95_limit_ms": 10,
+      "p99_limit_ms": 15,
+      "passed": true
+    },
+    "memo": {
+      "proposal": true,
+      "p95_limit_ms": 10,
+      "p99_limit_ms": 15,
+      "passed": true
+    }
+  },
+  "gates": {
+    "on": {
+      "ratio": 1.140005378616159,
+      "original_limit": 1.05,
+      "original_passed": false,
+      "candidate_ratio_limit": 1.25,
+      "candidate_delta_limit_ms": 40,
+      "candidate_passed": true
+    },
+    "memo": {
+      "ratio": 1.1896653732375426,
+      "original_limit": 1.05,
+      "original_passed": false,
+      "candidate_ratio_limit": 1.25,
+      "candidate_delta_limit_ms": 40,
+      "candidate_passed": true
+    }
+  },
+  "miss_only": {
+    "on": {
+      "n": 576,
+      "failed": 0,
+      "hits": 0,
+      "actual_max_concurrency": 3,
+      "latency": {
+        "n": 576,
+        "p50_ms": 113.84,
+        "p95_ms": 149.828,
+        "p99_ms": 191.483,
+        "max_ms": 251.39
+      },
+      "application": {
+        "n": 576,
+        "p50_ms": 3.700000000000003,
+        "p95_ms": 5.275999999999996,
+        "p99_ms": 8.88199999999999,
+        "max_ms": 10.466999999999985
+      },
+      "send_lag": {
+        "n": 576,
+        "p50_ms": 0.8659999999999854,
+        "p95_ms": 1.6729999999997744,
+        "p99_ms": 2.0920000000000982,
+        "max_ms": 5.242999999999938
+      },
+      "actual_rps": 45.99418221505586,
+      "stages": {
+        "admission": {
+          "n": 576,
+          "p50_ms": 0.232,
+          "p95_ms": 0.369,
+          "p99_ms": 0.654,
+          "max_ms": 0.909
+        },
+        "cache_read": {
+          "n": 576,
+          "p50_ms": 14.881,
+          "p95_ms": 23.011,
+          "p99_ms": 26.362,
+          "max_ms": 31.329
+        },
+        "circuit_result": {
+          "n": 576,
+          "p50_ms": 0.001,
+          "p95_ms": 0.003,
+          "p99_ms": 0.004,
+          "max_ms": 0.014
+        },
+        "embedding_headers": {
+          "n": 576,
+          "p50_ms": 12.599,
+          "p95_ms": 21.109,
+          "p99_ms": 24.207,
+          "max_ms": 28.925
+        },
+        "embedding_http": {
+          "n": 576,
+          "p50_ms": 12.852,
+          "p95_ms": 21.31,
+          "p99_ms": 24.363,
+          "max_ms": 29.168
+        },
+        "health_model_sync": {
+          "n": 576,
+          "p50_ms": 0.405,
+          "p95_ms": 0.654,
+          "p99_ms": 1.136,
+          "max_ms": 2.27
+        },
+        "health_provider_sync": {
+          "n": 576,
+          "p50_ms": 0.63,
+          "p95_ms": 1.009,
+          "p99_ms": 1.667,
+          "max_ms": 5.542
+        },
+        "http_handler": {
+          "n": 576,
+          "p50_ms": 113.213,
+          "p95_ms": 149.354,
+          "p99_ms": 191.012,
+          "max_ms": 251.15
+        },
+        "lookup_embedding": {
+          "n": 576,
+          "p50_ms": 13.192,
+          "p95_ms": 21.553,
+          "p99_ms": 24.669,
+          "max_ms": 29.606
+        },
+        "net_embedding/connect_done": {
+          "n": 5,
+          "p50_ms": 0.213,
+          "p95_ms": 0.449,
+          "p99_ms": 0.449,
+          "max_ms": 0.449
+        },
+        "net_embedding/connect_start": {
+          "n": 5,
+          "p50_ms": 0.046,
+          "p95_ms": 0.097,
+          "p99_ms": 0.097,
+          "max_ms": 0.097
+        },
+        "net_embedding/first_byte": {
+          "n": 576,
+          "p50_ms": 12.532,
+          "p95_ms": 21.047,
+          "p99_ms": 24.16,
+          "max_ms": 28.847
+        },
+        "net_embedding/get_connection": {
+          "n": 576,
+          "p50_ms": 0.021,
+          "p95_ms": 0.046,
+          "p99_ms": 0.139,
+          "max_ms": 0.375
+        },
+        "net_embedding/got_connection_new": {
+          "n": 5,
+          "p50_ms": 0.24,
+          "p95_ms": 0.46,
+          "p99_ms": 0.46,
+          "max_ms": 0.46
+        },
+        "net_embedding/got_connection_reused": {
+          "n": 571,
+          "p50_ms": 0.026,
+          "p95_ms": 0.053,
+          "p99_ms": 0.166,
+          "max_ms": 0.396
+        },
+        "net_embedding/request_written": {
+          "n": 576,
+          "p50_ms": 0.042,
+          "p95_ms": 0.094,
+          "p99_ms": 0.277,
+          "max_ms": 0.505
+        },
+        "net_upstream/first_byte": {
+          "n": 576,
+          "p50_ms": 92.324,
+          "p95_ms": 128.152,
+          "p99_ms": 170.281,
+          "max_ms": 228.315
+        },
+        "net_upstream/get_connection": {
+          "n": 576,
+          "p50_ms": 0.012,
+          "p95_ms": 0.025,
+          "p99_ms": 0.052,
+          "max_ms": 0.089
+        },
+        "net_upstream/got_connection_reused": {
+          "n": 576,
+          "p50_ms": 0.018,
+          "p95_ms": 0.033,
+          "p99_ms": 0.068,
+          "max_ms": 0.122
+        },
+        "net_upstream/request_written": {
+          "n": 576,
+          "p50_ms": 0.037,
+          "p95_ms": 0.065,
+          "p99_ms": 0.102,
+          "max_ms": 0.346
+        },
+        "provider_complete": {
+          "n": 576,
+          "p50_ms": 92.541,
+          "p95_ms": 128.346,
+          "p99_ms": 170.506,
+          "max_ms": 228.514
+        },
+        "repo_activate": {
+          "n": 576,
+          "p50_ms": 0.2,
+          "p95_ms": 0.332,
+          "p99_ms": 0.459,
+          "max_ms": 1.314
+        },
+        "repo_write": {
+          "n": 576,
+          "p50_ms": 0.17,
+          "p95_ms": 0.321,
+          "p99_ms": 0.49,
+          "max_ms": 0.63
+        },
+        "request_rules": {
+          "n": 576,
+          "p50_ms": 0.005,
+          "p95_ms": 0.01,
+          "p99_ms": 0.031,
+          "max_ms": 0.125
+        },
+        "response_rules": {
+          "n": 576,
+          "p50_ms": 0.002,
+          "p95_ms": 0.004,
+          "p99_ms": 0.005,
+          "max_ms": 0.058
+        },
+        "routing": {
+          "n": 576,
+          "p50_ms": 0.69,
+          "p95_ms": 1.158,
+          "p99_ms": 1.88,
+          "max_ms": 4.463
+        },
+        "settlement": {
+          "n": 576,
+          "p50_ms": 0.264,
+          "p95_ms": 0.392,
+          "p99_ms": 0.466,
+          "max_ms": 0.932
+        },
+        "store_total": {
+          "n": 576,
+          "p50_ms": 4.271,
+          "p95_ms": 6.964,
+          "p99_ms": 11.322,
+          "max_ms": 26.301
+        },
+        "upstream_headers": {
+          "n": 576,
+          "p50_ms": 92.389,
+          "p95_ms": 128.198,
+          "p99_ms": 170.344,
+          "max_ms": 228.343
+        },
+        "upstream_http": {
+          "n": 576,
+          "p50_ms": 92.436,
+          "p95_ms": 128.239,
+          "p99_ms": 170.402,
+          "max_ms": 228.376
+        },
+        "vector_insert": {
+          "n": 576,
+          "p50_ms": 3.858,
+          "p95_ms": 6.49,
+          "p99_ms": 10.778,
+          "max_ms": 25.748
+        },
+        "vector_search": {
+          "n": 576,
+          "p50_ms": 1.613,
+          "p95_ms": 2.427,
+          "p99_ms": 3.189,
+          "max_ms": 5.529
+        },
+        "write_enqueue": {
+          "n": 576,
+          "p50_ms": 0.005,
+          "p95_ms": 0.029,
+          "p99_ms": 0.052,
+          "max_ms": 0.094
+        },
+        "write_queue_wait": {
+          "n": 576,
+          "p50_ms": 0.14,
+          "p95_ms": 0.236,
+          "p99_ms": 0.303,
+          "max_ms": 0.435
+        }
+      }
+    },
+    "memo": {
+      "n": 576,
+      "failed": 0,
+      "hits": 0,
+      "actual_max_concurrency": 2,
+      "latency": {
+        "n": 576,
+        "p50_ms": 115.761,
+        "p95_ms": 159.515,
+        "p99_ms": 219.47,
+        "max_ms": 235.459
+      },
+      "application": {
+        "n": 576,
+        "p50_ms": 3.6939999999999884,
+        "p95_ms": 5.019999999999996,
+        "p99_ms": 5.825999999999993,
+        "max_ms": 17.25200000000001
+      },
+      "send_lag": {
+        "n": 576,
+        "p50_ms": 0.8590000000003783,
+        "p95_ms": 1.6779999999998836,
+        "p99_ms": 2.061999999999898,
+        "max_ms": 11.199999999999818
+      },
+      "actual_rps": 46.057291912795314,
+      "stages": {
+        "admission": {
+          "n": 576,
+          "p50_ms": 0.229,
+          "p95_ms": 0.355,
+          "p99_ms": 0.781,
+          "max_ms": 1.112
+        },
+        "cache_read": {
+          "n": 576,
+          "p50_ms": 15.131,
+          "p95_ms": 23.783,
+          "p99_ms": 29.569,
+          "max_ms": 33.195
+        },
+        "circuit_result": {
+          "n": 576,
+          "p50_ms": 0.001,
+          "p95_ms": 0.002,
+          "p99_ms": 0.007,
+          "max_ms": 0.052
+        },
+        "embedding_headers": {
+          "n": 576,
+          "p50_ms": 12.896,
+          "p95_ms": 21.264,
+          "p99_ms": 27.391,
+          "max_ms": 30.453
+        },
+        "embedding_http": {
+          "n": 576,
+          "p50_ms": 13.072,
+          "p95_ms": 21.43,
+          "p99_ms": 27.524,
+          "max_ms": 30.567
+        },
+        "health_model_sync": {
+          "n": 576,
+          "p50_ms": 0.395,
+          "p95_ms": 0.676,
+          "p99_ms": 1.037,
+          "max_ms": 1.537
+        },
+        "health_provider_sync": {
+          "n": 576,
+          "p50_ms": 0.625,
+          "p95_ms": 0.999,
+          "p99_ms": 1.705,
+          "max_ms": 3.706
+        },
+        "http_handler": {
+          "n": 576,
+          "p50_ms": 115.254,
+          "p95_ms": 159.111,
+          "p99_ms": 219.06,
+          "max_ms": 234.997
+        },
+        "lookup_embedding": {
+          "n": 576,
+          "p50_ms": 13.383,
+          "p95_ms": 21.799,
+          "p99_ms": 27.766,
+          "max_ms": 30.81
+        },
+        "net_embedding/connect_done": {
+          "n": 6,
+          "p50_ms": 0.198,
+          "p95_ms": 0.573,
+          "p99_ms": 0.573,
+          "max_ms": 0.573
+        },
+        "net_embedding/connect_start": {
+          "n": 6,
+          "p50_ms": 0.051,
+          "p95_ms": 0.088,
+          "p99_ms": 0.088,
+          "max_ms": 0.088
+        },
+        "net_embedding/first_byte": {
+          "n": 576,
+          "p50_ms": 12.806,
+          "p95_ms": 21.197,
+          "p99_ms": 27.3,
+          "max_ms": 30.404
+        },
+        "net_embedding/get_connection": {
+          "n": 576,
+          "p50_ms": 0.023,
+          "p95_ms": 0.037,
+          "p99_ms": 0.079,
+          "max_ms": 0.155
+        },
+        "net_embedding/got_connection_new": {
+          "n": 6,
+          "p50_ms": 0.217,
+          "p95_ms": 0.753,
+          "p99_ms": 0.753,
+          "max_ms": 0.753
+        },
+        "net_embedding/got_connection_reused": {
+          "n": 570,
+          "p50_ms": 0.028,
+          "p95_ms": 0.048,
+          "p99_ms": 0.095,
+          "max_ms": 0.161
+        },
+        "net_embedding/request_written": {
+          "n": 576,
+          "p50_ms": 0.043,
+          "p95_ms": 0.076,
+          "p99_ms": 0.18,
+          "max_ms": 0.809
+        },
+        "net_upstream/first_byte": {
+          "n": 576,
+          "p50_ms": 94.027,
+          "p95_ms": 135.042,
+          "p99_ms": 196.89,
+          "max_ms": 218.084
+        },
+        "net_upstream/get_connection": {
+          "n": 576,
+          "p50_ms": 0.012,
+          "p95_ms": 0.021,
+          "p99_ms": 0.044,
+          "max_ms": 0.076
+        },
+        "net_upstream/got_connection_reused": {
+          "n": 576,
+          "p50_ms": 0.018,
+          "p95_ms": 0.032,
+          "p99_ms": 0.056,
+          "max_ms": 0.117
+        },
+        "net_upstream/request_written": {
+          "n": 576,
+          "p50_ms": 0.037,
+          "p95_ms": 0.065,
+          "p99_ms": 0.092,
+          "max_ms": 0.174
+        },
+        "provider_complete": {
+          "n": 576,
+          "p50_ms": 94.39,
+          "p95_ms": 135.22,
+          "p99_ms": 197.186,
+          "max_ms": 218.312
+        },
+        "repo_activate": {
+          "n": 576,
+          "p50_ms": 0.195,
+          "p95_ms": 0.336,
+          "p99_ms": 0.491,
+          "max_ms": 0.856
+        },
+        "repo_write": {
+          "n": 576,
+          "p50_ms": 0.163,
+          "p95_ms": 0.335,
+          "p99_ms": 0.49,
+          "max_ms": 0.72
+        },
+        "request_rules": {
+          "n": 576,
+          "p50_ms": 0.005,
+          "p95_ms": 0.011,
+          "p99_ms": 0.023,
+          "max_ms": 0.063
+        },
+        "response_rules": {
+          "n": 576,
+          "p50_ms": 0.002,
+          "p95_ms": 0.003,
+          "p99_ms": 0.006,
+          "max_ms": 0.041
+        },
+        "routing": {
+          "n": 576,
+          "p50_ms": 0.681,
+          "p95_ms": 1.065,
+          "p99_ms": 1.955,
+          "max_ms": 4.494
+        },
+        "settlement": {
+          "n": 576,
+          "p50_ms": 0.254,
+          "p95_ms": 0.39,
+          "p99_ms": 0.507,
+          "max_ms": 1.078
+        },
+        "store_total": {
+          "n": 576,
+          "p50_ms": 4.2,
+          "p95_ms": 6.026,
+          "p99_ms": 7.988,
+          "max_ms": 14.066
+        },
+        "upstream_headers": {
+          "n": 576,
+          "p50_ms": 94.078,
+          "p95_ms": 135.096,
+          "p99_ms": 197.055,
+          "max_ms": 218.145
+        },
+        "upstream_http": {
+          "n": 576,
+          "p50_ms": 94.173,
+          "p95_ms": 135.137,
+          "p99_ms": 197.096,
+          "max_ms": 218.207
+        },
+        "vector_insert": {
+          "n": 576,
+          "p50_ms": 3.808,
+          "p95_ms": 5.528,
+          "p99_ms": 7.302,
+          "max_ms": 13.605
+        },
+        "vector_search": {
+          "n": 576,
+          "p50_ms": 1.591,
+          "p95_ms": 2.363,
+          "p99_ms": 3.412,
+          "max_ms": 7.413
+        },
+        "write_enqueue": {
+          "n": 576,
+          "p50_ms": 0.004,
+          "p95_ms": 0.022,
+          "p99_ms": 0.039,
+          "max_ms": 0.061
+        },
+        "write_queue_wait": {
+          "n": 576,
+          "p50_ms": 0.135,
+          "p95_ms": 0.219,
+          "p99_ms": 0.259,
+          "max_ms": 0.356
+        }
+      }
+    }
+  },
+  "scenarios": {
+    "hit": {
+      "n": 100,
+      "failed": 0,
+      "hits": 100,
+      "actual_max_concurrency": 4,
+      "latency": {
+        "n": 100,
+        "p50_ms": 30.567,
+        "p95_ms": 36.511,
+        "p99_ms": 46.505,
+        "max_ms": 49.317
+      },
+      "application": {
+        "n": 100,
+        "p50_ms": 0.48499999999999943,
+        "p95_ms": 0.7300000000000004,
+        "p99_ms": 3.3260000000000005,
+        "max_ms": 3.6019999999999968
+      },
+      "send_lag": {
+        "n": 100,
+        "p50_ms": 365.753,
+        "p95_ms": 710.538,
+        "p99_ms": 745.094,
+        "max_ms": 754.286
+      },
+      "actual_rps": 127.81316782380189,
+      "stages": {
+        "cache_read": {
+          "n": 100,
+          "p50_ms": 29.52,
+          "p95_ms": 35.632,
+          "p99_ms": 42.766,
+          "max_ms": 48.529
+        },
+        "embedding_headers": {
+          "n": 100,
+          "p50_ms": 27.527,
+          "p95_ms": 33.672,
+          "p99_ms": 40.792,
+          "max_ms": 46.227
+        },
+        "embedding_http": {
+          "n": 100,
+          "p50_ms": 27.755,
+          "p95_ms": 33.856,
+          "p99_ms": 40.96,
+          "max_ms": 46.474
+        },
+        "http_handler": {
+          "n": 100,
+          "p50_ms": 30.193,
+          "p95_ms": 36.272,
+          "p99_ms": 46.092,
+          "max_ms": 48.98
+        },
+        "lookup_embedding": {
+          "n": 100,
+          "p50_ms": 27.971,
+          "p95_ms": 34.144,
+          "p99_ms": 41.166,
+          "max_ms": 46.896
+        },
+        "net_embedding/connect_done": {
+          "n": 3,
+          "p50_ms": 0.152,
+          "p95_ms": 0.157,
+          "p99_ms": 0.157,
+          "max_ms": 0.157
+        },
+        "net_embedding/connect_start": {
+          "n": 3,
+          "p50_ms": 0.031,
+          "p95_ms": 0.041,
+          "p99_ms": 0.041,
+          "max_ms": 0.041
+        },
+        "net_embedding/first_byte": {
+          "n": 100,
+          "p50_ms": 27.454,
+          "p95_ms": 33.599,
+          "p99_ms": 40.711,
+          "max_ms": 46.162
+        },
+        "net_embedding/get_connection": {
+          "n": 100,
+          "p50_ms": 0.019,
+          "p95_ms": 0.037,
+          "p99_ms": 0.051,
+          "max_ms": 0.09
+        },
+        "net_embedding/got_connection_new": {
+          "n": 3,
+          "p50_ms": 0.159,
+          "p95_ms": 0.162,
+          "p99_ms": 0.162,
+          "max_ms": 0.162
+        },
+        "net_embedding/got_connection_reused": {
+          "n": 97,
+          "p50_ms": 0.023,
+          "p95_ms": 0.047,
+          "p99_ms": 0.095,
+          "max_ms": 0.095
+        },
+        "net_embedding/request_written": {
+          "n": 100,
+          "p50_ms": 0.033,
+          "p95_ms": 0.069,
+          "p99_ms": 0.184,
+          "max_ms": 0.19
+        },
+        "repo_read": {
+          "n": 100,
+          "p50_ms": 0.169,
+          "p95_ms": 0.253,
+          "p99_ms": 0.305,
+          "max_ms": 0.309
+        },
+        "request_rules": {
+          "n": 100,
+          "p50_ms": 0.004,
+          "p95_ms": 0.007,
+          "p99_ms": 0.011,
+          "max_ms": 0.011
+        },
+        "response_rules": {
+          "n": 100,
+          "p50_ms": 0.001,
+          "p95_ms": 0.002,
+          "p99_ms": 0.002,
+          "max_ms": 0.003
+        },
+        "vector_search": {
+          "n": 100,
+          "p50_ms": 1.359,
+          "p95_ms": 2.122,
+          "p99_ms": 3.575,
+          "max_ms": 4.371
+        }
+      },
+      "candidate_hit_budget": {
+        "proposal": true,
+        "passed": true
+      }
+    },
+    "memo_hit": {
+      "n": 100,
+      "failed": 0,
+      "hits": 100,
+      "actual_max_concurrency": 4,
+      "latency": {
+        "n": 100,
+        "p50_ms": 3.126,
+        "p95_ms": 6.444,
+        "p99_ms": 8.723,
+        "max_ms": 10.737
+      },
+      "application": {
+        "n": 100,
+        "p50_ms": 0.5070000000000001,
+        "p95_ms": 1.8320000000000003,
+        "p99_ms": 3.029,
+        "max_ms": 3.804
+      },
+      "send_lag": {
+        "n": 100,
+        "p50_ms": 49.091,
+        "p95_ms": 84.771,
+        "p99_ms": 87.515,
+        "max_ms": 89.177
+      },
+      "actual_rps": 1089.4076890394692,
+      "stages": {
+        "cache_read": {
+          "n": 100,
+          "p50_ms": 2.211,
+          "p95_ms": 4.954,
+          "p99_ms": 6.151,
+          "max_ms": 7.682
+        },
+        "http_handler": {
+          "n": 100,
+          "p50_ms": 2.883,
+          "p95_ms": 6.011,
+          "p99_ms": 8.506,
+          "max_ms": 10.413
+        },
+        "lookup_embedding": {
+          "n": 100,
+          "p50_ms": 0.008,
+          "p95_ms": 0.033,
+          "p99_ms": 0.106,
+          "max_ms": 0.146
+        },
+        "repo_read": {
+          "n": 100,
+          "p50_ms": 0.115,
+          "p95_ms": 0.892,
+          "p99_ms": 1.628,
+          "max_ms": 2.327
+        },
+        "request_rules": {
+          "n": 100,
+          "p50_ms": 0.003,
+          "p95_ms": 0.011,
+          "p99_ms": 0.031,
+          "max_ms": 0.098
+        },
+        "response_rules": {
+          "n": 100,
+          "p50_ms": 0,
+          "p95_ms": 0.002,
+          "p99_ms": 0.002,
+          "max_ms": 0.004
+        },
+        "vector_search": {
+          "n": 100,
+          "p50_ms": 1.758,
+          "p95_ms": 4.138,
+          "p99_ms": 4.798,
+          "max_ms": 5.693
+        }
+      },
+      "candidate_hit_budget": {
+        "proposal": true,
+        "passed": true
+      }
+    },
+    "hit_baseline": {
+      "n": 100,
+      "failed": 0,
+      "hits": 0,
+      "actual_max_concurrency": 4,
+      "latency": {
+        "n": 100,
+        "p50_ms": 200.709,
+        "p95_ms": 239.003,
+        "p99_ms": 252.272,
+        "max_ms": 281.411
+      },
+      "application": {
+        "n": 100,
+        "p50_ms": 3.8799999999999955,
+        "p95_ms": 6.475999999999999,
+        "p99_ms": 7.8870000000000005,
+        "max_ms": 8.484999999999985
+      },
+      "send_lag": {
+        "n": 100,
+        "p50_ms": 2422.216,
+        "p95_ms": 4687.594,
+        "p99_ms": 4920.392,
+        "max_ms": 4931.007
+      },
+      "actual_rps": 19.60402227487427,
+      "stages": {
+        "admission": {
+          "n": 100,
+          "p50_ms": 0.201,
+          "p95_ms": 0.399,
+          "p99_ms": 0.918,
+          "max_ms": 1.043
+        },
+        "circuit_result": {
+          "n": 100,
+          "p50_ms": 0.001,
+          "p95_ms": 0.002,
+          "p99_ms": 0.003,
+          "max_ms": 0.005
+        },
+        "health_model_sync": {
+          "n": 100,
+          "p50_ms": 0.366,
+          "p95_ms": 0.646,
+          "p99_ms": 0.733,
+          "max_ms": 0.907
+        },
+        "health_provider_sync": {
+          "n": 100,
+          "p50_ms": 0.573,
+          "p95_ms": 1.009,
+          "p99_ms": 1.712,
+          "max_ms": 4.484
+        },
+        "http_handler": {
+          "n": 100,
+          "p50_ms": 200.111,
+          "p95_ms": 238.742,
+          "p99_ms": 251.932,
+          "max_ms": 281.043
+        },
+        "net_upstream/connect_done": {
+          "n": 4,
+          "p50_ms": 0.167,
+          "p95_ms": 0.228,
+          "p99_ms": 0.228,
+          "max_ms": 0.228
+        },
+        "net_upstream/connect_start": {
+          "n": 4,
+          "p50_ms": 0.038,
+          "p95_ms": 0.056,
+          "p99_ms": 0.056,
+          "max_ms": 0.056
+        },
+        "net_upstream/first_byte": {
+          "n": 100,
+          "p50_ms": 195.034,
+          "p95_ms": 235.618,
+          "p99_ms": 247.898,
+          "max_ms": 276.168
+        },
+        "net_upstream/get_connection": {
+          "n": 100,
+          "p50_ms": 0.009,
+          "p95_ms": 0.021,
+          "p99_ms": 0.046,
+          "max_ms": 0.102
+        },
+        "net_upstream/got_connection_new": {
+          "n": 4,
+          "p50_ms": 0.203,
+          "p95_ms": 0.248,
+          "p99_ms": 0.248,
+          "max_ms": 0.248
+        },
+        "net_upstream/got_connection_reused": {
+          "n": 96,
+          "p50_ms": 0.014,
+          "p95_ms": 0.033,
+          "p99_ms": 0.11,
+          "max_ms": 0.11
+        },
+        "net_upstream/request_written": {
+          "n": 100,
+          "p50_ms": 0.03,
+          "p95_ms": 0.088,
+          "p99_ms": 0.256,
+          "max_ms": 0.267
+        },
+        "provider_complete": {
+          "n": 100,
+          "p50_ms": 195.275,
+          "p95_ms": 235.836,
+          "p99_ms": 248.118,
+          "max_ms": 276.344
+        },
+        "request_rules": {
+          "n": 100,
+          "p50_ms": 0.004,
+          "p95_ms": 0.011,
+          "p99_ms": 0.02,
+          "max_ms": 0.262
+        },
+        "response_rules": {
+          "n": 100,
+          "p50_ms": 0.001,
+          "p95_ms": 0.003,
+          "p99_ms": 0.003,
+          "max_ms": 0.004
+        },
+        "routing": {
+          "n": 100,
+          "p50_ms": 0.579,
+          "p95_ms": 1.229,
+          "p99_ms": 1.55,
+          "max_ms": 4.195
+        },
+        "settlement": {
+          "n": 100,
+          "p50_ms": 0.643,
+          "p95_ms": 1.208,
+          "p99_ms": 1.677,
+          "max_ms": 2.049
+        },
+        "upstream_headers": {
+          "n": 100,
+          "p50_ms": 195.108,
+          "p95_ms": 235.669,
+          "p99_ms": 247.946,
+          "max_ms": 276.21
+        },
+        "upstream_http": {
+          "n": 100,
+          "p50_ms": 195.185,
+          "p95_ms": 235.734,
+          "p99_ms": 248.007,
+          "max_ms": 276.269
+        }
+      }
+    },
+    "bypass_c4": {
+      "n": 100,
+      "failed": 0,
+      "hits": 0,
+      "actual_max_concurrency": 4,
+      "latency": {
+        "n": 100,
+        "p50_ms": 272.627,
+        "p95_ms": 346.057,
+        "p99_ms": 450.21,
+        "max_ms": 483.528
+      },
+      "application": {
+        "n": 100,
+        "p50_ms": 3.348000000000013,
+        "p95_ms": 5.667000000000002,
+        "p99_ms": 7.752999999999986,
+        "max_ms": 8.357000000000028
+      },
+      "send_lag": {
+        "n": 100,
+        "p50_ms": 3303.15,
+        "p95_ms": 6382.768,
+        "p99_ms": 6660.234,
+        "max_ms": 6760.778
+      },
+      "actual_rps": 14.469723694838157,
+      "stages": {
+        "admission": {
+          "n": 100,
+          "p50_ms": 0.19,
+          "p95_ms": 0.352,
+          "p99_ms": 0.446,
+          "max_ms": 0.804
+        },
+        "circuit_result": {
+          "n": 100,
+          "p50_ms": 0.001,
+          "p95_ms": 0.002,
+          "p99_ms": 0.004,
+          "max_ms": 0.005
+        },
+        "health_model_sync": {
+          "n": 100,
+          "p50_ms": 0.388,
+          "p95_ms": 0.805,
+          "p99_ms": 1.073,
+          "max_ms": 1.429
+        },
+        "health_provider_sync": {
+          "n": 100,
+          "p50_ms": 0.604,
+          "p95_ms": 0.95,
+          "p99_ms": 1.659,
+          "max_ms": 3.311
+        },
+        "http_handler": {
+          "n": 100,
+          "p50_ms": 272.275,
+          "p95_ms": 345.861,
+          "p99_ms": 450.06,
+          "max_ms": 483.328
+        },
+        "net_upstream/connect_done": {
+          "n": 4,
+          "p50_ms": 0.219,
+          "p95_ms": 0.63,
+          "p99_ms": 0.63,
+          "max_ms": 0.63
+        },
+        "net_upstream/connect_start": {
+          "n": 4,
+          "p50_ms": 0.059,
+          "p95_ms": 0.081,
+          "p99_ms": 0.081,
+          "max_ms": 0.081
+        },
+        "net_upstream/first_byte": {
+          "n": 100,
+          "p50_ms": 268.492,
+          "p95_ms": 341.538,
+          "p99_ms": 446.984,
+          "max_ms": 478.83
+        },
+        "net_upstream/get_connection": {
+          "n": 100,
+          "p50_ms": 0.01,
+          "p95_ms": 0.027,
+          "p99_ms": 0.038,
+          "max_ms": 0.109
+        },
+        "net_upstream/got_connection_new": {
+          "n": 4,
+          "p50_ms": 0.235,
+          "p95_ms": 0.64,
+          "p99_ms": 0.64,
+          "max_ms": 0.64
+        },
+        "net_upstream/got_connection_reused": {
+          "n": 96,
+          "p50_ms": 0.016,
+          "p95_ms": 0.037,
+          "p99_ms": 0.114,
+          "max_ms": 0.114
+        },
+        "net_upstream/request_written": {
+          "n": 100,
+          "p50_ms": 0.034,
+          "p95_ms": 0.128,
+          "p99_ms": 0.294,
+          "max_ms": 0.706
+        },
+        "provider_complete": {
+          "n": 100,
+          "p50_ms": 268.736,
+          "p95_ms": 341.757,
+          "p99_ms": 447.178,
+          "max_ms": 479.1
+        },
+        "request_rules": {
+          "n": 100,
+          "p50_ms": 0.004,
+          "p95_ms": 0.013,
+          "p99_ms": 0.02,
+          "max_ms": 0.039
+        },
+        "response_rules": {
+          "n": 100,
+          "p50_ms": 0.001,
+          "p95_ms": 0.003,
+          "p99_ms": 0.005,
+          "max_ms": 0.025
+        },
+        "routing": {
+          "n": 100,
+          "p50_ms": 0.629,
+          "p95_ms": 1.113,
+          "p99_ms": 1.244,
+          "max_ms": 1.415
+        },
+        "settlement": {
+          "n": 100,
+          "p50_ms": 0.24,
+          "p95_ms": 0.371,
+          "p99_ms": 0.497,
+          "max_ms": 0.773
+        },
+        "upstream_headers": {
+          "n": 100,
+          "p50_ms": 268.559,
+          "p95_ms": 341.601,
+          "p99_ms": 447.051,
+          "max_ms": 478.911
+        },
+        "upstream_http": {
+          "n": 100,
+          "p50_ms": 268.613,
+          "p95_ms": 341.664,
+          "p99_ms": 447.087,
+          "max_ms": 478.979
+        }
+      }
+    },
+    "bypass_c8": {
+      "n": 100,
+      "failed": 0,
+      "hits": 0,
+      "actual_max_concurrency": 8,
+      "latency": {
+        "n": 100,
+        "p50_ms": 521.352,
+        "p95_ms": 616.158,
+        "p99_ms": 668.465,
+        "max_ms": 714.87
+      },
+      "application": {
+        "n": 100,
+        "p50_ms": 3.340000000000032,
+        "p95_ms": 8.845999999999975,
+        "p99_ms": 11.162000000000035,
+        "max_ms": 11.58499999999998
+      },
+      "send_lag": {
+        "n": 100,
+        "p50_ms": 2830.626,
+        "p95_ms": 5755.604,
+        "p99_ms": 6016.232,
+        "max_ms": 6051.716
+      },
+      "actual_rps": 15.35744687974305,
+      "stages": {
+        "admission": {
+          "n": 100,
+          "p50_ms": 0.209,
+          "p95_ms": 0.421,
+          "p99_ms": 0.462,
+          "max_ms": 0.731
+        },
+        "circuit_result": {
+          "n": 100,
+          "p50_ms": 0.001,
+          "p95_ms": 0.002,
+          "p99_ms": 0.005,
+          "max_ms": 0.015
+        },
+        "health_model_sync": {
+          "n": 100,
+          "p50_ms": 0.369,
+          "p95_ms": 0.595,
+          "p99_ms": 0.999,
+          "max_ms": 4.318
+        },
+        "health_provider_sync": {
+          "n": 100,
+          "p50_ms": 0.563,
+          "p95_ms": 0.89,
+          "p99_ms": 1.141,
+          "max_ms": 1.146
+        },
+        "http_handler": {
+          "n": 100,
+          "p50_ms": 521.087,
+          "p95_ms": 615.955,
+          "p99_ms": 667.917,
+          "max_ms": 714.503
+        },
+        "net_upstream/connect_done": {
+          "n": 7,
+          "p50_ms": 0.21,
+          "p95_ms": 0.48,
+          "p99_ms": 0.48,
+          "max_ms": 0.48
+        },
+        "net_upstream/connect_start": {
+          "n": 7,
+          "p50_ms": 0.036,
+          "p95_ms": 0.103,
+          "p99_ms": 0.103,
+          "max_ms": 0.103
+        },
+        "net_upstream/first_byte": {
+          "n": 100,
+          "p50_ms": 517.264,
+          "p95_ms": 612.749,
+          "p99_ms": 664.393,
+          "max_ms": 711.283
+        },
+        "net_upstream/get_connection": {
+          "n": 100,
+          "p50_ms": 0.01,
+          "p95_ms": 0.02,
+          "p99_ms": 0.113,
+          "max_ms": 0.121
+        },
+        "net_upstream/got_connection_new": {
+          "n": 7,
+          "p50_ms": 0.224,
+          "p95_ms": 0.504,
+          "p99_ms": 0.504,
+          "max_ms": 0.504
+        },
+        "net_upstream/got_connection_reused": {
+          "n": 93,
+          "p50_ms": 0.016,
+          "p95_ms": 0.029,
+          "p99_ms": 0.153,
+          "max_ms": 0.153
+        },
+        "net_upstream/request_written": {
+          "n": 100,
+          "p50_ms": 0.037,
+          "p95_ms": 0.227,
+          "p99_ms": 0.528,
+          "max_ms": 0.6
+        },
+        "provider_complete": {
+          "n": 100,
+          "p50_ms": 517.531,
+          "p95_ms": 612.975,
+          "p99_ms": 664.612,
+          "max_ms": 711.459
+        },
+        "request_rules": {
+          "n": 100,
+          "p50_ms": 0.004,
+          "p95_ms": 0.011,
+          "p99_ms": 0.02,
+          "max_ms": 0.047
+        },
+        "response_rules": {
+          "n": 100,
+          "p50_ms": 0.002,
+          "p95_ms": 0.003,
+          "p99_ms": 0.003,
+          "max_ms": 0.004
+        },
+        "routing": {
+          "n": 100,
+          "p50_ms": 0.59,
+          "p95_ms": 1.781,
+          "p99_ms": 2.847,
+          "max_ms": 3.594
+        },
+        "settlement": {
+          "n": 100,
+          "p50_ms": 0.231,
+          "p95_ms": 0.375,
+          "p99_ms": 0.423,
+          "max_ms": 0.479
+        },
+        "upstream_headers": {
+          "n": 100,
+          "p50_ms": 517.306,
+          "p95_ms": 612.859,
+          "p99_ms": 664.458,
+          "max_ms": 711.334
+        },
+        "upstream_http": {
+          "n": 100,
+          "p50_ms": 517.399,
+          "p95_ms": 612.897,
+          "p99_ms": 664.508,
+          "max_ms": 711.377
+        }
+      }
+    },
+    "miss_c8": {
+      "n": 100,
+      "failed": 0,
+      "hits": 0,
+      "actual_max_concurrency": 8,
+      "latency": {
+        "n": 100,
+        "p50_ms": 482.688,
+        "p95_ms": 564.153,
+        "p99_ms": 705.575,
+        "max_ms": 715.398
+      },
+      "application": {
+        "n": 100,
+        "p50_ms": 3.6580000000000155,
+        "p95_ms": 10.71799999999999,
+        "p99_ms": 11.940000000000055,
+        "max_ms": 13.019999999999982
+      },
+      "send_lag": {
+        "n": 100,
+        "p50_ms": 2632.325,
+        "p95_ms": 5438.933,
+        "p99_ms": 5698.402,
+        "max_ms": 5706.184
+      },
+      "actual_rps": 16.141763423086918,
+      "stages": {
+        "admission": {
+          "n": 100,
+          "p50_ms": 0.231,
+          "p95_ms": 0.755,
+          "p99_ms": 3.725,
+          "max_ms": 3.86
+        },
+        "cache_read": {
+          "n": 100,
+          "p50_ms": 25.682,
+          "p95_ms": 58.381,
+          "p99_ms": 80.394,
+          "max_ms": 90.099
+        },
+        "circuit_result": {
+          "n": 100,
+          "p50_ms": 0.001,
+          "p95_ms": 0.002,
+          "p99_ms": 0.018,
+          "max_ms": 0.024
+        },
+        "embedding_headers": {
+          "n": 100,
+          "p50_ms": 24.704,
+          "p95_ms": 55.866,
+          "p99_ms": 78.024,
+          "max_ms": 88.358
+        },
+        "embedding_http": {
+          "n": 100,
+          "p50_ms": 24.836,
+          "p95_ms": 56.105,
+          "p99_ms": 78.183,
+          "max_ms": 88.501
+        },
+        "health_model_sync": {
+          "n": 100,
+          "p50_ms": 0.391,
+          "p95_ms": 1.374,
+          "p99_ms": 4.065,
+          "max_ms": 5.461
+        },
+        "health_provider_sync": {
+          "n": 100,
+          "p50_ms": 0.585,
+          "p95_ms": 1.079,
+          "p99_ms": 2.91,
+          "max_ms": 7.406
+        },
+        "http_handler": {
+          "n": 100,
+          "p50_ms": 481.769,
+          "p95_ms": 563.637,
+          "p99_ms": 705.234,
+          "max_ms": 714.872
+        },
+        "lookup_embedding": {
+          "n": 96,
+          "p50_ms": 25.063,
+          "p95_ms": 56.407,
+          "p99_ms": 88.731,
+          "max_ms": 88.731
+        },
+        "net_embedding/connect_done": {
+          "n": 5,
+          "p50_ms": 0.181,
+          "p95_ms": 0.888,
+          "p99_ms": 0.888,
+          "max_ms": 0.888
+        },
+        "net_embedding/connect_start": {
+          "n": 5,
+          "p50_ms": 0.052,
+          "p95_ms": 0.298,
+          "p99_ms": 0.298,
+          "max_ms": 0.298
+        },
+        "net_embedding/first_byte": {
+          "n": 100,
+          "p50_ms": 24.644,
+          "p95_ms": 55.798,
+          "p99_ms": 77.954,
+          "max_ms": 88.31
+        },
+        "net_embedding/get_connection": {
+          "n": 100,
+          "p50_ms": 0.023,
+          "p95_ms": 0.053,
+          "p99_ms": 0.17,
+          "max_ms": 0.397
+        },
+        "net_embedding/got_connection_new": {
+          "n": 5,
+          "p50_ms": 0.195,
+          "p95_ms": 1.089,
+          "p99_ms": 1.089,
+          "max_ms": 1.089
+        },
+        "net_embedding/got_connection_reused": {
+          "n": 95,
+          "p50_ms": 0.029,
+          "p95_ms": 0.061,
+          "p99_ms": 0.403,
+          "max_ms": 0.403
+        },
+        "net_embedding/request_written": {
+          "n": 100,
+          "p50_ms": 0.042,
+          "p95_ms": 0.21,
+          "p99_ms": 0.936,
+          "max_ms": 1.32
+        },
+        "net_upstream/connect_done": {
+          "n": 4,
+          "p50_ms": 0.208,
+          "p95_ms": 0.504,
+          "p99_ms": 0.504,
+          "max_ms": 0.504
+        },
+        "net_upstream/connect_start": {
+          "n": 4,
+          "p50_ms": 0.052,
+          "p95_ms": 0.075,
+          "p99_ms": 0.075,
+          "max_ms": 0.075
+        },
+        "net_upstream/first_byte": {
+          "n": 100,
+          "p50_ms": 442.178,
+          "p95_ms": 536.56,
+          "p99_ms": 680.929,
+          "max_ms": 686.342
+        },
+        "net_upstream/get_connection": {
+          "n": 100,
+          "p50_ms": 0.012,
+          "p95_ms": 0.027,
+          "p99_ms": 0.043,
+          "max_ms": 0.072
+        },
+        "net_upstream/got_connection_new": {
+          "n": 4,
+          "p50_ms": 0.216,
+          "p95_ms": 0.615,
+          "p99_ms": 0.615,
+          "max_ms": 0.615
+        },
+        "net_upstream/got_connection_reused": {
+          "n": 96,
+          "p50_ms": 0.019,
+          "p95_ms": 0.038,
+          "p99_ms": 0.081,
+          "max_ms": 0.081
+        },
+        "net_upstream/request_written": {
+          "n": 100,
+          "p50_ms": 0.038,
+          "p95_ms": 0.118,
+          "p99_ms": 0.298,
+          "max_ms": 0.656
+        },
+        "provider_complete": {
+          "n": 100,
+          "p50_ms": 442.447,
+          "p95_ms": 536.737,
+          "p99_ms": 681.084,
+          "max_ms": 686.576
+        },
+        "repo_activate": {
+          "n": 99,
+          "p50_ms": 0.207,
+          "p95_ms": 0.407,
+          "p99_ms": 1.115,
+          "max_ms": 1.115
+        },
+        "repo_write": {
+          "n": 100,
+          "p50_ms": 0.161,
+          "p95_ms": 0.307,
+          "p99_ms": 0.762,
+          "max_ms": 0.94
+        },
+        "request_rules": {
+          "n": 100,
+          "p50_ms": 0.004,
+          "p95_ms": 0.008,
+          "p99_ms": 0.025,
+          "max_ms": 0.297
+        },
+        "response_rules": {
+          "n": 100,
+          "p50_ms": 0.002,
+          "p95_ms": 0.004,
+          "p99_ms": 0.007,
+          "max_ms": 0.019
+        },
+        "routing": {
+          "n": 100,
+          "p50_ms": 0.704,
+          "p95_ms": 1.431,
+          "p99_ms": 3.492,
+          "max_ms": 7.192
+        },
+        "settlement": {
+          "n": 100,
+          "p50_ms": 0.247,
+          "p95_ms": 0.405,
+          "p99_ms": 1.411,
+          "max_ms": 2.786
+        },
+        "store_embedding": {
+          "n": 4,
+          "p50_ms": 25.45,
+          "p95_ms": 62.722,
+          "p99_ms": 62.722,
+          "max_ms": 62.722
+        },
+        "store_total": {
+          "n": 100,
+          "p50_ms": 4.451,
+          "p95_ms": 9.354,
+          "p99_ms": 43.478,
+          "max_ms": 68.908
+        },
+        "upstream_headers": {
+          "n": 100,
+          "p50_ms": 442.259,
+          "p95_ms": 536.608,
+          "p99_ms": 680.965,
+          "max_ms": 686.412
+        },
+        "upstream_http": {
+          "n": 100,
+          "p50_ms": 442.308,
+          "p95_ms": 536.646,
+          "p99_ms": 680.999,
+          "max_ms": 686.474
+        },
+        "vector_insert": {
+          "n": 99,
+          "p50_ms": 3.97,
+          "p95_ms": 8.055,
+          "p99_ms": 12.93,
+          "max_ms": 12.93
+        },
+        "vector_search": {
+          "n": 96,
+          "p50_ms": 1.625,
+          "p95_ms": 2.612,
+          "p99_ms": 4.257,
+          "max_ms": 4.257
+        },
+        "write_enqueue": {
+          "n": 100,
+          "p50_ms": 0.005,
+          "p95_ms": 0.025,
+          "p99_ms": 0.043,
+          "max_ms": 0.058
+        },
+        "write_queue_wait": {
+          "n": 100,
+          "p50_ms": 0.139,
+          "p95_ms": 0.262,
+          "p99_ms": 0.377,
+          "max_ms": 0.403
+        }
+      }
+    }
+  },
+  "holdouts": [
+    {
+      "embedding_model": "text-embedding-embedder_collection",
+      "failed": 0,
+      "false_hits": 0,
+      "input_prefix": "",
+      "main_model_fact_quality_checked": false,
+      "negative_count": 20,
+      "positive_count": 12,
+      "positive_hits": 0,
+      "threshold": "0.92",
+      "type": "independent_holdout",
+      "label": "holdout-collection-raw",
+      "recall": 0.0,
+      "observed_false_hit_rate": 0.0,
+      "zero_unsafe_hits": true,
+      "recall_70_percent_example_passed": false,
+      "production_approved": false,
+      "limits": "12 positive/20 negative independent questions; not a 1% population error guarantee"
+    },
+    {
+      "embedding_model": "text-embedding-nomic-embed-text-v1.5",
+      "failed": 0,
+      "false_hits": 0,
+      "input_prefix": "",
+      "main_model_fact_quality_checked": false,
+      "negative_count": 20,
+      "positive_count": 12,
+      "positive_hits": 0,
+      "threshold": "0.92",
+      "type": "independent_holdout",
+      "label": "holdout-nomic-raw",
+      "recall": 0.0,
+      "observed_false_hit_rate": 0.0,
+      "zero_unsafe_hits": true,
+      "recall_70_percent_example_passed": false,
+      "production_approved": false,
+      "limits": "12 positive/20 negative independent questions; not a 1% population error guarantee"
+    },
+    {
+      "embedding_model": "text-embedding-nomic-embed-text-v1.5",
+      "failed": 0,
+      "false_hits": 3,
+      "input_prefix": "search_query: ",
+      "main_model_fact_quality_checked": false,
+      "negative_count": 20,
+      "positive_count": 12,
+      "positive_hits": 4,
+      "threshold": "0.84",
+      "type": "independent_holdout",
+      "label": "holdout-nomic-prefix",
+      "recall": 0.3333333333333333,
+      "observed_false_hit_rate": 0.15,
+      "zero_unsafe_hits": false,
+      "recall_70_percent_example_passed": false,
+      "production_approved": false,
+      "limits": "12 positive/20 negative independent questions; not a 1% population error guarantee"
+    }
+  ],
+  "c8_standards": "capacity boundary report only; no approved saturation SLO",
+  "bootstrap": {
+    "method": "joint temporal-block bootstrap, six blocks, exploratory only",
+    "seed": 29,
+    "replicates": 2000,
+    "intervals": {
+      "on_ratio": {
+        "low": 1.0827976604123233,
+        "high": 1.1848837297753705
+      },
+      "memo_ratio": {
+        "low": 1.1076557794764883,
+        "high": 1.2384826557369486
+      },
+      "memo_minus_on_ms": {
+        "low": -3.8109999999999786,
+        "high": 14.117000000000019
+      }
+    }
+  }
+}

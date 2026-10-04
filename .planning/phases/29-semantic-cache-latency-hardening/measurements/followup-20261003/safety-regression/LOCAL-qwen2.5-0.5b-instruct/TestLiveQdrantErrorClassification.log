@@ -1,0 +1,21 @@
+2026/10/04 04:38:38 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+=== RUN   TestLiveQdrantErrorClassification
+2026/10/04 04:38:38 WARN Unable to compare versions err="unable to parse version, expected format: x.y[.z], found: "
+2026/10/04 04:38:38 WARN Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check. clientVersion=Unknown serverVersion=1.18.2
+2026/10/04 04:38:38 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+2026/10/04 04:38:38 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+2026/10/04 04:38:38 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+2026/10/04 04:38:38 WARN Unable to compare versions err="unable to parse version, expected format: x.y[.z], found: "
+2026/10/04 04:38:38 WARN Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check. clientVersion=Unknown serverVersion=1.18.2
+2026/10/04 04:38:38 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+2026/10/04 04:38:38 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+    live_qdrant_error_test.go:39: wrong_distance error=qdrant collection "wrong_distance_1791088718820751381" requires unnamed vectors dimension=3 distance=Cosine
+    live_qdrant_error_test.go:46: canceled error=failed to check if collection exists: CollectionExists() failed: wrong_distance_1791088718820751381: rpc error: code = Canceled desc = context canceled
+2026/10/04 04:38:38 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+2026/10/04 04:38:38 WARN Unable to compare versions err="unable to parse version, expected format: x.y[.z], found: "
+2026/10/04 04:38:38 WARN Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check. clientVersion=Unknown serverVersion=1.18.2
+2026/10/04 04:38:38 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+2026/10/04 04:38:38 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+    live_qdrant_error_test.go:56: unauthorized error=CollectionExists() failed: wrong_distance_1791088718820751381: rpc error: code = Unauthenticated desc = Invalid API key or JWT
+--- PASS: TestLiveQdrantErrorClassification (0.04s)
+PASS
