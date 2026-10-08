@@ -45,6 +45,16 @@ OPENCODE.jsonc
 __pycache__/
 *.pyc
 
+# Local planning measurements (keep reports, JSON summaries/manifests and replay scripts)
+/.planning/**/*.log
+/.planning/**/*.jsonl
+/.planning/**/*.trace
+/.planning/**/*.pprof
+/.planning/**/*.cpuprofile
+/.planning/**/*.memprofile
+/.planning/**/*.blockprofile
+/.planning/**/*.mutexprofile
+
 # Local Test Configs
 tests/config.json
 /veloxmesh-test.db
