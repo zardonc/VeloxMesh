@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/google/uuid"
+
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/http/middleware"
 	"veloxmesh/internal/llm"
@@ -14,32 +16,36 @@ import (
 
 const anonymousAPIKeyID = "anonymous"
 
-func (s *Service) settleCompleted(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, usage *llm.Usage, latency time.Duration) {
-	s.settleTerminal(ctx, req, decision, classifyTerminal(nil, usage), latency)
+func (s *Service) settleCompleted(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, usage *llm.Usage, latency time.Duration) *controlstate.UsageRecord {
+	return s.settleTerminal(ctx, req, decision, classifyTerminal(nil, usage), latency)
 }
 
-func (s *Service) settleTerminal(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, outcome terminalOutcome, latency time.Duration) {
+func (s *Service) settleTerminal(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, outcome terminalOutcome, latency time.Duration) *controlstate.UsageRecord {
 	defer observability.Stage(ctx, "settlement")()
-	if s.repo == nil || outcome.kind != terminalCompleted {
-		return
+	if outcome.kind != terminalCompleted {
+		return nil
 	}
 
 	record := usageRecord(ctx, req, decision, terminalUsage(outcome), latency)
+	if s.repo == nil {
+		return record
+	}
 	if !outcome.hasUsage {
 		s.logMissingUsage(record, outcome.kind)
-		return
+		return record
 	}
 
 	if err := s.repo.Settle(context.Background(), record); err != nil {
 		logSettlementFailure("settle", outcome.kind, record, err)
-		return
+		return record
 	}
 	s.aggregateSettledCost(record, outcome.kind)
+	return record
 }
 
 func usageRecord(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, usage *llm.Usage, latency time.Duration) *controlstate.UsageRecord {
 	record := &controlstate.UsageRecord{
-		ID:         req.RequestID,
+		ID:         uuid.NewString(),
 		ProviderID: decision.ProviderID,
 		Model:      settlementModel(req, decision),
 		DurationMs: latency.Milliseconds(),

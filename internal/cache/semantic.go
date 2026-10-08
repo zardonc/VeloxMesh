@@ -281,6 +281,9 @@ func (s *SemanticCacheService) StoreWrite(ctx context.Context, write CacheWrite)
 	if !s.config.Enabled || s.repo == nil {
 		return nil
 	}
+	if !validCachedChoices(write.Response) {
+		return s.fault("store", "invalid_entry", nil)
+	}
 	storeStarted := time.Now()
 	defer func() { measureOperation("store_total", storeStarted, storeErr) }()
 	if isExactScope(write.Scope) {
@@ -393,7 +396,8 @@ func validCachedChoices(response string) bool {
 		return false
 	}
 	for _, choice := range choices {
-		if choice.Message.Role != llm.RoleAssistant {
+		if choice.Message.Role != llm.RoleAssistant || choice.Message.Content == "" ||
+			len(choice.Message.ToolCalls) != 0 || choice.Message.ToolCallID != "" || choice.FinishReason == "tool_calls" {
 			return false
 		}
 	}

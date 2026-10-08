@@ -28,19 +28,11 @@ func TestLiveSearchNetworkDeadline(t *testing.T) {
 
 func liveNetworkDeadline(t *testing.T, kind string) {
 	env := liveEnvironment(t)
-	var proxy *liveNetworkProxy
-	if kind == "embedding" {
-		upstream, err := url.Parse(os.Getenv("PHASE29_EMBEDDING_BASE_URL"))
-		if err != nil || upstream.Host == "" {
-			t.Fatal("explicit real embedding endpoint required")
-		}
-		proxy = newLiveNetworkProxy(t, upstream.Host)
-		t.Setenv("PHASE29_EMBEDDING_BASE_URL", "http://"+proxy.listener.Addr().String()+upstream.Path)
-	} else {
-		proxy = newLiveNetworkProxy(t, "127.0.0.1:6334")
-		t.Setenv("PHASE29_QDRANT_ADDR", proxy.listener.Addr().String())
-	}
+	proxy := liveDeadlineProxy(t, kind)
 	chain := newLiveChainWithEnvironment(t, env)
+	// Enable the real scope before delaying its lookup; fresh scopes skip I/O.
+	liveDecodeChat(t, liveHTTP(t, chain, liveFAQPayload(chain.model, "What is a database transaction?")))
+	liveWaitStoreCount(t, chain.timing, 1)
 	proxy.delay.Store(int64(liveInjectedNetworkDelay))
 	request := liveFAQPayload(chain.model, "How long is the trial for plan 101?")
 	response := liveHTTP(t, chain, request)
@@ -49,13 +41,19 @@ func liveNetworkDeadline(t *testing.T, kind string) {
 		t.Fatal("network fault incorrectly hit")
 	}
 	first := liveDecodeChat(t, response)
-	liveWaitOutcomes(t, chain.timing, "store/stored")
-	counts := liveStageCounts(chain.timing, id)
-	expectedStoreEmbeddings := 0
-	if kind == "embedding" {
-		expectedStoreEmbeddings = 1
+	if kind == "search" {
+		liveWaitStoreCount(t, chain.timing, 2)
 	}
-	liveAssertDeadlineStages(t, counts, expectedStoreEmbeddings)
+	counts := liveStageCounts(chain.timing, id)
+	liveAssertDeadlineStages(t, counts, 0)
+	settlements := 2
+	if kind == "embedding" {
+		if counts["write_enqueue"] != 0 {
+			t.Fatalf("failed embedding lookup enqueued optional backfill: %v", counts)
+		}
+		first = liveRecoverEmbeddingDeadline(t, chain, request)
+		settlements++
+	}
 	if liveOutcomeCount(chain.timing, "lookup/timeout") != 1 {
 		t.Fatal("read deadline did not report one timeout")
 	}
@@ -67,8 +65,35 @@ func liveNetworkDeadline(t *testing.T, kind string) {
 	if first.Choices[0].Message.Content != second.Choices[0].Message.Content {
 		t.Fatal("recovery changed cached answer")
 	}
-	liveAssertSettlement(t, chain, 1)
-	shipLogJSON(t, map[string]any{"type": "network_fault", "kind": kind, "counts": counts, "delay_ms": liveInjectedNetworkDelay.Milliseconds(), "restored_hit": true})
+	liveAssertSettlement(t, chain, settlements)
+	shipLogJSON(t, map[string]any{"type": "network_fault", "kind": kind, "counts": counts, "delay_ms": liveInjectedNetworkDelay.Milliseconds(), "restored_hit": true, "settlements": settlements})
+}
+
+func liveDeadlineProxy(t *testing.T, kind string) *liveNetworkProxy {
+	t.Helper()
+	if kind == "search" {
+		proxy := newLiveNetworkProxy(t, "127.0.0.1:6334")
+		t.Setenv("PHASE29_QDRANT_ADDR", proxy.listener.Addr().String())
+		return proxy
+	}
+	upstream, err := url.Parse(os.Getenv("PHASE29_EMBEDDING_BASE_URL"))
+	if err != nil || upstream.Host == "" {
+		t.Fatal("explicit real embedding endpoint required")
+	}
+	proxy := newLiveNetworkProxy(t, upstream.Host)
+	t.Setenv("PHASE29_EMBEDDING_BASE_URL", "http://"+proxy.listener.Addr().String()+upstream.Path)
+	return proxy
+}
+
+func liveRecoverEmbeddingDeadline(t *testing.T, chain liveChain, request llm.ChatCompletionRequest) llm.ChatCompletionResponse {
+	t.Helper()
+	response := liveHTTP(t, chain, request)
+	if response.Header.Get("X-Cache-Hit") == "true" {
+		t.Fatal("failed lookup must not have cached its fallback response")
+	}
+	result := liveDecodeChat(t, response)
+	liveWaitStoreCount(t, chain.timing, 2)
+	return result
 }
 
 func liveAssertDeadlineStages(t *testing.T, counts map[string]int, expected int) {

@@ -48,7 +48,8 @@ func TestLiveCachePendingVisibility(t *testing.T) {
 			return
 		}
 		var enabled int
-		err := chain.repo.DBForTest().QueryRow("SELECT enabled FROM semantic_cache_entries WHERE id = ?", stage.ID).Scan(&enabled)
+		// This fixture writes one seed; trace IDs are not storage primary keys.
+		err := chain.repo.DBForTest().QueryRow("SELECT CASE WHEN COUNT(*) = 1 THEN MIN(enabled) ELSE -1 END FROM semantic_cache_entries").Scan(&enabled)
 		if err == nil {
 			visibility.Store(int64(enabled))
 		}

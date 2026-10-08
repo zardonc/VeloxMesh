@@ -146,7 +146,11 @@ func writeChatCompletionResponse(w http.ResponseWriter, requestID string, respon
 func decodeChatMessages(proxyMessages []chatProxyMessage) ([]llm.Message, *errors.GatewayError) {
 	messages := make([]llm.Message, 0, len(proxyMessages))
 	for _, proxyMessage := range proxyMessages {
-		content, multiContent, err := decodeChatContent(proxyMessage.Content)
+		rawContent := proxyMessage.Content
+		if proxyMessage.Role == llm.RoleAssistant && len(proxyMessage.ToolCalls) > 0 && bytes.Equal(bytes.TrimSpace(rawContent), []byte("null")) {
+			rawContent = nil
+		}
+		content, multiContent, err := decodeChatContent(rawContent)
 		if err != nil {
 			return nil, err
 		}

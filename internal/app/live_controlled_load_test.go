@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -28,6 +29,15 @@ type controlledProfile struct{ mode, capacity, reuseMode string }
 
 func configureControlledProfile(t *testing.T, profile controlledProfile) {
 	t.Helper()
+	count := os.Getenv("PHASE29_COUNT")
+	if count == "" {
+		count = strconv.Itoa(liveLoadBlockSize)
+	}
+	value, err := strconv.Atoi(count)
+	if err != nil || value <= 0 || value%liveLoadBlockSize != 0 {
+		t.Fatal("controlled count must be a positive multiple of 100")
+	}
+	t.Setenv("PHASE29_COUNT", strconv.Itoa(value))
 	t.Setenv("PHASE29_MODE", profile.mode)
 	t.Setenv("PHASE29_MEMO_CAPACITY", profile.capacity)
 	if profile.reuseMode != "" {
@@ -60,8 +70,10 @@ func controlledLoadProfile(t *testing.T, profile controlledProfile) {
 		liveWaitStoreCount(t, recorder, 1)
 	}
 	time.Sleep(controlledQuietPeriod)
-	shipLogJSON(t, map[string]any{"type": "effective_cache_profile", "memo_capacity": profile.capacity,
-		"memo_ttl": os.Getenv("PHASE29_MEMO_TTL"), "reuse_mode": os.Getenv("PHASE29_REUSE_MODE"), "seed_persisted": profile.mode == "on", "quiet_ms": controlledQuietPeriod.Milliseconds()})
+	actual := application.Config.Cache
+	shipLogJSON(t, map[string]any{"type": "effective_cache_profile", "memo_capacity": actual.EmbeddingMemoCapacity,
+		"memo_ttl": actual.EmbeddingMemoTTL, "reuse_mode": actual.UseCases[0].ReuseMode, "enabled": actual.Enabled,
+		"threshold": actual.Threshold, "seed_persisted": profile.mode == "on", "quiet_ms": controlledQuietPeriod.Milliseconds()})
 	shipLogJSON(t, map[string]any{"type": "measurement_start", "utc": time.Now().UTC().Format(time.RFC3339Nano)})
 	options.origin = time.Now()
 	failures := shipScheduledLoad(t, application, options)

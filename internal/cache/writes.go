@@ -10,9 +10,17 @@ import (
 
 type CacheWrite struct {
 	ID, Scope, Model, Text, Response string
+	TraceID                          string
 	UsageID                          *string
 	Vector                           []float32
 	queuedAt                         time.Time
+}
+
+func (w CacheWrite) traceID() string {
+	if w.TraceID != "" {
+		return w.TraceID
+	}
+	return w.ID
 }
 
 func (s *SemanticCacheService) startWorkers() {
@@ -25,7 +33,7 @@ func (s *SemanticCacheService) startWorkers() {
 }
 
 func (s *SemanticCacheService) Enqueue(write CacheWrite) bool {
-	defer observability.Stage(observability.WithTimingID(context.Background(), write.ID), "write_enqueue")()
+	defer observability.Stage(observability.WithTimingID(context.Background(), write.traceID()), "write_enqueue")()
 	write.queuedAt = time.Now()
 	if !s.config.Enabled {
 		return false
@@ -81,8 +89,8 @@ func (s *SemanticCacheService) processWrite(write CacheWrite) {
 	}
 	ctx, cancel := context.WithTimeout(s.writeCtx, s.config.WriteTimeout)
 	defer cancel()
-	ctx = observability.WithTimingID(ctx, write.ID)
-	observeQueueWait(write.ID, write.queuedAt)
+	ctx = observability.WithTimingID(ctx, write.traceID())
+	observeQueueWait(write.traceID(), write.queuedAt)
 	err := s.StoreWrite(ctx, write)
 	if ctx.Err() == context.Canceled {
 		recordCacheOutcome("store", "shutdown_cancelled")

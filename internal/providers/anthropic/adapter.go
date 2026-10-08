@@ -73,7 +73,7 @@ func (a *Adapter) Capabilities() providers.CapabilitySet {
 		InputModalities:     []providers.Modality{providers.ModalityText},
 		OutputModalities:    []providers.Modality{providers.ModalityText},
 		Streaming:           true, ToolCalling: true,
-		ToolProtocol: providers.ToolProtocolCapability{Definitions: true, ChoiceModes: map[providers.ToolChoiceCapabilityMode]bool{
+		ToolProtocol: providers.ToolProtocolCapability{Definitions: true, AssistantToolCalls: true, ToolResults: true, StreamingDeltas: true, ChoiceModes: map[providers.ToolChoiceCapabilityMode]bool{
 			providers.ToolChoiceCapabilityOmitted: true, providers.ToolChoiceCapabilityAuto: true,
 			providers.ToolChoiceCapabilityNone: true, providers.ToolChoiceCapabilityRequired: true,
 			providers.ToolChoiceCapabilityNamed: true,
@@ -288,30 +288,42 @@ func (a *Adapter) Stream(ctx context.Context, req *llm.LLMRequest) (<-chan llm.S
 }
 func (a *Adapter) runStream(ctx context.Context, run streamRun) {
 	defer close(run.events)
+	err := a.consumeStream(ctx, run)
+	if closeErr := run.stream.Close(); closeErr != nil {
+		err = errors.Join(err, providerBadResponse(), closeErr)
+	}
+	if ctx.Err() != nil {
+		return
+	}
+	if err != nil {
+		a.sendStreamEvent(ctx, run.events, llm.StreamEvent{Error: err, Provider: a.id, Model: run.model})
+		return
+	}
+	a.sendStreamEvent(ctx, run.events, llm.StreamEvent{Done: true, Provider: a.id, Model: run.model})
+}
+func (a *Adapter) consumeStream(ctx context.Context, run streamRun) error {
 	state := newStreamState(a.generateToolCallID)
 	for run.stream.Next() {
 		next, output, err := state.apply(run.stream.Current().RawJSON())
 		if err != nil {
-			a.sendStreamEvent(ctx, run.events, streamError(a.id, run.model))
-			return
+			return err
 		}
 		state = next
 		for _, event := range output {
 			event.Provider = a.id
 			event.Model = run.model
 			if !a.sendStreamEvent(ctx, run.events, event) {
-				return
+				return ctx.Err()
 			}
 		}
 	}
-	if ctx.Err() != nil {
-		return
+	if err := run.stream.Err(); err != nil {
+		return a.mapError(err)
 	}
-	if run.stream.Err() != nil || !state.isComplete() {
-		a.sendStreamEvent(ctx, run.events, streamError(a.id, run.model))
-		return
+	if !state.isComplete() {
+		return providerBadResponse()
 	}
-	a.sendStreamEvent(ctx, run.events, llm.StreamEvent{Done: true, Provider: a.id, Model: run.model})
+	return nil
 }
 func (a *Adapter) sendStreamEvent(ctx context.Context, events chan<- llm.StreamEvent, event llm.StreamEvent) bool {
 	select {
@@ -344,6 +356,10 @@ func (a *Adapter) mapError(err error) error {
 		default:
 			return gatewayErr.NewGatewayError(gatewayErr.ProviderError, "Anthropic API error", http.StatusBadGateway)
 		}
+	}
+	var syntaxError *json.SyntaxError
+	if errors.As(err, &syntaxError) {
+		return providerBadResponse()
 	}
 	if errors.Is(err, context.DeadlineExceeded) || os.IsTimeout(err) {
 		return gatewayErr.NewGatewayError(gatewayErr.ProviderTimeout, "Provider request timed out", http.StatusGatewayTimeout)

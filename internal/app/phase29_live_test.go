@@ -338,6 +338,7 @@ type liveRequestOptions struct {
 	finish            func()
 	direct            bool
 	models            []string
+	onSamples         func([]shipSample)
 }
 
 func TestPhase29LiveMeasure(t *testing.T) {

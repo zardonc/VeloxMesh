@@ -24,6 +24,7 @@ import (
 )
 
 const liveLowHitEvery = 21
+const liveLoadBlockSize = 100
 const liveWarmupIndex = 999
 const liveLoadScheduleLimit = 45 * time.Second
 
@@ -194,6 +195,9 @@ func shipScheduledLoad(t *testing.T, application *App, options liveRequestOption
 	}
 	shipLogJSON(t, map[string]any{"type": "metadata", "model": os.Getenv("PHASE29_MODEL"), "mode": os.Getenv("PHASE29_MODE"), "count": count,
 		"interval_ms": interval.Milliseconds(), "elapsed_ms": float64(foreground.Microseconds()) / 1000, "max_concurrency": concurrency, "failed": failures})
+	if options.onSamples != nil {
+		options.onSamples(samples)
+	}
 	return failures
 }
 
@@ -229,7 +233,8 @@ func (task liveScheduledRequest) execute() {
 	}
 	request.concurrent = task.active.Add(1)
 	defer task.active.Add(-1)
-	if request.hitEvery > 0 && task.index%request.hitEvery == 0 {
+	slot := (task.index-1)%liveLoadBlockSize + 1
+	if request.hitEvery > 0 && slot%request.hitEvery == 0 {
 		request.index = task.index - request.hitEvery + 1
 	}
 	task.samples[task.index-1] = shipRequest(request)

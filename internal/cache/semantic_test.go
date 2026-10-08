@@ -13,6 +13,8 @@ import (
 	"veloxmesh/internal/storage"
 )
 
+const validTestAnswer = `[{"message":{"role":"assistant","content":"answer"},"finish_reason":"stop"}]`
+
 type mockEmbedAdapter struct {
 	embeddings map[string][]float32
 	models     []string
@@ -170,7 +172,7 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 	}, repo, nil, adapter)
 
 	ctx := context.Background()
-	_ = svc.Store(ctx, "id-1", "scope-1", "gpt-4", "test", `{}`, nil)
+	_ = svc.Store(ctx, "id-1", "scope-1", "gpt-4", "test", validTestAnswer, nil)
 
 	// Miss: different scope
 	e, _ := svc.Lookup(ctx, "scope-2", "gpt-4", "test")
@@ -198,13 +200,13 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 		Enabled: true, Threshold: 0.8, MaxCandidates: 10, TTL: -time.Hour,
 		EmbeddingModel: "mock-model", VectorDimension: 2,
 	}, repo, nil, adapter)
-	_ = svcExp.Store(ctx, "id-exp", "scope-1", "gpt-4", "test", `{}`, nil)
+	_ = svcExp.Store(ctx, "id-exp", "scope-1", "gpt-4", "test", validTestAnswer, nil)
 	e, _ = svcExp.Lookup(ctx, "scope-1", "gpt-4", "test")
 	// the first store might be found if we don't clear the repo, but the ID-exp will be expired
 	// wait, since list candidates filters by expiration, id-exp will be skipped. id-1 will hit.
 	// let's clear repo
 	repo.entries = nil
-	_ = svcExp.Store(ctx, "id-exp", "scope-1", "gpt-4", "test", `{}`, nil)
+	_ = svcExp.Store(ctx, "id-exp", "scope-1", "gpt-4", "test", validTestAnswer, nil)
 	e, _ = svcExp.Lookup(ctx, "scope-1", "gpt-4", "test")
 	if e != nil {
 		t.Errorf("Expected miss for expired entry")
@@ -220,7 +222,7 @@ func TestSemanticCacheService_NilEmbeddingResponseIsMiss(t *testing.T) {
 	if err == nil || entry != nil {
 		t.Fatalf("expected nil-response lookup miss, entry=%#v err=%v", entry, err)
 	}
-	if err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "test", `{}`, nil); err == nil {
+	if err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "test", validTestAnswer, nil); err == nil {
 		t.Fatal("nil-response store must report its failure")
 	}
 }
@@ -235,7 +237,7 @@ func TestSemanticCacheRejectsWrongVectorLength(t *testing.T) {
 		Enabled: true, Threshold: 0.8, MaxCandidates: 1, TTL: time.Hour, EmbeddingModel: "mock-model", VectorDimension: 2,
 	}, repo, nil, adapter)
 
-	if err := svc.Store(context.Background(), "entry", "scope", "model", "answer", `{}`, nil); err != nil {
+	if err := svc.Store(context.Background(), "entry", "scope", "model", "answer", validTestAnswer, nil); err != nil {
 		t.Fatalf("Store: %v", err)
 	}
 	entry, err := svc.Lookup(context.Background(), "scope", "model", "question")
@@ -265,7 +267,7 @@ func TestSemanticCacheRejectsMalformedCachedChoices(t *testing.T) {
 	svc := NewSemanticCacheService(SemanticCacheConfig{
 		Enabled: true, Threshold: 0.8, MaxCandidates: 1, TTL: time.Hour, EmbeddingModel: "mock-model", VectorDimension: 2,
 	}, repo, nil, adapter)
-	if err := svc.Store(context.Background(), "entry", "scope", "model", "question", `{}`, nil); err != nil {
+	if err := repo.Store(context.Background(), &controlstate.SemanticCacheEntry{ID: "entry", Scope: "scope", Model: "model", Response: `{}`, Vector: floatsToBytes([]float32{1, 0}), Enabled: true, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
 		t.Fatalf("Store: %v", err)
 	}
 	entry, err := svc.Lookup(context.Background(), "scope", "model", "question")

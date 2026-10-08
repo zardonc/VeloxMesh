@@ -138,6 +138,7 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 	usesToolProtocol := req.ToolRequirements.UsesProtocol()
 	cacheScope, cacheEligible := "", false
 	var cacheVector []float32
+	skipCacheWrite := false
 	if identity := middleware.GetAuthIdentity(ctx); s.semanticCache != nil && identity != nil {
 		cacheScope, cacheEligible = s.semanticCache.Eligible(identity.ID, identity.Role, req)
 	}
@@ -148,6 +149,8 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		lookup, err := s.semanticCache.LookupWithVector(ctx, cache.CacheLookup{Scope: cacheScope, Model: req.Model, Text: text})
 		entry := lookup.Entry
 		cacheVector = lookup.Vector
+		// Do not immediately retry a failed dependency through optional backfill.
+		skipCacheWrite = err != nil && lookup.Vector == nil
 		if err == nil && entry != nil {
 			// Cache hit
 			rt.RecordRouting("semantic_cache", "hit", "", "")
@@ -356,15 +359,15 @@ func (s *Service) HandleChatCompletion(ctx context.Context, req *llm.LLMRequest)
 		observability.DefaultMetrics.IncRequestCount(decision.ProviderID, req.Model, 200)
 		observability.DefaultMetrics.RecordProviderLatency(decision.ProviderID, float64(latency.Milliseconds()))
 
-		s.settleCompleted(ctx, req, decision, resp.Usage, latency)
+		record := s.settleCompleted(ctx, req, decision, resp.Usage, latency)
 
 		// Cache Store
-		if cacheEligible && !usesToolProtocol {
+		if cacheEligible && !usesToolProtocol && !skipCacheWrite {
 			// Only cache if there's a valid choice
 			if len(resp.Choices) > 0 {
 				bResp, _ := json.Marshal(resp.Choices)
-				usageID := req.RequestID // from settle
-				s.semanticCache.Enqueue(cache.CacheWrite{ID: req.RequestID, Scope: cacheScope, Model: req.Model, Text: reqTextForStore, Response: string(bResp), UsageID: &usageID, Vector: cacheVector})
+				usageID := record.ID
+				s.semanticCache.Enqueue(cache.CacheWrite{ID: usageID, TraceID: req.RequestID, Scope: cacheScope, Model: req.Model, Text: reqTextForStore, Response: string(bResp), UsageID: &usageID, Vector: cacheVector})
 			}
 		}
 

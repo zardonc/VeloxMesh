@@ -29,7 +29,7 @@ func TestLiveEmbeddingDimensionMismatch(t *testing.T) {
 	if err := chain.repo.DBForTest().QueryRow("SELECT COUNT(*) FROM semantic_cache_entries").Scan(&rows); err != nil {
 		t.Fatal(err)
 	}
-	if rows != 0 || liveOutcomeCount(chain.timing, "lookup/invalid_embedding") != 1 || liveOutcomeCount(chain.timing, "store/invalid_embedding") != 1 {
+	if rows != 0 || liveOutcomeCount(chain.timing, "lookup/scope_not_ready") != 1 || liveOutcomeCount(chain.timing, "store/invalid_embedding") != 1 {
 		t.Fatalf("invalid real dimension not rejected: rows=%d", rows)
 	}
 	liveAssertSettlement(t, chain, 1)

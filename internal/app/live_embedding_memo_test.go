@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"veloxmesh/internal/cache"
 )
 
@@ -18,6 +19,9 @@ func TestLiveEmbeddingMemoBoundaries(t *testing.T) {
 	t.Setenv("PHASE29_MEMO_TTL", "2s")
 	chain := newLiveChainWithEnvironment(t, env)
 	query := cache.CacheLookup{Scope: chain.token, Model: chain.model, Text: "How long is the trial for plan 101?"}
+	otherScope := cache.CacheLookup{Scope: query.Scope + "-other-account", Model: query.Model, Text: query.Text}
+	otherModel := cache.CacheLookup{Scope: query.Scope, Model: query.Model + "-other-model", Text: query.Text}
+	liveMemoReadyScopes(t, chain, []cache.CacheLookup{query, otherScope, otherModel})
 	first := liveMemoLookup(t, chain, liveMemoCheck{query: query, id: "memo-first", calls: 1})
 	repeat := liveMemoLookup(t, chain, liveMemoCheck{query: query, id: "memo-repeat", calls: 0})
 	if !slices.Equal(first.Vector, repeat.Vector) {
@@ -29,9 +33,7 @@ func TestLiveEmbeddingMemoBoundaries(t *testing.T) {
 	if !slices.Equal(first.Vector, third.Vector) {
 		t.Fatal("caller modified the cached vector")
 	}
-	otherScope := cache.CacheLookup{Scope: query.Scope + "-other-account", Model: query.Model, Text: query.Text}
 	liveMemoLookup(t, chain, liveMemoCheck{query: otherScope, id: "memo-scope", calls: 1})
-	otherModel := cache.CacheLookup{Scope: query.Scope, Model: query.Model + "-other-model", Text: query.Text}
 	liveMemoLookup(t, chain, liveMemoCheck{query: otherModel, id: "memo-model", calls: 1})
 	liveMemoLookup(t, chain, liveMemoCheck{query: query, id: "memo-evicted", calls: 1})
 	time.Sleep(2100 * time.Millisecond)
@@ -52,6 +54,21 @@ type liveMemoCheck struct {
 	query cache.CacheLookup
 	id    string
 	calls int
+}
+
+// Persist real vectors without warming the memo or calling the chat model.
+// Empty scopes intentionally bypass embedding after readiness hardening.
+func liveMemoReadyScopes(t *testing.T, chain liveChain, queries []cache.CacheLookup) {
+	t.Helper()
+	vector := liveComponentVector(t)
+	for _, query := range queries {
+		write := cache.CacheWrite{ID: uuid.NewString(), Scope: query.Scope, Model: query.Model,
+			Text: "How long is the trial for plan 101?", Vector: vector,
+			Response: `[{"index":0,"message":{"role":"assistant","content":"Memo fixture candidate."},"finish_reason":"stop"}]`}
+		if err := chain.app.semanticCache.StoreWrite(context.Background(), write); err != nil {
+			t.Fatalf("prepare real memo candidate: %v", err)
+		}
+	}
 }
 
 func liveMemoLookup(t *testing.T, chain liveChain, check liveMemoCheck) cache.CacheLookupResult {
@@ -86,6 +103,7 @@ func TestLiveEmbeddingMemoFailureRecovery(t *testing.T) {
 	t.Setenv("PHASE29_MEMO_TTL", "2s")
 	chain := newLiveChainWithEnvironment(t, env)
 	query := cache.CacheLookup{Scope: chain.token, Model: chain.model, Text: "What is the duration of plan 111?"}
+	liveMemoReadyScopes(t, chain, []cache.CacheLookup{query})
 	liveMemoLookup(t, chain, liveMemoCheck{query: query, id: "memo-before-disconnect", calls: 1})
 	proxy.disconnect()
 	liveMemoLookup(t, chain, liveMemoCheck{query: query, id: "memo-during-disconnect", calls: 0})

@@ -65,7 +65,7 @@ func TestSemanticCacheRepositoryAndEmbeddingFailures(t *testing.T) {
 		if entry, err := svc.Lookup(context.Background(), "scope", "model", "text"); entry != nil || err == nil {
 			t.Fatal("dependency failure must report bypass")
 		}
-		if err := svc.Store(context.Background(), "id", "scope", "model", "text", "[]", nil); err == nil {
+		if err := svc.Store(context.Background(), "id", "scope", "model", "text", validTestAnswer, nil); err == nil {
 			t.Fatal("dependency failure must report write drop")
 		}
 		svc.Close()

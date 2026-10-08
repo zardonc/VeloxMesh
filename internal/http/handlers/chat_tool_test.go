@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"veloxmesh/internal/admission"
@@ -12,6 +13,7 @@ import (
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
 	"veloxmesh/internal/http/middleware"
+	"veloxmesh/internal/llm"
 	"veloxmesh/internal/pipeline"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/routing"
@@ -37,6 +39,9 @@ var invalidToolProtocolCases = []toolProtocolCase{
 	{"undeclared named choice", `{"model":"gpt-4o","messages":[{"role":"user","content":"hi"}],"tools":[{"type":"function","function":{"name":"lookup"}}],"tool_choice":{"type":"function","function":{"name":"other"}}}`},
 	{"choice without definitions", `{"model":"gpt-4o","messages":[{"role":"user","content":"hi"}],"tool_choice":"auto"}`},
 	{"malformed content", `{"model":"gpt-4o","messages":[{"role":"user","content":{"secret":"tool-secret-should-not-appear"}}]}`},
+	{"null user content", `{"model":"gpt-4o","messages":[{"role":"user","content":null}]}`},
+	{"null assistant without calls", `{"model":"gpt-4o","messages":[{"role":"assistant","content":null}]}`},
+	{"null tool result content", `{"model":"gpt-4o","messages":[{"role":"assistant","tool_calls":[{"id":"call_1","type":"function","function":{"name":"lookup","arguments":"{}"}}]},{"role":"tool","tool_call_id":"call_1","content":null}],"tools":[{"type":"function","function":{"name":"lookup"}}]}`},
 	{"missing call ID", `{"model":"gpt-4o","messages":[{"role":"assistant","tool_calls":[{"type":"function","function":{"name":"lookup","arguments":"{}"}}]}]}`},
 	{"duplicate call ID", `{"model":"gpt-4o","messages":[{"role":"assistant","tool_calls":[{"id":"call_1","type":"function","function":{"name":"lookup","arguments":"{}"}},{"id":"call_1","type":"function","function":{"name":"lookup","arguments":"{}"}}]}]}`},
 	{"call invalid type", `{"model":"gpt-4o","messages":[{"role":"assistant","tool_calls":[{"id":"call_1","type":"other","function":{"name":"lookup","arguments":"{}"}}]}]}`},
@@ -100,6 +105,24 @@ func TestChatToolValidationPreservesCompatibleRequests(t *testing.T) {
 		if recorder.Code != http.StatusOK || adapter.last == nil {
 			t.Fatalf("expected compatible request to reach service: status=%d body=%s", recorder.Code, recorder.Body.String())
 		}
+	}
+}
+
+func TestChatToolContinuationAcceptsNullAssistantContent(t *testing.T) {
+	adapter := &captureChatAdapter{}
+	body := strings.Replace(validParallelToolRequest, `"role":"assistant"`, `"role":"assistant","content":null`, 1)
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+	newToolProtocolHandler(adapter).ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK || adapter.last == nil {
+		t.Fatalf("expected null-content tool continuation to reach provider: status=%d body=%s", recorder.Code, recorder.Body.String())
+	}
+	message := adapter.last.Messages[0]
+	if message.Role != llm.RoleAssistant || message.Content != "" || len(message.ToolCalls) != 2 {
+		t.Fatalf("assistant tool calls changed: %#v", message)
+	}
+	if adapter.last.Messages[1].ToolCallID != "call_2" || adapter.last.Messages[2].ToolCallID != "call_1" {
+		t.Fatal("parallel tool result associations changed")
 	}
 }
 

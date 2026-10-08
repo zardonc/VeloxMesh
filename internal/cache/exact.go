@@ -47,9 +47,6 @@ func validExactEntry(entry *controlstate.SemanticCacheEntry, query CacheLookup) 
 }
 
 func (s *SemanticCacheService) storeExact(ctx context.Context, write CacheWrite) error {
-	if !validCachedChoices(write.Response) {
-		return s.fault("store", "invalid_entry", nil)
-	}
 	now := time.Now().UTC()
 	entry := &controlstate.SemanticCacheEntry{
 		ID:    exactAnswerID(CacheLookup{Scope: write.Scope, Model: write.Model, Text: write.Text}),

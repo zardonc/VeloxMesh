@@ -80,7 +80,7 @@ func TestSemanticCacheInvalidEmbeddings(t *testing.T) {
 			if hit, err := svc.Lookup(context.Background(), "scope", "model", "text"); hit != nil || err == nil {
 				t.Fatal("invalid embedding must report bypass")
 			}
-			if err := svc.Store(context.Background(), "id", "scope", "model", "text", "[]", nil); err == nil {
+			if err := svc.Store(context.Background(), "id", "scope", "model", "text", validTestAnswer, nil); err == nil {
 				t.Fatal("invalid store vector must be reported")
 			}
 			if repo.listCalls != 0 || len(repo.entries) != 0 {
@@ -110,7 +110,7 @@ func TestSemanticCacheVectorFaultReportedWithoutScan(t *testing.T) {
 	if repo.listCalls != 0 {
 		t.Fatal("vector fault triggered repository scan")
 	}
-	if err := svc.Store(context.Background(), "id", "scope", "model", "text", "[]", nil); err == nil {
+	if err := svc.Store(context.Background(), "id", "scope", "model", "text", validTestAnswer, nil); err == nil {
 		t.Fatal("insert failure swallowed")
 	}
 }
@@ -159,7 +159,7 @@ func TestSemanticCacheWriteSnapshotAndDisabled(t *testing.T) {
 	svc := NewSemanticCacheService(boundsConfig(), repo, nil, adapter)
 	t.Cleanup(svc.Close)
 	usage := "usage-v1"
-	write := CacheWrite{ID: "id", Scope: "faq-v1", Model: "model-v1", Text: "text", Response: "[]", UsageID: &usage}
+	write := CacheWrite{ID: "id", Scope: "faq-v1", Model: "model-v1", Text: "text", Response: validTestAnswer, UsageID: &usage}
 	if !svc.Enqueue(write) {
 		t.Fatal("enqueue failed")
 	}
@@ -188,7 +188,7 @@ func TestSemanticCacheCombinedReadWriteCapacity(t *testing.T) {
 	cfg.ReadConcurrency, cfg.WriteWorkers, cfg.QueueCapacity = 4, 2, 32
 	svc := NewSemanticCacheService(cfg, &mockRepo{}, nil, adapter)
 	t.Cleanup(svc.Close)
-	write := CacheWrite{ID: "id", Scope: "v1", Model: "model", Text: "text", Response: "[]"}
+	write := CacheWrite{ID: "id", Scope: "v1", Model: "model", Text: "text", Response: validTestAnswer}
 	svc.Enqueue(write)
 	svc.Enqueue(write)
 	<-adapter.started

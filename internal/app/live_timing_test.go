@@ -5,12 +5,15 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptrace"
 	"os"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -27,8 +30,59 @@ type liveStage struct {
 
 type liveTiming struct {
 	*liveRecorder
-	stages  []liveStage
-	onStage func(observability.StageMeasurement)
+	stages     []liveStage
+	transports []liveTransportObservation
+	onStage    func(observability.StageMeasurement)
+}
+
+type liveTransportObservation struct {
+	Type       string              `json:"type"`
+	ID         string              `json:"request_id"`
+	Kind       string              `json:"kind"`
+	Event      string              `json:"event"`
+	StartMS    float64             `json:"start_ms"`
+	ElapsedMS  float64             `json:"elapsed_ms"`
+	Success    bool                `json:"success"`
+	ErrorClass string              `json:"error_class,omitempty"`
+	Connection *liveConnectionInfo `json:"connection,omitempty"`
+}
+
+type liveConnectionInfo struct {
+	Reused  bool    `json:"reused"`
+	WasIdle bool    `json:"was_idle"`
+	IdleMS  float64 `json:"idle_ms"`
+}
+
+func (r *liveTiming) recordTransport(started time.Time, sample liveTransportObservation) {
+	sample.Type = "transport"
+	sample.StartMS = float64(started.Sub(r.started).Microseconds()) / 1000
+	sample.ElapsedMS = float64(time.Since(started).Microseconds()) / 1000
+	r.mu.Lock()
+	r.transports = append(r.transports, sample)
+	r.mu.Unlock()
+}
+
+func liveTransportErrorClass(err error) string {
+	switch {
+	case err == nil:
+		return ""
+	case errors.Is(err, io.EOF):
+		return "eof"
+	case errors.Is(err, io.ErrUnexpectedEOF):
+		return "unexpected_eof"
+	case errors.Is(err, context.DeadlineExceeded), errors.Is(err, os.ErrDeadlineExceeded):
+		return "deadline"
+	case errors.Is(err, context.Canceled):
+		return "cancelled"
+	case errors.Is(err, syscall.ECONNRESET):
+		return "connection_reset"
+	case errors.Is(err, syscall.ECONNREFUSED):
+		return "connection_refused"
+	case errors.Is(err, net.ErrClosed), errors.Is(err, io.ErrClosedPipe), errors.Is(err, syscall.EPIPE):
+		return "connection_closed"
+	default:
+		return "other"
+	}
 }
 
 func (r *liveTiming) RecordStage(sample observability.StageMeasurement) {
@@ -74,6 +128,7 @@ func (transport liveTimingTransport) RoundTrip(req *http.Request) (*http.Respons
 	trace := transport.clientTrace(id, kind, started)
 	response, err := transport.base.RoundTrip(req.WithContext(httptrace.WithClientTrace(req.Context(), trace)))
 	transport.recorder.RecordStage(observability.StageMeasurement{ID: id, Name: kind + "_headers", Started: started, Elapsed: time.Since(started)})
+	transport.recorder.recordTransport(started, liveTransportObservation{ID: id, Kind: kind, Event: "round_trip", Success: err == nil, ErrorClass: liveTransportErrorClass(err)})
 	if err != nil {
 		return nil, err
 	}
@@ -95,11 +150,16 @@ func (transport liveTimingTransport) clientTrace(id, kind string, started time.T
 				event = "got_connection_reused"
 			}
 			record(event)
+			transport.recorder.recordTransport(started, liveTransportObservation{ID: id, Kind: kind, Event: "got_connection", Success: true,
+				Connection: &liveConnectionInfo{Reused: info.Reused, WasIdle: info.WasIdle, IdleMS: float64(info.IdleTime.Microseconds()) / 1000}})
 		},
 		DNSStart: func(httptrace.DNSStartInfo) { record("dns_start") }, DNSDone: func(httptrace.DNSDoneInfo) { record("dns_done") },
 		ConnectStart: func(string, string) { record("connect_start") }, ConnectDone: func(string, string, error) { record("connect_done") },
 		TLSHandshakeStart: func() { record("tls_start") }, TLSHandshakeDone: func(tls.ConnectionState, error) { record("tls_done") },
-		WroteRequest: func(httptrace.WroteRequestInfo) { record("request_written") }, GotFirstResponseByte: func() { record("first_byte") },
+		WroteRequest: func(info httptrace.WroteRequestInfo) {
+			record("request_written")
+			transport.recorder.recordTransport(started, liveTransportObservation{ID: id, Kind: kind, Event: "wrote_request", Success: info.Err == nil, ErrorClass: liveTransportErrorClass(info.Err)})
+		}, GotFirstResponseByte: func() { record("first_byte") },
 	}
 }
 
@@ -141,11 +201,15 @@ func installLiveTiming(t *testing.T, application *App, origin time.Time) *liveTi
 func (r *liveTiming) dump(t *testing.T) {
 	r.mu.Lock()
 	stages, operations := append([]liveStage(nil), r.stages...), append([]liveSample(nil), r.samples...)
+	transports := append([]liveTransportObservation(nil), r.transports...)
 	r.mu.Unlock()
 	for _, sample := range stages {
 		shipLogJSON(t, sample)
 	}
 	for _, sample := range operations {
+		shipLogJSON(t, sample)
+	}
+	for _, sample := range transports {
 		shipLogJSON(t, sample)
 	}
 }

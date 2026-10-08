@@ -118,8 +118,8 @@ func validateSemanticCacheProfile(cache CacheConfig) error {
 	if err != nil || ttl <= 0 {
 		return fmt.Errorf("semantic cache ttl must be a positive duration")
 	}
-	if cache.Threshold <= 0 || cache.Threshold > 1 || cache.MaxCandidates < 1 {
-		return fmt.Errorf("semantic cache threshold and max_candidates must be positive")
+	if !(cache.Threshold > 0 && cache.Threshold <= 1) || cache.MaxCandidates < 1 {
+		return fmt.Errorf("semantic cache threshold must be in (0, 1] and max_candidates must be positive")
 	}
 	if err := validateCacheUseCases(cache.UseCases); err != nil {
 		return err

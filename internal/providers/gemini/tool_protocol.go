@@ -233,6 +233,9 @@ func geminiChoice(candidate *genai.Candidate, generateID func() string) (llm.Cho
 }
 
 func geminiCandidateContent(candidate *genai.Candidate, generateID func() string) (string, []llm.ToolCall, error) {
+	if candidate == nil {
+		return "", nil, invalidGeminiToolResponse()
+	}
 	if candidate.Content == nil {
 		return "", nil, nil
 	}
@@ -240,6 +243,9 @@ func geminiCandidateContent(candidate *genai.Candidate, generateID func() string
 	content := ""
 	callCount := 0
 	for _, part := range candidate.Content.Parts {
+		if part == nil {
+			return "", nil, invalidGeminiToolResponse()
+		}
 		content += part.Text
 		if part.FunctionCall == nil {
 			continue
@@ -356,6 +362,9 @@ func geminiStreamEvents(state geminiStreamState, response *genai.GenerateContent
 }
 
 func geminiCandidateStreamEvents(state geminiStreamState, candidate *genai.Candidate, usage *llm.Usage) (geminiStreamState, []llm.StreamEvent, error) {
+	if candidate == nil {
+		return state, nil, invalidGeminiToolResponse()
+	}
 	events, next, err := geminiContentStreamEvents(state, candidate.Content)
 	if err != nil || candidate.FinishReason == "" {
 		return next, geminiUsageEvents(events, usage, -1), err
@@ -375,6 +384,9 @@ func geminiContentStreamEvents(state geminiStreamState, content *genai.Content) 
 	}
 	events := make([]llm.StreamEvent, 0, len(content.Parts))
 	for _, part := range content.Parts {
+		if part == nil {
+			return nil, state, invalidGeminiToolResponse()
+		}
 		if part.Text != "" {
 			events = append(events, llm.StreamEvent{DeltaContent: part.Text})
 		}
