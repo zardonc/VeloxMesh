@@ -97,7 +97,8 @@ func liveEmbeddingHTTPCount(recorder *liveTiming, id string) int {
 
 func TestLiveEmbeddingMemoFailureRecovery(t *testing.T) {
 	env := liveEnvironment(t)
-	proxy := liveDeadlineProxy(t, "embedding")
+	proxy := newLiveNetworkProxy(t, "127.0.0.1:11234")
+	t.Setenv("PHASE29_EMBEDDING_BASE_URL", "http://"+proxy.listener.Addr().String()+"/v1")
 	t.Setenv("PHASE29_MEMO_CAPACITY", "2")
 	t.Setenv("PHASE29_MEMO_TTL", "2s")
 	chain := newLiveChainWithEnvironment(t, env)

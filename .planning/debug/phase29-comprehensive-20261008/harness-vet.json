@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "go",
+    "vet",
+    "-overlay=C:\\Users\\inthe\\IdeaProjects\\VeloxMesh\\.tmp\\phase29-comprehensive-20261008\\overlay.json",
+    "./.tmp/phase29-perf-20261007/runner"
+  ],
+  "exit_code": 0,
+  "seconds": 1.0989441999990959
+}

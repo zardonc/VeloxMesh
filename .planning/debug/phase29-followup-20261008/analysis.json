@@ -1,0 +1,238 @@
+{
+  "created_utc": "2026-10-09T01:29:58.089348+00:00",
+  "source": {
+    "current_head": "7a4403d4a353d81e5413300dd1e8a605c0c34070",
+    "historical_head": "ee5c835559f007a384a46956bf574e192cb26bf1",
+    "product_files": 409,
+    "source_mismatches": [],
+    "evaluation_digest_verified": true
+  },
+  "live_requests": 0,
+  "validated_windows": 24,
+  "validated_measured_requests": 7200,
+  "scenarios": {
+    "pure/semantic_pure": {
+      "measured": {
+        "n": 3600,
+        "p50_ms": 120.396,
+        "p95_ms": 148.007,
+        "p99_ms": 185.562,
+        "max_ms": 238.357
+      },
+      "hits": 0,
+      "per_request_decomposition": {
+        "cache_except_embedding_http": {
+          "n": 3600,
+          "p50_ms": 1.9500000000000028,
+          "p95_ms": 2.657,
+          "p99_ms": 3.245000000000001,
+          "max_ms": 5.615
+        },
+        "embedding_decode_and_wrapper": {
+          "n": 3600,
+          "p50_ms": 0.19599999999999973,
+          "p95_ms": 0.3290000000000006,
+          "p99_ms": 0.5609999999999999,
+          "max_ms": 2.163999999999998
+        },
+        "embedding_after_headers": {
+          "n": 3600,
+          "p50_ms": 0.16199999999999903,
+          "p95_ms": 0.26500000000000057,
+          "p99_ms": 0.43900000000000006,
+          "max_ms": 2.5890000000000004
+        },
+        "embedding_wait_after_write": {
+          "n": 3600,
+          "p50_ms": 13.495,
+          "p95_ms": 16.584,
+          "p99_ms": 19.262999999999998,
+          "max_ms": 28.406000000000002
+        },
+        "scope_readiness": {
+          "n": 3600,
+          "p50_ms": 0.205,
+          "p95_ms": 0.338,
+          "p99_ms": 0.66,
+          "max_ms": 1.623
+        },
+        "vector_search": {
+          "n": 3600,
+          "p50_ms": 1.488,
+          "p95_ms": 2.001,
+          "p99_ms": 2.648,
+          "max_ms": 5.241
+        },
+        "cache_other": {
+          "n": 3600,
+          "p50_ms": 0.027000000000001245,
+          "p95_ms": 0.07400000000000162,
+          "p99_ms": 0.12799999999999967,
+          "max_ms": 0.8079999999999989
+        }
+      },
+      "hypothetical_only_provider_and_embedding": {
+        "n": 3600,
+        "p50_ms": 114.315,
+        "p95_ms": 141.962,
+        "p99_ms": 179.386,
+        "max_ms": 232.846
+      },
+      "original_gate": {
+        "before": {
+          "off_p95_ms": 129.203,
+          "allowed_extra_ms": 6.460150000000006,
+          "ratio": 1.1455384162906435,
+          "original_passed": false,
+          "hypothetical_zero_other_foreground_ratio": 1.0987515769757668,
+          "embedding_sensitivity": {
+            "sufficient_even_at_zero_embedding": true,
+            "embedding_fraction_removed": 0.8714600332159534,
+            "hypothetical_total_p95_ms": 135.66314999999227
+          }
+        },
+        "after": {
+          "off_p95_ms": 130.027,
+          "allowed_extra_ms": 6.501350000000005,
+          "ratio": 1.1382789728287204,
+          "original_passed": false,
+          "hypothetical_zero_other_foreground_ratio": 1.091788628515616,
+          "embedding_sensitivity": {
+            "sufficient_even_at_zero_embedding": true,
+            "embedding_fraction_removed": 0.8194652367928938,
+            "hypothetical_total_p95_ms": 136.52834999999953
+          }
+        }
+      }
+    },
+    "low_hit/semantic_low": {
+      "measured": {
+        "n": 3600,
+        "p50_ms": 119.871,
+        "p95_ms": 147.328,
+        "p99_ms": 185.91,
+        "max_ms": 248.163
+      },
+      "hits": 144,
+      "per_request_decomposition": {
+        "cache_except_embedding_http": {
+          "n": 3600,
+          "p50_ms": 1.9700000000000006,
+          "p95_ms": 2.638,
+          "p99_ms": 3.344000000000001,
+          "max_ms": 5.265999999999998
+        },
+        "embedding_decode_and_wrapper": {
+          "n": 3600,
+          "p50_ms": 0.1960000000000015,
+          "p95_ms": 0.33000000000000007,
+          "p99_ms": 0.5139999999999993,
+          "max_ms": 1.657
+        },
+        "embedding_after_headers": {
+          "n": 3600,
+          "p50_ms": 0.1639999999999997,
+          "p95_ms": 0.2729999999999997,
+          "p99_ms": 0.5090000000000003,
+          "max_ms": 2.5779999999999994
+        },
+        "embedding_wait_after_write": {
+          "n": 3600,
+          "p50_ms": 13.485000000000001,
+          "p95_ms": 16.758000000000003,
+          "p99_ms": 19.951,
+          "max_ms": 36.209
+        },
+        "scope_readiness": {
+          "n": 3600,
+          "p50_ms": 0.207,
+          "p95_ms": 0.348,
+          "p99_ms": 0.577,
+          "max_ms": 2.172
+        },
+        "vector_search": {
+          "n": 3600,
+          "p50_ms": 1.492,
+          "p95_ms": 2,
+          "p99_ms": 2.711,
+          "max_ms": 4.785
+        },
+        "cache_other": {
+          "n": 3600,
+          "p50_ms": 0.02899999999999947,
+          "p95_ms": 0.133,
+          "p99_ms": 0.33599999999999985,
+          "max_ms": 1.4980000000000022
+        }
+      },
+      "hypothetical_only_provider_and_embedding": {
+        "n": 3600,
+        "p50_ms": 113.80099999999999,
+        "p95_ms": 141.198,
+        "p99_ms": 180.605,
+        "max_ms": 242.276
+      },
+      "original_gate": {
+        "before": {
+          "off_p95_ms": 130.375,
+          "allowed_extra_ms": 6.518750000000006,
+          "ratio": 1.130032598274209,
+          "original_passed": false,
+          "hypothetical_zero_other_foreground_ratio": 1.083014381591563,
+          "embedding_sensitivity": {
+            "sufficient_even_at_zero_embedding": true,
+            "embedding_fraction_removed": 0.7365155055904324,
+            "hypothetical_total_p95_ms": 136.89374999998668
+          }
+        },
+        "after": {
+          "off_p95_ms": 129.799,
+          "allowed_extra_ms": 6.489950000000006,
+          "ratio": 1.1350472653872525,
+          "original_passed": false,
+          "hypothetical_zero_other_foreground_ratio": 1.0878203992326598,
+          "embedding_sensitivity": {
+            "sufficient_even_at_zero_embedding": true,
+            "embedding_fraction_removed": 0.7804814766159325,
+            "hypothetical_total_p95_ms": 136.28894999999903
+          }
+        }
+      }
+    }
+  },
+  "limitations": "Sensitivities freeze observed upstream times and hit outcomes; they are not runtime predictions or hardware lower bounds.",
+  "input_sha256": {
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/test-plan.json": "e546d7e9e7a1b48ae3a6c093bc3864253d4589899f6e62661611d73cb0bde02c",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/source-manifest.json": "66edab9b67c0de8989c2eebe225d21d0d87b6a52530b36321f93f6b40399a1d7",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/performance-evaluation.json": "f2669cb50ae456515c6099086edaf1386c8268be8990df12c8cf95114ad57cd2",
+    ".planning/debug/phase29-perf-20261007/formal07-independent-audit.json": "f29eb8732359b8d25ae5b4a0aae8c6234bf3f057654df48dea9b91fc51d81f14",
+    ".tmp/phase29-followup-20261008/analyze_existing.py": "c0f866f686167e3986111b6ac44fc83378c5ba0c45cfa273a813497d806348f2",
+    ".tmp/phase29-perf-20261007/performance-evaluate.py": "bce6febd726a5bd6352383d88c52b6bc512e5693abf46c828e8f40c2752077fd",
+    "scripts/phase29_metrics.py": "7b7cc51c5bac4839e99c84ed06fd4bf31ac103b10075de4489076a63f0982971",
+    ".planning/debug/phase29-followup-20261008/PLAN.md": "7bb18c1e003d665b347611a8e84e4243e91e766d2e98f19849a6c4d0dedf1810",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b01-pure-2-semantic-pure/TestLiveControlledOn.log": "3301c00d88fbd54488696b83b40d2c78a52e72a1e2cf61c667c9b429330cc25a",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b01-low-hit-2-semantic-low/TestLiveControlledOn.log": "f4d26a8c8f6d524ca50366c720770d8e574855a6f1d37526da5e4eadd8655686",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b02-pure-3-semantic-pure/TestLiveControlledOn.log": "b1be7fafb5c683e4569217a3565fb9684b2cbfd7b86c1b1350d6ae4f82195c68",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b02-low-hit-2-semantic-low/TestLiveControlledOn.log": "b90ac51f99c6f00acb36eec8b47d8d689579721f712f1bfa57aaa4b018ef8c03",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b03-low-hit-2-semantic-low/TestLiveControlledOn.log": "9d0da4d84a73462ad3724689146d07d2c109665a82b2e966f8164a51cbd10917",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b03-pure-2-semantic-pure/TestLiveControlledOn.log": "0c4d8f00588c0df92119b7a43ed6dc119b00db43e245299d3aa7a68607773353",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b04-low-hit-2-semantic-low/TestLiveControlledOn.log": "aae4ef447100299f8fbddfd1faa1cb80367fcc0ec484bbb1ced4d8c86f519c3e",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b04-pure-3-semantic-pure/TestLiveControlledOn.log": "2ad768761eaadc91c9341b96c9821855bbbe54f0462e31379be754777846dc83",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b05-pure-2-semantic-pure/TestLiveControlledOn.log": "c5642246d0ef5ad70520a9afff30c3b126a2f339a2296ddd006292c0100e6e48",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b05-low-hit-2-semantic-low/TestLiveControlledOn.log": "67870ce070421c53494e46dba6c43ff199297573db5971780c74c32680fbf9a4",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b06-low-hit-2-semantic-low/TestLiveControlledOn.log": "34370a8679b60c179c996a9be656dc4532ae7aac8c72e9e65adafab38ea42ce0",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b06-pure-3-semantic-pure/TestLiveControlledOn.log": "ee256c2d798b0f0cb924f47ea800ea50f666745e90a02b0e677d8083143af1f4",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b07-pure-2-semantic-pure/TestLiveControlledOn.log": "e3326dd3f5360fd433c0e6b5dbe89be15adcb53a9874e47509246647aa9dd008",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b07-low-hit-2-semantic-low/TestLiveControlledOn.log": "2aeaa790c7a0d2f3dc8028adc527b5cd2fcc1ce334f1737ef6de92f4f5695b6d",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b08-pure-3-semantic-pure/TestLiveControlledOn.log": "0004016d19decf7f62a737456dea4f615ef691323e86cb45eb61df40dfe669e0",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b08-low-hit-2-semantic-low/TestLiveControlledOn.log": "ddcb1284a8c1be84317132ecbca0c37a6fa863be10ce5a633318435ad89b1c1f",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b09-low-hit-2-semantic-low/TestLiveControlledOn.log": "dc9ea2524e438793b61efffde08d50b53c75e37350a3210306ff7fe4e2c7edac",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b09-pure-2-semantic-pure/TestLiveControlledOn.log": "2e3f6fe2f79b80c505e7de3cb074055f03995e7942ac630d781cda6a3904e7c3",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b10-low-hit-2-semantic-low/TestLiveControlledOn.log": "b444ea5abd93187762c296e7b3c3139239fa206810bd0943283749f99558286a",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b10-pure-3-semantic-pure/TestLiveControlledOn.log": "f20de12a281f5e7d30b3e3bf83f044564c1952fd0211522aa3fc0000cc16c34c",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b11-pure-2-semantic-pure/TestLiveControlledOn.log": "607ab1d3163f3c7b0a9250b7dabdae56cb5e830c28de66f2a61b62141fba42e9",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b11-low-hit-2-semantic-low/TestLiveControlledOn.log": "d69cc1b2104c1d841b71ca931ea8e994e2e06b0b35e30872e65454b601969a54",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b12-low-hit-2-semantic-low/TestLiveControlledOn.log": "8efaecda647a88d944c2372f533c851545cfa1f09cfd178c5720d3c7e15e8eed",
+    ".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/b12-pure-3-semantic-pure/TestLiveControlledOn.log": "e6c1cc5f89844d0a055ca49212b51e108f059dcd58870d62c14cc05b63611e71"
+  }
+}

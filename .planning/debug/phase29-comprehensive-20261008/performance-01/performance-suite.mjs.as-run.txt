@@ -1,0 +1,200 @@
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {existsSync, readFileSync, realpathSync, writeFileSync} from 'node:fs';
+import {dirname, isAbsolute, join, relative, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const [action, root, label] = process.argv.slice(2);
+const REPO = realpathSync(resolve(dirname(fileURLToPath(import.meta.url)),'../..'));
+const COUNT = 100, INTERVAL = 125, CONCURRENCY = 4, THRESHOLD = 0.99999;
+const permutations = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]];
+const assert = (value, message) => { if (!value) throw Error(message); };
+const json = path => JSON.parse(readFileSync(path, 'utf8'));
+const encode = value => JSON.stringify(value, null, 2)+'\n';
+const save = (path, value) => writeFileSync(path, encode(value), {flag:'wx'});
+const hash = path => createHash('sha256').update(readFileSync(path)).digest('hex');
+const WORKLOAD_FILES = ['live_controlled_load_test.go','live_controlled_hit_test.go','live_exact_controlled_test.go',
+  'live_ship_load_test.go','live_scenario_test.go','live_timing_test.go','live_diagnostic_test.go'].map(name=>`internal/app/${name}`);
+if(action!=='selfcheck') assert(root && existsSync(root), 'An existing explicit evidence root is required');
+
+function selfCheck() {
+  const check = [
+    'import importlib.util,json,sys',
+    'from pathlib import Path',
+    'path=Path(".tmp/phase29-perf-20261007/performance-evaluate.py")',
+    'spec=importlib.util.spec_from_file_location("performance_evaluate",path)',
+    'module=importlib.util.module_from_spec(spec)',
+    'spec.loader.exec_module(module)',
+    'plan=json.load(sys.stdin)',
+    'assert plan["blocks"]==3 and plan["count_per_window"]==100',
+    'assert len(plan["windows"])==36',
+    'assert sum(row["expected_hits"] for row in plan["windows"] if row["role"]=="semantic_low")==12',
+    'print(json.dumps({"self_check":"passed","windows":36,"measured_requests":3600,"source_manifest_created":False}))',
+  ].join('\n');
+  const result = spawnSync('uv',['run','--no-project','python','-B','-c',check],
+    {cwd:REPO,encoding:'utf8',input:JSON.stringify(planData()),timeout:10000});
+  assert(result.status===0, `Offline plan validation failed: ${result.error?.message??result.stderr}`);
+  console.log(result.stdout.trim());
+}
+
+function groups(block) {
+  const pure = [['semantic_pure','TestLiveControlledOn'],['exact_miss','TestLiveControlledExactMiss']];
+  const same = [['semantic_hit','TestLiveControlledSemanticHit'],['exact_hit','TestLiveControlledExactHit'],['bypass','TestLiveControlledBypass']];
+  return [
+    {name:'pure', pure:true, off:'TestLiveControlledOff', candidates:block%2 ? pure : [...pure].reverse()},
+    {name:'low_hit', pure:false, off:'TestLiveControlledOff', candidates:[['semantic_low','TestLiveControlledOn']]},
+    {name:'same_question', pure:true, off:'TestLiveControlledSameQuestionOff', candidates:permutations[(block-1)%6].map(index=>same[index])},
+  ];
+}
+
+function windows() {
+  return Array.from({length:3}, (_, index) => {
+    const block = index+1, entries = groups(block);
+    return permutations[index%6].flatMap(groupIndex => {
+      const group = entries[groupIndex];
+      return [['off_before',group.off],...group.candidates,['off_after',group.off]].map(([role,test], position) => ({
+        block, group:group.name, position:position+1, role, test,
+        label:`b${String(block).padStart(2,'0')}-${group.name.replaceAll('_','-')}-${position+1}-${role.replaceAll('_','-')}`,
+        pure_miss:group.pure, reuse_mode:role.startsWith('exact')?'exact':'semantic',
+        mode:role.startsWith('off')?'off':'on', expected_hits:role.endsWith('_hit')?COUNT:role==='semantic_low'?4:0,
+      }));
+    });
+  }).flat();
+}
+
+function repoFile(value) {
+  assert(typeof value==='string' && value.length>0, 'A nonempty existing file path is required');
+  const path = relative(REPO,realpathSync(resolve(REPO,value))).replaceAll('\\','/');
+  assert(path && !path.startsWith('../') && !isAbsolute(path), `File must remain inside the repository: ${value}`);
+  return path;
+}
+
+function fileHashes(paths) {
+  return Object.fromEntries(paths.map(value=>{const path=repoFile(value); return [path,hash(join(REPO,path))];}));
+}
+
+function suppliedProvenance() {
+  assert(process.env.SHIP_PROVENANCE, 'SHIP_PROVENANCE must contain the actual runtime provenance JSON object');
+  const value = JSON.parse(process.env.SHIP_PROVENANCE), runtime = value.model_runtime;
+  const fields = ['primary_weights_id','embedding_weights_id','primary_runtime_version','embedding_runtime_version',
+    'backend','tokenization','normalization','dimension','effective_load_settings'];
+  assert(runtime && !Array.isArray(runtime) && typeof runtime==='object', 'model_runtime must be an object');
+  assert(fields.every(key=>runtime[key]) && Object.hasOwn(runtime,'input_prefix'), 'Incomplete actual model/runtime provenance');
+  assert(Number.isInteger(runtime.dimension) && runtime.dimension>0, 'Embedding dimension must be a positive integer');
+  const evidence = value.runtime_evidence_sha256;
+  assert(evidence && typeof evidence==='object' && !Array.isArray(evidence) && Object.keys(evidence).length>0,
+    'runtime_evidence_sha256 must contain actual artifact hashes');
+  const checked = fileHashes(Object.keys(evidence));
+  assert(Object.entries(evidence).every(([path,digest])=>checked[repoFile(path)]===digest), 'Runtime evidence differs from supplied SHA256');
+  return {runtime_evidence_sha256:checked,
+    model_runtime:Object.fromEntries([...fields,'input_prefix'].map(key=>[key,runtime[key]]))};
+}
+
+function sourceManifest(testPlan) {
+  const provenance = suppliedProvenance();
+  const listed = spawnSync('git',['ls-files','--cached','--others','--exclude-standard','internal','go.mod','go.sum'],
+    {cwd:REPO,encoding:'utf8',timeout:10000});
+  assert(listed.status===0, 'Cannot fingerprint the current source');
+  const files = [...new Set(listed.stdout.trim().split(/\r?\n/))].filter(path=>/\.(go|sql)$/.test(path)||/^go\.(mod|sum)$/.test(path)).sort();
+  const source = fileHashes(files);
+  const head = spawnSync('git',['rev-parse','HEAD'],{cwd:REPO,encoding:'utf8',timeout:10000});
+  assert(head.status===0, 'Cannot identify HEAD');
+  const binary = repoFile(process.env.SHIP_BINARY), runner = repoFile(process.env.SHIP_RUNNER);
+  const suite = repoFile(fileURLToPath(import.meta.url));
+  return {created:new Date().toISOString(),head:head.stdout.trim(),...provenance,source_sha256:source,
+    binary_path:binary,binary_sha256:hash(join(REPO,binary)),runner_path:runner,runner_sha256:hash(join(REPO,runner)),
+    suite_path:suite,suite_sha256:hash(join(REPO,suite)),
+    evaluator_sha256:hash(join(REPO,'.tmp/phase29-perf-20261007/performance-evaluate.py')),
+    metrics_sha256:hash(join(REPO,'scripts/phase29_metrics.py')),
+    measurement_plan_sha256:hash(join(REPO,'.planning/debug/phase29-comprehensive-20261008/PLAN.md')),
+    test_plan_sha256:createHash('sha256').update(encode(testPlan)).digest('hex'),
+    workload_sha256:fileHashes([...WORKLOAD_FILES,suite]),
+    inherited_profile:Object.fromEntries(['PHASE29_READ_TIMEOUT','PHASE29_READ_CONCURRENCY','PHASE29_WRITE_TIMEOUT',
+      'PHASE29_WRITE_WORKERS','PHASE29_QUEUE_CAPACITY','PHASE29_SHUTDOWN_GRACE','PHASE29_INPUT_PREFIX'].map(key=>[key,process.env[key]??''])),
+    source_note:'Actual working-tree files, supplied runtime evidence and existing binary fingerprinted before dispatch; compilation is performed separately'};
+}
+
+function planData() {
+  return {created:new Date().toISOString(),blocks:3,count_per_window:COUNT,interval_ms:INTERVAL,client_ceiling:CONCURRENCY,
+    primary_model:process.env.SHIP_LOCAL_MODEL,embedding_model:process.env.PHASE29_MODEL,
+    threshold:THRESHOLD,memo_capacity:0,quiet_ms:2000,drift_diagnostic_pct:5,original_ratio_limit:1.05,
+    baseline:'Each group has matching before/after question schedules; both endpoints evaluated separately; bracket drift retained diagnostically',
+    failure_policy:'Stop on first functional/process/metadata failure; no replacement windows; all observations remain in all three expanded-regression blocks',
+    seed_fact_safety:'Answer identity only; this performance workload does not establish business seed correctness or semantic safety',
+    windows:windows()};
+}
+
+function plan() {
+  assert(process.env.SHIP_PROVIDER==='LOCAL', 'This workload is declared only for the local provider');
+  assert(process.env.SHIP_LOCAL_MODEL && process.env.PHASE29_MODEL, 'Actual primary and embedding model identifiers are required');
+  const result = planData(), manifest = sourceManifest(result);
+  save(join(root,'test-plan.json'),result);
+  save(join(root,'source-manifest.json'),manifest);
+  console.log(JSON.stringify({planned_windows:result.windows.length,formal_requests:COUNT*result.windows.length,root}));
+}
+
+function records(text) {
+  return text.split(/\r?\n/).filter(line=>line.includes('SAMPLE ')).map(line=>JSON.parse(line.split('SAMPLE ')[1]));
+}
+
+function validateMetadata(raw, window) {
+  const metadata = raw.filter(row=>row.type==='metadata');
+  const profiles = raw.filter(row=>row.type==='effective_cache_profile');
+  assert(metadata.length===1 && profiles.length===1, 'Missing or duplicate metadata/profile');
+  const data = metadata[0], profile = profiles[0];
+  assert(data.count===COUNT && data.interval_ms===INTERVAL && data.max_concurrency===CONCURRENCY && data.failed===0, 'Invalid observed schedule or failures');
+  assert(data.mode===window.mode && profile.reuse_mode===window.reuse_mode && Number(profile.memo_capacity)===0, 'Effective cache profile mismatch');
+  assert(profile.enabled===(window.mode==='on') && profile.threshold===THRESHOLD, 'Actual enabled state or threshold differs from plan');
+  assert(raw.some(row=>row.type==='measurement_start') && raw.some(row=>row.type==='measurement_end'), 'Missing measurement boundaries');
+  const seeds = raw.filter(row=>row.type==='warmup');
+  assert(seeds.length===1 && seeds[0].sample.ok && !seeds[0].sample.hit, 'Missing, failed or unexpectedly cached seed');
+}
+
+function validateSamples(raw, window) {
+  const rows = raw.filter(row=>row.type==='client');
+  assert(rows.length===COUNT && new Set(rows.map(row=>row.request_id)).size===COUNT, 'Incomplete/duplicate request evidence');
+  assert(rows.every((row,index)=>row.ok && row.status===200 && row.concurrent>=1 && row.concurrent<=CONCURRENCY && row.planned_ms===index*INTERVAL), 'HTTP failure or invalid arrivals/concurrency');
+  assert(rows.filter(row=>row.hit).length===window.expected_hits, 'Observed hit count differs from predeclared profile');
+  const ids = new Set(rows.map(row=>row.request_id));
+  const stages = raw.filter(row=>row.type==='stage' && ids.has(row.request_id));
+  assert(rows.every(row=>stages.some(stage=>stage.request_id===row.request_id && stage.name==='http_handler')), 'Missing per-request stage correlation');
+  if(window.reuse_mode==='exact') assert(!stages.some(row=>['embedding_http','vector_search'].includes(row.name)), 'Exact path invoked embedding/vector work');
+  if(window.expected_hits===COUNT) validateHits(raw, rows, stages);
+  if(window.role==='semantic_low') validateLowHits(rows);
+  return {count:rows.length,hits:rows.filter(row=>row.hit).length,mode:window.mode,reuse_mode:window.reuse_mode,pure_miss:window.pure_miss};
+}
+
+function validateHits(raw, rows, stages) {
+  const seed = raw.find(row=>row.type==='warmup')?.sample;
+  assert(seed?.ok && !seed.hit && seed.answer_hash && rows.every(row=>row.answer_hash===seed.answer_hash), 'Hit answer identity differs from seed');
+  assert(!stages.some(row=>row.name==='upstream_headers'), 'Hit caused an upstream request');
+  assert(raw.some(row=>row.type==='hit_settlement' && row.billed_requests===1 && row.new_settlements===0), 'Hit settlement invariant missing');
+  assert(raw.some(row=>row.type==='seed_ready' && row.seed_persisted && row.quiet_ms===2000), 'Seed persistence/quiet period missing');
+}
+
+function validateLowHits(rows) {
+  const expected = Array.from({length:1}, (_,block)=>[20,41,62,83].map(index=>index+100*block)).flat();
+  assert(rows.every((row,index)=>row.hit===expected.includes(index)), '4% hits occurred at unexpected arrivals');
+  assert(expected.every(index=>rows[index].answer_hash===rows[index-20].answer_hash), 'Low-hit answer differs from its matching earlier request');
+}
+
+function validate() {
+  const selected = json(join(root,'test-plan.json')).windows.find(window=>window.label===label);
+  assert(selected, 'Window absent from declared plan');
+  const text = readFileSync(join(root,label,`${selected.test}.log`),'utf8');
+  assert(text.includes(`--- PASS: ${selected.test} (`) && !/--- (FAIL|SKIP):/.test(text), 'Missing selected PASS or observed failure/skip');
+  const raw = records(text);
+  const failedOperations = raw.filter(row=>row.type==='operation' && row.ok===false).length;
+  const failedTransports = raw.filter(row=>row.type==='transport' && row.success===false).length;
+  assert(failedOperations===0 && failedTransports===0,
+    `Observed failed operations=${failedOperations}, failed transports=${failedTransports}`);
+  validateMetadata(raw,selected);
+  const result = validateSamples(raw,selected);
+  save(join(root,label,'window-validation.json'),{passed:true,log_sha256:hash(join(root,label,`${selected.test}.log`)),...result});
+  console.log(JSON.stringify({validated:label,...result}));
+}
+
+if(action==='plan') plan();
+else if(action==='validate') validate();
+else if(action==='selfcheck') selfCheck();
+else throw Error('Expected plan, validate or selfcheck action');

@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "go",
+    "test",
+    "-c",
+    "-tags=phase29preflight",
+    "-o",
+    "C:\\Users\\inthe\\IdeaProjects\\VeloxMesh\\.tmp\\phase29-followup-20261008\\app-red2-linux.test",
+    "./internal/app"
+  ],
+  "exit_code": 0,
+  "seconds": 3.450949000020046
+}

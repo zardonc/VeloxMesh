@@ -1,0 +1,12 @@
+{
+  "primary": {
+    "path": "C:/Soft/AI-Tools/Models/lmstudio-community/Qwen2.5-0.5B-Instruct-GGUF/Qwen2.5-0.5B-Instruct-Q8_0.gguf",
+    "sha256": "1d96e30253a76970864323987e3e77eeaf170312952fd61d18d343c25cfd6e52",
+    "verified": true
+  },
+  "embedding": {
+    "path": "C:/Users/inthe/.lmstudio/.internal/bundled-models/nomic-ai/nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q4_K_M.gguf",
+    "sha256": "d4e388894e09cf3816e8b0896d81d265b55e7a9fff9ab03fe8bf4ef5e11295ac",
+    "verified": true
+  }
+}

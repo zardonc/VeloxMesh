@@ -1,0 +1,12 @@
+{
+  "captured_utc": "2026-10-09T02:20:45.383585+00:00",
+  "pid": 13028,
+  "observed_windows_priority_class": 32,
+  "priority": "Normal",
+  "source_manifest_correction": {
+    "field": "model_runtime.backend",
+    "original_label": "AboveNormal after readiness",
+    "corrected_label": "Normal, explicitly selected by current launcher and verified on live process"
+  },
+  "reason": "Provenance generator inherited an old descriptive field; current effective_load_settings and command/lifecycle evidence specify Normal. No runtime setting changed."
+}

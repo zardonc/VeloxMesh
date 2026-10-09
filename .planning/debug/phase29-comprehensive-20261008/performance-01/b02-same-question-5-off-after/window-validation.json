@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "log_sha256": "170ba4c3b34d82e032276664d1c2026b7a99e7e00d97f216dbdda8c0a03e9a2c",
+  "count": 100,
+  "hits": 0,
+  "mode": "off",
+  "reuse_mode": "semantic",
+  "pure_miss": true
+}

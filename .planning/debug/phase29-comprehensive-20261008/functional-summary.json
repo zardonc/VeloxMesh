@@ -1,0 +1,40 @@
+{
+  "unique_passed": 24,
+  "passes": {
+    "TestLivePostProviderRedisDelay": ".planning/debug/phase29-comprehensive-20261008/functional-01/TestLivePostProviderRedisDelay.log",
+    "TestLiveRoutingHealthDependencyError": ".planning/debug/phase29-comprehensive-20261008/functional-01/TestLiveRoutingHealthDependencyError.log",
+    "TestLiveCacheMissEmbeddingReuse": ".planning/debug/phase29-comprehensive-20261008/reuse-green-01/TestLiveCacheMissEmbeddingReuse.log",
+    "TestLiveEmbeddingMemoBoundaries": ".planning/debug/phase29-comprehensive-20261008/functional-02/TestLiveEmbeddingMemoBoundaries.log",
+    "TestLiveEmbeddingNetworkDeadline": ".planning/debug/phase29-comprehensive-20261008/functional-02/TestLiveEmbeddingNetworkDeadline.log",
+    "TestLiveSearchNetworkDeadline": ".planning/debug/phase29-comprehensive-20261008/functional-02/TestLiveSearchNetworkDeadline.log",
+    "TestLiveEmbeddingMemoFailureRecovery": ".planning/debug/phase29-comprehensive-20261008/memo-green-01/TestLiveEmbeddingMemoFailureRecovery.log",
+    "TestLiveAuthentication": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveAuthentication.log",
+    "TestLiveCacheExpiryCleanup": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveCacheExpiryCleanup.log",
+    "TestLiveCachePendingVisibility": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveCachePendingVisibility.log",
+    "TestLiveCacheReplay": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveCacheReplay.log",
+    "TestLiveCacheRestartCleanup": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveCacheRestartCleanup.log",
+    "TestLiveDisabledCachePolicy": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveDisabledCachePolicy.log",
+    "TestLiveEmbeddingMemoHitBilling": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveEmbeddingMemoHitBilling.log",
+    "TestLiveExactCachePolicy": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveExactCachePolicy.log",
+    "TestLiveExactCacheSafetyRegression": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveExactCacheSafetyRegression.log",
+    "TestLiveExactCacheVersionIsolation": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveExactCacheVersionIsolation.log",
+    "TestLiveImplicitCachePolicy": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveImplicitCachePolicy.log",
+    "TestLiveProviderCancellationRecovery": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveProviderCancellationRecovery.log",
+    "TestLiveProviderConcurrencyRecovery": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveProviderConcurrencyRecovery.log",
+    "TestLiveQdrantConcurrentCollection": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveQdrantConcurrentCollection.log",
+    "TestLiveScopeReadinessGateway": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveScopeReadinessGateway.log",
+    "TestLiveStreamSettlement": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveStreamSettlement.log",
+    "TestLiveVectorPartialWriteRecovery": ".planning/debug/phase29-comprehensive-20261008/functional-03/TestLiveVectorPartialWriteRecovery.log"
+  },
+  "preserved_failures": [
+    {
+      "test": "TestLiveCacheMissEmbeddingReuse",
+      "path": ".planning/debug/phase29-comprehensive-20261008/functional-01/TestLiveCacheMissEmbeddingReuse.log"
+    },
+    {
+      "test": "TestLiveEmbeddingMemoFailureRecovery",
+      "path": ".planning/debug/phase29-comprehensive-20261008/functional-02/TestLiveEmbeddingMemoFailureRecovery.log"
+    }
+  ],
+  "failure_classification": "Both failures traced to stale test assumptions/configuration, repaired with isolated GREEN. No failure discarded."
+}

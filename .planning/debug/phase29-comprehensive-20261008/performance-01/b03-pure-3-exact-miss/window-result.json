@@ -1,0 +1,18 @@
+{
+  "ended": "2026-10-09T02:24:11.3543097Z",
+  "error": "",
+  "pure_miss": true,
+  "reuse_mode": "exact",
+  "started": "2026-10-09T02:23:56.5855348Z",
+  "status": 0,
+  "threshold": "0.99999",
+  "window": {
+    "block": 3,
+    "group": "pure",
+    "label": "b03-pure-3-exact-miss",
+    "test": "TestLiveControlledExactMiss",
+    "pure_miss": true,
+    "reuse_mode": "exact",
+    "expected_hits": 0
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "ended": "2026-10-09T02:17:16.1465186Z",
+  "error": "",
+  "pure_miss": true,
+  "reuse_mode": "semantic",
+  "started": "2026-10-09T02:17:01.2752311Z",
+  "status": 0,
+  "threshold": "0.99999",
+  "window": {
+    "block": 1,
+    "group": "pure",
+    "label": "b01-pure-2-semantic-pure",
+    "test": "TestLiveControlledOn",
+    "pure_miss": true,
+    "reuse_mode": "semantic",
+    "expected_hits": 0
+  }
+}

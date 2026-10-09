@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "load",
+    "qwen2.5-0.5b-instruct",
+    "--identifier",
+    "qwen2.5-0.5b-instruct",
+    "--gpu",
+    "max",
+    "--context-length",
+    "8192",
+    "--parallel",
+    "4",
+    "--no-speculative-draft-mtp"
+  ],
+  "exit_code": 0,
+  "stdout": null,
+  "stderr": "Model loaded successfully in 2.16s.\n(506.47 MiB)\nTo use the model in the API/SDK, use the identifier \"qwen2.5-0.5b-instruct\".\n"
+}

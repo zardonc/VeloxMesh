@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "go",
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=60s",
+    "-v",
+    "-run",
+    "Test(ServiceCacheBackfill|SemanticCacheReadDeadlineAndSaturation|SemanticCacheQueueAndShutdown|SemanticCacheCombinedReadWriteCapacity)",
+    "./internal/cache",
+    "./internal/gateway"
+  ],
+  "exit_code": 0,
+  "seconds": 47.04844189999858
+}

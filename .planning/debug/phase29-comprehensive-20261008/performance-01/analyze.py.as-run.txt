@@ -1,0 +1,52 @@
+"""Expanded regression analysis; original formal evidence is never relabelled."""
+import importlib.util
+import json
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+SOURCE = ROOT / '.tmp/phase29-perf-20261007/performance-evaluate.py'
+spec = importlib.util.spec_from_file_location('metrics', SOURCE)
+metrics = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(metrics)
+OUT = ROOT / '.planning/debug/phase29-comprehensive-20261008' / sys.argv[1]
+
+
+def main():
+    plan = metrics.read_json(OUT / 'test-plan.json')
+    assert (plan['blocks'], plan['count_per_window'], len(plan['windows'])) == (3, 100, 36)
+    assert len({row['label'] for row in plan['windows']}) == 36
+    assert sum(row['expected_hits'] for row in plan['windows'] if row['role'] == 'semantic_low') == 12
+    # Keep the existing per-request accounting and paired-block interval formulas.
+    metrics.BLOCKS, metrics.COUNT = 3, 100
+    metrics.LOW_HIT_POSITIONS = (21, 42, 63, 84)
+    resources = metrics.load_resources(OUT)
+    windows = [metrics.load_window(OUT, row, resources) for row in plan['windows']]
+    assert all(not row['issues'] for row in windows), [(row['label'], row['issues']) for row in windows if row['issues']]
+    manifest = metrics.read_json(OUT / 'source-manifest.json')
+    for name in ('source_sha256', 'workload_sha256', 'runtime_evidence_sha256'):
+        assert not metrics.hash_map_issues(manifest, name)
+    assert metrics.digest(ROOT / manifest['binary_path']) == manifest['binary_sha256']
+    assert metrics.digest(ROOT / manifest['runner_path']) == manifest['runner_sha256']
+    assert metrics.digest(OUT / 'test-plan.json') == manifest['test_plan_sha256']
+    scenarios = {group + '/' + role: metrics.evaluate_scenario(windows, group, role)
+                 for group, roles in metrics.ROLES.items() for role in ('off', *roles)}
+    summary = {name: {'interval_status': row['status'], 'n': row['whole']['n'], 'hits': row['whole']['hits'],
+        'latency': row['whole']['latency'], 'application': row['whole']['application'],
+        'point_budget_passed': all(value <= 0 for value in row['margins_to_declared_bounds'].values()),
+        'original_105': row['original_1_05'], 'block_drift_pct': [b['off_drift_pct'] for b in row['per_block']]}
+        for name, row in scenarios.items()}
+    result = {'complete': True, 'scope': '3-block expanded regression, not 12-block formal acceptance',
+        'measured_requests': sum(len(row['rows']) for row in windows), 'scenarios': scenarios,
+        'windows': [{k: v for k, v in row.items() if k != 'rows'} for row in windows],
+        'analyzer_sha256': metrics.digest(Path(__file__)), 'reused_metrics_sha256': metrics.digest(SOURCE),
+        'limitations': 'Three blocks cannot establish long-term stability; order is declared but not fully balanced over six permutations. Resource clocks are not calibrated across hosts.'}
+    with (OUT / 'analysis.json').open('x', encoding='utf-8') as stream:
+        json.dump(result, stream, indent=2, allow_nan=False)
+    with (OUT / 'analysis-summary.json').open('x', encoding='utf-8') as stream:
+        json.dump(summary, stream, indent=2, allow_nan=False)
+    print(json.dumps(summary))
+
+
+if __name__ == '__main__':
+    main()

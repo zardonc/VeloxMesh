@@ -172,12 +172,19 @@ func (s *RedisStore) publishProvider(id string) {
 	})
 }
 
-// The per-key gate wait and network I/O share a deadline. Copying the latest
-// snapshot after acquiring the gate prevents a delayed caller publishing its
-// older state. No global state mutex is held during network operations.
+// Atomic ordered writers reject stale snapshots at the destination, so a slow
+// reply must not queue newer requests for the same provider behind it. Legacy
+// writers retain the per-key gate and copy the latest state after acquiring it.
+// Both paths keep network I/O bounded without holding the global state mutex.
 func (s *RedisStore) publish(key string, send func(context.Context) error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.syncTimeout)
 	defer cancel()
+	if _, ordered := s.client.(hotstate.OrderedSnapshotWriter); ordered {
+		if err := send(ctx); err != nil {
+			s.logger.Error("Redis health replication failed", "key", key, "error", err)
+		}
+		return
+	}
 	s.mu.Lock()
 	gate := s.gates[key]
 	if gate == nil {

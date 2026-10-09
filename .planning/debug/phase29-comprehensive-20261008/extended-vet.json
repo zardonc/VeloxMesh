@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "go",
+    "vet",
+    "-tags=phase29preflight",
+    "./internal/app",
+    "./internal/health",
+    "./internal/hotstate"
+  ],
+  "exit_code": 0,
+  "seconds": 9.142988800012972
+}

@@ -1,0 +1,18 @@
+{
+  "ended": "2026-10-09T02:18:15.3176049Z",
+  "error": "",
+  "pure_miss": false,
+  "reuse_mode": "semantic",
+  "started": "2026-10-09T02:18:00.4498769Z",
+  "status": 0,
+  "threshold": "0.99999",
+  "window": {
+    "block": 1,
+    "group": "low_hit",
+    "label": "b01-low-hit-2-semantic-low",
+    "test": "TestLiveControlledOn",
+    "pure_miss": false,
+    "reuse_mode": "semantic",
+    "expected_hits": 4
+  }
+}

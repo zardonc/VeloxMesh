@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "go",
+    "vet",
+    "-tags=phase29preflight",
+    "./internal/app"
+  ],
+  "exit_code": 0,
+  "seconds": 2.596837899996899
+}

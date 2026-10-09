@@ -1,0 +1,40 @@
+{
+  "source_count": 411,
+  "binary_sha256": "8f3b562c6c154944fac14dcaff127541d8e0963b81febfb3642bfd6c308bbf53",
+  "mode": "functional",
+  "tests": [
+    "TestLiveRoutingHealthDependencyError",
+    "TestLivePostProviderRedisDelay",
+    "TestLiveCacheMissEmbeddingReuse",
+    "TestLiveEmbeddingNetworkDeadline",
+    "TestLiveSearchNetworkDeadline",
+    "TestLiveEmbeddingMemoBoundaries",
+    "TestLiveEmbeddingMemoFailureRecovery",
+    "TestLiveEmbeddingMemoHitBilling",
+    "TestLiveCacheReplay",
+    "TestLiveCacheRestartCleanup",
+    "TestLiveCacheExpiryCleanup",
+    "TestLiveVectorPartialWriteRecovery",
+    "TestLiveCachePendingVisibility",
+    "TestLiveExactCachePolicy",
+    "TestLiveExactCacheSafetyRegression",
+    "TestLiveExactCacheVersionIsolation",
+    "TestLiveDisabledCachePolicy",
+    "TestLiveImplicitCachePolicy",
+    "TestLiveScopeReadinessGateway",
+    "TestLiveQdrantConcurrentCollection",
+    "TestLiveProviderConcurrencyRecovery",
+    "TestLiveProviderCancellationRecovery",
+    "TestLiveAuthentication",
+    "TestLiveStreamSettlement"
+  ],
+  "launcher_sha256": "929eb70aa3e2251268b0896600b70f4183e2d897c8fc6ddc6e3f8f29bb5a6207",
+  "weight": {
+    "path": "C:/Users/inthe/.lmstudio/.internal/bundled-models/nomic-ai/nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q4_K_M.gguf",
+    "sha256": "d4e388894e09cf3816e8b0896d81d265b55e7a9fff9ab03fe8bf4ef5e11295ac",
+    "historical_sha256": "d4e388894e09cf3816e8b0896d81d265b55e7a9fff9ab03fe8bf4ef5e11295ac",
+    "size_bytes": 84106624,
+    "checked_at": "2026-10-07T23:47:44.432Z",
+    "last_modified": "2026-09-19T02:45:52.000Z"
+  }
+}

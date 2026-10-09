@@ -1,0 +1,102 @@
+package main
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"time"
+)
+
+type performanceWindow struct {
+	Block        int    `json:"block"`
+	Group        string `json:"group"`
+	Label        string `json:"label"`
+	Test         string `json:"test"`
+	PureMiss     bool   `json:"pure_miss"`
+	ReuseMode    string `json:"reuse_mode"`
+	ExpectedHits int    `json:"expected_hits"`
+}
+
+func (r *runner) executePerformancePlan() (result error) {
+	payload, err := os.ReadFile(filepath.Join(artifacts, "test-plan.json"))
+	if err != nil {
+		return err
+	}
+	var plan struct {
+		Windows []performanceWindow `json:"windows"`
+	}
+	if err := json.Unmarshal(payload, &plan); err != nil {
+		return err
+	}
+	const expectedWindows = 36
+	if len(plan.Windows) != expectedWindows {
+		return errors.New("expected 36 matched regression windows")
+	}
+	completed := 0
+	defer func() {
+		data, err := json.MarshalIndent(map[string]any{"completed": completed, "planned": expectedWindows,
+			"complete": result == nil && completed == expectedWindows, "ended": time.Now().UTC()}, "", "  ")
+		result = errors.Join(result, err, r.save("suite-result.json", data))
+	}()
+	for _, window := range plan.Windows {
+		if _, err := os.Stat(filepath.Join(artifacts, "PAUSE")); err == nil {
+			return errors.New("pause at window boundary")
+		}
+		fmt.Printf("performance window=%d/%d block=%d group=%s label=%s\n", completed+1, expectedWindows, window.Block, window.Group, window.Label)
+		if err := r.performanceWindow(window); err != nil {
+			return err
+		}
+		completed++
+	}
+	return nil
+}
+
+func (r *runner) performanceWindow(window performanceWindow) error {
+	if !regexp.MustCompile(`^b[0-9]{2}-[a-z0-9-]+$`).MatchString(window.Label) ||
+		!regexp.MustCompile(`^Test[A-Za-z0-9_]+$`).MatchString(window.Test) {
+		return errors.New("invalid performance window")
+	}
+	root := artifacts
+	directory := filepath.Join(root, window.Label)
+	if err := os.Mkdir(directory, 0700); err != nil {
+		return err
+	}
+	artifacts = directory
+	defer func() { artifacts = root }()
+	if err := setPerformanceEnvironment(window); err != nil {
+		return err
+	}
+	started := time.Now().UTC()
+	err := r.liveTest(window.Test)
+	if err == nil {
+		cmd := exec.Command("node", controlledSuite, "validate", root, window.Label)
+		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+		err = cmd.Run()
+	}
+	status, problem := 0, ""
+	if err != nil {
+		status, problem = 1, err.Error()
+	}
+	payload, encodeErr := json.MarshalIndent(map[string]any{"started": started, "ended": time.Now().UTC(),
+		"status": status, "error": problem, "window": window, "threshold": "0.99999",
+		"pure_miss": window.PureMiss, "reuse_mode": window.ReuseMode}, "", "  ")
+	return errors.Join(err, encodeErr, r.save("window-result.json", payload))
+}
+
+func setPerformanceEnvironment(window performanceWindow) error {
+	values := map[string]string{"PHASE29_PURE_MISS": strconv.FormatBool(window.PureMiss),
+		"PHASE29_REUSE_MODE": window.ReuseMode, "PHASE29_MEMO_CAPACITY": "0", "PHASE29_MEMO_TTL": "",
+		"PHASE29_COUNT": "100", "PHASE29_INTERVAL_MS": "125", "PHASE29_CLIENT_CONCURRENCY": "4",
+		"PHASE29_THRESHOLD": "0.99999", "SHIP_PROFILE": "false", "SHIP_TELEMETRY": "true"}
+	for key, value := range values {
+		if err := os.Setenv(key, value); err != nil {
+			return err
+		}
+	}
+	return nil
+}

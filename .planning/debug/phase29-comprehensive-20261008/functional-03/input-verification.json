@@ -1,0 +1,15 @@
+{
+  "source_count": 411,
+  "binary_sha256": "aea430df1b24cfd4c7b9db50fc839cf2196160ece13e59a3a5bb93cfd08635ec",
+  "mode": "functional",
+  "tests": "TestLiveEmbeddingMemoHitBilling,TestLiveCacheReplay,TestLiveCacheRestartCleanup,TestLiveCacheExpiryCleanup,TestLiveVectorPartialWriteRecovery,TestLiveCachePendingVisibility,TestLiveExactCachePolicy,TestLiveExactCacheSafetyRegression,TestLiveExactCacheVersionIsolation,TestLiveDisabledCachePolicy,TestLiveImplicitCachePolicy,TestLiveScopeReadinessGateway,TestLiveQdrantConcurrentCollection,TestLiveProviderConcurrencyRecovery,TestLiveProviderCancellationRecovery,TestLiveAuthentication,TestLiveStreamSettlement",
+  "launcher_sha256": "87a32ee805a5cba808e9dc65b03da85323807645e19f59375d2f5aa61476e9e6",
+  "weight": {
+    "path": "C:/Users/inthe/.lmstudio/.internal/bundled-models/nomic-ai/nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q4_K_M.gguf",
+    "sha256": "d4e388894e09cf3816e8b0896d81d265b55e7a9fff9ab03fe8bf4ef5e11295ac",
+    "historical_sha256": "d4e388894e09cf3816e8b0896d81d265b55e7a9fff9ab03fe8bf4ef5e11295ac",
+    "size_bytes": 84106624,
+    "checked_at": "2026-10-07T23:47:44.432Z",
+    "last_modified": "2026-09-19T02:45:52.000Z"
+  }
+}

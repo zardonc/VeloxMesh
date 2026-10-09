@@ -1,0 +1,35 @@
+{
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-timeout=60s",
+    "-json",
+    "-run",
+    "Test(ServiceCacheBackfill|SemanticCacheReadDeadlineAndSaturation|SemanticCacheQueueAndShutdown|SemanticCacheCombinedReadWriteCapacity|SemanticCacheUnreadyScopesSkipRemoteRead|SemanticCacheScopeActivationIsNotNegativelyCached|SemanticCacheReadinessRepositoryFailureSurfaces|SemanticCacheVectorFaultReportedWithoutScan|SemanticCacheMalformedVectorResultsDoNotScan|SemanticCacheInvalidEmbeddings|ToolProtocolTracerBypassesSemanticCache|Adapter_Embed)",
+    "./internal/cache",
+    "./internal/gateway",
+    "./internal/providers/openai"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 19.722627700015437,
+  "top_level_passes": [
+    "TestAdapter_Embed",
+    "TestSemanticCacheUnreadyScopesSkipRemoteRead",
+    "TestSemanticCacheScopeActivationIsNotNegativelyCached",
+    "TestSemanticCacheReadinessRepositoryFailureSurfaces",
+    "TestSemanticCacheReadDeadlineAndSaturation",
+    "TestSemanticCacheInvalidEmbeddings",
+    "TestSemanticCacheVectorFaultReportedWithoutScan",
+    "TestSemanticCacheQueueAndShutdown",
+    "TestSemanticCacheCombinedReadWriteCapacity",
+    "TestSemanticCacheMalformedVectorResultsDoNotScan",
+    "TestServiceCacheBackfillSkipsFailedEmbedding",
+    "TestServiceCacheBackfillRecoversAfterEmbeddingTimeout",
+    "TestServiceCacheBackfillSeedsEmptyScopeAndOrdinaryMiss",
+    "TestServiceCacheBackfillReusesVectorAfterSearchFailure",
+    "TestToolProtocolTracerBypassesSemanticCache"
+  ],
+  "failures": [],
+  "skips": []
+}

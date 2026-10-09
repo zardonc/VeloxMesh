@@ -16,9 +16,6 @@ import (
 
 func TestLiveCacheMissEmbeddingReuse(t *testing.T) {
 	chain := newLiveChain(t)
-	// Empty scopes intentionally skip lookup; seed a candidate to exercise reuse.
-	liveDecodeChat(t, liveHTTP(t, chain, liveFAQPayload(chain.model, "What is a database transaction?")))
-	liveWaitStoreCount(t, chain.timing, 1)
 	temperature, limit := 0.0, 256
 	request := llm.ChatCompletionRequest{Model: chain.model, Temperature: &temperature, MaxTokens: &limit,
 		Messages: []llm.Message{{Role: llm.RoleSystem, Content: liveFAQSystem}, {Role: llm.RoleUser, Content: "How long is the trial for plan 101?"}}}
@@ -38,7 +35,7 @@ func TestLiveCacheMissEmbeddingReuse(t *testing.T) {
 	if first.Choices[0].Message.Content != second.Choices[0].Message.Content || second.Usage.TotalTokens != 0 {
 		t.Fatal("cache changed response or charged cached tokens")
 	}
-	liveAssertSettlement(t, chain, 2)
+	liveAssertSettlement(t, chain, 1)
 }
 
 func liveAssertSingleEmbedding(t *testing.T, recorder *liveTiming, id string) {

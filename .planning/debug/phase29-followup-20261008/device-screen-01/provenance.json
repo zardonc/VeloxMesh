@@ -1,0 +1,21 @@
+{
+  "weight": {
+    "path": "C:/Users/inthe/.lmstudio/.internal/bundled-models/nomic-ai/nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q4_K_M.gguf",
+    "sha256": "d4e388894e09cf3816e8b0896d81d265b55e7a9fff9ab03fe8bf4ef5e11295ac",
+    "historical_sha256": "d4e388894e09cf3816e8b0896d81d265b55e7a9fff9ab03fe8bf4ef5e11295ac",
+    "size_bytes": 84106624,
+    "checked_at": "2026-10-07T23:47:44.432Z",
+    "last_modified": "2026-09-19T02:45:52.000Z"
+  },
+  "helper_sha256": "fb5e61fa87c863be1bf534af1ee81788c7bbec515e5bbdcefc31b2bf0ab0b899",
+  "script_sha256": "0fad7483a2cc627300579347e35e9caa7aa34afaa1aa070ada8511db92e60eda",
+  "count_per_arm": 30,
+  "interval_seconds": 0.125,
+  "watchdog_seconds": 55,
+  "plan_sha256": "1273ba3fda695971d7c0b906e526b398da0ecf1bbe1753f9c2fe9bf89428ed3e",
+  "vendor_sha256": {
+    "cublas64_12.dll": "9513540e4ec4c51ee9e7304138c2cc255c29a8c181f9e80c38efa25738becd99",
+    "cublasLt64_12.dll": "b199d1ff892a81b7fd3d57ba1781549609b41500b36008fef326038393ad46c7",
+    "cudart64_12.dll": "c2c9a9c22a9bcba90e261825968836787b331038047a26770cffb7a583c28344"
+  }
+}

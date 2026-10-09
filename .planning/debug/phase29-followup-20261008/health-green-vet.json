@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "go",
+    "vet",
+    "./internal/health",
+    "./internal/hotstate",
+    "./internal/gateway"
+  ],
+  "exit_code": 0,
+  "seconds": 4.365605899976799
+}

@@ -1,0 +1,93 @@
+"""Run selected current-binary verification with the existing owned-service lifecycle."""
+import asyncio
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import time
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+EVIDENCE = ROOT / '.planning/debug/phase29-comprehensive-20261008'
+spec = importlib.util.spec_from_file_location('base', ROOT / '.tmp/phase29-followup-20261008/gateway_postfix.py')
+base = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(base)
+ORIGINAL_ENV = base.environment
+MODE, LABEL = sys.argv[1:]
+assert MODE in ('functional', 'performance') and re.fullmatch(r'[a-z0-9-]+', LABEL)
+base.OUT = EVIDENCE / LABEL
+base.HERE = HERE
+TESTS = [
+    'TestLiveRoutingHealthDependencyError', 'TestLivePostProviderRedisDelay',
+    'TestLiveCacheMissEmbeddingReuse', 'TestLiveEmbeddingNetworkDeadline', 'TestLiveSearchNetworkDeadline',
+    'TestLiveEmbeddingMemoBoundaries', 'TestLiveEmbeddingMemoFailureRecovery', 'TestLiveEmbeddingMemoHitBilling',
+    'TestLiveCacheReplay', 'TestLiveCacheRestartCleanup', 'TestLiveCacheExpiryCleanup',
+    'TestLiveVectorPartialWriteRecovery', 'TestLiveCachePendingVisibility',
+    'TestLiveExactCachePolicy', 'TestLiveExactCacheSafetyRegression', 'TestLiveExactCacheVersionIsolation',
+    'TestLiveDisabledCachePolicy', 'TestLiveImplicitCachePolicy',
+    'TestLiveScopeReadinessGateway', 'TestLiveQdrantConcurrentCollection',
+    'TestLiveProviderConcurrencyRecovery', 'TestLiveProviderCancellationRecovery',
+    'TestLiveAuthentication', 'TestLiveStreamSettlement',
+]
+
+
+def environment():
+    return {**ORIGINAL_ENV(), 'SHIP_BINARY': str(ROOT / '.tmp/phase29-followup-20261008/app-comprehensive-linux.test'),
+            'SHIP_RUNNER': str(HERE / 'runner.exe'), 'SHIP_TESTS': ','.join(TESTS) if MODE == 'functional' else '',
+            'SHIP_PROVENANCE': json.dumps(provenance())}
+
+
+def provenance():
+    # Current runtime evidence, never old Formal07 scheduling claims.
+    paths = [p for p in base.OUT.glob('*.json') if p.name in ('models-loaded.json', 'native-command.json', 'native-startup.json')]
+    old = json.loads((base.OLD / 'native4-primary254-nopop-formal-07-provenance.json').read_text(encoding='utf-8'))['model_runtime']
+    runtime = {**old, 'effective_load_settings': 'Current native CPU4 Normal priority; Qwen GPU max context8192 parallel4; see current command/load evidence',
+               'embedding_weights_id': base.DEVICE.ALIAS + ' (same preserved Nomic weights)'}
+    return {'model_runtime': runtime, 'runtime_evidence_sha256': {p.relative_to(ROOT).as_posix(): base.DEVICE.HELPER.sha256(p) for p in paths}}
+
+
+def verify_inputs():
+    inventory = base.OUT / 'remote-before.jsonl'
+    subprocess.run([str(ROOT / '.tmp/phase29-perf-20261007/vmctl.exe'),
+        str(ROOT / '.tmp/phase29-perf-20261007/formal06-final-inventory.py'), str(inventory)],
+        check=True, stdout=subprocess.DEVNULL, timeout=20, creationflags=subprocess.CREATE_NO_WINDOW)
+    remote = json.loads(inventory.read_text(encoding='utf-8').splitlines()[0])
+    assert not remote['owned_backend_pids'] and all(c['state'] == 'exited' for c in remote['containers'])
+    manifest = json.loads((EVIDENCE / 'source-manifest.json').read_text(encoding='utf-8'))
+    assert base.DEVICE.HELPER.sha256(Path(environment()['SHIP_BINARY'])) == manifest['binary_sha256']
+    assert all(base.DEVICE.HELPER.sha256(ROOT / p) == h for p, h in manifest['source_sha256'].items())
+    weight = json.loads((base.OLD / 'runtime-refresh-01/model-weight-hashes.json').read_text(encoding='utf-8'))['embedding']
+    assert base.DEVICE.HELPER.sha256(Path(weight['path'])) == weight['sha256']
+    base.DEVICE.write(base.OUT / 'input-verification.json', {'source_count': len(manifest['source_sha256']),
+        'binary_sha256': manifest['binary_sha256'], 'mode': MODE, 'tests': TESTS if MODE == 'functional' else '36 planned windows',
+        'launcher_sha256': base.DEVICE.HELPER.sha256(Path(__file__)), 'weight': weight})
+    return Path(weight['path'])
+
+
+async def measured_run(native):
+    args = [str(HERE / 'runner.exe')] + (['controlled'] if MODE == 'performance' else [])
+    with (base.OUT / 'controller.log').open('xb') as log:
+        child = subprocess.Popen(args, cwd=ROOT, env=environment(), stdout=log, stderr=subprocess.STDOUT,
+            stdin=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+        started = time.monotonic()
+        try:
+            while child.poll() is None:
+                assert native.poll() is None, 'Native runtime exited'
+                if time.monotonic() - started > 1500:
+                    raise TimeoutError('Bounded comprehensive controller exceeded 1500 seconds')
+                await asyncio.sleep(.2)
+            assert child.returncode == 0, 'Controller failed; see retained log'
+        finally:
+            if child.poll() is None:
+                subprocess.run(['taskkill', '/PID', str(child.pid), '/T', '/F'], check=True,
+                    capture_output=True, timeout=5, creationflags=subprocess.CREATE_NO_WINDOW)
+                child.wait(timeout=5)
+            base.DEVICE.write(base.OUT / 'controller-exit.json', {'exit_code': child.returncode,
+                'elapsed_seconds': time.monotonic() - started})
+
+
+base.environment, base.verify_inputs, base.measured_run = environment, verify_inputs, measured_run
+asyncio.run(base.main())

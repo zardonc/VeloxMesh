@@ -1,0 +1,497 @@
+{
+  "pure/off": {
+    "interval_status": "passed",
+    "n": 600,
+    "hits": 0,
+    "latency": {
+      "n": 600,
+      "p50_ms": 80.456,
+      "p95_ms": 108.727,
+      "p99_ms": 130.361,
+      "max_ms": 145.888
+    },
+    "application": {
+      "n": 600,
+      "p50_ms": 2.801000000000002,
+      "p95_ms": 3.7240000000000038,
+      "p99_ms": 4.969999999999999,
+      "max_ms": 7.625
+    },
+    "point_budget_passed": true,
+    "original_105": {
+      "before": {
+        "ratio": 0.9945209739677662,
+        "delta_ms": -0.5989999999999895,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 136.6575,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      },
+      "after": {
+        "ratio": 1.0792511638525755,
+        "delta_ms": 7.984000000000009,
+        "original_limit": 1.05,
+        "original_passed": false,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 125.92875,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      }
+    },
+    "block_drift_pct": [
+      -5.856582683553436,
+      -9.653205628346207,
+      0.618507977930971
+    ]
+  },
+  "pure/semantic_pure": {
+    "interval_status": "passed",
+    "n": 300,
+    "hits": 0,
+    "latency": {
+      "n": 300,
+      "p50_ms": 96.172,
+      "p95_ms": 119.954,
+      "p99_ms": 150.943,
+      "max_ms": 158.932
+    },
+    "application": {
+      "n": 300,
+      "p50_ms": 3.006999999999996,
+      "p95_ms": 3.9609999999999896,
+      "p99_ms": 4.646999999999995,
+      "max_ms": 5.307999999999998
+    },
+    "point_budget_passed": true,
+    "original_105": {
+      "before": {
+        "ratio": 1.0972138375134917,
+        "delta_ms": 10.628,
+        "original_limit": 1.05,
+        "original_passed": false,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 136.6575,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      },
+      "after": {
+        "ratio": 1.1906931498962707,
+        "delta_ms": 19.211,
+        "original_limit": 1.05,
+        "original_passed": false,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 125.92875,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      }
+    },
+    "block_drift_pct": [
+      -5.856582683553436,
+      -9.653205628346207,
+      0.618507977930971
+    ]
+  },
+  "pure/exact_miss": {
+    "interval_status": "passed",
+    "n": 300,
+    "hits": 0,
+    "latency": {
+      "n": 300,
+      "p50_ms": 79.504,
+      "p95_ms": 100.372,
+      "p99_ms": 130.16,
+      "max_ms": 135.547
+    },
+    "application": {
+      "n": 300,
+      "p50_ms": 2.7589999999999946,
+      "p95_ms": 3.474999999999998,
+      "p99_ms": 4.077999999999999,
+      "max_ms": 5.2219999999999995
+    },
+    "point_budget_passed": true,
+    "original_105": {
+      "before": {
+        "ratio": 0.9180981651208313,
+        "delta_ms": -8.953999999999994,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 136.6575,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      },
+      "after": {
+        "ratio": 0.9963173620003375,
+        "delta_ms": -0.3709999999999951,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 125.92875,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      }
+    },
+    "block_drift_pct": [
+      -5.856582683553436,
+      -9.653205628346207,
+      0.618507977930971
+    ]
+  },
+  "low_hit/off": {
+    "interval_status": "passed",
+    "n": 600,
+    "hits": 0,
+    "latency": {
+      "n": 600,
+      "p50_ms": 80.937,
+      "p95_ms": 101.881,
+      "p99_ms": 132.604,
+      "max_ms": 148.041
+    },
+    "application": {
+      "n": 600,
+      "p50_ms": 2.789999999999992,
+      "p95_ms": 3.603999999999999,
+      "p99_ms": 4.167999999999992,
+      "max_ms": 11.197999999999993
+    },
+    "point_budget_passed": true,
+    "original_105": {
+      "before": {
+        "ratio": 1.003170570801209,
+        "delta_ms": 0.32200000000000273,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 126.94874999999999,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      },
+      "after": {
+        "ratio": 1.0,
+        "delta_ms": 0.0,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 127.35125,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      }
+    },
+    "block_drift_pct": [
+      5.178050894193653,
+      -11.308941153646046,
+      -4.086333817416998
+    ]
+  },
+  "low_hit/semantic_low": {
+    "interval_status": "passed",
+    "n": 300,
+    "hits": 12,
+    "latency": {
+      "n": 300,
+      "p50_ms": 96.489,
+      "p95_ms": 117.114,
+      "p99_ms": 147.017,
+      "max_ms": 178.083
+    },
+    "application": {
+      "n": 300,
+      "p50_ms": 3.004000000000003,
+      "p95_ms": 4.259,
+      "p99_ms": 4.813000000000008,
+      "max_ms": 7.534999999999995
+    },
+    "point_budget_passed": true,
+    "original_105": {
+      "before": {
+        "ratio": 1.1531622012820135,
+        "delta_ms": 15.555000000000007,
+        "original_limit": 1.05,
+        "original_passed": false,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 126.94874999999999,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      },
+      "after": {
+        "ratio": 1.1495175744250645,
+        "delta_ms": 15.233000000000004,
+        "original_limit": 1.05,
+        "original_passed": false,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 127.35125,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      }
+    },
+    "block_drift_pct": [
+      5.178050894193653,
+      -11.308941153646046,
+      -4.086333817416998
+    ]
+  },
+  "same_question/off": {
+    "interval_status": "passed",
+    "n": 600,
+    "hits": 0,
+    "latency": {
+      "n": 600,
+      "p50_ms": 70.781,
+      "p95_ms": 81.134,
+      "p99_ms": 98.102,
+      "max_ms": 366.178
+    },
+    "application": {
+      "n": 600,
+      "p50_ms": 3.091000000000008,
+      "p95_ms": 3.865000000000009,
+      "p99_ms": 4.409000000000006,
+      "max_ms": 5.568999999999988
+    },
+    "point_budget_passed": true,
+    "original_105": {
+      "before": {
+        "ratio": 1.0236695349365363,
+        "delta_ms": 1.8760000000000048,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 99.07249999999999,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      },
+      "after": {
+        "ratio": 0.992574106017788,
+        "delta_ms": -0.6069999999999993,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 102.17625,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      }
+    },
+    "block_drift_pct": [
+      0.01028841867005692,
+      2.4487025531248374,
+      3.191489361702149
+    ]
+  },
+  "same_question/semantic_hit": {
+    "interval_status": "passed",
+    "n": 300,
+    "hits": 300,
+    "latency": {
+      "n": 300,
+      "p50_ms": 13.666,
+      "p95_ms": 16.772,
+      "p99_ms": 18.196,
+      "max_ms": 19.319
+    },
+    "application": {
+      "n": 300,
+      "p50_ms": 0.5239999999999991,
+      "p95_ms": 0.7509999999999994,
+      "p99_ms": 1.0920000000000005,
+      "max_ms": 1.5030000000000001
+    },
+    "point_budget_passed": true,
+    "original_105": {
+      "before": {
+        "ratio": 0.21161270786545205,
+        "delta_ms": -62.486,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 99.07249999999999,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      },
+      "after": {
+        "ratio": 0.2051846686485362,
+        "delta_ms": -64.969,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 102.17625,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      }
+    },
+    "block_drift_pct": [
+      0.01028841867005692,
+      2.4487025531248374,
+      3.191489361702149
+    ]
+  },
+  "same_question/exact_hit": {
+    "interval_status": "passed",
+    "n": 300,
+    "hits": 300,
+    "latency": {
+      "n": 300,
+      "p50_ms": 1.165,
+      "p95_ms": 1.694,
+      "p99_ms": 1.993,
+      "max_ms": 9.315
+    },
+    "application": {
+      "n": 300,
+      "p50_ms": 0.538,
+      "p95_ms": 0.748,
+      "p99_ms": 1.0570000000000002,
+      "max_ms": 8.545
+    },
+    "point_budget_passed": true,
+    "original_105": {
+      "before": {
+        "ratio": 0.021373236771051504,
+        "delta_ms": -77.564,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 99.07249999999999,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      },
+      "after": {
+        "ratio": 0.020723994078858835,
+        "delta_ms": -80.047,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 102.17625,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      }
+    },
+    "block_drift_pct": [
+      0.01028841867005692,
+      2.4487025531248374,
+      3.191489361702149
+    ]
+  },
+  "same_question/bypass": {
+    "interval_status": "passed",
+    "n": 300,
+    "hits": 0,
+    "latency": {
+      "n": 300,
+      "p50_ms": 75.169,
+      "p95_ms": 81.976,
+      "p99_ms": 194.519,
+      "max_ms": 391.405
+    },
+    "application": {
+      "n": 300,
+      "p50_ms": 3.088000000000008,
+      "p95_ms": 3.841000000000008,
+      "p99_ms": 4.4609999999999985,
+      "max_ms": 6.265000000000001
+    },
+    "point_budget_passed": true,
+    "original_105": {
+      "before": {
+        "ratio": 1.0342930682076257,
+        "delta_ms": 2.7180000000000035,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 99.07249999999999,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      },
+      "after": {
+        "ratio": 1.0028749342435253,
+        "delta_ms": 0.23499999999999943,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 102.17625,
+        "candidate_passed": true,
+        "proposal": true,
+        "admissible": true,
+        "role": "diagnostic only"
+      }
+    },
+    "block_drift_pct": [
+      0.01028841867005692,
+      2.4487025531248374,
+      3.191489361702149
+    ]
+  }
+}

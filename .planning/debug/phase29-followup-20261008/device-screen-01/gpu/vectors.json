@@ -1,0 +1,35 @@
+[
+  {
+    "dimension": 768,
+    "native_norm": 1.0000000391679005,
+    "reference_norm": 0.9999999703899322,
+    "native_vector_sha256": "d12bdbad8b3411dd7b7f9773de0ce97440535712cf138c37fdbac2b4a740d5c1",
+    "reference_vector_sha256": "142edfa34a3281578893fd4a8e3a948b607f5732c9d13bf514007d8d0675b100",
+    "cosine": 0.9852161094783778,
+    "max_abs_difference": 0.022022856399416924,
+    "mean_abs_difference": 0.00499322728983979,
+    "l2_difference": 0.17195284622783233
+  },
+  {
+    "dimension": 768,
+    "native_norm": 1.0000000337710178,
+    "reference_norm": 1.0000000097977475,
+    "native_vector_sha256": "7e3d5a1b3903befb5cf795cd30f8a2b61bc2af64d2540276c70649322f6a2849",
+    "reference_vector_sha256": "f93da4ce5480ba2e7752cce61fccd160239161a943f3fc8341245a883e72f640",
+    "cosine": 0.9851634603185074,
+    "max_abs_difference": 0.02492593415081501,
+    "mean_abs_difference": 0.004960712057394308,
+    "l2_difference": 0.1722587607519726
+  },
+  {
+    "dimension": 768,
+    "native_norm": 1.0000000357925807,
+    "reference_norm": 1.0000000218593743,
+    "native_vector_sha256": "bbaa47d9885260248ed16c45d2b5987a9c703215dcc11c82c8be94e768d5fc57",
+    "reference_vector_sha256": "ecbb7ca1493061d6bc37e1b89b76dbd4bcd55454b0a7f69ca4feb8ddb792ee8f",
+    "cosine": 0.9893701845566301,
+    "max_abs_difference": 0.017289799638092518,
+    "mean_abs_difference": 0.004262366415371884,
+    "l2_difference": 0.1458068315011313
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "completed_utc": "2026-10-09T02:54:45.951692+00:00",
+  "objective": "More comprehensive Phase29 application and performance verification, not production release or proof of absence of all bugs",
+  "completion_ready": true,
+  "source_files_verified": 411,
+  "binary_sha256": "aea430df1b24cfd4c7b9db50fc839cf2196160ece13e59a3a5bb93cfd08635ec",
+  "checks": {
+    "full_backend": {
+      "pass": 613,
+      "skip": 2,
+      "fail": 0
+    },
+    "affected_race": 83,
+    "real_redis": 7,
+    "unique_gateway_cache_tests": 24,
+    "performance_windows": 36,
+    "measured_requests": 3600,
+    "candidate_scenarios_passed": 9,
+    "raw_failure_records": 0,
+    "per_block_candidate_violations": 0,
+    "all_source_hashes_verified": true,
+    "default50ms_and_ordering_and_recovery": true,
+    "old_test_failures_preserved_and_repaired": true,
+    "runtime_metadata_correction_verified": true,
+    "helper_correction_offline_selfcheck": true,
+    "cleanup_containers_stopped": 17,
+    "volumes_preserved": 17,
+    "native_pid_absent": true,
+    "native_port_free": true,
+    "existing_http_server_preserved": true
+  },
+  "original_105_passed": false,
+  "open_items": [
+    "original1.05",
+    "long-duration/higher-load capacity",
+    "semantic business quality and seed provenance",
+    "historical primaryEOF",
+    "empty collection reclamation",
+    "production release approval"
+  ],
+  "report_sha256": "4d74054caf67c47975776e5740c62c7ac68c5f0e38c9401db42427c2bc382ddd",
+  "analysis_sha256": "d9e069bda9cdae4600ee8bd83a9c52e4c2cd7b0bfee29107070d9e33a45930e0"
+}

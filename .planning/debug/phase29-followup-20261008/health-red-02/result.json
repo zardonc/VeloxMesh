@@ -1,0 +1,5 @@
+{
+  "exit_code": 1,
+  "tests": "TestLiveRedisSameProviderPublication",
+  "binary_sha256": "254b79616b2cd8ef2c4a9d02ac0d7e5635ad63de503a85ee5eddadb393b2f498"
+}
