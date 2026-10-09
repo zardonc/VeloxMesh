@@ -5,12 +5,53 @@ status: partial
 functional_status: passed
 acceptance_scope: local-model-functional
 source_revision: 90dfd695156d7f78d8f3cb7ee63b319502ee3a15
-latest_source_revision: 9606669104617ea84c32f4959697fdb50f33f653
-latest_source_uncommitted: true
+latest_verified: 2026-10-08
+latest_source_revision: 214422cb4ca0d40e455ce3dd7468323dbd092005
+latest_source_uncommitted: false
+latest_acceptance_scope: candidate-budget-code-integration
+integration_status: accepted_candidate_budget
 production_release_approved: false
 ---
 
 # Phase 29 验收报告
+
+## 当前合入结论 — 2026-10-08
+
+用户已明确采用候选预算推进当前分支全部提交合入，并要求保留规划历史、生产
+缓存关闭及空白名单。应用正确性和本轮候选性能证据支持提交 PR；`status: partial`
+保留生产范围。以下历史验收的门槛和失败记录不改写为通过。
+
+| 检查 | 当前结果及边界 |
+| --- | --- |
+| 源码身份 | `214422c` 与 [最终清单](../../debug/phase29-comprehensive-20261008/source-manifest-03.json) 的411份源码全部一致；本次仅更新文档 |
+| 全后端／race | 613顶层PASS、2显式SKIP、0 FAIL；相关race 83 PASS；跳过的两项为PLAN4 opt-in smoke |
+| 真实组件 | Redis 7 PASS；缓存／网关24项唯一PASS，包含默认期限、迟到写入、恢复、计费与隔离；原两项测试失败和修正证据保留 |
+| 当前性能 | 3区组、36窗口、3,600成功请求；约8 RPS、并发上限4、memo关闭；9场景点值及配对bootstrap区间通过候选预算 |
+| 原1.05 | 仍失败：语义纯miss比值1.097/1.191，低命中1.153/1.150；未证实为硬件物理极限 |
+
+采用的合入预算：语义miss/低命中P95≤每个前后off端点的1.25倍且增量≤40ms；
+exact miss增量≤10ms；命中P95≤60ms且≤每个off的0.5倍；逐请求应用剩余耗时
+P95≤10ms、P99≤15ms。语义miss/低命中P95=119.954/117.114ms，semantic/exact
+hit P95=16.772/1.694ms。应用剩余耗时为handler减provider_complete及cache_read，
+不等同于CPU时间。
+
+最新应用修复移除有序Redis写入器的多余同键网络串行等待，保留Lua旧版本拒绝、
+错误及默认50ms期限。后续同provider发布RED/GREEN=199.426→1.312ms；默认
+期限扩展实测首调用51.134ms、后续2.414ms，计数和恢复正确。本轮扩大验证没有
+发现新的应用实现缺陷，不代表应用绝无缺陷。
+
+完整证据见 [扩大验证报告](../../debug/phase29-comprehensive-20261008/REPORT.md)
+及 [完成审计](../../debug/phase29-comprehensive-20261008/completion-audit.json)。
+旧Formal07为修复前程序的144窗口/43,200请求，不能作为当前程序重测。
+本轮只有3区组，off漂移−11.31%至+5.18%，native优先级实际为Normal；修正
+记录已保留。主模型runtime版本描述继承旧记录，未独立重新枚举DLL。
+
+2026-10-03已记录两款本地embedding的完整生命周期；不等于所有在线模型、
+独立业务语义质量或GPU替代方案合格。生产仍待：原1.05目标、语义质量/种子事实、
+空集合回收、历史primary EOF、长期/更高负载/冷启动容量及生产启用决策。
+测试后17容器停止、17卷及历史证据保留；未修改生产配置、部署或启用缓存。
+
+## 历史验收记录
 
 **2026-10-04 最新增量：** [进一步排查与局部修正](29-FURTHER-CORRECTION-20261004.md) 已修复空/待激活 scope 的不存在集合查询及 Gemini 终态后错误接受。599 个后端顶层 PASS、0 FAIL、2 个明确 SKIP，真实 SQLite/Qdrant、PostgreSQL 与 Gemini 边界通过。exact miss 的零 embedding 与成本得到单块验证；semantic 仍有约 21ms 前台读取成本且基线漂移。持久集合回收、业务答案安全及稳定性能合同保持开放，状态保持 partial。该增量不覆盖或替代文末各历史验收范围。
 

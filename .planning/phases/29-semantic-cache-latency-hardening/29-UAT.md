@@ -4,12 +4,26 @@ phase: 29-semantic-cache-latency-hardening
 source: [29-01-SUMMARY.md, 29-02-SUMMARY.md, 29-03-PROGRESS.md]
 started: 2026-10-01T20:34:21-07:00
 updated: 2026-10-01T20:48:00-07:00
+latest_reviewed: 2026-10-08
+integration_status: accepted_candidate_budget
 acceptance_scope: local-model-functional
 functional_status: passed
 production_release_approved: false
 ---
 
 # Phase 29 功能验收
+
+## 2026-10-08 合入验收增量
+
+用户采用候选预算提交当前分支全部代码及规划历史，生产缓存继续关闭、白名单
+为空。当前源码411项哈希匹配，613后端PASS/2 SKIP/0 FAIL、83 race PASS、
+7真实Redis PASS及24唯一缓存/网关PASS支持应用正确性；36窗口/3,600请求
+全部成功、9场景候选点值与区间检查通过。预算及证据见
+[当前验收](29-VERIFICATION.md)；没有为文档更新重复压测。
+
+后续已补齐两款本地模型生命周期。原1.05仍失败；独立语义质量、种子事实、
+集合回收、历史EOF、长期容量与生产启用保持开放。下方15项统计保留
+2026-10-01会话原范围，不混入后续统计；`complete`只表示该功能UAT已结束。
 
 ## Current Test
 

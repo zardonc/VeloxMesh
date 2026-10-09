@@ -47,7 +47,9 @@ covered_files:
   - internal/providers/openai/adapter_test.go
   - tests/integration/chat_stream_test.go
   - tests/integration/chat_test.go
-covered_digest: "v1:sha256:ae731375cf2a25384b79bbc506e24a4fd818ecf15ef9b9ad84fb7be96fa7a006"
+original_covered_digest: "v1:sha256:ae731375cf2a25384b79bbc506e24a4fd818ecf15ef9b9ad84fb7be96fa7a006"
+covered_digest: "v1:sha256:df6e1e7dca2ff4f444d61c0427e96bd3e1c9f9b59a25a31b02ca2d92099cf789"
+fingerprint_reviewed: 2026-10-08
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -62,6 +64,15 @@ gaps: []
 ---
 
 # Phase 27: Stream Terminal and Settlement Consistency Verification Report
+
+**Integration review, 2026-10-08:** original phase findings below retain their
+2026-09-25 scope. Later protocol/settlement fixes and current 613 backend PASS /
+2 explicit SKIP plus selected live streaming regressions are linked from
+[Phase 29 current verification](../29-semantic-cache-latency-hardening/29-VERIFICATION.md)
+and the [consolidated review](../../REVIEW-20261008.md). All 411 latest source
+hashes match committed code. The coverage fingerprint is refreshed after source
+and planning changes; it is not a claim that every historical live experiment
+was rerun. No deployment or production cache enablement is included.
 
 **Latest incremental repair (2026-10-04):** [Further correction](../29-semantic-cache-latency-hardening/29-FURTHER-CORRECTION-20261004.md) rejects Gemini terminal-tail truncation and duplicate/content frames after terminal. Real tail fault injections settle zero Usage; cancellation and normal completion still pass. Full backend: 599 top-level PASS, zero FAIL, two explicit opt-in SKIP. Native finish without clean gateway completion remains insufficient to settle; cancellation before clean EOF is client-cancelled. Real Gemini buffered/Fusion simultaneous-cancel coverage and exhaustive tail-frame shapes remain unverified. The older results below keep their original scope.
 

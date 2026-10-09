@@ -5,9 +5,15 @@ status: partial
 nyquist_compliant: false
 wave_0_complete: false
 created: "2026-09-25"
+updated: "2026-10-08"
+integration_status: accepted_candidate_budget
 ---
 
 # Phase 29 - Validation Strategy
+
+Current integration uses the owner-accepted candidate D-08 budget, with production
+cache off. Latest evidence and limitations are in [29-VERIFICATION.md](29-VERIFICATION.md).
+Original release targets below remain separate from the accepted integration gate.
 
 ## Test Infrastructure
 
@@ -21,7 +27,7 @@ created: "2026-09-25"
 ## Sampling Rate
 
 - Write failure cases and a red test before production changes for each plan.
-- Run focused offline tests after each implementation task; run the full backend suite after each plan wave.
+- Start with focused offline tests after implementation changes; broaden only when results or changed scope warrant it. Reuse retained results when source hashes still match.
 - Run the expensive full gateway E2E, matched-load benchmark, and two-model live flow at the end only.
 - Each backend test invocation has a hard 60-second timeout; a long E2E scenario is split into bounded invocations, not allowed to run unbounded.
 
@@ -48,12 +54,13 @@ created: "2026-09-25"
 
 ## Validation Sign-Off
 
-- [ ] A-D and E-F are resolved before the tasks they block.
-- [x] Offline tests pass with `-timeout 60s` and include boundary/error paths; full suite rerun with Redis, Qdrant and PostgreSQL ready on 2026-10-01.
+- [ ] Production A-D and E-F choices are approved before activation; isolated test choices already allowed implementation and validation.
+- [x] Latest backend: 613 PASS, 2 explicit SKIP, 0 FAIL; relevant race 83 PASS. All backend invocations use internal and outer hard 60-second limits; source manifest matches 411 current files (2026-10-08).
 - [ ] Negative false hits = 0; positive hit rate reported.
 - [x] Local-model functional acceptance rerun on 2026-10-01: one paraphrase hit, two different-answer negatives missed, same-key version isolation, embedding fault forwarding and queue burst passed; see `29-VERIFICATION.md`.
 - [ ] P95 ratio <= 1.05 under matched low-hit non-streaming load.
-- [ ] Both real embedding configurations pass full gateway-flow validation.
+- [x] Owner-accepted integration budget: nine scenario/interval checks pass in 36 windows / 3,600 successful requests; semantic miss/low-hit ≤1.25×each off AND delta≤40ms, exact miss delta≤10ms, hits ≤60ms AND ≤0.5×each off, residual P95≤10/P99≤15ms (2026-10-08).
+- [x] Two distinct real local embedding model lifecycles recorded on 2026-10-03; this does not qualify every online model or independent semantic business quality.
 - [x] No credentials or raw runtime request/answer payloads in tracked evidence; model IDs/dimensions and explicit review candidates are retained as requested.
 
 2026-10-01: `29-EVIDENCE.md` and raw JSONL record repaired real application-path measurements, but SANS upstream daily quota stopped successful repeats. Offline oracle negatives pass; real-model quality, sustained capacity, final parameters and the 1.05 gate are not signed off. Production remains disabled.

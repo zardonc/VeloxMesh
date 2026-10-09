@@ -1,5 +1,29 @@
 {
   "schema_version": 1,
+  "integration_update": {
+    "date": "2026-10-08",
+    "decision": "Owner accepts the candidate budget for all-commit code integration only; production cache remains disabled with an empty allowlist",
+    "source_revision": "214422cb4ca0d40e455ce3dd7468323dbd092005",
+    "source_manifest": ".planning/debug/phase29-comprehensive-20261008/source-manifest-03.json",
+    "verified_source_files": 411,
+    "current_report": ".planning/debug/phase29-comprehensive-20261008/REPORT.md",
+    "completion_audit": ".planning/debug/phase29-comprehensive-20261008/completion-audit.json",
+    "scenario_summary": ".planning/debug/phase29-comprehensive-20261008/performance-01/analysis-summary.json",
+    "documentation_audit": ".planning/PR-DOCS-AUDIT-20261008.json",
+    "backend": {"pass": 613, "skip": 2, "fail": 0},
+    "affected_race_pass": 83,
+    "real_redis_pass": 7,
+    "unique_live_cache_gateway_pass": 24,
+    "performance": {"blocks": 3, "windows": 36, "successful_requests": 3600, "candidate_scenarios_passed": 9, "original_105_passed": false},
+    "budget": {
+      "semantic_miss_and_low_hit": "P95 <= 1.25 * each matched off AND delta <= 40ms",
+      "exact_miss": "P95 delta <= 10ms against each matched off",
+      "hits": "P95 <= 60ms AND <= 0.5 * each matched off",
+      "application_residual": "per-request handler minus provider_complete minus cache_read; P95 <= 10ms, P99 <= 15ms"
+    },
+    "production_release_approved": false,
+    "historical_fields_below": "Unchanged Formal07/pre-expansion evidence; do not attribute its older binary to the current 411-file run"
+  },
   "date": "2026-10-08",
   "role": "Portable selected evidence for REVIEW-20261008.md; not a replacement for raw samples or a new test run",
   "local_only_sources": {"original_evaluation":{"path":".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/performance-evaluation.json","sha256":"f2669cb50ae456515c6099086edaf1386c8268be8990df12c8cf95114ad57cd2"},"source_manifest":{"path":".planning/debug/phase29-perf-20261007/performance-native4-primary254-nopop-formal-07/source-manifest.json","sha256":"66edab9b67c0de8989c2eebe225d21d0d87b6a52530b36321f93f6b40399a1d7"},"independent_audit":{"path":".planning/debug/phase29-perf-20261007/formal07-independent-audit.json","sha256":"f29eb8732359b8d25ae5b4a0aae8c6234bf3f057654df48dea9b91fc51d81f14"}},

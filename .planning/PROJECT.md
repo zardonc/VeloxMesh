@@ -14,6 +14,12 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 **v7.9 Gateway Protocol Correctness** is complete and verified. Phase 27 established once-only stream terminal and Usage settlement semantics; Phase 28 completed strict end-to-end tool protocol mapping for OpenAI-compatible, Anthropic, and Gemini adapters with capability-aware routing. No deployment has been performed.
 
+**Phase 29 integration decision (2026-10-08):** the user accepts the candidate
+performance budget for integrating all current branch commits, including Phase
+27–29 and planning history. Current application verification passes; production
+cache remains disabled with an empty allowlist. Phase 29 stays partial for
+production. See [current verification](phases/29-semantic-cache-latency-hardening/29-VERIFICATION.md).
+
 **v7.8 Scheduler Scoring Backpressure Hardening** has shipped. The milestone hardened external scorer/predictor backpressure and closed scheduler release-blocking review findings around queue admission concurrency, task context propagation, rollout PATCH reporting, predictor breaker configuration, planning state, and multilingual feature extraction.
 
 **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** has shipped and is archived. The milestone hardened Scheduler queue recovery, made in-memory queueing the default, kept Redis as a node-scoped optional queue, and clarified the Plan 3 single-node LanceDB/Qdrant vector-store boundary.
@@ -111,7 +117,10 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 
 ### Active
 
-(None currently defined. Start the next milestone with `$gsd-new-milestone`.)
+- CACHE-F01 / Phase 29: default-off trusted reuse and latency hardening are
+  implemented and accepted for integration under the candidate budget. Original
+  1.05, business semantic quality/seed correctness, collection reclamation,
+  long-duration capacity and production activation remain open.
 
 ### Deferred to Future Milestones
 
@@ -179,6 +188,7 @@ Client applications can call one OpenAI-compatible gateway endpoint and reliably
 | Scheduler in-memory queue is the default in v7.7 | Single-node Scheduler semantics are equivalent without Redis, avoid hidden fallback islands, and keep Plan 3 simple | Good |
 | Redis Scheduler queue is node-scoped when explicitly enabled | Redis remains useful for high-concurrency local queue operations, but the gateway still owns task execution and must not steal cross-node in-memory task state | Good |
 | Plan 3 vector store is LanceDB or Qdrant, not both | LanceDB remains the embedded default; Qdrant is an explicit substitute when configured, with no data migration or interop in v7.7 | Good |
+| Phase 29 uses the accepted candidate budget for integration | User decision on 2026-10-08; retain original 1.05 failure and separate production gates | Accepted for default-off code only |
 
 ---
-*Last updated: 2026-09-25 after v7.9 protocol correctness verification*
+*Last updated: 2026-10-08 for Phase 27–29 integration; production remains disabled.*

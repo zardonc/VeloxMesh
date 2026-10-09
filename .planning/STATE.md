@@ -5,11 +5,13 @@ milestone_name: Phases
 current_phase: 29
 current_phase_name: Semantic Cache Latency Hardening
 status: executing
-stopped_at: Gemini terminal-tail and empty-scope readiness repaired; stable semantic performance, lifecycle and business safety pending
-last_updated: "2026-10-04"
-last_activity: 2026-10-04
-last_activity_desc: 599 backend passes and real Gemini/cache readiness regressions; isolated path costs measured, no production performance approval
-state_head: 9606669104617ea84c32f4959697fdb50f33f653
+stopped_at: Candidate budget accepted for all-commit integration; documentation synchronized for PR; production cache off
+last_updated: "2026-10-08"
+last_activity: 2026-10-08
+last_activity_desc: 411 source hashes match; 613 backend passes, 83 race passes and 3600 successful measured requests; production partial
+state_head: 214422cb4ca0d40e455ce3dd7468323dbd092005
+integration_status: accepted_candidate_budget
+production_release_approved: false
 progress:
   total_phases: 3
   completed_phases: 2
@@ -20,7 +22,7 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-09-25)
+See: `.planning/PROJECT.md` (updated 2026-10-08)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
@@ -70,7 +72,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-25)
 
 ## Planned Next
 
-1. Continue Phase 29 with stable semantic-path measurement, persistent collection ownership/reclamation and business-approved answer policy; preserve original performance evidence and production-disabled boundaries.
+1. Submit all current branch commits and synchronized documentation in a PR to main under the accepted candidate budget. Keep production caching off and Phase 29 production work partial.
 
 ## Useful Commands
 
@@ -82,17 +84,16 @@ See: `.planning/PROJECT.md` (updated 2026-09-25)
 
 Phase: 29 (Semantic Cache Latency Hardening) — EXECUTING
 Plan: 3 of 3
-Status: Functional regressions pass; stable performance, collection lifecycle and business semantic safety remain open
-Last activity: 2026-10-04 — Gemini terminal-tail and empty-scope readiness repaired; 599 backend passes; exact and semantic paths diagnosed with drift retained
+Status: Application and candidate-budget verification pass for integration; production gates remain open
+Last activity: 2026-10-08 — user accepts candidate budget, all branch commits and planning history; latest 411-source manifest verified against committed code
 
 ## Operator Next Steps
 
-- Review [further correction](phases/29-semantic-cache-latency-hardening/29-FURTHER-CORRECTION-20261004.md): real Gemini tail faults reject with zero settlement; wire parameters match for one successful pair; fresh scope readiness and PostgreSQL pass. Exact miss avoids embedding, while semantic miss still has about 21ms read cost and drifting baseline.
-- Use [hardware-first evidence](phases/29-semantic-cache-latency-hardening/29-CONTINUED-INVESTIGATION-20261004.md) to avoid repeating VM expansion as the first remedy: fresh volumes pass recovery, but original stable 8 RPS ratios failed. Persistent collection ownership/reclamation and business seed/semantic approval remain open.
-- Review [RAM-upgrade controlled results](phases/29-semantic-cache-latency-hardening/29-MEMORY-UPGRADE-RESULTS-20261004.md): 4800 formal requests and 69 selected real checks pass, but original P95, four drifting brackets and paging remain open; 347 Qdrant collections are inventoried.
-- Review [recovery investigation](phases/29-semantic-cache-latency-hardening/29-RECOVERY-INVESTIGATION-20261004.md): no new formal windows; Qdrant-only startup pressure, sparse files and missing collection expiry motivate a controlled layout/lifecycle comparison.
-- Resume 29-03 with observed recovery completion, fixed collection-state experiments and primary queue/prefill/decode correlation; evaluate business semantic safety independently. Two distinct model lifecycles are already recorded; numeric/production gates remain separate.
-- Deployment remains separate; no deployment authorization was received.
+- Use [current verification](phases/29-semantic-cache-latency-hardening/29-VERIFICATION.md) and the [consolidated review](REVIEW-20261008.md) for PR review; earlier measurements retain their dates and source identities.
+- Preserve all 68 existing commits when submitting the PR; documentation adds a new commit without filtering planning history.
+- Latest validation: 613 backend PASS / 2 SKIP / 0 FAIL; 83 affected race, 7 real-Redis and 24 unique live cache/gateway tests pass. Performance: 36 windows, 3,600 successful requests, nine candidate scenario/interval checks pass.
+- Treat the three-block current-binary run separately from the older Formal07; do not rerun large batches solely for documentation changes.
+- Keep production cache disabled and allowlist empty. No production rollout is included.
 
 ## Deferred Items
 
@@ -136,11 +137,16 @@ Items acknowledged at v7.0 close:
 
 ## Session
 
-**Last session:** 2026-10-04
-**Stopped at:** Gemini terminal-tail and scope readiness repaired; stable semantic performance/lifecycle/business gates pending
+**Last session:** 2026-10-08
+**Stopped at:** All-commit PR preparation under accepted candidate budget; documentation synchronized, production partial
 **Resume file:** 29-03-PLAN.md
 
 ## Decisions
+
+- [Phase 29, 2026-10-08]: User accepts candidate budgets for code integration: semantic miss/low-hit ≤1.25×each off AND delta≤40ms; exact miss delta≤10ms; hits ≤60ms AND ≤0.5×each off; residual P95≤10/P99≤15ms. Original 1.05 failure remains recorded; production enablement is not approved.
+- [Phase 29, 2026-10-08]: Ordered Redis publication avoids redundant same-key serialization; real default50ms/order/recovery checks pass. Two outdated live test premises were corrected without weakening assertions. Current source is committed and matches the latest 411-file manifest.
+
+Earlier decisions below are retained with their original scope; candidate-budget approval above supersedes earlier numeric approval deferrals for integration only.
 
 - [Phase 28]: Use nil *ToolChoice for omission and a closed mode union for explicit choices.
 - [Phase 28]: Normalize tool protocol once at the HTTP boundary and pass ToolProtocolRequirements downstream.
@@ -158,9 +164,9 @@ Items acknowledged at v7.0 close:
 - [Phase 29]: Continued 2026-10-04 investigation separates health-store read failure from provider unhealthy through fail-closed 503 health_state_unavailable. Five routing modes, readable peer, recovery and eleven selected real regressions pass; final backend is 595 top-level passes, zero failures.
 - [Phase 29]: RAM upgrade is verified at 7376MiB with the same four vCPUs. Six bracket blocks per scenario yield 4800 successful formal requests; candidate AND point estimates and residual pass, original 1.05 fails. Four drifting brackets, observed swap-in and 323 small semantic collections keep stable performance/lifecycle investigation open; no production approval.
 
-### Blockers
+### Remaining Production Gates
 
-- New empty/pending-scope readiness is repaired and real SQLite/Qdrant/PostgreSQL regressions pass. Persistent collection reclamation remains open; semantic reads still pay embedding cost. One wire-equivalent Gemini pair passes but does not close historical intermittent headers timeouts. See 29-FURTHER-CORRECTION-20261004.md.
-- Remote SANS embedding quota remains a separate external limit. Two real local embedding model scope lifecycles now pass; independent business-approved semantic recall and true isolated model cold state remain unverified.
-- Historical six-block ordinary residual P95 was 13–27ms and failed the combined candidate contract. Later fresh-volume hardware-first results had low steady resource utilization but failed original 1.05 ratios; the latest semantic bracket drifted -14.37%, preventing acceptance. Natural health-read stalls, historical upstream 400 and stable capacity/SLO confidence remain open. See 29-AVAILABILITY-INVESTIGATION-20261004.md and the newer investigation reports; previous failed evidence remains intact.
-- Production FAQ publisher, atomic version-switch procedure and deployment stop deadline are unconfirmed; production enablement requires separate approval.
+- Original 1.05 target still fails; no hardware physical limit has been established. Current candidate performance passes within the measured workload, with only three blocks and off drift −11.31% to +5.18%.
+- Independent semantic quality and seed facts, empty-collection reclamation, longer/higher-load and cold-start capacity remain open. Two local model lifecycles do not qualify every model or the GPU alternative.
+- Historical primary EOF and external provider reliability remain unresolved; successful later runs do not close intermittent failures.
+- Production FAQ publisher, atomic version-switch procedure, deployment stop deadline and activation approval remain separate from code integration.

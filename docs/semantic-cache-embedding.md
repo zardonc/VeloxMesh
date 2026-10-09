@@ -14,4 +14,14 @@ Memoization stores only successful, validated embedding vectors, keyed by a hash
 
 Repeated inputs can avoid embedding I/O within this lifetime. New questions and paraphrases still call the real provider, so memoization does not establish a faster cold-miss SLO. Answer lookup still queries the vector and relational stores, validates expiry and billing, and obeys the existing read deadline. A memo hit never authorizes an answer-cache hit by itself. `embedding_memo/hit` and `embedding_memo/miss` outcomes distinguish actual vector reuse.
 
+An empty or pending scope skips lookup embedding and vector search until a
+candidate is ready. A successful miss lookup can reuse its validated vector for
+background persistence. If lookup fails without a vector, optional backfill is
+skipped to avoid immediately repeating the failed embedding work. Readiness does
+not prove that a previously created collection still exists, and point expiry
+does not reclaim empty collections.
+
 Do not lower similarity thresholds globally to compensate for latency. Validate frozen candidates on independent same-answer and different-answer questions, including numbers and negation. A prefix and threshold that work on one embedding model are not a policy for all models. Test budgets and production SLOs are separate; quota-exhausted providers must be recorded as skipped rather than passing.
+
+The [accepted integration budget](cache-reuse-policy.md#accepted-integration-budget--2026-10-08)
+was verified with memoization off. Production caching stays disabled.

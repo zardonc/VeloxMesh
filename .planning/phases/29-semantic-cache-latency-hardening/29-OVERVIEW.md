@@ -1,6 +1,14 @@
 # Phase 29 Implementation Plan - Semantic Cache Latency Hardening
 
-**Status:** Planned, not authorized for implementation. **Requirement:** `CACHE-F01`. **Dependency:** Phase 28 verified. **Milestone name/version:** To be assigned separately; this phase is not part of completed v7.9.
+**Status (2026-10-08):** 29-01/02 implemented; 29-03 partial for production.
+The user authorizes all branch commits for PR and accepts the candidate budget
+for default-off code integration. **Requirement:** `CACHE-F01`. **Dependency:**
+Phase 28 verified. Phase 29 is separate from completed v7.9.
+
+Current results and remaining gates are in [29-VERIFICATION.md](29-VERIFICATION.md).
+The estimates and pre-development questions below preserve the original plan;
+they are not current implementation blockers. Test-only A–F choices were made
+during execution; production identities, parameters and activation remain unapproved.
 
 ## Modules And Stages
 
@@ -30,9 +38,12 @@ No new public API or client-controlled cache selector is assumed. If the trusted
 1. Default-off and all excluded traffic cause no embedding/vector I/O. Eligible requests return ordinary primary responses, then become available as valid paraphrase hits without settling nonexistent upstream Usage.
 2. Cross-tenant/auth, use-case, knowledge version, target model, embedding provider/model/dimension, and answer-affecting settings cannot share hits. Curated near-identical/different-answer negatives yield **zero false hits**; positive paraphrase hit rate is reported, not gated by an invented percentage.
 3. Embed, vector, repository, malformed-entry, timeout and queue faults bypass immediately to one normal primary-model call; no cache-caused 5xx, reason-only telemetry, and no payload leakage. Background write cannot hold response completion.
-4. Matched-load low-hit non-streaming P95 complete-response latency with cache enabled is <= 1.05 x disabled. Preserve raw samples, concurrency, workload, hit ratio and environment. Streaming TTFT is not used for this phase.
+4. Code integration uses the owner-accepted [D-08 candidate budget](29-CONTEXT.md); original <=1.05 x disabled remains failed and open for production. Preserve raw samples, concurrency, workload, hit ratio and environment. Streaming TTFT is not used for this phase.
 5. Both real `.env.local` embedding models each pass a full gateway run: manual switch, primary response, async persistence, paraphrase hit, model/version isolation and forced cache fault bypass against the actual configured vector store. Repeatable redacted artifact required before completion.
 
 ## Explicit Non-Goals
 
-No general retries/timeouts redesign, Console, provider expansion, MCP/Agent runtime, semantic reuse for excluded request classes, exact-cache subsystem without measured need, deployment, or routine live-provider CI.
+No general retry redesign, Console, provider expansion, MCP/Agent runtime,
+semantic reuse for excluded request classes, deployment, or routine live-provider
+CI. Later measured needs added explicit exact reuse and optional provider stage
+protection within the existing cache/adapter architecture.

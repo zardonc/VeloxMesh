@@ -1,5 +1,19 @@
 # 29-03 partial execution — local model
 
+## Current status — 2026-10-08
+
+The user accepts the candidate budget for integrating all branch commits, while
+production caching stays off with an empty allowlist. The 411-file current-source
+manifest matches; 613 backend PASS / 2 SKIP, 83 race PASS, 7 real-Redis PASS,
+24 unique live gateway/cache PASS and 36 performance windows / 3,600 successful
+requests support this integration. Nine scenario/interval checks pass; original
+1.05 remains failed. Two local model lifecycles are already recorded.
+
+See [current verification](29-VERIFICATION.md) for the adopted limits and evidence.
+29-03 stays partial for semantic quality/seed provenance, original 1.05,
+collection reclamation, upstream EOF, capacity and production activation.
+The following sections are the historical 2026-10-01 execution record.
+
 Status: **partial; not a completion summary**. `CACHE-F01`, roadmap 29-03 and Phase 29 remain open.
 
 The user-selected local embedding model passes a real application/gateway/Qdrant paraphrase and negative flow after a real failing case drove the shared embedding-input fix in `c80be553`. Same authenticated key/model/database version switching passes. Embedding-fault forwarding and a real queue-full/close burst pass. Full backend tests, focused race tests and vet pass. Model IDs and dimensions remain configured/probed; production settings are unchanged.

@@ -1,14 +1,20 @@
 # Phase 29: Semantic Cache Latency Hardening - Context
 
 **Gathered:** 2026-09-25
-**Status:** Ready for planning
+**Updated:** 2026-10-08
+**Status:** Implementation verified for candidate-budget integration; production partial
+
+The 2026-10-08 user decision authorizes all current branch commits and planning
+history in the PR, adopts the candidate budget for code integration, and keeps
+production caching disabled with an empty allowlist. Original discussion and
+release requirements remain historical unless amended below.
 
 <domain>
 ## Phase Boundary
 
 Harden the existing semantic cache for explicitly eligible, non-streaming gateway requests. Remove the hardcoded embedding model, bound cache-read latency, move cache writes off the response path, isolate entries by business and embedding version, and prove that cache failures do not impair primary model forwarding.
 
-This phase does not add general provider retries or stage timeouts, cache tool or streaming requests, introduce a Console, expand providers, or implement MCP/Agent execution. Phase 27 remains the authority for terminal and Usage settlement; Phase 28 tool-protocol bypass remains intact.
+This phase does not add general provider retries, cache tool or streaming requests, introduce a Console, expand providers, or implement MCP/Agent execution. Later investigation added optional provider stage deadlines and shared attempt capacity; their production values remain unapproved. Phase 27 remains the authority for terminal and Usage settlement; Phase 28 tool-protocol bypass remains intact.
 </domain>
 
 <decisions>
@@ -29,7 +35,7 @@ This phase does not add general provider retries or stage timeouts, cache tool o
 
 ### Acceptance and test evidence
 
-- **D-08:** In a controlled, same-load, low-hit-rate non-streaming benchmark, cache-enabled P95 complete-response latency must be at most 1.05 times cache-disabled P95. Streaming TTFT is not the primary metric because this phase does not cache streaming requests.
+- **D-08 (amended for integration, 2026-10-08):** The owner accepts complete-response P95 semantic miss/low-hit ≤1.25×off AND delta≤40ms against each matched before/after off endpoint; exact miss delta≤10ms; hits P95≤60ms AND ≤0.5×each off; application residual P95≤10ms/P99≤15ms. Residual is per-request handler minus provider-completion and cache-read time. The original low-hit ratio≤1.05 remains failed and retained as an open production target; the amendment permits default-off code integration only. Streaming TTFT is not this phase's primary metric. See [current evidence](29-VERIFICATION.md).
 - **D-09:** A human-labeled negative set containing near-identical questions with different correct answers, cross-tenant requests, and cross-version requests must produce zero erroneous hits. Report positive paraphrase hit rate, but do not invent a percentage gate before representative workload data exists.
 - **D-10:** Failure-injection evidence must show immediate bypass for embedding, vector-store, and write-queue faults, no cache-caused primary-request 5xx, and a recorded reason without sensitive content.
 - **D-11:** Both real embedding models already configured in `.env.local` must complete a controlled, full gateway-flow validation at phase end: manual model switch, primary response and cache write, paraphrased request hit, model/version isolation, and fault bypass. Use the actual configured vector-store path. Do not copy `.env.local` values into plans, logs, fixtures, or commits.
@@ -48,7 +54,7 @@ This phase does not add general provider retries or stage timeouts, cache tool o
 1. Default-off and ineligible requests do not call embedding or vector services and preserve the existing OpenAI-compatible response contract.
 2. Eligible requests can produce a primary response, persist a cache candidate off the response path, and later return an allowed semantic hit with zero-token Usage. New knowledge/model versions and other tenants cannot hit the old entry.
 3. Curated negative fixtures produce no erroneous hits; positive fixtures demonstrate that useful paraphrases can hit, with measured hit rate reported.
-4. Low-hit-rate P95 complete-response latency meets D-08 under matched load; raw runs, workload, concurrency, and cache-hit ratio are recorded. Do not substitute HTTP-header time or streaming TTFT.
+4. For code integration, complete-response latency meets the amended D-08 under matched load; raw runs, workload, concurrency, and cache-hit ratio are recorded. Original 1.05 and independent production gates remain open. Do not substitute HTTP-header time or streaming TTFT.
 5. Cache dependency faults only cause observable bypass; write overload never blocks or fails the client response.
 6. Both real embedding configurations pass the end-to-end gateway scenario in D-11, with redacted evidence and no credentials in tracked files.
 </acceptance_contract>
@@ -69,8 +75,8 @@ This phase does not add general provider retries or stage timeouts, cache tool o
 
 ### Existing cache path and validation
 
-- `internal/gateway/service.go` - Current eligibility checks, synchronous lookup/store placement, cache-hit Usage.
-- `internal/cache/semantic.go` - Current hardcoded embedding model, vector search, and persistence behavior.
+- `internal/gateway/service.go` - Eligibility, bounded lookup, optional asynchronous backfill and cache-hit Usage.
+- `internal/cache/semantic.go` - Configured embedding, trusted scope eligibility and bounded persistence entry points.
 - `internal/app/semantic_cache.go` - Cache wiring and embedding adapter selection.
 - `internal/config/config_file.go` - Cache configuration and legacy environment mapping.
 - `internal/cache/semantic_test.go` - Current cache-level tests.
@@ -78,7 +84,12 @@ This phase does not add general provider retries or stage timeouts, cache tool o
 </canonical_refs>
 
 <code_context>
-## Existing Code Insights
+## Code Insights
+
+The bullets below describe the 2026-09-25 planning baseline. The current code
+removes the hardcoded model, uses explicit reuse profiles, bounds reads and
+asynchronous writes, skips empty-scope lookup and reuses valid miss vectors.
+See [embedding behavior](../../../docs/semantic-cache-embedding.md) and current verification.
 
 ### Reusable Assets
 
@@ -107,7 +118,7 @@ This phase does not add general provider retries or stage timeouts, cache tool o
 <deferred>
 ## Deferred Ideas
 
-- General connect/first-byte/stream-idle/total timeout and retry-policy redesign.
+- General retry-policy redesign and production provider timeout/capacity qualification; optional stage protection was implemented during later investigation.
 - Console, full capability catalog, new providers or endpoints, MCP, and Agent orchestration.
 - Semantic caching for streaming, tool, multimodal, structured-output, personalized, sensitive, or time-critical requests.
 </deferred>

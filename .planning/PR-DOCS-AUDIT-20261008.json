@@ -1,0 +1,137 @@
+{
+  "date": "2026-10-08",
+  "scope": "Integration documentation impact review across all tracked application and planning Markdown; historical experiment claims are preserved by date, not recertified as current results",
+  "source_revision": "214422cb4ca0d40e455ce3dd7468323dbd092005",
+  "base_revision": "cd61c3afa9f9b20e62f54467fa449eaf75f6d242",
+  "existing_commits_preserved": 68,
+  "integration_decision": "Owner-approved candidate budget; all branch commits including planning; PR to main; production cache disabled and allowlist empty",
+  "production_deployed_or_enabled": false,
+  "product_or_configuration_edits_in_this_update": false,
+  "source_manifest_count": 411,
+  "source_hash_mismatches": [],
+  "verified_results": {
+    "backend": {
+      "pass": 613,
+      "skip": 2
+    },
+    "race": {
+      "pass": 83
+    },
+    "candidate_scenarios": 9,
+    "measured_requests": 3600,
+    "original_105_passed": false
+  },
+  "checks_run_now": [
+    {
+      "check": "vet",
+      "command": [
+        "go",
+        "vet",
+        "-tags",
+        "phase29preflight",
+        "./..."
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 11.321,
+      "log": ".tmp/pr-docs-20261008/vet.log"
+    },
+    {
+      "check": "build",
+      "command": [
+        "go",
+        "build",
+        "./..."
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 7.346,
+      "log": ".tmp/pr-docs-20261008/build.log"
+    }
+  ],
+  "secret_pattern_findings": [],
+  "inventory": {
+    "tracked_markdown_total": 481,
+    "application_markdown_total": 12,
+    "planning_markdown_total": 469,
+    "updated_paths": [
+      ".planning/PROJECT.md",
+      ".planning/README.md",
+      ".planning/REQUIREMENTS.md",
+      ".planning/REVIEW-20261008.md",
+      ".planning/REVIEW-EVIDENCE-20261008.json",
+      ".planning/ROADMAP.md",
+      ".planning/STATE.md",
+      ".planning/phases/27-stream-terminal-settlement-consistency/27-VERIFICATION.md",
+      ".planning/phases/28-tool-calling-protocol-completion/28-VERIFICATION.md",
+      ".planning/phases/29-semantic-cache-latency-hardening/29-03-PLAN.md",
+      ".planning/phases/29-semantic-cache-latency-hardening/29-03-PROGRESS.md",
+      ".planning/phases/29-semantic-cache-latency-hardening/29-CONTEXT.md",
+      ".planning/phases/29-semantic-cache-latency-hardening/29-OVERVIEW.md",
+      ".planning/phases/29-semantic-cache-latency-hardening/29-UAT.md",
+      ".planning/phases/29-semantic-cache-latency-hardening/29-VALIDATION.md",
+      ".planning/phases/29-semantic-cache-latency-hardening/29-VERIFICATION.md",
+      "README.md",
+      "RELEASE_NOTES.md",
+      "deploy/README.md",
+      "docs/cache-reuse-policy.md",
+      "docs/health-state-errors.md",
+      "docs/llm-latency-optimization.md",
+      "docs/semantic-cache-embedding.md",
+      "internal/providers/adaptertest/README.md"
+    ],
+    "unchanged_application_docs": [
+      "deploy/models/README.md",
+      "docs/provider-protection.md",
+      "docs/scheduler-1.0-runbook.md",
+      "tools/scheduler_training/README.md"
+    ],
+    "historical_or_unaffected_planning_count": 454
+  },
+  "review_basis": {
+    "application": "README, release notes, deployment, latency/cache/embedding/health and adapter harness were corrected; provider protection already matches source; scheduler runbook/model/training docs have no changed implementation in this branch",
+    "planning": "PROJECT, REQUIREMENTS, ROADMAP, STATE, navigation/review and Phase29 contract/plan/progress/verification/UAT/validation synchronized; Phase27/28 evidence linked and fingerprints refreshed; dated historical reports, original plans and archived milestones retain their evidence and failures",
+    "legacy_examples": "full/postgres example enabled flags are true but no trusted profiles exist; app wiring rejects absent answer-reuse profiles. No config values changed and no live production state was inspected."
+  },
+  "evidence_sources": [
+    {
+      "path": ".planning/debug/phase29-comprehensive-20261008/source-manifest-03.json",
+      "sha256": "90aaf2cef2a6284da5b4277b6b6f7dd51f07048f3fc295643b5c88c11b1c601d",
+      "tracked": true
+    },
+    {
+      "path": ".planning/debug/phase29-comprehensive-20261008/REPORT.md",
+      "sha256": "4d74054caf67c47975776e5740c62c7ac68c5f0e38c9401db42427c2bc382ddd",
+      "tracked": true
+    },
+    {
+      "path": ".planning/debug/phase29-comprehensive-20261008/completion-audit.json",
+      "sha256": "7b7e16000e8921661dd08d613519a4f0c9ab0240d533d32348a6985aaf9a19c6",
+      "tracked": true
+    },
+    {
+      "path": ".planning/debug/phase29-comprehensive-20261008/performance-01/analysis-summary.json",
+      "sha256": "f99621c0825a5c67e4c2905be56ceb18459e16d38bd8b84f3f453c162bb1e336",
+      "tracked": true
+    },
+    {
+      "path": ".planning/debug/phase29-comprehensive-20261008/backend-01/full-backend.jsonl",
+      "sha256": "0a97e103a35b5a9680a92bd7aa337f46f36ac33b3dc3af8a56f9992763bcc246",
+      "tracked": false
+    },
+    {
+      "path": ".planning/debug/phase29-comprehensive-20261008/affected-race.log",
+      "sha256": "86308339e0ae7910e8ed3055e1478d5b387a37de3aa892cd0e56e37378eeacff",
+      "tracked": false
+    }
+  ],
+  "limitations": [
+    "No costly E2E/performance rerun for documentation-only changes; latest source identity verified instead",
+    "Current three-block validation is separate from historical Formal07 and is not long-duration capacity qualification",
+    "Raw log/JSONL files marked untracked remain local; tracked reports/manifests/summaries are portable but cannot independently recompute all raw quantiles",
+    "Original1.05, semantic quality/seed facts, empty-collection reclamation, historical upstream EOF, cold/high-load capacity and production activation remain open",
+    "GitHub branch protection and remote required checks are not verified"
+  ],
+  "local_link_check": {
+    "checked": 107,
+    "missing": []
+  }
+}

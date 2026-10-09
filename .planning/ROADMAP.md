@@ -1,8 +1,8 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Updated:** 2026-10-04
-**Current focus:** Phase 29 explicit reuse policy, exact cache and Provider protection implemented. Redis health-read failures now have an explicit fail-closed dependency category; real routing/protocol and full backend regressions pass. Natural Redis stalls, stable scenario latency, upstream 400 attribution, semantic quality and true cold-start evidence remain open. No deployment recorded.
+**Updated:** 2026-10-08
+**Current focus:** Integrate all Phase 27–29 branch commits under the user-accepted candidate budget. Current application and bounded performance verification pass; production cache remains disabled with an empty allowlist. Phase 29 production readiness remains partial.
 
 ## Overview
 
@@ -100,9 +100,9 @@ Plans:
 **Depends on:** Phase 28
 **Plans:** 2/3 plans executed; Phase 29 remains incomplete
 
-**Latest execution:** [2026-10-04 availability investigation](phases/29-semantic-cache-latency-hardening/29-AVAILABILITY-INVESTIGATION-20261004.md). Health-state read faults now return `health_state_unavailable`, preserving unhealthy rejection and readable-peer routing. Eleven real regressions and the full backend pass. Trusted profiles choose disabled/exact/experimental semantic; production remains disabled with an empty allowlist. Two real embedding model lifecycles pass.
+**Latest execution:** [2026-10-08 expanded verification](debug/phase29-comprehensive-20261008/REPORT.md). The ordered Redis writer no longer queues subsequent same-key publications behind delayed replies; version rejection, errors and default 50ms deadlines remain. All 411 source hashes match the committed code: 613 backend PASS / 2 SKIP / 0 FAIL, 83 affected race PASS, 7 real-Redis PASS, 24 unique live cache/gateway PASS. Two local embedding model lifecycles were already recorded on 2026-10-03.
 
-**Performance contract under validation:** preserve the original 1.05 result; evaluate local miss against both 1.25×off and off+40ms, plus normal residual P95≤10/P99≤15ms. These are scenario candidates, not production approval. Prior six-block measurements failed the combined contract; a new single diagnostic pair has residual P95 4.39/4.64ms and ratio 1.078, passing candidate point estimates but failing 1.05. Changed actual concurrency and VM reboot prevent replacing the previous evidence. Redis snapshot deadlines still reject unreadable state with 503. Do not complete Phase 29 by changing the threshold alone.
+**Accepted integration contract (user decision, 2026-10-08):** semantic miss/low-hit P95 must satisfy both ≤1.25×off and delta≤40ms against each matched before/after off endpoint; exact miss delta≤10ms; hits P95≤60ms and ≤0.5×each off; residual P95≤10/P99≤15ms. Current 36-window, 3,600-request, three-block verification passes all nine scenario and interval checks. Original 1.05 still fails. Historical Formal07 (144 windows/43,200 requests) used an older binary and remains separate. This decision permits default-off code integration, not production activation or automatic Phase 29 completion.
 
 Plans:
 **Wave 1**
@@ -113,7 +113,7 @@ Plans:
 
 - [x] 29-02-PLAN.md
 
-**Wave 3** *(open: Redis health availability, stable latency, approved semantic quality, cold state and production decisions; remote quota remains a separate limit)*
+**Wave 3** *(integration accepted; production open: original 1.05, independent semantic quality/seed correctness, empty-collection reclamation, historical primary EOF, longer/higher-load capacity and activation decision)*
 
 - [ ] 29-03-PLAN.md
 
@@ -159,4 +159,4 @@ Plans:
 - Config unification in v7.6 is backward-compatible: existing ENV variables remain valid; nested struct grouping is the new preferred form.
 
 ---
-*Roadmap refreshed: 2026-09-25 - v7.9 Phase 28 verified; milestone complete, deployment not performed*
+*Roadmap refreshed: 2026-10-08 — all branch commits selected for PR; production cache off, no deployment performed.*

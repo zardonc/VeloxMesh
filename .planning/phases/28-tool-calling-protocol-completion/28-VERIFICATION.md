@@ -42,13 +42,24 @@ covered_files:
   - internal/providers/gemini/stream_boundary_test.go
   - internal/app/live_gemini_wire_test.go
   - tests/integration/chat_tools_test.go
-covered_digest: "v1:sha256:4f8703cfba15e357988023ec9771be9a361e7e54e02802577f1195372991734d"
+original_covered_digest: "v1:sha256:4f8703cfba15e357988023ec9771be9a361e7e54e02802577f1195372991734d"
+covered_digest: "v1:sha256:0febc85af6eb991efc9382ace0a39d1f379f4ccdb1abfba1870361c5aa852a7f"
+fingerprint_reviewed: 2026-10-08
 behavior_unverified: 0
 overrides_applied: 0
 gaps: []
 ---
 
 # Phase 28: Tool Calling Protocol Completion Verification Report
+
+**Integration review, 2026-10-08:** original phase findings below retain their
+2026-09-25 scope. Later provider/tool boundary fixes and current 613 backend PASS /
+2 explicit SKIP are linked from [Phase 29 current verification](../29-semantic-cache-latency-hardening/29-VERIFICATION.md)
+and the [consolidated review](../../REVIEW-20261008.md). All 411 latest source
+hashes match committed code. The refreshed coverage fingerprint records current
+content, not a rerun of every historical live-provider matrix. Gemini clients
+must preserve thought signatures; tools remain outside cache eligibility and
+the gateway does not execute them. Production cache enablement remains unapproved.
 
 **Latest wire comparison (2026-10-04):** [Further correction](../29-semantic-cache-latency-hardening/29-FURTHER-CORRECTION-20261004.md) records one successful real native/gateway stream pair with identical canonical JSON parameters, endpoint/method and selected auth/HTTP headers. Real opaque signatures and tool-result continuation pass. Fixed order and different connection reuse prevent attributing the historical 12-second header timeout to a unique cause; that intermittent issue remains open. New stream-tail checks and the final 599-test backend suite pass, without production approval.
 

@@ -26,9 +26,19 @@
 
 - [x] **TOOL-F01**: Complete internal and provider mappings for `tools`, `tool_choice`, tool-call fragments, and `tool_call_id`.
 
-## Planned Next Phase
+## Active Phase
 
 - [ ] **CACHE-F01**: Remove fixed embedding assumptions and bound semantic-cache read/write latency, with default-off eligibility, version isolation, fault bypass, and full two-model gateway validation as specified in Phase 29 context.
+
+Integration amendment, 2026-10-08: the user accepts the candidate budget in
+[D-08](phases/29-semantic-cache-latency-hardening/29-CONTEXT.md) for merging the
+default-off implementation and all branch commits. Latest 411-file source match,
+613 backend PASS / 2 SKIP, 83 race PASS, 7 real-Redis PASS, 24 live cache/gateway
+PASS and 36 windows / 3,600 successful requests support this scope. Two distinct
+local embedding model lifecycles were recorded on 2026-10-03; they do not qualify
+every online model or independent business answer quality. CACHE-F01 remains open
+for the original 1.05 target, semantic quality/seed provenance, collection
+reclamation, capacity and production activation. No production enablement is approved.
 
 ## Future Requirements
 
@@ -58,7 +68,7 @@
 | TERM-07 | Phase 27 | Verified |
 | TERM-08 | Phase 27 | Verified |
 | TOOL-F01 | Phase 28 | Verified |
-| CACHE-F01 | Phase 29 | In progress; two-model and latency gates pending |
+| CACHE-F01 | Phase 29 | Integration accepted under candidate budget; production partial |
 
 **Coverage:**
 
@@ -66,6 +76,7 @@
 - Mapped to phases: 9
 - Unmapped: 0
 - Complete: 9
+- Separate active Phase 29 requirement: 1 mapped, 0 fully production-complete.
 
 ---
-*Requirements verified: 2026-09-25*
+*Requirements refreshed: 2026-10-08; v7.9 verification retained, Phase 29 integration decision recorded.*
