@@ -7,14 +7,15 @@ import (
 )
 
 type fileConfig struct {
-	MultiNodeEnabled *bool             `json:"multi_node_enabled"`
-	NodeID           string            `json:"node_id"`
-	RoutingStrategy  string            `json:"routing_strategy"`
-	DefaultProvider  string            `json:"default_provider"`
-	FallbackEnabled  *bool             `json:"fallback_enabled"`
-	MaxAttempts      *int              `json:"max_attempts"`
-	HealthCheck      HealthCheckConfig `json:"health_check"`
-	Providers        []ProviderConfig  `json:"providers"`
+	MultiNodeEnabled   *bool                               `json:"multi_node_enabled"`
+	NodeID             string                              `json:"node_id"`
+	RoutingStrategy    string                              `json:"routing_strategy"`
+	DefaultProvider    string                              `json:"default_provider"`
+	FallbackEnabled    *bool                               `json:"fallback_enabled"`
+	MaxAttempts        *int                                `json:"max_attempts"`
+	HealthCheck        HealthCheckConfig                   `json:"health_check"`
+	Providers          []ProviderConfig                    `json:"providers"`
+	ProviderProtection map[string]ProviderProtectionConfig `json:"provider_protection"`
 
 	ControlState *controlStateFileConfig `json:"control_state"`
 	Redis        *redisFileConfig        `json:"redis"`
@@ -76,12 +77,26 @@ type redisFileConfig struct {
 }
 
 type cacheFileConfig struct {
-	Enabled         *bool          `json:"enabled"`
-	Provider        string         `json:"provider"`
-	VectorStore     string         `json:"vector_store"`
-	VectorDimension *int           `json:"vector_dimension"`
-	PGVector        PGVectorConfig `json:"pgvector"`
-	Qdrant          QdrantConfig   `json:"qdrant"`
+	Enabled               *bool                 `json:"enabled"`
+	Provider              string                `json:"provider"`
+	EmbeddingModel        string                `json:"embedding_model"`
+	EmbeddingInputPrefix  *string               `json:"embedding_input_prefix"`
+	EmbeddingMemoCapacity *int                  `json:"embedding_memo_capacity"`
+	EmbeddingMemoTTL      *string               `json:"embedding_memo_ttl"`
+	VectorStore           string                `json:"vector_store"`
+	VectorDimension       *int                  `json:"vector_dimension"`
+	TTL                   string                `json:"ttl"`
+	Threshold             *float32              `json:"threshold"`
+	MaxCandidates         *int                  `json:"max_candidates"`
+	UseCases              *[]CacheUseCaseConfig `json:"use_cases"`
+	ReadTimeout           string                `json:"read_timeout"`
+	ReadConcurrency       *int                  `json:"read_concurrency"`
+	WriteTimeout          string                `json:"write_timeout"`
+	WriteWorkers          *int                  `json:"write_workers"`
+	QueueCapacity         *int                  `json:"queue_capacity"`
+	ShutdownGrace         string                `json:"shutdown_grace"`
+	PGVector              PGVectorConfig        `json:"pgvector"`
+	Qdrant                QdrantConfig          `json:"qdrant"`
 }
 
 type schedulerFileConfig struct {
@@ -166,6 +181,12 @@ func applyRootFileConfig(cfg *Config, fileCfg fileConfig) {
 	}
 	cfg.HealthCheck = fileCfg.HealthCheck
 	cfg.Providers = fileCfg.Providers
+	if fileCfg.ProviderProtection != nil {
+		cfg.ProviderProtection = make(map[string]ProviderProtectionConfig, len(fileCfg.ProviderProtection))
+		for id, policy := range fileCfg.ProviderProtection {
+			cfg.ProviderProtection[id] = policy
+		}
+	}
 	if fileCfg.SemanticPipelineConfigFile != "" {
 		cfg.SemanticPipelineConfigFile = fileCfg.SemanticPipelineConfigFile
 	}
@@ -235,25 +256,6 @@ func redisConfigFromEnv() RedisConfig {
 		HealthTTL:      getEnv("REDIS_HEALTH_TTL", "1m"),
 		AuthCacheTTL:   getEnv("REDIS_AUTH_CACHE_TTL", "5m"),
 		DegradeToLocal: getEnv("REDIS_DEGRADE_TO_LOCAL", "true") == "true",
-	}
-}
-
-func cacheConfigFromEnv() CacheConfig {
-	return CacheConfig{
-		Enabled:         getEnv("SEMANTIC_CACHE_ENABLED", "false") == "true",
-		Provider:        getEnv("SEMANTIC_CACHE_PROVIDER", ""),
-		VectorStore:     getEnv("SEMANTIC_CACHE_VECTOR_STORE", ""),
-		VectorDimension: getEnvInt("SEMANTIC_CACHE_VECTOR_DIMENSION", defaultSemanticCacheVectorDimension),
-		PGVector: PGVectorConfig{
-			IndexType:       getEnv("PGVECTOR_INDEX_TYPE", defaultPGVectorIndexType),
-			HNSWM:           getEnvInt("PGVECTOR_HNSW_M", defaultPGVectorHNSWM),
-			HNSWEFConstruct: getEnvInt("PGVECTOR_HNSW_EF_CONSTRUCTION", defaultPGVectorHNSWEFConstruction),
-			SearchEF:        getEnvInt("PGVECTOR_SEARCH_EF", defaultPGVectorSearchEF),
-		},
-		Qdrant: QdrantConfig{
-			Addr:   getEnv("QDRANT_ADDR", ""),
-			APIKey: getEnv("QDRANT_API_KEY", ""),
-		},
 	}
 }
 
@@ -395,50 +397,6 @@ func mergeRedisConfig(dst *RedisConfig, src *redisFileConfig) {
 	}
 	if src.DegradeToLocal != nil {
 		dst.DegradeToLocal = *src.DegradeToLocal
-	}
-}
-
-func mergeCacheConfig(dst *CacheConfig, src *cacheFileConfig) {
-	if src == nil {
-		return
-	}
-	if src.Enabled != nil {
-		dst.Enabled = *src.Enabled
-	}
-	if src.Provider != "" {
-		dst.Provider = src.Provider
-	}
-	if src.VectorStore != "" {
-		dst.VectorStore = src.VectorStore
-	}
-	if src.VectorDimension != nil {
-		dst.VectorDimension = *src.VectorDimension
-	}
-	mergePGVectorConfig(&dst.PGVector, src.PGVector)
-	mergeQdrantConfig(&dst.Qdrant, src.Qdrant)
-}
-
-func mergePGVectorConfig(dst *PGVectorConfig, src PGVectorConfig) {
-	if src.IndexType != "" {
-		dst.IndexType = src.IndexType
-	}
-	if src.HNSWM != 0 {
-		dst.HNSWM = src.HNSWM
-	}
-	if src.HNSWEFConstruct != 0 {
-		dst.HNSWEFConstruct = src.HNSWEFConstruct
-	}
-	if src.SearchEF != 0 {
-		dst.SearchEF = src.SearchEF
-	}
-}
-
-func mergeQdrantConfig(dst *QdrantConfig, src QdrantConfig) {
-	if src.Addr != "" {
-		dst.Addr = src.Addr
-	}
-	if src.APIKey != "" {
-		dst.APIKey = src.APIKey
 	}
 }
 

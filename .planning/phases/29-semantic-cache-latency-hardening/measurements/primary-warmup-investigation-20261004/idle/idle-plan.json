@@ -1,0 +1,33 @@
+[
+  {
+    "label": "baseline",
+    "seconds": 30
+  },
+  {
+    "label": "redis-only",
+    "container": "veloxmesh-test-redis",
+    "seconds": 45
+  },
+  {
+    "label": "after-redis",
+    "seconds": 30
+  },
+  {
+    "label": "postgres-only",
+    "container": "veloxmesh-test-postgres",
+    "seconds": 45
+  },
+  {
+    "label": "after-postgres",
+    "seconds": 30
+  },
+  {
+    "label": "qdrant-only",
+    "container": "veloxmesh-test-qdrant",
+    "seconds": 120
+  },
+  {
+    "label": "after-qdrant",
+    "seconds": 30
+  }
+]

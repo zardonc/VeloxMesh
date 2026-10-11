@@ -439,6 +439,9 @@ func (c *Config) Validate() error {
 	if err := validateSemanticCacheConfig(c); err != nil {
 		return err
 	}
+	if err := validateProviderProtection(c.ProviderProtection); err != nil {
+		return err
+	}
 	if err := validateSchedulerConfig(c.Scheduler); err != nil {
 		return err
 	}

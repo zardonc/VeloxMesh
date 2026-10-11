@@ -1,0 +1,44 @@
+{
+  "created_utc": "2026-10-09T01:50:39.942071+00:00",
+  "objective_scope": "Confirmed application delay amplification fixed; candidate budgets retained; original1.05 not achieved; no production release",
+  "source_count": 410,
+  "changed_existing_product_files": [
+    "internal/health/redis_store.go"
+  ],
+  "new_test_files": [
+    "internal/app/live_health_publication_test.go"
+  ],
+  "source_and_binary_hashes_verified": true,
+  "clean_real_redis_red_then_green": true,
+  "postfix_gateway_measured_requests": 300,
+  "postfix_candidate_point_checks": true,
+  "postfix_original105_complete_pass": false,
+  "postfix_is_full_formal": false,
+  "cleanup": {
+    "containers_preserved_and_stopped": 17,
+    "volumes_preserved": 17,
+    "owned_backend_pids": [],
+    "native1236_free": true,
+    "shared1234_preserved": true,
+    "loaded_models": [],
+    "retained_test_binary_sha256": "d911ac07a1228a39b8700870a59d2b48a9f0f3ddd6b93afa40f26af118ac5b69"
+  },
+  "python_syntax_checked": [
+    "analyze_existing.py",
+    "analyze_gateway.py",
+    "analyze_postfix.py",
+    "device_screen.py",
+    "gateway_postfix.py",
+    "gateway_screen.py",
+    "prepare_runner.py",
+    "run_health.py"
+  ],
+  "report_sha256": "65a042574ad57b469fdd92586893b4c84935f07793ec0e7bcc7c7ab50158e078",
+  "evidence_sha256": {
+    ".planning/debug/phase29-followup-20261008/postfix-source-manifest.json": "d7f762168f44b10cd7a98a8be194e36477a849e7a7efcc70f1aab74f89e0b98b",
+    ".planning/debug/phase29-followup-20261008/analysis.json": "6855c32f1f2bd5f37b56239aedfc081d7594962ed72e195e66db725f452119f1",
+    ".planning/debug/phase29-followup-20261008/gateway-cpu-postfix-01/analysis.json": "511f2e7961d545c2f0885b88151c18b699d5a101027f626c0cf02f48ce4b2d7d",
+    ".planning/debug/phase29-followup-20261008/health-green-01/result.json": "c2c96254e04b9ed4143e8f9defcab815cb59d828ef64a183dfc92c04506d61a4",
+    ".planning/debug/phase29-followup-20261008/health-red-02/result.json": "235a3f7aa84d28542528e62751e2b5298672c128a3651e528f3230878e1b280b"
+  }
+}

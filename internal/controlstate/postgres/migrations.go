@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"veloxmesh/internal/controlstate"
+	"veloxmesh/internal/postgresconn"
 )
 
 type Migrator struct {
@@ -20,12 +21,16 @@ func NewMigrator(pool *pgxpool.Pool) controlstate.Migrator {
 }
 
 func (m *Migrator) Migrate(ctx context.Context) error {
+	return postgresconn.WithVectorBootstrap(ctx, m.pool, func(tx pgx.Tx) error {
+		return migrateSchema(ctx, tx)
+	})
+}
+
+func migrateSchema(ctx context.Context, tx pgx.Tx) error {
 	fs := controlstate.GetPostgreSQLMigrations()
-	initialFiles := []string{
-		"migrations/postgres/0001_control_state.sql",
-		"migrations/postgres/0002_combos.sql",
+	if err := initializeSchema(ctx, tx, fs); err != nil {
+		return err
 	}
-	initialVersions := []int64{1, 2}
 	versionedFiles := []versionedMigration{
 		{version: 3, file: "migrations/postgres/0003_limits_sessions.sql"},
 		{version: 4, file: "migrations/postgres/0004_pgvector_semantic_cache.sql"},
@@ -34,31 +39,7 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 		{version: 7, file: "migrations/postgres/0007_scheduler_quality_rollups.sql"},
 		{version: 8, file: "migrations/postgres/0008_scheduler_training_semantic_aggregates.sql"},
 		{version: 9, file: "migrations/postgres/0009_scheduler_quality_anomaly.sql"},
-	}
-
-	tx, err := m.pool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(ctx)
-
-	var exists bool
-	err = tx.QueryRow(ctx, "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = 'schema_migrations')").Scan(&exists)
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		for _, file := range initialFiles {
-			if err := executeMigration(ctx, tx, fs, file); err != nil {
-				return err
-			}
-		}
-		for _, version := range initialVersions {
-			if err := recordMigrationVersion(ctx, tx, version); err != nil {
-				return err
-			}
-		}
+		{version: 10, file: "migrations/postgres/0010_cache_readiness.sql"},
 	}
 
 	for _, migration := range versionedFiles {
@@ -75,7 +56,31 @@ func (m *Migrator) Migrate(ctx context.Context) error {
 		}
 	}
 
-	return tx.Commit(ctx)
+	return nil
+}
+
+func initializeSchema(ctx context.Context, tx pgx.Tx, fs embed.FS) error {
+	var exists bool
+	err := tx.QueryRow(ctx, "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = 'schema_migrations')").Scan(&exists)
+	if err != nil || exists {
+		return err
+	}
+	initialFiles := []string{
+		"migrations/postgres/0001_control_state.sql",
+		"migrations/postgres/0002_combos.sql",
+	}
+	for _, file := range initialFiles {
+		if err := executeMigration(ctx, tx, fs, file); err != nil {
+			return err
+		}
+	}
+	initialVersions := []int64{1, 2}
+	for _, version := range initialVersions {
+		if err := recordMigrationVersion(ctx, tx, version); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type versionedMigration struct {

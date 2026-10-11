@@ -14,13 +14,13 @@ import (
 )
 
 func TestAdapter_Capabilities(t *testing.T) {
-	adapter := NewAdapter("gemini-1", "https://example.test/", "test-key", "gemini-1.5-pro")
+	adapter := NewAdapter(AdapterConfig{ID: "gemini-1", BaseURL: "https://example.test/", APIKey: "test-key", ModelsCSV: "gemini-1.5-pro"})
 	caps := adapter.Capabilities()
 
 	if caps.ProviderType != providers.ProviderTypeGemini {
 		t.Errorf("expected provider type %q, got %q", providers.ProviderTypeGemini, caps.ProviderType)
 	}
-	if len(caps.SupportedOperations) != 1 || caps.SupportedOperations[0] != providers.OperationChatCompletions {
+	if len(caps.SupportedOperations) != 2 || caps.SupportedOperations[0] != providers.OperationChatCompletions || caps.SupportedOperations[1] != providers.OperationEmbeddings {
 		t.Errorf("expected chat_completions operation, got %v", caps.SupportedOperations)
 	}
 	if len(caps.InputModalities) != 1 || caps.InputModalities[0] != providers.ModalityText {
@@ -192,7 +192,7 @@ func TestAdapter_Complete(t *testing.T) {
 			}))
 			defer server.Close()
 
-			adapter := NewAdapter("gemini-1", server.URL+"/", "test-key", "gemini-1.5-pro")
+			adapter := NewAdapter(AdapterConfig{ID: "gemini-1", BaseURL: server.URL + "/", APIKey: "test-key", ModelsCSV: "gemini-1.5-pro"})
 
 			resp, err := adapter.Complete(context.Background(), tt.request)
 
@@ -249,7 +249,7 @@ func TestAdapter_Conformance(t *testing.T) {
 	}))
 	defer server.Close()
 
-	adapter := NewAdapter("gemini-1", server.URL+"/", "test-key", "gemini-1.5-pro")
+	adapter := NewAdapter(AdapterConfig{ID: "gemini-1", BaseURL: server.URL + "/", APIKey: "test-key", ModelsCSV: "gemini-1.5-pro"})
 
 	spec := adaptertest.ConformanceSpec{
 		Adapter:        adapter,
@@ -257,7 +257,7 @@ func TestAdapter_Conformance(t *testing.T) {
 		ExpectedModels: []string{"gemini-1.5-pro"},
 		ExpectedCapabilities: providers.CapabilitySet{
 			ProviderType:        providers.ProviderTypeGemini,
-			SupportedOperations: []providers.Operation{providers.OperationChatCompletions},
+			SupportedOperations: []providers.Operation{providers.OperationChatCompletions, providers.OperationEmbeddings},
 			InputModalities:     []providers.Modality{providers.ModalityText},
 			OutputModalities:    []providers.Modality{providers.ModalityText},
 			Streaming:           true,

@@ -1,0 +1,4 @@
+=== RUN   TestLiveUpstreamStreamDiagnostic
+    live_ship_load_test.go:194: real upstream transport failed
+--- FAIL: TestLiveUpstreamStreamDiagnostic (12.00s)
+FAIL

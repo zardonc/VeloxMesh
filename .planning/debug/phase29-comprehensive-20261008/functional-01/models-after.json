@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "ps",
+    "--json"
+  ],
+  "exit_code": 0,
+  "stdout": "[]\n",
+  "stderr": ""
+}

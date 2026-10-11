@@ -1,0 +1,36 @@
+{
+  "started": "2026-10-04T20:59:20.788Z",
+  "model": "gemini-3.1-flash-lite",
+  "plan": [
+    {
+      "label": "pair-1",
+      "tests": [
+        "TestLiveGeminiNativeTimeline",
+        "TestLiveGeminiToolTimeline"
+      ]
+    },
+    {
+      "label": "pair-2",
+      "tests": [
+        "TestLiveGeminiNativeTimeline",
+        "TestLiveGeminiToolTimeline"
+      ]
+    },
+    {
+      "label": "pair-3",
+      "tests": [
+        "TestLiveGeminiNativeTimeline",
+        "TestLiveGeminiToolTimeline"
+      ]
+    },
+    {
+      "label": "cancellation",
+      "tests": [
+        "TestLiveGeminiCancelBeforeComplete",
+        "TestLiveGeminiCompleteBeforeCancel"
+      ]
+    }
+  ],
+  "retry": false,
+  "scope": "same actual Gemini SDK/provider; private metadata hashed; cancellation gate controls delivery, not physical provider completion"
+}

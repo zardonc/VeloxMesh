@@ -1,0 +1,1518 @@
+{
+  "base_revision": "780e12e76dff3c0c4576879d30d88dbb7245eccd",
+  "standards_status": "candidate budgets; no phase completion or production approval",
+  "tests": [
+    {
+      "path": "cache-policies/LOCAL-qwen2.5-0.5b-instruct/TestLiveDisabledCachePolicy.log",
+      "name": "TestLiveDisabledCachePolicy",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "cache-policies/LOCAL-qwen2.5-0.5b-instruct/TestLiveExactCachePolicy.log",
+      "name": "TestLiveExactCachePolicy",
+      "status": "PASS",
+      "clients": 4,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "cache-policies/LOCAL-qwen2.5-0.5b-instruct/TestLiveImplicitCachePolicy.log",
+      "name": "TestLiveImplicitCachePolicy",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "embedding-isolation/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingModelSwitch.log",
+      "name": "TestLiveEmbeddingModelSwitch",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "models": [
+            "text-embedding-embedder_collection",
+            "text-embedding-nomic-embed-text-v1.5"
+          ],
+          "restored_old_hit": true,
+          "separate_scopes": true,
+          "type": "embedding_model_switch"
+        }
+      ]
+    },
+    {
+      "path": "final-backend/backend-regression/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalEmbeddingFault.log",
+      "name": "TestPhase29LocalEmbeddingFault",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "final-backend/backend-regression/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalGatewayAcceptance.log",
+      "name": "TestPhase29LocalGatewayAcceptance",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "final-backend/backend-regression/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.log",
+      "name": "TestPhase29LocalQueueBurst",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "FAIL",
+      "clients": 100,
+      "failed_clients": 9,
+      "errors": {
+        "no_healthy_provider": 9
+      },
+      "assertions": []
+    },
+    {
+      "path": "low-hit-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "low-hit-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "provider-protection/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderCancellationRecovery.log",
+      "name": "TestLiveProviderCancellationRecovery",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "recovered": true,
+          "settlements": 1,
+          "type": "provider_cancellation"
+        }
+      ]
+    },
+    {
+      "path": "provider-protection/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderConcurrencyRecovery.log",
+      "name": "TestLiveProviderConcurrencyRecovery",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "limit": 1,
+          "recovered": true,
+          "rejected": 1,
+          "settlements": 2,
+          "type": "provider_concurrency"
+        }
+      ]
+    },
+    {
+      "path": "provider-protection/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderDeadlineProtection.log",
+      "name": "TestLiveProviderDeadlineProtection",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "elapsed_ms": 1028.457,
+          "expected_error": "provider_first_byte_timeout",
+          "fault": "headers",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1027.668,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "body",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1027.633,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "partial",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1030.111,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "heartbeats",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1059.867,
+          "expected_error": "provider_stream_idle_timeout",
+          "fault": "stream_idle",
+          "type": "provider_protection"
+        }
+      ]
+    },
+    {
+      "path": "provider-protection/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderSharedResource.log",
+      "name": "TestLiveProviderSharedResource",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "limit": 1,
+          "recovered": true,
+          "rejected_embedding": true,
+          "type": "shared_provider_resource"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/additional-guards/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderOverallTimeout.log",
+      "name": "TestLiveProviderOverallTimeout",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "elapsed_ms": 1027.125,
+          "type": "provider_overall_timeout"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/additional-guards/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderRegistryCapacity.log",
+      "name": "TestLiveProviderRegistryCapacity",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "active_permit_preserved": true,
+          "limit": 1,
+          "recovered": true,
+          "type": "provider_registry_capacity"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/backend-regression/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalEmbeddingFault.log",
+      "name": "TestPhase29LocalEmbeddingFault",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/backend-regression/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalGatewayAcceptance.log",
+      "name": "TestPhase29LocalGatewayAcceptance",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/backend-regression/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.log",
+      "name": "TestPhase29LocalQueueBurst",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/backend-regression-final/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalEmbeddingFault.log",
+      "name": "TestPhase29LocalEmbeddingFault",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/backend-regression-final/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalGatewayAcceptance.log",
+      "name": "TestPhase29LocalGatewayAcceptance",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/backend-regression-final/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.log",
+      "name": "TestPhase29LocalQueueBurst",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/cache-policies/LOCAL-qwen2.5-0.5b-instruct/TestLiveDisabledCachePolicy.log",
+      "name": "TestLiveDisabledCachePolicy",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/cache-policies/LOCAL-qwen2.5-0.5b-instruct/TestLiveExactCachePolicy.log",
+      "name": "TestLiveExactCachePolicy",
+      "status": "PASS",
+      "clients": 4,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/cache-policies/LOCAL-qwen2.5-0.5b-instruct/TestLiveImplicitCachePolicy.log",
+      "name": "TestLiveImplicitCachePolicy",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/capacity-c1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.log",
+      "name": "TestLiveCacheBypassLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/capacity-c1/LOCAL-qwen2.5-0.5b-instruct/TestLiveMissBurst.log",
+      "name": "TestLiveMissBurst",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/capacity-c2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.log",
+      "name": "TestLiveCacheBypassLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/capacity-c2/LOCAL-qwen2.5-0.5b-instruct/TestLiveMissBurst.log",
+      "name": "TestLiveMissBurst",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/capacity-c4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.log",
+      "name": "TestLiveCacheBypassLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/capacity-c4/LOCAL-qwen2.5-0.5b-instruct/TestLiveMissBurst.log",
+      "name": "TestLiveMissBurst",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/capacity-c8/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheBypassLoad.log",
+      "name": "TestLiveCacheBypassLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/capacity-c8/LOCAL-qwen2.5-0.5b-instruct/TestLiveMissBurst.log",
+      "name": "TestLiveMissBurst",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/embedding-isolation/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingModelSwitch.log",
+      "name": "TestLiveEmbeddingModelSwitch",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "models": [
+            "text-embedding-embedder_collection",
+            "text-embedding-nomic-embed-text-v1.5"
+          ],
+          "restored_old_hit": true,
+          "separate_scopes": true,
+          "type": "embedding_model_switch"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/exact-safety-regression/LOCAL-qwen2.5-0.5b-instruct/TestLiveExactCacheSafetyRegression.log",
+      "name": "TestLiveExactCacheSafetyRegression",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "changed_questions": 41,
+          "false_hits": 0,
+          "identical_hits": 3,
+          "independent_semantic_quality": false,
+          "type": "exact_safety_regression"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/exact-safety-regression/LOCAL-qwen2.5-0.5b-instruct/TestLiveExactCacheVersionIsolation.log",
+      "name": "TestLiveExactCacheVersionIsolation",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "isolated": true,
+          "restored": true,
+          "settlements": 2,
+          "type": "exact_version_isolation"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/hit-comparison/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheHitBaseline.log",
+      "name": "TestLiveCacheHitBaseline",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/hit-comparison/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheHitSettlementLoad.log",
+      "name": "TestLiveCacheHitSettlementLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/hit-comparison/LOCAL-qwen2.5-0.5b-instruct/TestLiveEmbeddingMemoHitBilling.log",
+      "name": "TestLiveEmbeddingMemoHitBilling",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "FAIL",
+      "clients": 100,
+      "failed_clients": 2,
+      "errors": {
+        "no_healthy_provider": 2
+      },
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "FAIL",
+      "clients": 100,
+      "failed_clients": 1,
+      "errors": {
+        "no_healthy_provider": 1
+      },
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-1-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "FAIL",
+      "clients": 100,
+      "failed_clients": 2,
+      "errors": {
+        "provider_invalid_request": 2
+      },
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-1-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-1-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-1-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/low-hit-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/protected-local-stream/LOCAL-qwen2.5-0.5b-instruct/TestLiveBufferedStream.log",
+      "name": "TestLiveBufferedStream",
+      "status": "FAIL",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/protected-local-stream/LOCAL-qwen2.5-0.5b-instruct/TestLiveFusionStream.log",
+      "name": "TestLiveFusionStream",
+      "status": "FAIL",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/protected-local-stream/LOCAL-qwen2.5-0.5b-instruct/TestLiveStreamCancellation.log",
+      "name": "TestLiveStreamCancellation",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/protected-local-stream/LOCAL-qwen2.5-0.5b-instruct/TestLiveStreamSettlement.log",
+      "name": "TestLiveStreamSettlement",
+      "status": "FAIL",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/protected-stream-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveBufferedStream.log",
+      "name": "TestLiveBufferedStream",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/protected-stream-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveFusionStream.log",
+      "name": "TestLiveFusionStream",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/protected-stream-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveStreamCancellation.log",
+      "name": "TestLiveStreamCancellation",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/protected-stream-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveStreamSettlement.log",
+      "name": "TestLiveStreamSettlement",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/provider-protection/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderCancellationRecovery.log",
+      "name": "TestLiveProviderCancellationRecovery",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "recovered": true,
+          "settlements": 1,
+          "type": "provider_cancellation"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderConcurrencyRecovery.log",
+      "name": "TestLiveProviderConcurrencyRecovery",
+      "status": "FAIL",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/provider-protection/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderDeadlineProtection.log",
+      "name": "TestLiveProviderDeadlineProtection",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "elapsed_ms": 1030.111,
+          "expected_error": "provider_first_byte_timeout",
+          "fault": "headers",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1027.497,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "body",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1028.24,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "partial",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1026.946,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "heartbeats",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1055.519,
+          "expected_error": "provider_stream_idle_timeout",
+          "fault": "stream_idle",
+          "type": "provider_protection"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderSharedResource.log",
+      "name": "TestLiveProviderSharedResource",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "limit": 1,
+          "recovered": true,
+          "rejected_embedding": true,
+          "type": "shared_provider_resource"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderCancellationRecovery.log",
+      "name": "TestLiveProviderCancellationRecovery",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "recovered": true,
+          "settlements": 1,
+          "type": "provider_cancellation"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderConcurrencyRecovery.log",
+      "name": "TestLiveProviderConcurrencyRecovery",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "limit": 1,
+          "recovered": true,
+          "rejected": 1,
+          "settlements": 2,
+          "type": "provider_concurrency"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderDeadlineProtection.log",
+      "name": "TestLiveProviderDeadlineProtection",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "elapsed_ms": 1031.762,
+          "expected_error": "provider_first_byte_timeout",
+          "fault": "headers",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1028.256,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "body",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1027.236,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "partial",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1029.058,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "heartbeats",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1060.209,
+          "expected_error": "provider_stream_idle_timeout",
+          "fault": "stream_idle",
+          "type": "provider_protection"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderOverallTimeout.log",
+      "name": "TestLiveProviderOverallTimeout",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "elapsed_ms": 1030.054,
+          "type": "provider_overall_timeout"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderRegistryCapacity.log",
+      "name": "TestLiveProviderRegistryCapacity",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "active_permit_preserved": true,
+          "limit": 1,
+          "recovered": true,
+          "type": "provider_registry_capacity"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection-final/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderSharedResource.log",
+      "name": "TestLiveProviderSharedResource",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "limit": 1,
+          "recovered": true,
+          "rejected_embedding": true,
+          "type": "shared_provider_resource"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderCancellationRecovery.log",
+      "name": "TestLiveProviderCancellationRecovery",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "recovered": true,
+          "settlements": 1,
+          "type": "provider_cancellation"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderConcurrencyRecovery.log",
+      "name": "TestLiveProviderConcurrencyRecovery",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "limit": 1,
+          "recovered": true,
+          "rejected": 1,
+          "settlements": 2,
+          "type": "provider_concurrency"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderDeadlineProtection.log",
+      "name": "TestLiveProviderDeadlineProtection",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "elapsed_ms": 1031.047,
+          "expected_error": "provider_first_byte_timeout",
+          "fault": "headers",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1029.495,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "body",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1030.005,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "partial",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1030.022,
+          "expected_error": "provider_first_content_timeout",
+          "fault": "heartbeats",
+          "type": "provider_protection"
+        },
+        {
+          "elapsed_ms": 1058.516,
+          "expected_error": "provider_stream_idle_timeout",
+          "fault": "stream_idle",
+          "type": "provider_protection"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/provider-protection-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveProviderSharedResource.log",
+      "name": "TestLiveProviderSharedResource",
+      "status": "PASS",
+      "clients": 0,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": [
+        {
+          "limit": 1,
+          "recovered": true,
+          "rejected_embedding": true,
+          "type": "shared_provider_resource"
+        }
+      ]
+    },
+    {
+      "path": "warm-batch/pure-miss-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-1/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-2/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-3/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "FAIL",
+      "clients": 100,
+      "failed_clients": 2,
+      "errors": {
+        "no_healthy_provider": 2
+      },
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-4/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-4-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-4-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-4-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-4-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-5/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnMemo.log",
+      "name": "TestLiveCacheLoadOnMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    },
+    {
+      "path": "warm-batch/pure-miss-6/LOCAL-qwen2.5-0.5b-instruct/TestLiveDirectLoad.log",
+      "name": "TestLiveDirectLoad",
+      "status": "PASS",
+      "clients": 100,
+      "failed_clients": 0,
+      "errors": {},
+      "assertions": []
+    }
+  ],
+  "final_backend": {
+    "path": "final-backend/backend-regression/LOCAL-qwen2.5-0.5b-instruct/full-backend.jsonl",
+    "passed": 954,
+    "top_level_passed": 595,
+    "packages_passed": 38,
+    "skipped": [
+      {
+        "package": "veloxmesh/cmd/controlstate-migrate"
+      },
+      {
+        "package": "veloxmesh/cmd/gateway"
+      },
+      {
+        "package": "veloxmesh/internal/scheduler/predictorv1"
+      },
+      {
+        "package": "veloxmesh/internal/scheduler/schedulerv1"
+      },
+      {
+        "package": "veloxmesh/tests/integration",
+        "test": "TestPlan4PostgresSmoke"
+      },
+      {
+        "package": "veloxmesh/tests/integration",
+        "test": "TestPlan4PostgresSansPrimaryRealProviderSmoke"
+      }
+    ],
+    "failed": []
+  },
+  "final_cleanup_log": "final-backend/lifecycle/runner.log",
+  "pending": [
+    "representative business-approved same-answer dataset and recall target",
+    "isolated embedding unload/reload cold start",
+    "Redis health read timeout availability and VM/host scheduling attribution",
+    "upstream 400 and time-aligned LM Studio engine Channel Error attribution",
+    "stable scenario performance contracts"
+  ]
+}

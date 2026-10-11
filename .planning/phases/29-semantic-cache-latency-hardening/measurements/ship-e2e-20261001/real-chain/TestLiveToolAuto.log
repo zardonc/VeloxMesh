@@ -1,0 +1,14 @@
+=== RUN   TestLiveToolAuto
+{"time":"2026-10-02T04:15:39.988540618Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:39.992865568Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:15:39.992924639Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:15:39.992937293Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:39.99306836Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:39.997108955Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:245: model=text-embedding-embedder_collection dimension=768 primary=oc/big-pickle
+{"time":"2026-10-02T04:15:41.108766527Z","level":"INFO","msg":"request completed","request_id":"b7a173b77dcd3a2a9553b3927e854d09","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1108}
+{"time":"2026-10-02T04:15:43.928577354Z","level":"INFO","msg":"request completed","request_id":"282cdecb83180b3488bc4f029b5f4fdb","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2818}
+    live_ship_protocol_test.go:245: settled_records=2 total_tokens=955 credits=955 exactly_once=true
+    live_ship_protocol_test.go:245: real model -> tool arguments -> client calculation -> tool_call_id continuation -> final answer passed
+--- PASS: TestLiveToolAuto (4.04s)
+PASS

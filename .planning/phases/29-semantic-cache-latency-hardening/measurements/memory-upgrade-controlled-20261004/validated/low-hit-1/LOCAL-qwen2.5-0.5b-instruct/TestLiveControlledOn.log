@@ -1,0 +1,4 @@
+=== RUN   TestLiveControlledOn
+    live_controlled_load_test.go:19: failed to load config: cache.embedding_memo_ttl requires positive capacity and a duration in (0, 1h]
+--- FAIL: TestLiveControlledOn (0.03s)
+FAIL

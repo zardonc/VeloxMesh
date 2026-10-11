@@ -1,0 +1,12 @@
+=== RUN   TestLiveToolRequired
+{"time":"2026-10-03T19:30:04.147773154Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:04.15805196Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-03T19:30:04.158094319Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-03T19:30:04.15810527Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:04.15819007Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:04.160371189Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:292: model=text-embedding-embedder_collection dimension=768 primary=nvidia/nemotron-3.5-lightning:free
+    live_ship_protocol_test.go:292: Post "http://127.0.0.1:37813/v1/chat/completions": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+{"time":"2026-10-03T19:30:16.163359383Z","level":"INFO","msg":"request completed","request_id":"ffe981ab068dd5285f0eb7ae3e96038c","method":"POST","path":"/v1/chat/completions","status":499,"latency_ms":12001}
+--- FAIL: TestLiveToolRequired (12.09s)
+FAIL

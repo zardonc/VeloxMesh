@@ -1,0 +1,7 @@
+{"complete":true,"empty_collections":26,"known_points":20544,"metadata_attempted":347,"metadata_valid":347,"post_test_only":true,"read_only":true,"semantic_collections":323,"total_collections":347,"utc":"2026-10-04T17:14:05.688533+00:00"}
+post-inventory cleanup: Flag --time has been deprecated, use --timeout instead
+veloxmesh-test-qdrant
+/veloxmesh-test-redis running=false oom=false restarts=0
+/veloxmesh-test-qdrant running=false oom=false restarts=0
+/veloxmesh-test-postgres running=false oom=false restarts=0
+ error=<nil>

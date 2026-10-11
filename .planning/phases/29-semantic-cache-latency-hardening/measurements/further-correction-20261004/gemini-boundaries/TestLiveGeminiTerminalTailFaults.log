@@ -1,0 +1,42 @@
+=== RUN   TestLiveGeminiTerminalTailFaults
+=== RUN   TestLiveGeminiTerminalTailFaults/truncated
+{"time":"2026-10-04T21:45:10.761225364Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:10.763544974Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T21:45:10.76360146Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T21:45:10.76361189Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:10.763719633Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:10.765558973Z","level":"INFO","msg":"starting config change subscriber"}
+    live_gemini_tail_test.go:79: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+{"time":"2026-10-04T21:45:11.396083993Z","level":"INFO","msg":"Error unexpected EOF"}
+{"time":"2026-10-04T21:45:11.397169218Z","level":"INFO","msg":"request completed","request_id":"timing-214510.766725966","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":630}
+    live_gemini_tail_test.go:89: usage_rows_all=0 usage_rows_key=0
+    live_gemini_tail_test.go:89: settled_records=0 total_tokens=0 credits=0 exactly_once=true
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214510.766725966","name":"sse_first_meaningful","start_ms":0.673,"elapsed_ms":610.035}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214510.766725966","name":"sse_usage","start_ms":0.673,"elapsed_ms":610.049}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214510.766725966","name":"sse_usage","start_ms":0.673,"elapsed_ms":629.805}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214510.766725966","name":"sse_finish","start_ms":0.673,"elapsed_ms":629.808}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214510.766725966","name":"settlement","start_ms":631.426,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214510.766725966","name":"sse_done","start_ms":0.673,"elapsed_ms":630.866}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214510.766725966","name":"http_handler","start_ms":1.084,"elapsed_ms":630.459}
+=== RUN   TestLiveGeminiTerminalTailFaults/duplicate
+{"time":"2026-10-04T21:45:11.485345334Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:11.48714553Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T21:45:11.487172771Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T21:45:11.487182499Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:11.487264724Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:11.489172334Z","level":"INFO","msg":"starting config change subscriber"}
+    live_gemini_tail_test.go:79: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+{"time":"2026-10-04T21:45:12.14480703Z","level":"INFO","msg":"request completed","request_id":"timing-214511.490616334","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":654}
+    live_gemini_tail_test.go:89: usage_rows_all=0 usage_rows_key=0
+    live_gemini_tail_test.go:89: settled_records=0 total_tokens=0 credits=0 exactly_once=true
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214511.490616334","name":"sse_first_meaningful","start_ms":0.796,"elapsed_ms":634.75}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214511.490616334","name":"sse_usage","start_ms":0.796,"elapsed_ms":634.76}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214511.490616334","name":"sse_usage","start_ms":0.796,"elapsed_ms":653.831}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214511.490616334","name":"sse_finish","start_ms":0.796,"elapsed_ms":653.832}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214511.490616334","name":"settlement","start_ms":655.473,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214511.490616334","name":"sse_done","start_ms":0.796,"elapsed_ms":654.773}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214511.490616334","name":"http_handler","start_ms":1.362,"elapsed_ms":654.219}
+--- PASS: TestLiveGeminiTerminalTailFaults (1.48s)
+    --- PASS: TestLiveGeminiTerminalTailFaults/truncated (0.73s)
+    --- PASS: TestLiveGeminiTerminalTailFaults/duplicate (0.75s)
+PASS

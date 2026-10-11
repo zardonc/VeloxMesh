@@ -1,0 +1,27 @@
+File: app-linux.test
+Build ID: 470cac91617af72df0a7fa444facb80805a187ff
+Type: alloc_space
+Time: 2026-10-03 14:28:03 PDT
+Showing nodes accounting for 46.95MB, 72.79% of 64.50MB total
+Showing top 20 nodes out of 299
+      flat  flat%   sum%        cum   cum%
+   11.77MB 18.24% 18.24%    11.77MB 18.24%  encoding/json.(*Decoder).refill
+    7.01MB 10.86% 29.11%     7.01MB 10.86%  runtime.mallocgc
+    5.50MB  8.53% 37.64%     5.50MB  8.53%  testing.(*common).frameSkip
+       4MB  6.20% 43.84%       10MB 15.51%  testing.(*common).log
+    2.88MB  4.46% 48.30%     2.88MB  4.46%  runtime/trace.(*traceMultiplexer).startLocked
+       2MB  3.10% 51.40%        2MB  3.10%  encoding/json.Marshal
+    1.68MB  2.61% 54.01%    13.18MB 20.44%  veloxmesh/internal/app.(*liveTiming).dump
+    1.66MB  2.57% 56.58%     1.66MB  2.57%  veloxmesh/internal/app.(*liveRecorder).add
+    1.16MB  1.79% 58.38%     1.16MB  1.79%  runtime/pprof.StartCPUProfile
+       1MB  1.55% 59.93%        1MB  1.55%  reflect.growslice
+       1MB  1.55% 61.48%     4.50MB  6.98%  google.golang.org/grpc.newClientStreamWithParams
+       1MB  1.55% 63.03%     2.50MB  3.88%  google.golang.org/grpc/internal/transport.(*http2Client).newStream
+       1MB  1.55% 64.58%        1MB  1.55%  context.(*cancelCtx).Done
+       1MB  1.55% 66.13%        1MB  1.55%  database/sql.(*Rows).initContextClose
+       1MB  1.55% 67.68%        1MB  1.55%  reflect.unsafe_New
+    0.88MB  1.37% 69.05%     1.52MB  2.35%  compress/flate.NewWriter
+    0.74MB  1.14% 70.19%     0.74MB  1.14%  veloxmesh/internal/app.(*liveTiming).RecordStage
+    0.64MB  0.99% 71.18%     0.64MB  0.99%  compress/flate.(*compressor).init
+    0.52MB  0.81% 71.98%     0.52MB  0.81%  google.golang.org/protobuf/internal/filedesc.(*File).initDecls
+    0.52MB  0.81% 72.79%     0.52MB  0.81%  regexp.onePassCopy

@@ -1,0 +1,6 @@
+=== RUN   TestLiveDirectBusinessFAQResponses
+    live_business_faq_test.go:115: SAMPLE {"answer":"The free trial lasts 14 days.","correct":true,"index":0,"model":"inclusionai/ling-3.0-flash-sante:free","type":"direct_business_faq"}
+    live_business_faq_test.go:115: SAMPLE {"answer":"Refunds are allowed within 7 days.","correct":true,"index":1,"model":"inclusionai/ling-3.0-flash-sante:free","type":"direct_business_faq"}
+    live_business_faq_test.go:115: SAMPLE {"answer":"Paid access ends when the billing period ends.","correct":true,"index":2,"model":"inclusionai/ling-3.0-flash-sante:free","type":"direct_business_faq"}
+--- PASS: TestLiveDirectBusinessFAQResponses (2.71s)
+PASS

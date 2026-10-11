@@ -1,0 +1,5 @@
+Server: ON (port: 1234)
+
+Loaded Models
+  · qwen2.5-0.5b-instruct - 531.07 MB
+  · text-embedding-embedder_collection - 512.23 MB

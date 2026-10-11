@@ -1,0 +1,7 @@
+=== RUN   TestLiveModelAvailability
+{"time":"2026-10-03T19:16:07.058854497Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=oc/fledge-alpha-free
+{"time":"2026-10-03T19:16:08.354547175Z","level":"INFO","msg":"request completed","request_id":"18492ab3e887593fbb8dc128d01d24d8","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1290}
+    live_diagnostic_test.go:36: real completion returned no text
+--- FAIL: TestLiveModelAvailability (1.56s)
+FAIL

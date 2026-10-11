@@ -1,5 +1,7 @@
 package providers
 
+import "veloxmesh/internal/llm"
+
 // ProviderType represents the type of the underlying provider adapter.
 type ProviderType string
 
@@ -35,6 +37,78 @@ const (
 	GenerationParameterMaxTokens   GenerationParameter = "max_tokens"
 )
 
+// ToolChoiceCapabilityMode identifies a normalized tool_choice mode.
+type ToolChoiceCapabilityMode string
+
+const (
+	ToolChoiceCapabilityOmitted  ToolChoiceCapabilityMode = "omitted"
+	ToolChoiceCapabilityAuto     ToolChoiceCapabilityMode = "auto"
+	ToolChoiceCapabilityNone     ToolChoiceCapabilityMode = "none"
+	ToolChoiceCapabilityRequired ToolChoiceCapabilityMode = "required"
+	ToolChoiceCapabilityNamed    ToolChoiceCapabilityMode = "named"
+)
+
+// ToolProtocolCapability describes the tool protocol behavior a model can honor.
+type ToolProtocolCapability struct {
+	Definitions        bool
+	AssistantToolCalls bool
+	ToolResults        bool
+	StreamingDeltas    bool
+	ChoiceModes        map[ToolChoiceCapabilityMode]bool
+}
+
+// Clone returns an independent tool protocol capability snapshot.
+func (c ToolProtocolCapability) Clone() ToolProtocolCapability {
+	clone := ToolProtocolCapability{
+		Definitions:        c.Definitions,
+		AssistantToolCalls: c.AssistantToolCalls,
+		ToolResults:        c.ToolResults,
+		StreamingDeltas:    c.StreamingDeltas,
+	}
+	if c.ChoiceModes != nil {
+		clone.ChoiceModes = make(map[ToolChoiceCapabilityMode]bool, len(c.ChoiceModes))
+		for mode, supported := range c.ChoiceModes {
+			clone.ChoiceModes[mode] = supported
+		}
+	}
+	return clone
+}
+
+// Supports reports whether this model can honor normalized tool protocol requirements.
+func (c ToolProtocolCapability) Supports(requirements llm.ToolProtocolRequirements, stream bool) bool {
+	if !requirements.UsesProtocol() {
+		return true
+	}
+	if !c.Definitions || !c.ChoiceModes[toolChoiceCapabilityMode(requirements)] {
+		return false
+	}
+	if requirements.HasAssistantToolCall && !c.AssistantToolCalls {
+		return false
+	}
+	if requirements.HasToolResult && !c.ToolResults {
+		return false
+	}
+	return !stream || c.StreamingDeltas
+}
+
+func toolChoiceCapabilityMode(requirements llm.ToolProtocolRequirements) ToolChoiceCapabilityMode {
+	if !requirements.HasExplicitChoice {
+		return ToolChoiceCapabilityOmitted
+	}
+	switch requirements.ChoiceMode {
+	case llm.ToolChoiceAuto:
+		return ToolChoiceCapabilityAuto
+	case llm.ToolChoiceNone:
+		return ToolChoiceCapabilityNone
+	case llm.ToolChoiceRequired:
+		return ToolChoiceCapabilityRequired
+	case llm.ToolChoiceNamed:
+		return ToolChoiceCapabilityNamed
+	default:
+		return ""
+	}
+}
+
 // CapabilitySet describes the supported capabilities of a provider adapter.
 type CapabilitySet struct {
 	ProviderType         ProviderType
@@ -43,8 +117,8 @@ type CapabilitySet struct {
 	OutputModalities     []Modality
 	Streaming            bool
 	ToolCalling          bool
+	ToolProtocol         ToolProtocolCapability
 	GenerationParameters []GenerationParameter
-	// Add optional constraints here if needed in the future
 }
 
 // Clone returns a deep copy of the CapabilitySet.
@@ -53,61 +127,51 @@ func (c CapabilitySet) Clone() CapabilitySet {
 		ProviderType: c.ProviderType,
 		Streaming:    c.Streaming,
 		ToolCalling:  c.ToolCalling,
+		ToolProtocol: c.ToolProtocol.Clone(),
 	}
 
 	if c.SupportedOperations != nil {
-		clone.SupportedOperations = make([]Operation, len(c.SupportedOperations))
-		copy(clone.SupportedOperations, c.SupportedOperations)
+		clone.SupportedOperations = append([]Operation(nil), c.SupportedOperations...)
 	}
-
 	if c.InputModalities != nil {
-		clone.InputModalities = make([]Modality, len(c.InputModalities))
-		copy(clone.InputModalities, c.InputModalities)
+		clone.InputModalities = append([]Modality(nil), c.InputModalities...)
 	}
-
 	if c.OutputModalities != nil {
-		clone.OutputModalities = make([]Modality, len(c.OutputModalities))
-		copy(clone.OutputModalities, c.OutputModalities)
+		clone.OutputModalities = append([]Modality(nil), c.OutputModalities...)
 	}
-
 	if c.GenerationParameters != nil {
-		clone.GenerationParameters = make([]GenerationParameter, len(c.GenerationParameters))
-		copy(clone.GenerationParameters, c.GenerationParameters)
+		clone.GenerationParameters = append([]GenerationParameter(nil), c.GenerationParameters...)
 	}
-
 	return clone
 }
 
 // SupportsOperation checks if the capability set supports the requested operation.
 func (c CapabilitySet) SupportsOperation(op Operation) bool {
-	for _, o := range c.SupportedOperations {
-		if o == op {
+	for _, candidate := range c.SupportedOperations {
+		if candidate == op {
 			return true
 		}
 	}
 	return false
 }
 
-// SatisfiesRequirements checks if the capability set satisfies the given requirements.
-// Currently checks Streaming, ToolCalling, and InputModalities based on the provided booleans.
+// SupportsToolProtocol fails closed for every normalized tool protocol requirement.
+func (c CapabilitySet) SupportsToolProtocol(requirements llm.ToolProtocolRequirements, stream bool) bool {
+	return !requirements.UsesProtocol() || c.ToolCalling && c.ToolProtocol.Supports(requirements, stream)
+}
+
+// SatisfiesRequirements checks legacy stream, tool, and image requirements.
 func (c CapabilitySet) SatisfiesRequirements(requiresStream, requiresTools, requiresImage bool) bool {
-	if requiresStream && !c.Streaming {
+	if requiresStream && !c.Streaming || requiresTools && !c.ToolCalling {
 		return false
 	}
-	if requiresTools && !c.ToolCalling {
-		return false
+	if !requiresImage {
+		return true
 	}
-	if requiresImage {
-		found := false
-		for _, m := range c.InputModalities {
-			if m == ModalityImage {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
+	for _, modality := range c.InputModalities {
+		if modality == ModalityImage {
+			return true
 		}
 	}
-	return true
+	return false
 }

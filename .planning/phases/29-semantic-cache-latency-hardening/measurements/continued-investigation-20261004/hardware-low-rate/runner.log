@@ -1,0 +1,10 @@
+dependency ready: veloxmesh-investigation-20261004-01a1089d-redis
+dependency ready: veloxmesh-investigation-20261004-01a1089d-qdrant
+dependency ready: veloxmesh-investigation-20261004-01a1089d-postgres
+Dependencies ready; existing 10-second quiet gate required before hardware screen
+Recovery gate passed: 10 consecutive quiet seconds
+{"label":"availability","status":0}
+{"label":"low-rate","status":0}
+/veloxmesh-investigation-20261004-01a1089d-redis false
+/veloxmesh-investigation-20261004-01a1089d-qdrant false
+/veloxmesh-investigation-20261004-01a1089d-postgres false

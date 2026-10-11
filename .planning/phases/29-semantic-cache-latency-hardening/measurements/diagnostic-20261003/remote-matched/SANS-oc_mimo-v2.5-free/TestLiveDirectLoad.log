@@ -1,0 +1,5 @@
+=== RUN   TestLiveDirectLoad
+    live_diagnostic_test.go:120: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"oc/mimo-v2.5-free","index":999,"start_ms":2.848,"elapsed_ms":5862.447,"status":200,"ok":false,"hit":false,"concurrent":0,"error":"invalid_completion","planned_ms":0},"type":"warmup"}
+    live_diagnostic_test.go:122: direct upstream warmup failed
+--- FAIL: TestLiveDirectLoad (5.89s)
+FAIL

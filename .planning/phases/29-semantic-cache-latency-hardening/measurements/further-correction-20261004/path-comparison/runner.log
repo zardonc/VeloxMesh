@@ -1,0 +1,11 @@
+dependency ready: veloxmesh-further-20261004-01a1089d-redis
+dependency ready: veloxmesh-further-20261004-01a1089d-qdrant
+dependency ready: veloxmesh-further-20261004-01a1089d-postgres
+TestLiveControlledOff exit: <nil>
+TestLiveControlledExactMiss exit: <nil>
+TestLiveControlledOn exit: <nil>
+TestLiveCacheHitSettlementLoad exit: <nil>
+TestLiveControlledOffAfter exit: <nil>
+/veloxmesh-further-20261004-01a1089d-redis false
+/veloxmesh-further-20261004-01a1089d-qdrant false
+/veloxmesh-further-20261004-01a1089d-postgres false

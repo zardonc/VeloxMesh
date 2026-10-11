@@ -1,0 +1,57 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+dependency readiness attempt=1 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=2 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=3 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=4 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=5 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=6 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=7 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=8 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=9 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=10 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=11 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=12 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=13 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=14 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=15 error=Qdrant readiness: Process exited with status 52 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=16 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+dependency readiness attempt=17 error=Qdrant readiness: Process exited with status 56 output=PONG
+/var/run/postgresql:5432 - accepting connections
+Dependencies ready; 15-second recovery period outside formal test windows
+{"label":"availability","status":0}
+{"label":"low-hit-1","status":1}
+{"label":"low-hit-2","status":1}
+file:///C:/Users/inthe/IdeaProjects/VeloxMesh/.planning/phases/29-semantic-cache-latency-hardening/measurements/memory-upgrade-controlled-20261004/suite.mjs:25
+  if (existsSync(`${root}/PAUSE`)) throw Error('Pause requested; active runner already cleaned up');
+                                         ^
+
+Error: Pause requested; active runner already cleaned up
+    at run (file:///C:/Users/inthe/IdeaProjects/VeloxMesh/.planning/phases/29-semantic-cache-latency-hardening/measurements/memory-upgrade-controlled-20261004/suite.mjs:25:42)
+    at file:///C:/Users/inthe/IdeaProjects/VeloxMesh/.planning/phases/29-semantic-cache-latency-hardening/measurements/memory-upgrade-controlled-20261004/suite.mjs:36:36
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.15.0
+/veloxmesh-test-redis false
+/veloxmesh-test-qdrant false
+/veloxmesh-test-postgres false
+exit status 1

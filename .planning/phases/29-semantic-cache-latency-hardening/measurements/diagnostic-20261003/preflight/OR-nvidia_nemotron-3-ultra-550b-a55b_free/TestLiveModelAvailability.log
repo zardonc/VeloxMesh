@@ -1,0 +1,9 @@
+=== RUN   TestLiveModelAvailability
+{"time":"2026-10-03T19:14:20.660589231Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=nvidia/nemotron-3-ultra-550b-a55b:free
+{"time":"2026-10-03T19:14:21.35379542Z","level":"INFO","msg":"request completed","request_id":"47ed0087398c4121f06b1aa5468ad089","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":684}
+    live_diagnostic_test.go:38: usage_rows_all=1 usage_rows_key=1
+    live_diagnostic_test.go:38: settled_records=1 total_tokens=33 credits=33 exactly_once=true
+    live_diagnostic_test.go:39: SAMPLE {"elapsed_ms":710.339,"model":"nvidia/nemotron-3-ultra-550b-a55b:free","type":"availability","usage":{"prompt_tokens":20,"completion_tokens":13,"total_tokens":33}}
+--- PASS: TestLiveModelAvailability (0.97s)
+PASS

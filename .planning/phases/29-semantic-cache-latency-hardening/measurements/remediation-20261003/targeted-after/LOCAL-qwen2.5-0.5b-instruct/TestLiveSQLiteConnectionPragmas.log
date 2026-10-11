@@ -1,0 +1,11 @@
+=== RUN   TestLiveSQLiteConnectionPragmas
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":5000,"connection":0,"foreign_keys":1,"synchronous":1,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":5000,"connection":1,"foreign_keys":1,"synchronous":1,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":5000,"connection":2,"foreign_keys":1,"synchronous":1,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":5000,"connection":3,"foreign_keys":1,"synchronous":1,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":5000,"connection":4,"foreign_keys":1,"synchronous":1,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":5000,"connection":5,"foreign_keys":1,"synchronous":1,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":5000,"connection":6,"foreign_keys":1,"synchronous":1,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":5000,"connection":7,"foreign_keys":1,"synchronous":1,"type":"sqlite_connection_pragmas"}
+--- PASS: TestLiveSQLiteConnectionPragmas (0.01s)
+PASS

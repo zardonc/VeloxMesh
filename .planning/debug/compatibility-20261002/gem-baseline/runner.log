@@ -1,0 +1,11 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+TestLiveToolRequired exit: Process exited with status 1
+TestLiveToolStreaming exit: Process exited with status 1
+TestLiveGeminiNativeContinuation exit: <nil>
+/veloxmesh-test-redis false
+/veloxmesh-test-qdrant false
+/veloxmesh-test-postgres false
+TestLiveToolRequired: Process exited with status 1
+TestLiveToolStreaming: Process exited with status 1

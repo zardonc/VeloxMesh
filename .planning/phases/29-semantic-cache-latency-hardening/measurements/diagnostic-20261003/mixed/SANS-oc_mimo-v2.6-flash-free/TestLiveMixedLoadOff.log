@@ -1,0 +1,10 @@
+=== RUN   TestLiveMixedLoadOff
+{"time":"2026-10-03T19:31:35.676840117Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:138: model=text-embedding-embedder_collection dimension=768 primary=oc/mimo-v2.6-flash-free
+{"time":"2026-10-03T19:31:40.472374307Z","level":"INFO","msg":"request completed","request_id":"diag-1","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":4782}
+    live_diagnostic_test.go:151: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"oc/mimo-v2.6-flash-free","index":999,"start_ms":2.342,"elapsed_ms":4790.095,"status":200,"ok":true,"hit":false,"concurrent":0,"answer_hash":"a4f2e3c9fed0d4bcf5a6eda03a27e2128c3eba77d9a919807627015edc22bf7d","planned_ms":0},"type":"warmup"}
+    live_diagnostic_test.go:151: SAMPLE {"sample":{"type":"client","request_id":"diag-2","model":"nvidia/nemotron-3.5-lightning:free","index":999,"start_ms":4792.905,"elapsed_ms":12003.425,"status":0,"ok":false,"hit":false,"concurrent":0,"error":"transport_error: Post \"http://127.0.0.1:45027/v1/chat/completions\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)","planned_ms":0},"type":"warmup"}
+    live_diagnostic_test.go:153: distributed warmup failed model=nvidia/nemotron-3.5-lightning:free
+{"time":"2026-10-03T19:31:52.479921802Z","level":"INFO","msg":"request completed","request_id":"diag-2","method":"POST","path":"/v1/chat/completions","status":499,"latency_ms":12005}
+--- FAIL: TestLiveMixedLoadOff (17.11s)
+FAIL

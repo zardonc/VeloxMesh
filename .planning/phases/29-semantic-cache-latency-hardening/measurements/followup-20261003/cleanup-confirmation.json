@@ -1,0 +1,12 @@
+{
+  "source": "missing-case-rejected/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+  "verification": "last runner executed docker inspect after expected missing-test rejection",
+  "containers": [
+    "/veloxmesh-test-redis false",
+    "/veloxmesh-test-qdrant false",
+    "/veloxmesh-test-postgres false"
+  ],
+  "tunnels": "runner closes listeners and SSH client",
+  "host_load_process_completed": true,
+  "user_model_service": "left running"
+}

@@ -1,0 +1,19 @@
+=== RUN   TestLiveHealthDependencyRoutes
+2026/10/04 15:14:32 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[health_state_unavailable] provider health state is temporarily unavailable","model":"qwen2.5-0.5b-instruct","override":"","type":"health_dependency_route"}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:46767->127.0.0.1:40902: read tcp 127.0.0.1:46342->127.0.0.1:6379: use of closed network connection
+2026/10/04 15:14:32 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[health_state_unavailable] provider health state is temporarily unavailable","model":"qwen2.5-0.5b-instruct","override":"diagnostic","type":"health_dependency_route"}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:46767->127.0.0.1:40904: read tcp 127.0.0.1:46356->127.0.0.1:6379: use of closed network connection
+2026/10/04 15:14:32 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[health_state_unavailable] provider health state is temporarily unavailable","model":"round-robin","override":"","type":"health_dependency_route"}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:46767->127.0.0.1:40918: read tcp 127.0.0.1:46362->127.0.0.1:6379: use of closed network connection
+2026/10/04 15:14:32 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[health_state_unavailable] provider health state is temporarily unavailable","model":"capacity-auto-switch","override":"","type":"health_dependency_route"}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:46767->127.0.0.1:40930: read tcp 127.0.0.1:46378->127.0.0.1:6379: use of closed network connection
+2026/10/04 15:14:32 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[health_state_unavailable] provider health state is temporarily unavailable","model":"fusion","override":"","type":"health_dependency_route"}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:46767->127.0.0.1:40954: read tcp 127.0.0.1:46396->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:46767->127.0.0.1:40942: write tcp 127.0.0.1:46767->127.0.0.1:40942: use of closed network connection
+--- PASS: TestLiveHealthDependencyRoutes (0.28s)
+PASS

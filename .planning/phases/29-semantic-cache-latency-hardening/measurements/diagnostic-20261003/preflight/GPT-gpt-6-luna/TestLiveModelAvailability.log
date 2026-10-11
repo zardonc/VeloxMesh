@@ -1,0 +1,9 @@
+=== RUN   TestLiveModelAvailability
+{"time":"2026-10-03T19:16:21.293615466Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=gpt-6-luna
+{"time":"2026-10-03T19:16:23.522769401Z","level":"INFO","msg":"request completed","request_id":"5e4f505956a213a8fe2f6ca9eeea599a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2213}
+    live_diagnostic_test.go:38: usage_rows_all=1 usage_rows_key=1
+    live_diagnostic_test.go:38: settled_records=1 total_tokens=15 credits=15 exactly_once=true
+    live_diagnostic_test.go:39: SAMPLE {"elapsed_ms":2250.715,"model":"gpt-6-luna","type":"availability","usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}
+--- PASS: TestLiveModelAvailability (2.52s)
+PASS

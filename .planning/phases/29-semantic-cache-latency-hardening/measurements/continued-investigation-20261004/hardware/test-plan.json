@@ -1,0 +1,31 @@
+{
+  "started": "2026-10-04T20:46:08.150Z",
+  "plans": [
+    {
+      "label": "low-rate",
+      "count": 30,
+      "interval": 1000
+    },
+    {
+      "label": "target-rate-1",
+      "count": 100,
+      "interval": 125
+    },
+    {
+      "label": "target-rate-2",
+      "count": 100,
+      "interval": 125
+    }
+  ],
+  "tests": [
+    "TestLiveDirectLoad",
+    "TestLiveControlledOff",
+    "TestLiveControlledOn",
+    "TestLiveControlledMemo",
+    "TestLiveControlledOffAfter"
+  ],
+  "purpose": "Hardware diagnostic; pure misses, same images and fresh volume; retain early requests",
+  "release_gate": 1.05,
+  "retry": false,
+  "client_ceiling": 4
+}

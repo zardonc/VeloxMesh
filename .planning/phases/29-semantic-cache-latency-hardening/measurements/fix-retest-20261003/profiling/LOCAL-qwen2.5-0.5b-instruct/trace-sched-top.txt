@@ -1,0 +1,25 @@
+Type: delay
+Showing nodes accounting for 245263.37us, 90.67% of 270503.24us total
+Dropped 314 nodes (cum <= 1352.52us)
+Showing top 20 nodes out of 137
+      flat  flat%   sum%        cum   cum%
+62946.75us 23.27% 23.27% 62952.45us 23.27%  net/http.setRequestCancel.func3
+57460.22us 21.24% 44.51% 57460.22us 21.24%  runtime.selectnbsend
+30708.36us 11.35% 55.86% 30813.51us 11.39%  google.golang.org/grpc/internal/transport.(*http2Client).operateHeaders
+26935.17us  9.96% 65.82% 26935.17us  9.96%  runtime.chansend1
+19744.70us  7.30% 73.12% 19744.70us  7.30%  runtime.Gosched
+14074.94us  5.20% 78.32% 14074.94us  5.20%  context.(*cancelCtx).cancel
+11564.29us  4.28% 82.60% 11564.29us  4.28%  runtime.selectgo
+10804.86us  3.99% 86.59% 10804.86us  3.99%  modernc.org/sqlite.interruptOnDone.func2
+ 8426.11us  3.11% 89.71%  8426.11us  3.11%  runtime.systemstack_switch
+ 1703.74us  0.63% 90.34%  1703.74us  0.63%  sync.(*Mutex).Unlock
+  817.60us   0.3% 90.64%  3125.25us  1.16%  runtime.gcMarkDone
+   49.47us 0.018% 90.66% 40042.82us 14.80%  google.golang.org/grpc/internal/transport.(*http2Client).reader
+   23.10us 0.0085% 90.67%  5873.60us  2.17%  database/sql.ctxDriverQuery
+    4.03us 0.0015% 90.67%  2643.84us  0.98%  runtime.mallocgc
+         0     0% 90.67%  8720.06us  3.22%  context.WithCancel.func1
+         0     0% 90.67%  5349.18us  1.98%  context.WithCancelCause.func1
+         0     0% 90.67%  5887.87us  2.18%  database/sql.(*DB).ExecContext
+         0     0% 90.67%  5887.87us  2.18%  database/sql.(*DB).ExecContext.func1
+         0     0% 90.67%  5873.60us  2.17%  database/sql.(*DB).QueryContext
+         0     0% 90.67%  5873.60us  2.17%  database/sql.(*DB).QueryContext.func1

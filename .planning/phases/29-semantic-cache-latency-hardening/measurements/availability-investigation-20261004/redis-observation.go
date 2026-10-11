@@ -1,0 +1,141 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"net"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/joho/godotenv"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
+)
+
+type observation struct {
+	Time    string           `json:"time"`
+	Command string           `json:"command"`
+	Output  string           `json:"output,omitempty"`
+	Error   string           `json:"error,omitempty"`
+	Slow    []map[string]any `json:"slow,omitempty"`
+}
+
+func connectObservation(env map[string]string) (*ssh.Client, error) {
+	userDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	callback, err := knownhosts.New(filepath.Join(userDir, ".ssh", "known_hosts"))
+	if err != nil {
+		return nil, err
+	}
+	port := env["DEV_SERVER_PORT"]
+	if port == "" {
+		port = "22"
+	}
+	return ssh.Dial("tcp", net.JoinHostPort(env["DEV_SERVER_IP"], port), &ssh.ClientConfig{User: env["DEV_SERVER_USER"],
+		Auth: []ssh.AuthMethod{ssh.Password(env["DEV_SERVER_PW"])}, HostKeyCallback: callback, Timeout: 10 * time.Second})
+}
+
+func observe(client *ssh.Client, command string) observation {
+	row := observation{Time: time.Now().UTC().Format(time.RFC3339Nano), Command: command}
+	session, err := client.NewSession()
+	if err != nil {
+		row.Error = err.Error()
+		return row
+	}
+	defer session.Close()
+	output, err := session.CombinedOutput("timeout 10s " + command)
+	if err != nil {
+		row.Error = err.Error()
+	}
+	if strings.Contains(command, "SLOWLOG GET") && err == nil {
+		var entries [][]any
+		if err := json.Unmarshal(output, &entries); err != nil {
+			row.Error = err.Error()
+			return row
+		}
+		for _, entry := range entries {
+			if len(entry) < 4 {
+				row.Error = "invalid slowlog entry"
+				continue
+			}
+			args, ok := entry[3].([]any)
+			if !ok || len(args) == 0 {
+				row.Error = "invalid slowlog command"
+				continue
+			}
+			row.Slow = append(row.Slow, map[string]any{"id": entry[0], "unix_time": entry[1], "duration_us": entry[2], "command": args[0]})
+		}
+	} else {
+		row.Output = string(output)
+	}
+	return row
+}
+
+func main() {
+	if len(os.Args) != 2 {
+		panic("explicit new output path required")
+	}
+	env, err := godotenv.Read(".env.local")
+	if err != nil {
+		panic(err)
+	}
+	client, err := connectObservation(env)
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close()
+	timer := time.AfterFunc(55*time.Second, func() { _ = client.Close() })
+	defer timer.Stop()
+	var rows []observation
+	var mu sync.Mutex
+	var workers sync.WaitGroup
+	workers.Add(1)
+	go func() {
+		defer workers.Done()
+		row := observe(client, "vmstat 1 8")
+		mu.Lock()
+		rows = append(rows, row)
+		mu.Unlock()
+	}()
+	for tick := 0; tick < 18; tick++ {
+		row := observe(client, "docker exec veloxmesh-test-redis redis-cli INFO commandstats")
+		mu.Lock()
+		rows = append(rows, row)
+		mu.Unlock()
+		if strings.Contains(row.Output, "cmdstat_get:") {
+			break
+		}
+		time.Sleep(time.Second)
+	}
+	for _, command := range []string{"docker exec veloxmesh-test-redis redis-cli INFO stats", "docker exec veloxmesh-test-redis redis-cli --json SLOWLOG GET 16", "docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}'"} {
+		row := observe(client, command)
+		mu.Lock()
+		rows = append(rows, row)
+		mu.Unlock()
+	}
+	workers.Wait()
+	if err := saveObservation(env, rows); err != nil {
+		panic(err)
+	}
+	fmt.Printf("recorded %d bounded observations\n", len(rows))
+}
+
+func saveObservation(env map[string]string, rows []observation) error {
+	data, err := json.MarshalIndent(rows, "", "  ")
+	if err != nil {
+		return err
+	}
+	output := string(data)
+	for key, value := range env {
+		upper := strings.ToUpper(key)
+		if len(value) >= 4 && (strings.Contains(upper, "KEY") || strings.Contains(upper, "PW") || strings.Contains(upper, "SECRET") || strings.Contains(upper, "TOKEN")) {
+			output = strings.ReplaceAll(output, value, "[REDACTED]")
+		}
+	}
+	return os.WriteFile(os.Args[1], []byte(output), 0600)
+}

@@ -1,0 +1,5 @@
+{
+  "exit_code": 0,
+  "tests": "TestLiveRedisPublicationDefaultDeadline,TestLiveRedisModelLatePublication,TestLiveRedisProbeConcurrentPublication,TestLiveHealthSnapshotDelayMatrix,TestLiveHealthDependencyRoutes,TestLiveHealthDependencyHealthyPeer,TestLiveRedisConcurrentSnapshots",
+  "binary_sha256": "8f3b562c6c154944fac14dcaff127541d8e0963b81febfb3642bfd6c308bbf53"
+}

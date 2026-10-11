@@ -1,0 +1,185 @@
+{
+  "validated": true,
+  "measured_requests": 300,
+  "windows": [
+    {
+      "test": "TestLiveControlledOff",
+      "log_sha256": "569ff5fac8842d3423ac14751591542e95631f6524a9104aaeeeeaa17607d9d9",
+      "latency": {
+        "n": 100,
+        "p50_ms": 79.221,
+        "p95_ms": 126.342,
+        "p99_ms": 270.081,
+        "max_ms": 350.303
+      },
+      "application": {
+        "n": 100,
+        "p50_ms": 2.7860000000000014,
+        "p95_ms": 4.290999999999997,
+        "p99_ms": 16.328000000000003,
+        "max_ms": 16.704000000000008
+      },
+      "stages": {
+        "provider_complete": {
+          "n": 100,
+          "p50_ms": 75.802,
+          "p95_ms": 122.393,
+          "p99_ms": 252.569,
+          "max_ms": 346.887
+        }
+      },
+      "rps": 8.033317057832974,
+      "concurrency": 3,
+      "send_lag": {
+        "n": 100,
+        "p50_ms": 0.8370000000004438,
+        "p95_ms": 1.5780000000004293,
+        "p99_ms": 1.7769999999999868,
+        "max_ms": 1.8770000000004075
+      },
+      "failures": [],
+      "hits": 0
+    },
+    {
+      "test": "TestLiveControlledOn",
+      "log_sha256": "56aadc39ead49a8889a0f3e40215edee3bb4870524152e0eab6c30741a8394d2",
+      "latency": {
+        "n": 100,
+        "p50_ms": 87.645,
+        "p95_ms": 121.672,
+        "p99_ms": 135.04,
+        "max_ms": 143.73
+      },
+      "application": {
+        "n": 100,
+        "p50_ms": 2.8760000000000048,
+        "p95_ms": 4.134999999999996,
+        "p99_ms": 4.9059999999999855,
+        "max_ms": 5.652000000000003
+      },
+      "stages": {
+        "cache_read": {
+          "n": 100,
+          "p50_ms": 5.367,
+          "p95_ms": 7.453,
+          "p99_ms": 13.668,
+          "max_ms": 23.274
+        },
+        "embedding_http": {
+          "n": 100,
+          "p50_ms": 3.618,
+          "p95_ms": 5.497,
+          "p99_ms": 6.246,
+          "max_ms": 8.673
+        },
+        "provider_complete": {
+          "n": 100,
+          "p50_ms": 78.325,
+          "p95_ms": 101.467,
+          "p99_ms": 126.635,
+          "max_ms": 132.763
+        },
+        "scope_readiness": {
+          "n": 100,
+          "p50_ms": 0.171,
+          "p95_ms": 0.275,
+          "p99_ms": 0.325,
+          "max_ms": 0.43
+        },
+        "vector_search": {
+          "n": 100,
+          "p50_ms": 1.287,
+          "p95_ms": 1.843,
+          "p99_ms": 2.598,
+          "max_ms": 14.104
+        },
+        "write_enqueue": {
+          "n": 100,
+          "p50_ms": 0.004,
+          "p95_ms": 0.053,
+          "p99_ms": 0.077,
+          "max_ms": 0.402
+        }
+      },
+      "rps": 8.02011894959219,
+      "concurrency": 2,
+      "send_lag": {
+        "n": 100,
+        "p50_ms": 0.8019999999996799,
+        "p95_ms": 1.52599999999984,
+        "p99_ms": 1.5470000000004802,
+        "max_ms": 1.6039999999993597
+      },
+      "failures": [],
+      "hits": 0
+    },
+    {
+      "test": "TestLiveControlledOffAfter",
+      "log_sha256": "96c326d471e6703b0140aea0d415cd3dd52844507d1c2d06f9aeaa1e2bb7c707",
+      "latency": {
+        "n": 100,
+        "p50_ms": 80.737,
+        "p95_ms": 101.667,
+        "p99_ms": 135.569,
+        "max_ms": 140.988
+      },
+      "application": {
+        "n": 100,
+        "p50_ms": 2.804000000000002,
+        "p95_ms": 3.6970000000000027,
+        "p99_ms": 4.261000000000003,
+        "max_ms": 5.900999999999996
+      },
+      "stages": {
+        "provider_complete": {
+          "n": 100,
+          "p50_ms": 77.702,
+          "p95_ms": 97.975,
+          "p99_ms": 131.834,
+          "max_ms": 138.146
+        }
+      },
+      "rps": 8.03478547886076,
+      "concurrency": 2,
+      "send_lag": {
+        "n": 100,
+        "p50_ms": 0.7319999999999709,
+        "p95_ms": 1.5119999999997162,
+        "p99_ms": 1.6979999999998654,
+        "max_ms": 1.9670000000000982
+      },
+      "failures": [],
+      "hits": 0
+    }
+  ],
+  "comparisons": {
+    "before": {
+      "ratio": 0.9630368365230881,
+      "delta_ms": -4.670000000000002,
+      "original_limit": 1.05,
+      "original_passed": true,
+      "candidate_ratio_limit": 1.25,
+      "candidate_delta_limit_ms": 40,
+      "candidate_operator": "AND",
+      "candidate_limit_ms": 157.9275,
+      "candidate_passed": true,
+      "proposal": true
+    },
+    "after": {
+      "ratio": 1.1967698466562404,
+      "delta_ms": 20.004999999999995,
+      "original_limit": 1.05,
+      "original_passed": false,
+      "candidate_ratio_limit": 1.25,
+      "candidate_delta_limit_ms": 40,
+      "candidate_operator": "AND",
+      "candidate_limit_ms": 127.08375000000001,
+      "candidate_passed": true,
+      "proposal": true
+    }
+  },
+  "off_endpoint_drift_percent": -19.530322458089945,
+  "status": "diagnostic_only_no_formal_acceptance",
+  "limitations": "One 100-request bracket; changed embedding runtime/vector identity; no independent semantic quality, low-hit or long-duration acceptance.",
+  "analyzer_sha256": "c539a3470f79ff7b0b94beeed11175d674299f83cf2eeeb1a57e500623a63394"
+}

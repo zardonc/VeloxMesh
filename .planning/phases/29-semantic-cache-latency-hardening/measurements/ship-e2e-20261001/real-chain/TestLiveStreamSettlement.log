@@ -1,0 +1,12 @@
+=== RUN   TestLiveStreamSettlement
+{"time":"2026-10-02T04:15:19.282650535Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:19.286822793Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:15:19.286850585Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:15:19.286859312Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:19.286899778Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:19.29045629Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:122: model=text-embedding-embedder_collection dimension=768 primary=oc/big-pickle
+{"time":"2026-10-02T04:15:20.799553933Z","level":"INFO","msg":"request completed","request_id":"695a889a1124a343be156f42223a324b","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1507}
+    live_ship_protocol_test.go:152: settlement count=0 expected=1 settled=0 tokens=0 credits=0
+--- FAIL: TestLiveStreamSettlement (3.61s)
+FAIL

@@ -1,0 +1,10 @@
+{
+  "method": "cleanup snapshot returned by final runner; not a separate live VM inventory",
+  "source": "final-canonical-stream/GPT-gpt-6-luna/runner.log",
+  "containers": [
+    "/veloxmesh-test-redis false",
+    "/veloxmesh-test-qdrant false",
+    "/veloxmesh-test-postgres false"
+  ],
+  "tunnels": "runner exits after closing its listeners and SSH client"
+}

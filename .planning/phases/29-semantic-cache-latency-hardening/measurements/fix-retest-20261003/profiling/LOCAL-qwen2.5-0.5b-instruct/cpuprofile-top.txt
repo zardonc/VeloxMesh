@@ -1,0 +1,28 @@
+File: app-linux.test
+Build ID: 09456a6c938db8f95e18c87135152cffca038703
+Type: cpu
+Time: 2026-10-03 14:13:59 PDT
+Duration: 25.54s, Total samples = 1.39s ( 5.44%)
+Showing nodes accounting for 1.29s, 92.81% of 1.39s total
+Showing top 20 nodes out of 397
+      flat  flat%   sum%        cum   cum%
+     0.58s 41.73% 41.73%      0.58s 41.73%  internal/runtime/syscall/linux.Syscall6
+     0.51s 36.69% 78.42%      0.51s 36.69%  runtime.futex
+     0.02s  1.44% 79.86%      0.03s  2.16%  runtime.step
+     0.02s  1.44% 81.29%      0.02s  1.44%  runtime.sysMunmap
+     0.01s  0.72% 82.01%      0.01s  0.72%  encoding/json.typeEncoder
+     0.01s  0.72% 82.73%      0.05s  3.60%  google.golang.org/grpc.NewClient.chainUnaryClientInterceptors.func1
+     0.01s  0.72% 83.45%      0.01s  0.72%  google.golang.org/grpc/encoding.GetCodec (inline)
+     0.01s  0.72% 84.17%      0.01s  0.72%  google.golang.org/protobuf/proto.checkInitialized
+     0.01s  0.72% 84.89%      0.01s  0.72%  gosave_systemstack_switch
+     0.01s  0.72% 85.61%      0.01s  0.72%  internal/runtime/maps.ctrlGroup.matchH2
+     0.01s  0.72% 86.33%      0.01s  0.72%  memeqbody
+     0.01s  0.72% 87.05%      0.01s  0.72%  modernc.org/libc.Xmemcpy
+     0.01s  0.72% 87.77%      0.02s  1.44%  modernc.org/sqlite/lib._sqlite3Insert
+     0.01s  0.72% 88.49%      0.03s  2.16%  modernc.org/sqlite/lib._sqlite3Parser
+     0.01s  0.72% 89.21%      0.01s  0.72%  modernc.org/sqlite/lib._sqlite3VdbeChangeToNoop
+     0.01s  0.72% 89.93%      0.07s  5.04%  modernc.org/sqlite/lib._sqlite3VdbeExec
+     0.01s  0.72% 90.65%      0.01s  0.72%  reflect.Value.Field
+     0.01s  0.72% 91.37%      0.01s  0.72%  runtime.(*gcControllerState).update
+     0.01s  0.72% 92.09%      0.09s  6.47%  runtime.dumpStacksRec
+     0.01s  0.72% 92.81%      0.01s  0.72%  runtime.findObject

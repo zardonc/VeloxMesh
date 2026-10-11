@@ -1,0 +1,49 @@
+=== RUN   TestLiveGeminiWireComparison
+=== RUN   TestLiveGeminiWireComparison/native
+=== NAME  TestLiveGeminiWireComparison
+    live_gemini_wire_test.go:56: wire attempt=1 connection_reused=false idle_ms=0.000
+    live_gemini_wire_test.go:66: wire attempt=1 body_sha256=214ebcf0002e9673066d88ce3289e81b31090c5eff2f2a035620a833e7563d15 status=200 headers_ms=725.775 request_id_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+=== NAME  TestLiveGeminiWireComparison/native
+    live_ship_gemini_diagnostic_test.go:101: direct native stream first_response_ms=727.480
+    live_gemini_wire_test.go:78: native function_calls=1 parts_with_opaque_signature=1
+    live_gemini_wire_test.go:78: direct native stream responses=2 complete_ms=747.182
+=== RUN   TestLiveGeminiWireComparison/gateway
+{"time":"2026-10-04T21:45:13.04445205Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:13.046884413Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T21:45:13.046928917Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T21:45:13.046937874Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:13.046992356Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:45:13.049054211Z","level":"INFO","msg":"starting config change subscriber"}
+    live_gemini_wire_test.go:79: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+=== NAME  TestLiveGeminiWireComparison
+    live_gemini_wire_test.go:56: wire attempt=2 connection_reused=true idle_ms=75.961
+    live_gemini_wire_test.go:66: wire attempt=2 body_sha256=214ebcf0002e9673066d88ce3289e81b31090c5eff2f2a035620a833e7563d15 status=200 headers_ms=439.606 request_id_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+{"time":"2026-10-04T21:45:13.515713994Z","level":"INFO","msg":"request completed","request_id":"timing-214513.050182267","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":465}
+=== NAME  TestLiveGeminiWireComparison/gateway
+    live_gemini_wire_test.go:79: real Gemini opaque tool signature preserved in public response
+{"time":"2026-10-04T21:45:17.706248828Z","level":"INFO","msg":"request completed","request_id":"timing-214513.516412250","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":4189}
+    live_gemini_wire_test.go:79: usage_rows_all=2 usage_rows_key=2
+    live_gemini_wire_test.go:79: settled_records=2 total_tokens=201 credits=201 exactly_once=true
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.050182267","name":"sse_first_meaningful","start_ms":0.838,"elapsed_ms":443.737}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.050182267","name":"sse_usage","start_ms":0.838,"elapsed_ms":443.744}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.050182267","name":"sse_usage","start_ms":0.838,"elapsed_ms":464.085}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.050182267","name":"sse_finish","start_ms":0.838,"elapsed_ms":464.088}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.050182267","name":"settlement","start_ms":466.006,"elapsed_ms":0.549}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.050182267","name":"http_handler","start_ms":1.077,"elapsed_ms":465.542}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.050182267","name":"sse_done","start_ms":0.838,"elapsed_ms":465.788}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.516412250","name":"request_rules","start_ms":467.665,"elapsed_ms":0.003}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.516412250","name":"routing","start_ms":467.67,"elapsed_ms":0.602}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.516412250","name":"admission","start_ms":468.274,"elapsed_ms":0.232}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.516412250","name":"provider_complete","start_ms":469.206,"elapsed_ms":4186.268}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.516412250","name":"health_provider_sync","start_ms":4655.479,"elapsed_ms":0.728}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.516412250","name":"circuit_result","start_ms":4656.209,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.516412250","name":"health_model_sync","start_ms":4656.21,"elapsed_ms":0.389}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.516412250","name":"response_rules","start_ms":4656.602,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.516412250","name":"settlement","start_ms":4656.605,"elapsed_ms":0.476}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-214513.516412250","name":"http_handler","start_ms":467.307,"elapsed_ms":4189.859}
+=== NAME  TestLiveGeminiWireComparison
+    live_gemini_wire_test.go:88: wire canonical_body_equal=true endpoint_method_equal=true auth_content_type_user_agent_equal=true native_body_sha256=214ebcf0002e9673066d88ce3289e81b31090c5eff2f2a035620a833e7563d15 gateway_body_sha256=214ebcf0002e9673066d88ce3289e81b31090c5eff2f2a035620a833e7563d15
+--- PASS: TestLiveGeminiWireComparison (5.50s)
+    --- PASS: TestLiveGeminiWireComparison/native (0.75s)
+    --- PASS: TestLiveGeminiWireComparison/gateway (4.75s)
+PASS

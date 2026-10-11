@@ -16,7 +16,11 @@ type Repository struct {
 }
 
 func Open(dsn string) (*Repository, error) {
-	db, err := sql.Open("sqlite", dsn)
+	configured, err := connectionDSN(dsn)
+	if err != nil {
+		return nil, err
+	}
+	db, err := sql.Open("sqlite", configured)
 	if err != nil {
 		return nil, err
 	}

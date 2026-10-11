@@ -1,0 +1,18 @@
+{
+  "ended": "2026-10-09T02:21:28.2041897Z",
+  "error": "",
+  "pure_miss": true,
+  "reuse_mode": "semantic",
+  "started": "2026-10-09T02:21:13.1270307Z",
+  "status": 0,
+  "threshold": "0.99999",
+  "window": {
+    "block": 2,
+    "group": "same_question",
+    "label": "b02-same-question-3-bypass",
+    "test": "TestLiveControlledBypass",
+    "pure_miss": true,
+    "reuse_mode": "semantic",
+    "expected_hits": 0
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "complete": false,
+  "error": "AssertionError",
+  "message": "Controller failed; see retained log",
+  "native_port_free": true
+}

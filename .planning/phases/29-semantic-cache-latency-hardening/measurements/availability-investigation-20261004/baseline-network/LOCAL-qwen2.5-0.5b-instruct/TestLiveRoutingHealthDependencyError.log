@@ -1,0 +1,119 @@
+=== RUN   TestLiveRoutingHealthDependencyError
+=== RUN   TestLiveRoutingHealthDependencyError/40ms
+{"time":"2026-10-04T14:57:37.783623147Z","level":"INFO","msg":"starting config change subscriber"}
+    live_health_snapshot_diagnostic_test.go:80: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T14:57:38.162331322Z","level":"INFO","msg":"request completed","request_id":"diag-1","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":377}
+    live_health_snapshot_diagnostic_test.go:90: SAMPLE {"delay_ms":40,"sample":{"type":"client","request_id":"diag-1","model":"qwen2.5-0.5b-instruct","index":999,"start_ms":0.097,"elapsed_ms":377.959,"status":200,"ok":true,"hit":false,"concurrent":0,"answer_hash":"87557cf2ce9e9cde148322c6498d5b63eed3ed4eb872a5d0b5a30a878a0822c1","planned_ms":0},"type":"routing_dependency_fault"}
+{"time":"2026-10-04T14:57:38.246625976Z","level":"INFO","msg":"request completed","request_id":"diag-2","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":83}
+    live_health_snapshot_diagnostic_test.go:106: SAMPLE {"delay_ms":40,"sample":{"type":"client","request_id":"diag-2","model":"qwen2.5-0.5b-instruct","index":999,"start_ms":378.144,"elapsed_ms":84.241,"status":200,"ok":true,"hit":false,"concurrent":0,"answer_hash":"87557cf2ce9e9cde148322c6498d5b63eed3ed4eb872a5d0b5a30a878a0822c1","planned_ms":0},"type":"routing_dependency_recovery"}
+    live_health_snapshot_diagnostic_test.go:110: usage_rows_all=2 usage_rows_key=2
+    live_health_snapshot_diagnostic_test.go:110: settled_records=2 total_tokens=128 credits=128 exactly_once=true
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"request_rules","start_ms":1.896,"elapsed_ms":0.003}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"routing","start_ms":1.9,"elapsed_ms":41.096}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"admission","start_ms":43.001,"elapsed_ms":0.282}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/get_connection","start_ms":44.169,"elapsed_ms":0.013}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/got_connection_reused","start_ms":44.169,"elapsed_ms":0.02}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/request_written","start_ms":44.169,"elapsed_ms":0.045}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/first_byte","start_ms":44.169,"elapsed_ms":331.873}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"upstream_headers","start_ms":44.169,"elapsed_ms":331.955}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"upstream_http","start_ms":44.169,"elapsed_ms":332.034}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"provider_complete","start_ms":44.075,"elapsed_ms":332.191}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"health_provider_sync","start_ms":376.268,"elapsed_ms":0.725}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"circuit_result","start_ms":376.994,"elapsed_ms":0}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"health_model_sync","start_ms":376.995,"elapsed_ms":0.62}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"response_rules","start_ms":377.619,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"settlement","start_ms":377.621,"elapsed_ms":0.929}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"http_handler","start_ms":1.023,"elapsed_ms":377.589}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"request_rules","start_ms":379.282,"elapsed_ms":0.005}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"routing","start_ms":379.288,"elapsed_ms":0.825}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"admission","start_ms":380.118,"elapsed_ms":0.281}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"net_upstream/get_connection","start_ms":381.151,"elapsed_ms":0.017}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"net_upstream/got_connection_reused","start_ms":381.151,"elapsed_ms":0.022}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"net_upstream/request_written","start_ms":381.151,"elapsed_ms":0.036}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"net_upstream/first_byte","start_ms":381.151,"elapsed_ms":79.337}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"upstream_headers","start_ms":381.151,"elapsed_ms":79.421}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"upstream_http","start_ms":381.151,"elapsed_ms":79.537}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"provider_complete","start_ms":381.114,"elapsed_ms":79.63}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"health_provider_sync","start_ms":460.747,"elapsed_ms":0.777}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"circuit_result","start_ms":461.526,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"health_model_sync","start_ms":461.528,"elapsed_ms":0.566}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"response_rules","start_ms":462.098,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"settlement","start_ms":462.1,"elapsed_ms":0.728}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-2","name":"http_handler","start_ms":378.881,"elapsed_ms":84.034}
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:48668->127.0.0.1:6379: read tcp 127.0.0.1:44455->127.0.0.1:51556: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:44455->127.0.0.1:51556: read tcp 127.0.0.1:48668->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:48652->127.0.0.1:6379: read tcp 127.0.0.1:44455->127.0.0.1:51548: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:44455->127.0.0.1:51548: read tcp 127.0.0.1:48652->127.0.0.1:6379: use of closed network connection
+=== RUN   TestLiveRoutingHealthDependencyError/60ms
+{"time":"2026-10-04T14:57:38.303320229Z","level":"INFO","msg":"starting config change subscriber"}
+    live_health_snapshot_diagnostic_test.go:80: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T14:57:38.358051846Z","level":"ERROR","msg":"Redis health snapshot read failed","provider":"sans-primary","error":"context deadline exceeded"}
+{"time":"2026-10-04T14:57:38.358145202Z","level":"INFO","msg":"request completed","request_id":"diag-3","method":"POST","path":"/v1/chat/completions","status":503,"latency_ms":52}
+    live_health_snapshot_diagnostic_test.go:90: SAMPLE {"delay_ms":60,"sample":{"type":"client","request_id":"diag-3","model":"qwen2.5-0.5b-instruct","index":999,"start_ms":0.048,"elapsed_ms":53.773,"status":503,"ok":false,"hit":false,"concurrent":0,"error":"no_healthy_provider","planned_ms":0},"type":"routing_dependency_fault"}
+    live_health_snapshot_diagnostic_test.go:97: Redis read failure should be explicit dependency error: {Type:client RequestID:diag-3 Model:qwen2.5-0.5b-instruct Index:999 StartMS:0.048 ElapsedMS:53.773 Status:503 OK:false Hit:false Concurrent:0 Error:no_healthy_provider AnswerHash: PlannedMS:0}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:41335->127.0.0.1:45078: read tcp 127.0.0.1:48678->127.0.0.1:6379: use of closed network connection
+{"time":"2026-10-04T14:57:38.440407497Z","level":"INFO","msg":"request completed","request_id":"diag-4","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":81}
+    live_health_snapshot_diagnostic_test.go:106: SAMPLE {"delay_ms":60,"sample":{"type":"client","request_id":"diag-4","model":"qwen2.5-0.5b-instruct","index":999,"start_ms":53.939,"elapsed_ms":82.136,"status":200,"ok":true,"hit":false,"concurrent":0,"answer_hash":"87557cf2ce9e9cde148322c6498d5b63eed3ed4eb872a5d0b5a30a878a0822c1","planned_ms":0},"type":"routing_dependency_recovery"}
+    live_health_snapshot_diagnostic_test.go:110: usage_rows_all=1 usage_rows_key=1
+    live_health_snapshot_diagnostic_test.go:110: settled_records=1 total_tokens=64 credits=64 exactly_once=true
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-3","name":"request_rules","start_ms":2.931,"elapsed_ms":0.004}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-3","name":"routing","start_ms":2.937,"elapsed_ms":51.759}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-3","name":"http_handler","start_ms":1.751,"elapsed_ms":53.01}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"request_rules","start_ms":56.966,"elapsed_ms":0.005}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"routing","start_ms":56.973,"elapsed_ms":0.827}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"admission","start_ms":57.802,"elapsed_ms":0.193}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"net_upstream/get_connection","start_ms":58.61,"elapsed_ms":0.009}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"net_upstream/got_connection_reused","start_ms":58.61,"elapsed_ms":0.018}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"net_upstream/request_written","start_ms":58.61,"elapsed_ms":0.033}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"net_upstream/first_byte","start_ms":58.61,"elapsed_ms":76.566}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"upstream_headers","start_ms":58.61,"elapsed_ms":76.627}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"upstream_http","start_ms":58.61,"elapsed_ms":76.696}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"provider_complete","start_ms":58.553,"elapsed_ms":76.806}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"health_provider_sync","start_ms":135.361,"elapsed_ms":0.595}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"circuit_result","start_ms":135.958,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"health_model_sync","start_ms":135.959,"elapsed_ms":0.437}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"response_rules","start_ms":136.4,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"settlement","start_ms":136.402,"elapsed_ms":0.577}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-4","name":"http_handler","start_ms":55.337,"elapsed_ms":81.711}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:41335->127.0.0.1:45106: read tcp 127.0.0.1:48688->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:48688->127.0.0.1:6379: read tcp 127.0.0.1:41335->127.0.0.1:45106: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:41335->127.0.0.1:45090: read tcp 127.0.0.1:48682->127.0.0.1:6379: use of closed network connection
+=== RUN   TestLiveRoutingHealthDependencyError/100ms
+{"time":"2026-10-04T14:57:38.490181582Z","level":"INFO","msg":"starting config change subscriber"}
+    live_health_snapshot_diagnostic_test.go:80: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T14:57:38.542303061Z","level":"ERROR","msg":"Redis health snapshot read failed","provider":"sans-primary","error":"context deadline exceeded"}
+{"time":"2026-10-04T14:57:38.542373614Z","level":"INFO","msg":"request completed","request_id":"diag-5","method":"POST","path":"/v1/chat/completions","status":503,"latency_ms":51}
+    live_health_snapshot_diagnostic_test.go:90: SAMPLE {"delay_ms":100,"sample":{"type":"client","request_id":"diag-5","model":"qwen2.5-0.5b-instruct","index":999,"start_ms":0.021,"elapsed_ms":52.274,"status":503,"ok":false,"hit":false,"concurrent":0,"error":"no_healthy_provider","planned_ms":0},"type":"routing_dependency_fault"}
+    live_health_snapshot_diagnostic_test.go:97: Redis read failure should be explicit dependency error: {Type:client RequestID:diag-5 Model:qwen2.5-0.5b-instruct Index:999 StartMS:0.021 ElapsedMS:52.274 Status:503 OK:false Hit:false Concurrent:0 Error:no_healthy_provider AnswerHash: PlannedMS:0}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:42187->127.0.0.1:53262: read tcp 127.0.0.1:48696->127.0.0.1:6379: use of closed network connection
+{"time":"2026-10-04T14:57:38.624906267Z","level":"INFO","msg":"request completed","request_id":"diag-6","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":81}
+    live_health_snapshot_diagnostic_test.go:106: SAMPLE {"delay_ms":100,"sample":{"type":"client","request_id":"diag-6","model":"qwen2.5-0.5b-instruct","index":999,"start_ms":52.417,"elapsed_ms":82.175,"status":200,"ok":true,"hit":false,"concurrent":0,"answer_hash":"87557cf2ce9e9cde148322c6498d5b63eed3ed4eb872a5d0b5a30a878a0822c1","planned_ms":0},"type":"routing_dependency_recovery"}
+    live_health_snapshot_diagnostic_test.go:110: usage_rows_all=1 usage_rows_key=1
+    live_health_snapshot_diagnostic_test.go:110: settled_records=1 total_tokens=64 credits=64 exactly_once=true
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-5","name":"request_rules","start_ms":1.525,"elapsed_ms":0.003}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-5","name":"routing","start_ms":1.529,"elapsed_ms":50.537}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-5","name":"http_handler","start_ms":0.608,"elapsed_ms":51.491}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"request_rules","start_ms":54.372,"elapsed_ms":0.003}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"routing","start_ms":54.377,"elapsed_ms":0.582}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"admission","start_ms":54.961,"elapsed_ms":0.192}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"net_upstream/get_connection","start_ms":55.953,"elapsed_ms":0.007}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"net_upstream/got_connection_reused","start_ms":55.953,"elapsed_ms":0.012}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"net_upstream/request_written","start_ms":55.953,"elapsed_ms":0.029}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"net_upstream/first_byte","start_ms":55.953,"elapsed_ms":76.491}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"upstream_headers","start_ms":55.953,"elapsed_ms":76.551}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"upstream_http","start_ms":55.953,"elapsed_ms":76.632}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"provider_complete","start_ms":55.908,"elapsed_ms":76.728}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"health_provider_sync","start_ms":132.639,"elapsed_ms":0.541}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"circuit_result","start_ms":133.182,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"health_model_sync","start_ms":133.184,"elapsed_ms":0.54}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"response_rules","start_ms":133.728,"elapsed_ms":0.002}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"settlement","start_ms":133.731,"elapsed_ms":0.847}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-6","name":"http_handler","start_ms":52.868,"elapsed_ms":81.789}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:42187->127.0.0.1:53266: read tcp 127.0.0.1:48708->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:77: real TCP relay request error: readfrom tcp 127.0.0.1:48710->127.0.0.1:6379: read tcp 127.0.0.1:42187->127.0.0.1:53274: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:42187->127.0.0.1:53274: read tcp 127.0.0.1:48710->127.0.0.1:6379: use of closed network connection
+--- FAIL: TestLiveRoutingHealthDependencyError (1.21s)
+    --- PASS: TestLiveRoutingHealthDependencyError/40ms (0.83s)
+    --- FAIL: TestLiveRoutingHealthDependencyError/60ms (0.19s)
+    --- FAIL: TestLiveRoutingHealthDependencyError/100ms (0.19s)
+FAIL

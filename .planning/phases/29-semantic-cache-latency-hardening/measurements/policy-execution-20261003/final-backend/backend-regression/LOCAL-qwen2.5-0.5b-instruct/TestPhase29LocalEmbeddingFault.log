@@ -1,0 +1,17 @@
+=== RUN   TestPhase29LocalEmbeddingFault
+{"time":"2026-10-04T06:58:03.367986157Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:58:03.371414196Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T06:58:03.37145897Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T06:58:03.371495719Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:58:03.371598082Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:58:03.374338791Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_fault_acceptance_test.go:39: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T06:58:03.378353725Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"embedding_error","error":"[provider_error] Provider returned error"}
+{"time":"2026-10-04T06:58:03.472906871Z","level":"INFO","msg":"request completed","request_id":"96277af4e4a89ca0d3777510adfdcda1","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":97}
+{"time":"2026-10-04T06:58:03.473420779Z","level":"ERROR","msg":"semantic cache operation failed","operation":"store","reason":"embedding_error","error":"[provider_error] Provider returned error"}
+    phase29_fault_acceptance_test.go:52: reason=lookup/embedding_error
+    phase29_fault_acceptance_test.go:52: reason=enqueue/accepted
+    phase29_fault_acceptance_test.go:52: reason=store/embedding_error
+    phase29_fault_acceptance_test.go:52: HTTP=200 cache_hit=false complete_response_ms=98.968 failed_optional_operations=3
+--- PASS: TestPhase29LocalEmbeddingFault (0.18s)
+PASS

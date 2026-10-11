@@ -2,75 +2,240 @@ package cache
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
+	"sync"
 	"time"
 
+	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
 	"veloxmesh/internal/llm"
+	"veloxmesh/internal/observability"
 	"veloxmesh/internal/providers"
 	"veloxmesh/internal/storage"
 )
 
 type SemanticCacheConfig struct {
-	Enabled       bool
-	Threshold     float32
-	MaxCandidates int
-	TTL           time.Duration
+	Enabled               bool
+	Threshold             float32
+	MaxCandidates         int
+	TTL                   time.Duration
+	EmbeddingModel        string
+	EmbeddingInputPrefix  string
+	EmbeddingMemoCapacity int
+	EmbeddingMemoTTL      time.Duration
+	EmbeddingProvider     string
+	VectorDimension       int
+	UseCases              []SemanticCacheUseCase
+	ReadTimeout           time.Duration
+	ReadConcurrency       int
+	WriteTimeout          time.Duration
+	WriteWorkers          int
+	QueueCapacity         int
+	ShutdownGrace         time.Duration
+}
+
+type SemanticCacheUseCase struct {
+	ReuseMode        string
+	APIKeyIDs        []string
+	UseCaseID        string
+	KnowledgeVersion string
+	TargetModel      string
+	SystemPrompt     string
 }
 
 type SemanticCacheService struct {
-	config  SemanticCacheConfig
-	repo    controlstate.SemanticCacheRepository
-	vector  storage.VectorAdapter
-	adapter providers.EmbedAdapter
+	config       SemanticCacheConfig
+	repo         controlstate.SemanticCacheRepository
+	vector       storage.VectorAdapter
+	adapter      providers.EmbedAdapter
+	embeddings   *embeddingMemo
+	reads        chan struct{}
+	writes       chan CacheWrite
+	writeCtx     context.Context
+	cancelWrites context.CancelFunc
+	workers      sync.WaitGroup
+	queueMu      sync.RWMutex
+	closed       bool
+	closeOnce    sync.Once
 }
 
 func NewSemanticCacheService(config SemanticCacheConfig, repo controlstate.SemanticCacheRepository, vector storage.VectorAdapter, adapter providers.EmbedAdapter) *SemanticCacheService {
-	return &SemanticCacheService{
-		config:  config,
-		repo:    repo,
-		vector:  vector,
-		adapter: adapter,
+	profiles := make([]SemanticCacheUseCase, len(config.UseCases))
+	for index, profile := range config.UseCases {
+		profiles[index] = profile
+		profiles[index].APIKeyIDs = append([]string(nil), profile.APIKeyIDs...)
 	}
+	config.UseCases = profiles
+	service := &SemanticCacheService{
+		config:     config,
+		repo:       repo,
+		vector:     vector,
+		adapter:    adapter,
+		embeddings: newEmbeddingMemo(config),
+	}
+	if config.Enabled && config.ReadConcurrency > 0 {
+		service.reads = make(chan struct{}, config.ReadConcurrency)
+	}
+	if config.Enabled && config.WriteWorkers > 0 && config.QueueCapacity > 0 && config.WriteTimeout > 0 {
+		service.startWorkers()
+	}
+	return service
+}
+
+func (s *SemanticCacheService) Eligible(identityID, role string, req *llm.LLMRequest) (string, bool) {
+	if !s.config.Enabled || role == "admin" || identityID == "" || !validCacheRequest(req) {
+		return "", false
+	}
+	for _, useCase := range s.config.UseCases {
+		if config.EffectiveCacheReuseMode(useCase.ReuseMode) == config.CacheReuseDisabled {
+			continue
+		}
+		if useCase.TargetModel == req.Model && useCase.SystemPrompt == req.Messages[0].Content && contains(useCase.APIKeyIDs, identityID) {
+			return cacheScope(identityID, useCase, s.config), true
+		}
+	}
+	return "", false
+}
+
+func validCacheRequest(req *llm.LLMRequest) bool {
+	if req == nil || req.CacheUnsafe || req.Stream || req.RouteOverride != "" || req.ToolRequirements.UsesProtocol() || len(req.Tools) != 0 || req.ToolChoice != nil {
+		return false
+	}
+	if req.Temperature == nil || *req.Temperature != 0 || req.MaxTokens == nil || *req.MaxTokens != 256 || len(req.Messages) != 2 {
+		return false
+	}
+	return req.Messages[0].Role == llm.RoleSystem && req.Messages[0].Content != "" && len(req.Messages[0].MultiContent) == 0 && len(req.Messages[0].ToolCalls) == 0 && req.Messages[0].ToolCallID == "" && req.Messages[1].Role == llm.RoleUser && req.Messages[1].Content != "" && len(req.Messages[1].MultiContent) == 0 && len(req.Messages[1].ToolCalls) == 0 && req.Messages[1].ToolCallID == ""
+}
+
+func cacheScope(identityID string, useCase SemanticCacheUseCase, config SemanticCacheConfig) string {
+	identity := strings.Join([]string{identityID, useCase.UseCaseID, useCase.KnowledgeVersion, useCase.TargetModel, useCase.SystemPrompt, config.EmbeddingProvider, config.EmbeddingModel, fmt.Sprint(config.VectorDimension), "temperature=0", "max_tokens=256", "embedding-input=user-text-v1"}, "\x00")
+	if config.EmbeddingInputPrefix != "" {
+		identity += "\x00embedding-input=prefix-user-text-v2\x00" + config.EmbeddingInputPrefix
+	}
+	identity += "\x00cache-reuse=" + useCase.ReuseMode + "-v1"
+	digest := sha256.Sum256([]byte(identity))
+	scope := hex.EncodeToString(digest[:])
+	if useCase.ReuseMode == "exact" {
+		return exactScopePrefix + scope
+	}
+	return scope
+}
+
+func contains(values []string, value string) bool {
+	for _, candidate := range values {
+		if candidate == value {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, text string) (*controlstate.SemanticCacheEntry, error) {
-	if !s.config.Enabled || s.repo == nil || s.adapter == nil {
-		return nil, nil // Miss
-	}
+	result, err := s.LookupWithVector(ctx, CacheLookup{Scope: scope, Model: model, Text: text})
+	return result.Entry, err
+}
 
-	// 1. Embed input text
-	req := &llm.EmbeddingRequest{
-		Model: "text-embedding-3-small", // or whatever default model we use for embeddings, but this is provider specific. We should let adapter decide if it's not set.
-		Input: []string{text},
-	}
-	// Let the adapter define the default model if needed, or we pass a generic one
-	resp, err := s.adapter.Embed(ctx, req)
-	if err != nil || resp == nil || len(resp.Data) == 0 {
-		return nil, err // Miss due to error
-	}
-	inputVector := resp.Data[0].Embedding
+type CacheLookup struct {
+	Scope, Model, Text string
+}
 
-	// 2. If vector adapter is configured, use it for search
-	if s.vector != nil {
-		results, err := s.vector.Search(ctx, vectorCollection(scope, model), inputVector, s.config.MaxCandidates)
-		if err != nil {
-			// Log error (in a real app via observability/logger), degrade gracefully to miss
-			return nil, nil
+type CacheLookupResult struct {
+	Entry  *controlstate.SemanticCacheEntry
+	Vector []float32
+}
+
+// LookupWithVector retains a completed embedding, including on a search fault.
+// An embedding deadline or admission failure returns no vector. A later search
+// deadline can still reuse a vector published before that deadline.
+func (s *SemanticCacheService) LookupWithVector(ctx context.Context, query CacheLookup) (CacheLookupResult, error) {
+	defer observability.Stage(ctx, "cache_read")()
+	if !s.config.Enabled {
+		return CacheLookupResult{}, nil
+	}
+	if s.reads == nil || s.config.ReadTimeout <= 0 {
+		return s.lookup(ctx, query, nil)
+	}
+	select {
+	case s.reads <- struct{}{}:
+	default:
+		return CacheLookupResult{}, s.fault("lookup", "concurrency_full", nil)
+	}
+	readCtx, cancel := context.WithTimeout(ctx, s.config.ReadTimeout)
+	defer cancel()
+	type result struct {
+		lookup CacheLookupResult
+		err    error
+	}
+	done := make(chan result, 1)
+	vectors := make(chan []float32, 1)
+	go func() {
+		defer func() { <-s.reads }()
+		lookup, err := s.lookup(readCtx, query, vectors)
+		done <- result{lookup, err}
+	}()
+	select {
+	case <-readCtx.Done():
+		return s.readTimeout(readCtx, vectors)
+	case result := <-done:
+		if readCtx.Err() != nil {
+			return s.readTimeout(readCtx, vectors)
 		}
-		entry, err := s.lookupVectorResult(ctx, scope, model, results)
-		if err != nil || entry != nil {
-			return entry, err
-		}
+		return result.lookup, result.err
+	}
+}
+
+func (s *SemanticCacheService) readTimeout(ctx context.Context, vectors <-chan []float32) (CacheLookupResult, error) {
+	var vector []float32
+	select {
+	case vector = <-vectors:
+	default:
+	}
+	return CacheLookupResult{Vector: vector}, s.fault("lookup", "timeout", ctx.Err())
+}
+
+func (s *SemanticCacheService) lookup(ctx context.Context, query CacheLookup, vectors chan<- []float32) (CacheLookupResult, error) {
+	if isExactScope(query.Scope) {
+		entry, err := s.lookupExact(ctx, query)
+		return CacheLookupResult{Entry: entry}, err
+	}
+	if s.repo == nil || s.adapter == nil {
+		return CacheLookupResult{}, nil
+	}
+	if ready, err := s.scopeReady(ctx, query); err != nil || !ready {
+		return CacheLookupResult{}, err
 	}
 
-	// 3. Fallback to SQLite (original behavior)
-	candidates, err := s.repo.ListCandidates(ctx, scope, model)
+	inputVector, err := s.embed(ctx, query, "lookup")
 	if err != nil {
-		return nil, err
+		return CacheLookupResult{}, err
+	}
+	result := CacheLookupResult{Vector: inputVector}
+	if vectors != nil {
+		vectors <- inputVector
+	}
+
+	if vectorResult, complete, err := s.searchVector(ctx, query, result); complete {
+		return vectorResult, err
+	}
+
+	entry, err := s.lookupRepository(ctx, CacheWrite{Scope: query.Scope, Model: query.Model}, inputVector)
+	return CacheLookupResult{Entry: entry, Vector: inputVector}, err
+}
+
+func (s *SemanticCacheService) lookupRepository(ctx context.Context, identity CacheWrite, inputVector []float32) (*controlstate.SemanticCacheEntry, error) {
+	defer observability.Stage(ctx, "repo_read")()
+	started := time.Now()
+	scope, model := identity.Scope, identity.Model
+	candidates, err := s.repo.ListCandidates(ctx, scope, model)
+	measureOperation("repo_read", started, err)
+	if err != nil {
+		return nil, s.fault("lookup", "repository_error", err)
 	}
 	if len(candidates) == 0 {
 		return nil, nil // Miss
@@ -85,6 +250,9 @@ func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, 
 	var bestScore float32 = -1.0
 
 	for _, cand := range candidates {
+		if !s.validEntry(cand, identity) {
+			continue
+		}
 		candVector := bytesToFloats(cand.Vector)
 		score := cosineSimilarity(inputVector, candVector)
 		if score > bestScore {
@@ -93,92 +261,152 @@ func (s *SemanticCacheService) Lookup(ctx context.Context, scope, model string, 
 		}
 	}
 
-	if bestScore >= s.config.Threshold {
-		// Record hit
-		_ = s.repo.RecordHit(ctx, bestMatch.ID)
+	if bestScore >= s.config.Threshold && bestMatch != nil && validCachedChoices(bestMatch.Response) {
+		if err := s.repo.RecordHit(ctx, bestMatch.ID); err != nil {
+			return nil, s.fault("lookup", "repository_error", err)
+		}
+		recordCacheOutcome("lookup", "hit")
 		return bestMatch, nil
 	}
-
+	recordCacheOutcome("lookup", "miss")
 	return nil, nil
 }
 
 func (s *SemanticCacheService) Store(ctx context.Context, id, scope, model string, text string, response string, usageID *string) error {
-	if !s.config.Enabled || s.repo == nil || s.adapter == nil {
+	return s.StoreWrite(ctx, CacheWrite{ID: id, Scope: scope, Model: model, Text: text, Response: response, UsageID: usageID})
+}
+
+func (s *SemanticCacheService) StoreWrite(ctx context.Context, write CacheWrite) (storeErr error) {
+	defer observability.Stage(ctx, "store_total")()
+	if !s.config.Enabled || s.repo == nil {
+		return nil
+	}
+	if !validCachedChoices(write.Response) {
+		return s.fault("store", "invalid_entry", nil)
+	}
+	storeStarted := time.Now()
+	defer func() { measureOperation("store_total", storeStarted, storeErr) }()
+	if isExactScope(write.Scope) {
+		return s.storeExact(ctx, write)
+	}
+	if s.adapter == nil {
 		return nil
 	}
 
-	req := &llm.EmbeddingRequest{
-		Model: "text-embedding-3-small",
-		Input: []string{text},
-	}
-	resp, err := s.adapter.Embed(ctx, req)
-	if err != nil || resp == nil || len(resp.Data) == 0 {
+	vector, err := s.writeVector(ctx, write)
+	if err != nil {
 		return err
 	}
-	vector := resp.Data[0].Embedding
 
 	entry := &controlstate.SemanticCacheEntry{
-		ID:        id,
-		Scope:     scope,
-		Model:     model,
+		ID:        write.ID,
+		Scope:     write.Scope,
+		Model:     write.Model,
 		Vector:    floatsToBytes(vector),
-		Response:  response,
-		UsageID:   usageID,
+		Response:  write.Response,
+		UsageID:   write.UsageID,
 		HitCount:  0,
 		Enabled:   true,
 		CreatedAt: time.Now().UTC(),
 		ExpiresAt: time.Now().Add(s.config.TTL).UTC(),
 	}
 
-	if s.vector != nil {
-		meta := map[string]interface{}{
-			"id":       id,
-			"scope":    scope,
-			"model":    model,
-			"response": response,
-		}
-		if usageID != nil {
-			meta["usage_id"] = *usageID
-		}
+	return s.persist(ctx, entry, vector)
+}
 
-		if err := s.repo.Store(ctx, entry); err != nil {
-			return err
-		}
-		err := s.vector.Insert(ctx, vectorCollection(scope, model), [][]float32{vector}, []map[string]interface{}{meta})
-		if err != nil {
-			// Log error but do not fail the store operation if degraded
-			return nil
-		}
-		return nil
+func (s *SemanticCacheService) writeVector(ctx context.Context, write CacheWrite) ([]float32, error) {
+	if write.Vector == nil {
+		return s.embed(ctx, CacheLookup{Scope: write.Scope, Model: write.Model, Text: write.Text}, "store")
 	}
-
-	return s.repo.Store(ctx, entry)
+	if !validVector(write.Vector, s.config.VectorDimension) {
+		return nil, s.fault("store", "invalid_embedding", nil)
+	}
+	return write.Vector, nil
 }
 
 func (s *SemanticCacheService) lookupVectorResult(ctx context.Context, scope, model string, results []map[string]interface{}) (*controlstate.SemanticCacheEntry, error) {
 	for _, result := range results {
 		score, hasScore := result["score"].(float64)
-		if !hasScore || float32(score) < s.config.Threshold {
+		if !hasScore || math.IsNaN(score) || math.IsInf(score, 0) {
+			return nil, s.fault("lookup", "invalid_entry", nil)
+		}
+		if float32(score) < s.config.Threshold {
 			continue
 		}
 		id, _ := result["id"].(string)
 		if id == "" {
-			continue
+			return nil, s.fault("lookup", "invalid_entry", nil)
 		}
+		started := time.Now()
+		finish := observability.Stage(ctx, "repo_read")
 		entry, err := s.repo.GetCandidate(ctx, id, scope, model)
+		finish()
+		measureOperation("repo_read", started, err)
 		if err != nil {
-			return nil, err
+			return nil, s.fault("lookup", "repository_error", err)
 		}
-		if entry != nil {
-			_ = s.repo.RecordHit(ctx, entry.ID)
+		if s.validEntry(entry, CacheWrite{Scope: scope, Model: model}) {
+			if err := s.repo.RecordHit(ctx, entry.ID); err != nil {
+				return nil, s.fault("lookup", "repository_error", err)
+			}
+			recordCacheOutcome("lookup", "hit")
 			return entry, nil
 		}
 	}
 	return nil, nil
 }
 
+func (s *SemanticCacheService) embed(ctx context.Context, query CacheLookup, operation string) ([]float32, error) {
+	defer observability.Stage(ctx, operation+"_embedding")()
+	started := time.Now()
+	if err := ctx.Err(); err != nil {
+		return nil, s.fault(operation, "embedding_error", err)
+	}
+	if vector, ok := s.embeddings.get(query); ok {
+		recordCacheOutcome("embedding_memo", "hit")
+		measureOperation(operation+"_embedding", started, nil)
+		return vector, nil
+	}
+	if s.embeddings != nil {
+		recordCacheOutcome("embedding_memo", "miss")
+	}
+	response, err := s.adapter.Embed(ctx, &llm.EmbeddingRequest{Model: s.config.EmbeddingModel, Input: []string{s.config.EmbeddingInputPrefix + query.Text}})
+	measureOperation(operation+"_embedding", started, err)
+	if err != nil || response == nil || len(response.Data) != 1 {
+		return nil, s.fault(operation, "embedding_error", err)
+	}
+	vector := response.Data[0].Embedding
+	if !validVector(vector, s.config.VectorDimension) {
+		return nil, s.fault(operation, "invalid_embedding", nil)
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, s.fault(operation, "embedding_error", err)
+	}
+	s.embeddings.put(query, vector)
+	return vector, nil
+}
+
+func (s *SemanticCacheService) validEntry(entry *controlstate.SemanticCacheEntry, identity CacheWrite) bool {
+	return entry != nil && entry.Scope == identity.Scope && entry.Model == identity.Model && entry.Enabled && entry.ExpiresAt.After(time.Now()) && validVector(bytesToFloats(entry.Vector), s.config.VectorDimension) && validCachedChoices(entry.Response)
+}
+
+func validCachedChoices(response string) bool {
+	var choices []llm.Choice
+	if json.Unmarshal([]byte(response), &choices) != nil || len(choices) == 0 {
+		return false
+	}
+	for _, choice := range choices {
+		if choice.Message.Role != llm.RoleAssistant || choice.Message.Content == "" ||
+			len(choice.Message.ToolCalls) != 0 || choice.Message.ToolCallID != "" || choice.FinishReason == "tool_calls" {
+			return false
+		}
+	}
+	return true
+}
+
 func vectorCollection(scope, model string) string {
-	return fmt.Sprintf("semantic_cache:%s:%s", safeCollectionPart(scope), safeCollectionPart(model))
+	digest := sha256.Sum256([]byte(scope + "\x00" + model))
+	return fmt.Sprintf("semantic_cache_%s", hex.EncodeToString(digest[:]))
 }
 
 func safeCollectionPart(value string) string {

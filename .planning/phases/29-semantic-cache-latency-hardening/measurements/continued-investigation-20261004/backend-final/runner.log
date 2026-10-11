@@ -1,0 +1,7 @@
+dependency ready: veloxmesh-investigation-20261004-01a1089d-redis
+dependency ready: veloxmesh-investigation-20261004-01a1089d-qdrant
+dependency ready: veloxmesh-investigation-20261004-01a1089d-postgres
+full backend exit: <nil>
+/veloxmesh-investigation-20261004-01a1089d-redis false
+/veloxmesh-investigation-20261004-01a1089d-qdrant false
+/veloxmesh-investigation-20261004-01a1089d-postgres false

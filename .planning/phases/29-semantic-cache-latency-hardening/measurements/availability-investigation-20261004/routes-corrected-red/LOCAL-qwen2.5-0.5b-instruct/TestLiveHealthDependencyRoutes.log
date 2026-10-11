@@ -1,0 +1,24 @@
+=== RUN   TestLiveHealthDependencyRoutes
+2026/10/04 15:10:34 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[no_healthy_provider] no healthy providers available","model":"qwen2.5-0.5b-instruct","override":"","type":"health_dependency_route"}
+    live_health_routing_modes_test.go:61: health read failure lost its category: [no_healthy_provider] no healthy providers available
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:36393->127.0.0.1:42056: read tcp 127.0.0.1:42266->127.0.0.1:6379: use of closed network connection
+2026/10/04 15:10:34 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[unhealthy_provider_override] requested provider override is unhealthy","model":"qwen2.5-0.5b-instruct","override":"diagnostic","type":"health_dependency_route"}
+    live_health_routing_modes_test.go:61: health read failure lost its category: [unhealthy_provider_override] requested provider override is unhealthy
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:36393->127.0.0.1:42062: read tcp 127.0.0.1:42270->127.0.0.1:6379: use of closed network connection
+2026/10/04 15:10:34 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[no_healthy_provider] no healthy providers available","model":"round-robin","override":"","type":"health_dependency_route"}
+    live_health_routing_modes_test.go:61: health read failure lost its category: [no_healthy_provider] no healthy providers available
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:36393->127.0.0.1:42064: read tcp 127.0.0.1:42282->127.0.0.1:6379: use of closed network connection
+2026/10/04 15:10:34 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[no_healthy_provider] no healthy providers available","model":"capacity-auto-switch","override":"","type":"health_dependency_route"}
+    live_health_routing_modes_test.go:61: health read failure lost its category: [no_healthy_provider] no healthy providers available
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:36393->127.0.0.1:42076: read tcp 127.0.0.1:42288->127.0.0.1:6379: use of closed network connection
+2026/10/04 15:10:34 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:58: SAMPLE {"error":"[no_healthy_provider] no healthy providers available","model":"fusion","override":"","type":"health_dependency_route"}
+    live_health_routing_modes_test.go:61: health read failure lost its category: [no_healthy_provider] no healthy providers available
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:36393->127.0.0.1:42086: read tcp 127.0.0.1:42298->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:36393->127.0.0.1:42082: write tcp 127.0.0.1:36393->127.0.0.1:42082: use of closed network connection
+--- FAIL: TestLiveHealthDependencyRoutes (0.32s)
+FAIL

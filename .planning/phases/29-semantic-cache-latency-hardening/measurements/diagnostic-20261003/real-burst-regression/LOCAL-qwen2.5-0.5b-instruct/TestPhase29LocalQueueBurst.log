@@ -1,0 +1,16 @@
+=== RUN   TestPhase29LocalQueueBurst
+{"time":"2026-10-03T20:11:34.210610685Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T20:11:34.225366069Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-03T20:11:34.225435946Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-03T20:11:34.225452487Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T20:11:34.225512991Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T20:11:34.230508388Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_burst_acceptance_test.go:25: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-03T20:11:34.572700773Z","level":"INFO","msg":"request completed","request_id":"c7add8308c7bf89a05eea824e142a1f6","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":341}
+    phase29_burst_acceptance_test.go:55: candidates=128 accepted=33 dropped_newest=95 enqueue_ms=0.092 close_ms=456.126 heap_before=3068280 heap_after=4101512
+    phase29_burst_acceptance_test.go:56: failed_operation=vector_insert error_category=AlreadyExists elapsed_ms=36.859
+    phase29_burst_acceptance_test.go:56: failed_operation=store_total error_category=AlreadyExists elapsed_ms=66.993
+    phase29_burst_acceptance_test.go:56: reason_counts=map[enqueue/accepted:33 enqueue/closed:1 enqueue/queue_full:95 store/stored:33 store/vector_error:1]
+    phase29_burst_acceptance_test.go:56: real concurrent collection creation conflicts=1
+--- FAIL: TestPhase29LocalQueueBurst (0.91s)
+FAIL

@@ -1,0 +1,4 @@
+=== RUN   TestLiveStreamSettlement
+    live_ship_protocol_test.go:122: dimension probe: [provider_bad_response] Provider returned no embeddings
+--- FAIL: TestLiveStreamSettlement (0.02s)
+FAIL

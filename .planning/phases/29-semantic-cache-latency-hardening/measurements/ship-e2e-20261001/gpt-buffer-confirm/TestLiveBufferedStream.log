@@ -1,0 +1,11 @@
+=== RUN   TestLiveBufferedStream
+{"time":"2026-10-02T04:50:01.385125205Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:50:01.397106003Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:50:01.397239214Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:50:01.397249313Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:50:01.397304627Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:50:01.402269994Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_features_test.go:129: model=text-embedding-embedder_collection dimension=768 primary=gpt-6-luna
+    live_ship_features_test.go:129: response rule was not activated
+--- FAIL: TestLiveBufferedStream (0.15s)
+FAIL

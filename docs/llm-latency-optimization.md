@@ -205,9 +205,11 @@ Combos are optional and only apply when configured in control state and requeste
 
 ### Semantic Cache
 
-For eligible non-streaming requests, VeloxMesh can perform semantic cache lookup before calling an upstream LLM. A cache hit returns a stored response directly from the gateway path. A cache miss continues to normal routing and, after a successful response, stores the response for future similar requests.
+For trusted eligible non-streaming requests, VeloxMesh can perform exact or semantic lookup before calling an upstream LLM. A valid hit returns the stored response with zero-token Usage. A miss continues to normal routing; successful responses may enqueue bounded asynchronous persistence without waiting for the write.
 
-The semantic cache is optional and requires durable state, an embedding-capable provider, and a vector or repository-backed candidate search path. It is not used for streaming requests, admin identities, or explicit route overrides.
+Answer caching is off by default and requires an explicit `exact` or `semantic` profile. Exact mode needs only the relational answer store; semantic mode also uses a configured embedding provider and candidate-search path. Tools, streaming, admin identities, route overrides and unsupported request shapes bypass it. Cache faults bypass to primary forwarding; a failed lookup without a vector does not immediately retry embedding through backfill. Empty/pending scopes skip lookup embedding and vector I/O.
+
+The owner accepted a [candidate integration budget](cache-reuse-policy.md#accepted-integration-budget--2026-10-08) for default-off code on 2026-10-08. The original 1.05 ratio still fails; semantic quality and production capacity remain separate gates. Production cache remains disabled with an empty allowlist.
 
 ### Request Scheduling
 
@@ -222,6 +224,11 @@ The scheduler gRPC API accepts batches of task features. The predictive path als
 Scheduler scoring has a short configurable timeout, with a default of `15ms`. Slow or failed scorer calls record breaker evidence and fall back quickly. The Python ONNX predictor client also uses timeout, max-concurrency, slow-threshold, and breaker controls.
 
 Provider adapters use HTTP request contexts and configured HTTP clients to map provider timeouts, rate limits, unavailable providers, malformed responses, and other upstream failures into structured gateway errors.
+
+Optional [provider protection](provider-protection.md) adds phase deadlines and
+shared process-local attempt limits. [Health dependency errors](health-state-errors.md)
+distinguish unreadable Redis state from unhealthy providers; ordered snapshot
+publication avoids queuing later same-key network calls behind a delayed reply.
 
 ### Provider Failover
 
@@ -262,7 +269,7 @@ flowchart TD
     PipeIn --> PipeBlock{"Pipeline blocks request?"}
     PipeBlock -->|Yes| Error["Return structured error"]
     PipeBlock -->|No| Eligible
-    Eligible -->|Yes| Lookup["Embed and search cache"]
+    Eligible{"Trusted reuse profile?"} -->|Yes| Lookup["Bounded exact or semantic lookup"]
     Lookup --> Hit{"Cache hit?"}
     Hit -->|Yes| PipeCached["Run response pipeline"]
     PipeCached --> Cached["Return cached response"]
@@ -278,7 +285,7 @@ flowchart TD
 
     Call --> OK{"Success?"}
     OK -->|Yes| PipeOut["Run response pipeline"]
-    PipeOut --> Store["Store usage and optional cache entry"]
+    PipeOut --> Store["Settle usage and enqueue optional cache write"]
     Store --> Response["Return response"]
     OK -->|Retryable error| Failover["Select another provider if fallback allows"]
     Failover --> Call

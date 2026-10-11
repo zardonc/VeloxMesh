@@ -45,6 +45,22 @@ OPENCODE.jsonc
 __pycache__/
 *.pyc
 
+# Local raw planning measurements
+/.planning/**/*.log
+/.planning/**/*.jsonl
+/.planning/**/*.trace
+/.planning/**/*.pprof
+/.planning/**/*.cpuprofile
+/.planning/**/*.memprofile
+/.planning/**/*.blockprofile
+/.planning/**/*.mutexprofile
+
+# Debug batches consolidated into REVIEW-20261008.md and REVIEW-EVIDENCE-20261008.json
+/.planning/debug/merge-*
+/.planning/debug/phase29-perf-*/
+/.planning/debug/phase29-performance-resolution-*.md
+/.planning/_local_archive/
+
 # Local Test Configs
 tests/config.json
 /veloxmesh-test.db

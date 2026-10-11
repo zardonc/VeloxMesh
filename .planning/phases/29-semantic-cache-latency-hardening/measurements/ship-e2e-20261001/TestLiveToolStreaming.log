@@ -1,0 +1,4 @@
+=== RUN   TestLiveToolStreaming
+    live_ship_protocol_test.go:258: dimension probe: [provider_bad_response] Provider returned no embeddings
+--- FAIL: TestLiveToolStreaming (0.01s)
+FAIL

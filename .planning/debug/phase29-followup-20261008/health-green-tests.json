@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-timeout=60s",
+    "-v",
+    "./internal/health",
+    "./internal/hotstate"
+  ],
+  "exit_code": 0,
+  "seconds": 1.8922214999911375
+}

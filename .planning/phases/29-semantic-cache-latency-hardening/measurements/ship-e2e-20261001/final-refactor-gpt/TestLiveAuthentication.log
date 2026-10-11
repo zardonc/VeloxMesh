@@ -1,0 +1,11 @@
+=== RUN   TestLiveAuthentication
+{"time":"2026-10-02T05:10:56.119825708Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:10:56.153142563Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T05:10:56.153763714Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T05:10:56.153927893Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:10:56.153991563Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:10:56.16298192Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_features_test.go:142: model=text-embedding-embedder_collection dimension=768 primary=gpt-6-luna
+{"time":"2026-10-02T05:10:56.168233267Z","level":"INFO","msg":"request completed","request_id":"acad5b9d84fcc658bd79273c824760af","method":"POST","path":"/v1/chat/completions","status":401,"latency_ms":0}
+--- PASS: TestLiveAuthentication (0.26s)
+PASS

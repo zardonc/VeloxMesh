@@ -1,0 +1,103 @@
+=== RUN   TestLiveEmbeddingMemoBoundaries
+{"time":"2026-10-04T04:18:22.054676595Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T04:18:22.057041876Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T04:18:22.057078635Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T04:18:22.057087021Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T04:18:22.057137516Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T04:18:22.059797994Z","level":"INFO","msg":"starting config change subscriber"}
+    live_embedding_memo_test.go:19: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T04:18:22.080480786Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_2b44ad33e4238ac64936d8b7165dff128c52db97c9d2464cff75dbf8f8dd27cb: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_2b44ad33e4238ac64936d8b7165dff128c52db97c9d2464cff75dbf8f8dd27cb` doesn't exist!"}
+{"time":"2026-10-04T04:18:22.082064445Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_2b44ad33e4238ac64936d8b7165dff128c52db97c9d2464cff75dbf8f8dd27cb: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_2b44ad33e4238ac64936d8b7165dff128c52db97c9d2464cff75dbf8f8dd27cb` doesn't exist!"}
+{"time":"2026-10-04T04:18:22.082668167Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_2b44ad33e4238ac64936d8b7165dff128c52db97c9d2464cff75dbf8f8dd27cb: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_2b44ad33e4238ac64936d8b7165dff128c52db97c9d2464cff75dbf8f8dd27cb` doesn't exist!"}
+{"time":"2026-10-04T04:18:22.097618959Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_8e3a6a078978fa04fb0fcad6c379033c4609aff5c939411353967a57cbd2221e: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_8e3a6a078978fa04fb0fcad6c379033c4609aff5c939411353967a57cbd2221e` doesn't exist!"}
+{"time":"2026-10-04T04:18:22.113127864Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_0f4214da7796cdf08ca7320e345e88374b55270018842b7141a3ea266059d90a: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_0f4214da7796cdf08ca7320e345e88374b55270018842b7141a3ea266059d90a` doesn't exist!"}
+{"time":"2026-10-04T04:18:22.133691566Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_2b44ad33e4238ac64936d8b7165dff128c52db97c9d2464cff75dbf8f8dd27cb: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_2b44ad33e4238ac64936d8b7165dff128c52db97c9d2464cff75dbf8f8dd27cb` doesn't exist!"}
+{"time":"2026-10-04T04:18:24.266442706Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_2b44ad33e4238ac64936d8b7165dff128c52db97c9d2464cff75dbf8f8dd27cb: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_2b44ad33e4238ac64936d8b7165dff128c52db97c9d2464cff75dbf8f8dd27cb` doesn't exist!"}
+{"time":"2026-10-04T04:18:24.266487932Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"timeout","error":"context canceled"}
+    live_embedding_memo_test.go:47: SAMPLE {"cancel":true,"capacity":true,"copy":true,"main_model_calls":0,"model_isolation":true,"scope_isolation":true,"ttl":true,"type":"memo_boundaries"}
+{"time":"2026-10-04T04:18:24.266790041Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"embedding_error","error":"context canceled"}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-first","name":"net_embedding/get_connection","start_ms":0.814,"elapsed_ms":0.044}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-first","name":"net_embedding/got_connection_reused","start_ms":0.814,"elapsed_ms":0.055}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-first","name":"net_embedding/request_written","start_ms":0.814,"elapsed_ms":0.074}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-first","name":"net_embedding/first_byte","start_ms":0.814,"elapsed_ms":14.193}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-first","name":"embedding_headers","start_ms":0.814,"elapsed_ms":14.341}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-first","name":"embedding_http","start_ms":0.814,"elapsed_ms":14.534}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-first","name":"lookup_embedding","start_ms":0.731,"elapsed_ms":14.961}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-first","name":"vector_search","start_ms":15.695,"elapsed_ms":4.84}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-first","name":"cache_read","start_ms":0.721,"elapsed_ms":19.935}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-repeat","name":"lookup_embedding","start_ms":20.673,"elapsed_ms":0.013}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-repeat","name":"vector_search","start_ms":20.687,"elapsed_ms":1.476}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-repeat","name":"cache_read","start_ms":20.665,"elapsed_ms":1.543}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-copy","name":"lookup_embedding","start_ms":22.221,"elapsed_ms":0.011}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-copy","name":"vector_search","start_ms":22.232,"elapsed_ms":0.542}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-copy","name":"cache_read","start_ms":22.214,"elapsed_ms":0.58}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-scope","name":"net_embedding/get_connection","start_ms":22.832,"elapsed_ms":0.02}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-scope","name":"net_embedding/got_connection_reused","start_ms":22.832,"elapsed_ms":0.025}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-scope","name":"net_embedding/request_written","start_ms":22.832,"elapsed_ms":0.045}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-scope","name":"net_embedding/first_byte","start_ms":22.832,"elapsed_ms":13.642}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-scope","name":"embedding_headers","start_ms":22.832,"elapsed_ms":13.685}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-scope","name":"embedding_http","start_ms":22.832,"elapsed_ms":13.81}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-scope","name":"lookup_embedding","start_ms":22.802,"elapsed_ms":14.036}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-scope","name":"vector_search","start_ms":36.839,"elapsed_ms":0.873}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-scope","name":"cache_read","start_ms":22.798,"elapsed_ms":14.986}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-model","name":"net_embedding/get_connection","start_ms":37.846,"elapsed_ms":0.04}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-model","name":"net_embedding/got_connection_reused","start_ms":37.846,"elapsed_ms":0.045}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-model","name":"net_embedding/request_written","start_ms":37.846,"elapsed_ms":0.082}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-model","name":"net_embedding/first_byte","start_ms":37.846,"elapsed_ms":14.148}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-model","name":"embedding_headers","start_ms":37.846,"elapsed_ms":14.198}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-model","name":"embedding_http","start_ms":37.846,"elapsed_ms":14.392}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-model","name":"lookup_embedding","start_ms":37.798,"elapsed_ms":14.642}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-model","name":"vector_search","start_ms":52.442,"elapsed_ms":0.779}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-model","name":"cache_read","start_ms":37.791,"elapsed_ms":15.489}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-evicted","name":"net_embedding/get_connection","start_ms":53.324,"elapsed_ms":0.021}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-evicted","name":"net_embedding/got_connection_reused","start_ms":53.324,"elapsed_ms":0.025}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-evicted","name":"net_embedding/request_written","start_ms":53.324,"elapsed_ms":0.04}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-evicted","name":"net_embedding/first_byte","start_ms":53.324,"elapsed_ms":19.241}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-evicted","name":"embedding_headers","start_ms":53.324,"elapsed_ms":19.3}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-evicted","name":"embedding_http","start_ms":53.324,"elapsed_ms":19.525}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-evicted","name":"lookup_embedding","start_ms":53.293,"elapsed_ms":19.76}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-evicted","name":"vector_search","start_ms":73.056,"elapsed_ms":0.73}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-evicted","name":"cache_read","start_ms":53.288,"elapsed_ms":20.541}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-expired","name":"net_embedding/get_connection","start_ms":2175.312,"elapsed_ms":0.031}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-expired","name":"net_embedding/got_connection_reused","start_ms":2175.312,"elapsed_ms":0.039}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-expired","name":"net_embedding/request_written","start_ms":2175.312,"elapsed_ms":0.063}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-expired","name":"net_embedding/first_byte","start_ms":2175.312,"elapsed_ms":30.029}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-expired","name":"embedding_headers","start_ms":2175.312,"elapsed_ms":30.074}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-expired","name":"embedding_http","start_ms":2175.312,"elapsed_ms":30.206}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-expired","name":"lookup_embedding","start_ms":2175.238,"elapsed_ms":30.479}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-expired","name":"vector_search","start_ms":2205.718,"elapsed_ms":0.819}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-expired","name":"cache_read","start_ms":2175.18,"elapsed_ms":31.415}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-cancel","name":"cache_read","start_ms":2206.598,"elapsed_ms":0.009}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"memo-cancel","name":"lookup_embedding","start_ms":2206.888,"elapsed_ms":0.081}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/miss","elapsed_ms":0,"start_ms":0.779,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.919,"start_ms":0.7319999999999993,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":4.844,"start_ms":15.744,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":20.59,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/hit","elapsed_ms":0,"start_ms":20.685,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":0.013,"start_ms":20.674,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.478,"start_ms":20.695999999999998,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":22.175,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/hit","elapsed_ms":0,"start_ms":22.231,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":0.009,"start_ms":22.222,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":0.543,"start_ms":22.237000000000002,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":22.78,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/miss","elapsed_ms":0,"start_ms":22.806,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.027,"start_ms":22.802,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":0.875,"start_ms":36.85,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":37.725,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/miss","elapsed_ms":0,"start_ms":37.808,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":14.632,"start_ms":37.799,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":0.782,"start_ms":52.452,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":53.237,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/miss","elapsed_ms":0,"start_ms":53.301,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":19.749,"start_ms":53.29400000000001,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":0.732,"start_ms":73.06700000000001,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":73.799,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"embedding_memo/miss","elapsed_ms":0,"start_ms":2175.248,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":30.469,"start_ms":2175.239,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":0.822,"start_ms":2205.728,"ok":false,"error":"NotFound"}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":2206.551,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/timeout","elapsed_ms":0,"start_ms":2206.603,"ok":true}
+    live_timing_test.go:149: SAMPLE {"type":"outcome","name":"lookup/embedding_error","elapsed_ms":0,"start_ms":2206.902,"ok":true}
+--- PASS: TestLiveEmbeddingMemoBoundaries (2.24s)
+PASS

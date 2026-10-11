@@ -1,0 +1,23 @@
+{
+  "before_exit_code": 3221225781,
+  "before_exit_hex": "0xc0000135",
+  "cause": "Native CUDA subprocess lacked vendor_lib_package_names DLL directory in its process PATH.",
+  "child_only_path_added": "C:\\Users\\inthe\\.lmstudio\\extensions\\backends\\vendor\\win-llama-cuda12-vendor-v2",
+  "after_exit_code": 0,
+  "stderr": "",
+  "help_lines": [
+    "-t,    --threads N                      number of CPU threads to use during generation (default: -1)",
+    "-tb,   --threads-batch N                number of threads to use during batch and prompt processing (default:",
+    "                                        same as --threads)",
+    "-fa,   --flash-attn [on|off|auto]       set Flash Attention use ('on', 'off', or 'auto', default: 'auto')",
+    "-ngl,  --gpu-layers, --n-gpu-layers N   max. number of layers to store in VRAM, either an exact number,",
+    "--spec-draft-threads, -td, --threads-draft N",
+    "                                        --threads)",
+    "--spec-draft-threads-batch, -tbd, --threads-batch-draft N",
+    "                                        same as --threads-draft)",
+    "--spec-draft-ngl, -ngld, --gpu-layers-draft, --n-gpu-layers-draft N",
+    "--pooling {none,mean,cls,last,rank}     pooling type for embeddings, use model default if unspecified",
+    "--embd-normalize N                      normalisation for embeddings (default: 2) (-1=none, 0=max absolute",
+    "--threads-http N                        number of threads used to process HTTP requests (default: -1)"
+  ]
+}

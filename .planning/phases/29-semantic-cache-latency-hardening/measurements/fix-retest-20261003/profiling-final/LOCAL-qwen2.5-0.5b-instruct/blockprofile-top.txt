@@ -1,0 +1,28 @@
+File: app-linux.test
+Build ID: 470cac91617af72df0a7fa444facb80805a187ff
+Type: delay
+Time: 2026-10-03 14:28:03 PDT
+Showing nodes accounting for 622.15s, 100% of 622.28s total
+Dropped 256 nodes (cum <= 3.11s)
+Showing top 20 nodes out of 66
+      flat  flat%   sum%        cum   cum%
+   469.53s 75.45% 75.45%    469.53s 75.45%  runtime.selectgo
+    76.52s 12.30% 87.75%     76.52s 12.30%  runtime.chanrecv1
+    76.10s 12.23%   100%     76.10s 12.23%  runtime.chanrecv2
+         0     0%   100%     25.52s  4.10%  database/sql.(*DB).connectionOpener
+         0     0%   100%     25.52s  4.10%  database/sql.OpenDB.gowrap1
+         0     0%   100%     24.11s  3.87%  github.com/go-chi/chi/v5.(*ChainHandler).ServeHTTP
+         0     0%   100%     24.11s  3.87%  github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+         0     0%   100%     24.11s  3.87%  github.com/go-chi/chi/v5.(*Mux).routeHTTP
+         0     0%   100%     24.11s  3.87%  github.com/go-chi/chi/v5.(*Mux).routeHTTP-fm
+         0     0%   100%     25.36s  4.08%  github.com/redis/go-redis/v9.(*channel).initHealthCheck.func1
+         0     0%   100%        10s  1.61%  go.opencensus.io/stats/view.(*worker).start
+         0     0%   100%        10s  1.61%  go.opencensus.io/stats/view.init.0.gowrap1
+         0     0%   100%     75.55s 12.14%  google.golang.org/grpc/internal/transport.(*controlBuffer).get
+         0     0%   100%     59.86s  9.62%  google.golang.org/grpc/internal/transport.(*http2Client).keepalive
+         0     0%   100%     75.55s 12.14%  google.golang.org/grpc/internal/transport.(*loopyWriter).run
+         0     0%   100%     75.55s 12.14%  google.golang.org/grpc/internal/transport.NewHTTP2Client.func6
+         0     0%   100%     59.86s  9.62%  google.golang.org/grpc/internal/transport.NewHTTP2Client.gowrap3
+         0     0%   100%     25.53s  4.10%  main.main
+         0     0%   100%     48.68s  7.82%  net/http.(*Client).Do (inline)
+         0     0%   100%     48.68s  7.82%  net/http.(*Client).do

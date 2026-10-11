@@ -15,6 +15,12 @@ The harness guarantees provider-neutral behavior, safe error mapping, and proper
 4. **Local SDK/Native Tests:** Keep provider-specific transport, SDK behavior, or edge case tests in your adapter's test file. The harness does not replace them.
 5. **Production Isolation:** Do not import `adaptertest` in production code.
 
+For tool-specific fixtures, `RunToolContract` accepts a `ToolContractFixture`,
+`ToolContractCase`, and completion observer. It checks tool choices/history and
+expected finish/error outcomes for completion or stream fixtures, then hands off
+one observation. It does not own gateway terminal effects or execute tools;
+keep provider-specific fragment tests and gateway settlement tests alongside it.
+
 ### Example
 
 ```go

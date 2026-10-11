@@ -1,0 +1,360 @@
+=== RUN   TestLiveCacheLoadOnRepeat
+{"time":"2026-10-02T17:03:06.976868871Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T17:03:06.979221699Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T17:03:06.979244562Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T17:03:06.979255743Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T17:03:06.979331686Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T17:03:06.982521672Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_load_test.go:191: model=text-embedding-embedder_collection dimension=768 primary=gpt-6-luna
+{"time":"2026-10-02T17:03:09.227290258Z","level":"INFO","msg":"request completed","request_id":"7cdb260c1586429658f62463a21708cf","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2243}
+    live_ship_load_test.go:191: SAMPLE {"sample":{"type":"client","index":999,"start_ms":0.164,"elapsed_ms":2244.609,"status":200,"ok":true,"hit":false,"concurrent":0,"answer_hash":"540125725061b36b41474e0b751e06b0cdd6ee3ff9d4178aa1919622899f4dbd"},"type":"warmup"}
+{"time":"2026-10-02T17:03:10.825595554Z","level":"INFO","msg":"request completed","request_id":"f78ce34a86a901486887514096e7e02c","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1597}
+{"time":"2026-10-02T17:03:12.03164628Z","level":"INFO","msg":"request completed","request_id":"b97bc69804efbb0fae9a5e6a5046c39b","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1802}
+{"time":"2026-10-02T17:03:12.855717856Z","level":"INFO","msg":"request completed","request_id":"e98f15c534265e49825dd9e7895b82da","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1627}
+{"time":"2026-10-02T17:03:13.545642222Z","level":"INFO","msg":"request completed","request_id":"7c486c1f5ab4e1607edb4e9a382a7a74","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1316}
+{"time":"2026-10-02T17:03:16.534800185Z","level":"INFO","msg":"request completed","request_id":"88684b66e6ead3c81385bd20efb018c2","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2305}
+{"time":"2026-10-02T17:03:16.858842408Z","level":"INFO","msg":"request completed","request_id":"7b58217fd5359f5a5d2c65f335013ea2","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1630}
+{"time":"2026-10-02T17:03:18.25237468Z","level":"INFO","msg":"request completed","request_id":"1239ecac03d0c567b4ea47b46aa3d2c7","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2023}
+{"time":"2026-10-02T17:03:20.104496141Z","level":"INFO","msg":"request completed","request_id":"dd020ebc1b3efc1e9b878bd579d8860c","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1876}
+{"time":"2026-10-02T17:03:20.570398943Z","level":"INFO","msg":"request completed","request_id":"cbeec7baeab70272475cf0c2d12eb9af","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":3341}
+{"time":"2026-10-02T17:03:21.912586063Z","level":"INFO","msg":"request completed","request_id":"6238deeec43e70e002c997d3e8e4e228","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2683}
+{"time":"2026-10-02T17:03:22.410743437Z","level":"INFO","msg":"request completed","request_id":"a8933dfef89c78fb169aa3cb37f819f8","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2181}
+{"time":"2026-10-02T17:03:23.70657021Z","level":"INFO","msg":"request completed","request_id":"b1a30952ff66e07be078dc8507aab4cb","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2478}
+{"time":"2026-10-02T17:03:23.804514039Z","level":"INFO","msg":"request completed","request_id":"f4b26f7ee95324e0362109684550bef4","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1576}
+{"time":"2026-10-02T17:03:25.231536599Z","level":"INFO","msg":"request completed","request_id":"c26d56a3e3c991079b317273d9226cc2","method":"POST","path":"/v1/chat/completions","status":499,"latency_ms":12002}
+{"time":"2026-10-02T17:03:25.464044891Z","level":"INFO","msg":"request completed","request_id":"6cfa7ebb2eb7248fab10b3f8b980f104","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1235}
+{"time":"2026-10-02T17:03:26.052056052Z","level":"INFO","msg":"request completed","request_id":"4be6810b24e63a720e4b3e13327884c7","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2823}
+{"time":"2026-10-02T17:03:26.752718987Z","level":"INFO","msg":"request completed","request_id":"37a8aa70d3c51e751c6b5e666866edc3","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1524}
+{"time":"2026-10-02T17:03:28.003631192Z","level":"INFO","msg":"request completed","request_id":"8f2b246734b571dd13531a15cec71d9f","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1775}
+{"time":"2026-10-02T17:03:28.568233059Z","level":"INFO","msg":"request completed","request_id":"a60235ed6d2facff42e3b2c0c0f6b9c3","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1339}
+{"time":"2026-10-02T17:03:29.281901486Z","level":"INFO","msg":"request completed","request_id":"af36e5f3fc66d16a7eb72e204c6b8c51","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":53}
+{"time":"2026-10-02T17:03:29.912128449Z","level":"INFO","msg":"request completed","request_id":"03dc47daa4d8b8e130de59c09b7f795e","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1682}
+{"time":"2026-10-02T17:03:31.599488463Z","level":"INFO","msg":"request completed","request_id":"0535bc6952eb950e7d57c2ced8f04a7a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1370}
+{"time":"2026-10-02T17:03:33.292083885Z","level":"INFO","msg":"request completed","request_id":"9a236ac9d0aab8f52ac53abc70d0b519","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2063}
+{"time":"2026-10-02T17:03:33.546486204Z","level":"INFO","msg":"request completed","request_id":"df2b7e8c0aaa638ac8021fd77b577ddd","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1318}
+{"time":"2026-10-02T17:03:35.479874539Z","level":"INFO","msg":"request completed","request_id":"7f2e285921cd2091a6b5c4f51664e33d","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2250}
+{"time":"2026-10-02T17:03:35.988618802Z","level":"INFO","msg":"request completed","request_id":"fc57c059850b6e130e1a5ee064c4e053","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1759}
+{"time":"2026-10-02T17:03:36.777371635Z","level":"INFO","msg":"request completed","request_id":"2ee1f3adc8cc577a506f7b3ce03131fd","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1548}
+{"time":"2026-10-02T17:03:37.553592178Z","level":"INFO","msg":"request completed","request_id":"b36711c90dec0087975a115dceee47cb","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1324}
+{"time":"2026-10-02T17:03:40.64010475Z","level":"INFO","msg":"request completed","request_id":"6ccbf289d9ebe1936a9a8f8e7ae1ba61","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2411}
+{"time":"2026-10-02T17:03:40.720235137Z","level":"INFO","msg":"request completed","request_id":"80793cb4b8a94fd2ea15fe953836c173","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":3491}
+{"time":"2026-10-02T17:03:41.202848954Z","level":"INFO","msg":"request completed","request_id":"22f97fdd041ec698070c23b6b4904c9a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1973}
+{"time":"2026-10-02T17:03:42.879648748Z","level":"INFO","msg":"request completed","request_id":"e172a666f4a76ce74796a26200a2fa7a","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2651}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":1,"start_ms":0.032,"elapsed_ms":1598.062,"status":200,"ok":true,"hit":false,"concurrent":1,"answer_hash":"b48b4deb3beb9ae61df65fed63c7349c1691a13eb4a3ca3f00dbe5e5d33aca7b"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":2,"start_ms":1000.968,"elapsed_ms":1803.157,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"87748df826754265d0b3cd3688bfe43fa113670bc9f43d772a8cc93b17e05bf0"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":3,"start_ms":2000.479,"elapsed_ms":1627.807,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"3abf02f934172ad7b2120c675f905e15c2373bb48931076eb3f3cc60bfe9b799"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":4,"start_ms":3001.135,"elapsed_ms":1317.013,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"d36725e5bd7faa3b67bf389ef199a039aa9515c842da3dfd990b2da416d5dc93"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":5,"start_ms":4000.513,"elapsed_ms":12000.345,"status":0,"ok":false,"hit":false,"concurrent":2,"error":"transport_error: Post \"http://127.0.0.1:42491/v1/chat/completions\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":6,"start_ms":5000.923,"elapsed_ms":2306.4,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"00c2e44bbf7fbc72afa0e2d0900eadf324694e0b1a2bf6fd874dabb9288b4a15"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":7,"start_ms":6000.278,"elapsed_ms":1631.058,"status":200,"ok":true,"hit":false,"concurrent":3,"answer_hash":"c8f74828bb4a5b42bac49dd8381ee97d882f1059f6b8f5b40fcd436b3046ae39"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":8,"start_ms":7001.124,"elapsed_ms":2023.907,"status":200,"ok":true,"hit":false,"concurrent":4,"answer_hash":"32ddd2f7c548a0d6d8fc7d4419e71f647de0806f0828b49fa7278272a03b1016"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":9,"start_ms":8001.266,"elapsed_ms":3341.617,"status":200,"ok":true,"hit":false,"concurrent":3,"answer_hash":"212b386de3c6c18143d391a19285819b3ffde21728b87abc45c6aa30533a13b4"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":10,"start_ms":9000.499,"elapsed_ms":1876.739,"status":200,"ok":true,"hit":false,"concurrent":4,"answer_hash":"2ee94a838366173da4c30d07466ca295eef6bb1c8fd1794f9cae3ace490bc126"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":11,"start_ms":10001.466,"elapsed_ms":2683.691,"status":200,"ok":true,"hit":false,"concurrent":4,"answer_hash":"14bfd339d99a9c9c5dd7c3a2aea295c60d44e4d39be5549a5f26daf838882873"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":12,"start_ms":11001.147,"elapsed_ms":2182.045,"status":200,"ok":true,"hit":false,"concurrent":4,"answer_hash":"e77a58e626d084b50d7e9bc3a5936f2b4b0f54385a5d87b6442c59d66c9dd740"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":13,"start_ms":12000.147,"elapsed_ms":2478.831,"status":200,"ok":true,"hit":false,"concurrent":4,"answer_hash":"62762b17bb7ce2fe1a0b36fdf354856bae577160a1b81d906c5c745ffebfe15d"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":14,"start_ms":13000.457,"elapsed_ms":1576.493,"status":200,"ok":true,"hit":false,"concurrent":4,"answer_hash":"268520fbeca0e2c5409bc24b6a9f2f08ab896776eac6d70b80525d50acb4213c"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":15,"start_ms":14000.665,"elapsed_ms":2824.231,"status":200,"ok":true,"hit":false,"concurrent":4,"answer_hash":"a98feab0446c11e1f26ff0107e833de8ac801c384ba54d3665981bc988a28e98"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":16,"start_ms":15000.468,"elapsed_ms":1236.079,"status":200,"ok":true,"hit":false,"concurrent":3,"answer_hash":"d49d9bfdf95c8ebd88e433c6ae5dd7b0b69017dc814777ef57d0b86ff985ee97"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":17,"start_ms":16000.464,"elapsed_ms":1524.772,"status":200,"ok":true,"hit":false,"concurrent":4,"answer_hash":"86709be06ded50b09f6687d120d914df474f234d5eb07da8c7047f23e00721b3"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":18,"start_ms":17000.603,"elapsed_ms":1775.682,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"fc2f63b62815ccf237d178b4c3533822cc1c28fd345012c039cd2dc166c0185f"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":19,"start_ms":18000.428,"elapsed_ms":1340.404,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"62c2de36c6e4e8ea7a5454eb7b13a271401613f80b99acf1faa689d671a134a2"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":20,"start_ms":19001.313,"elapsed_ms":1683.46,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"8776ae7fb10308fa25cdf305a358ca256f02cbab7df10427a299f444b51cd71a"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":1,"start_ms":20000.634,"elapsed_ms":53.712,"status":200,"ok":true,"hit":true,"concurrent":2,"answer_hash":"b48b4deb3beb9ae61df65fed63c7349c1691a13eb4a3ca3f00dbe5e5d33aca7b"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":22,"start_ms":21000.724,"elapsed_ms":1371.31,"status":200,"ok":true,"hit":false,"concurrent":1,"answer_hash":"0446a9b4bc54516f843764b1e0369371df9568a566404e91422a193800a43269"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":23,"start_ms":22000.152,"elapsed_ms":2064.47,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"0812fcd27ea53923d0a657ae12dceb0125f3d855ecad13e38ad96ac021ab275f"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":24,"start_ms":23000.356,"elapsed_ms":1318.776,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"1bc3bd7bafb5e068427054b8ebebfe5b0945f1ec879078c2b28b451c74bca33e"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":25,"start_ms":24001.37,"elapsed_ms":2251.399,"status":200,"ok":true,"hit":false,"concurrent":3,"answer_hash":"3513c53201a3bd1e10ad52862b0f9d7657f8da81a8ccf5caa49ccc254a1ec66e"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":26,"start_ms":25001.105,"elapsed_ms":1760.035,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"0b88066b8b4ce91797052f12759f728ab9910388ed9be191913840e07ed33cfc"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":27,"start_ms":26001.143,"elapsed_ms":1548.734,"status":200,"ok":true,"hit":false,"concurrent":3,"answer_hash":"b19692aecbdf9c138430ccd226f9385fd8ff8f91f17012699c7741a7da342470"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":28,"start_ms":27001.389,"elapsed_ms":1324.723,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"95aab61b17d629b60744ecffb0b710643affc21ebdd48ecc2f7f6a02405e615c"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":29,"start_ms":28000.634,"elapsed_ms":3492.093,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"3b0e7f723661a2f39f3b1abc3724339c36f02636d1e4075e7d50c367be455325"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":30,"start_ms":29000.3,"elapsed_ms":2412.299,"status":200,"ok":true,"hit":false,"concurrent":2,"answer_hash":"c0d8676ec30b4dea840b334453e6acc3f6da980a6e1b92996fa9ff300c49c9ad"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":31,"start_ms":30001.449,"elapsed_ms":1974.264,"status":200,"ok":true,"hit":false,"concurrent":3,"answer_hash":"e6a941a9f3dedc16950c69985e447588ef0c21f405e0b16c10f08f8c30be95ea"}
+    live_ship_load_test.go:191: SAMPLE {"type":"client","index":32,"start_ms":31000.167,"elapsed_ms":2652.045,"status":200,"ok":true,"hit":false,"concurrent":4,"answer_hash":"3e7a5c4d84fe47cafcb343c9b9bad03ffe1140225bb398611f64683e99fc85df"}
+    live_ship_load_test.go:191: SAMPLE {"count":32,"elapsed_ms":33652.215,"failed":1,"interval_ms":1000,"max_concurrency":4,"mode":"on","model":"text-embedding-embedder_collection","type":"metadata"}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":55.276,"start_ms":-0.24900000000000233,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.317,"start_ms":55.035,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":96.978,"start_ms":0.44600000000001216,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":43.314,"start_ms":55.358,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":98.922,"start_ms":-0.25,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":98.687,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":2.34,"start_ms":97.42699999999999,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":99.768,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":48.352,"start_ms":1002.034,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.505,"start_ms":1050.3899999999999,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":1051.908,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":1597.875,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":50.548,"start_ms":1597.999,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.37,"start_ms":1648.5590000000002,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.747,"start_ms":1648.931,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":53.68,"start_ms":1597.999,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":1651.68,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":60.434,"start_ms":2001.561,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":2.035,"start_ms":2061.998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":2064.036,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":2803.937,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":58.097,"start_ms":2804.0759999999996,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.367,"start_ms":2862.1809999999996,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.635,"start_ms":2862.5499999999997,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":61.11,"start_ms":2804.076,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":2865.187,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":50.002,"start_ms":3002.002,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.873,"start_ms":3052.007,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":3053.882,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":3627.996,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":59.501,"start_ms":3628.2019999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.537,"start_ms":3687.7110000000002,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":3.746,"start_ms":3688.2529999999997,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":63.8,"start_ms":3628.1989999999996,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":3692,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":49.249,"start_ms":4001.5820000000003,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.485,"start_ms":4050.834,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":4052.32,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":4317.926,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":49.942,"start_ms":4318.054,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.226,"start_ms":4367.999000000001,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":3.022,"start_ms":4368.228,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":53.197,"start_ms":4318.053,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":4371.291,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":49.253,"start_ms":5001.848,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.659,"start_ms":5051.104,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":5052.765,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":47.701,"start_ms":6001.628,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.741,"start_ms":6049.332,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":6051.074,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":51.272,"start_ms":7002.6230000000005,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.932,"start_ms":7053.898,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":7055.831,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":7307.091,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":53.596,"start_ms":7307.224,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.282,"start_ms":7360.826,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.971,"start_ms":7361.111000000001,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":56.86,"start_ms":7307.222000000001,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":7364.083,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":7631.131,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":48.491,"start_ms":7631.242,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.237,"start_ms":7679.739,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":3.099,"start_ms":7679.979,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":51.837,"start_ms":7631.241999999999,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":7683.08,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":62.815,"start_ms":8002.299,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":2.12,"start_ms":8065.118,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":8067.24,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":9024.648,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":53.162,"start_ms":9001.351,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":2.1,"start_ms":9054.517,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":9056.618,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":87.646,"start_ms":9024.83,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.345,"start_ms":9112.482,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":4.56,"start_ms":9112.831,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":92.563,"start_ms":9024.828,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":9117.392,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":49.297,"start_ms":10002.367,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":2.07,"start_ms":10051.668,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":10053.74,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":10876.789,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":49.138,"start_ms":10876.902999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.428,"start_ms":10926.053,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":4.234,"start_ms":10926.489,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":53.824,"start_ms":10876.9,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":10930.725,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":48.784,"start_ms":11002.033,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.52,"start_ms":11050.82,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":11052.341,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":11342.674,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":58.345,"start_ms":11342.736,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.227,"start_ms":11401.089,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.727,"start_ms":11401.319,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":61.312,"start_ms":11342.735,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":11404.048,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":50.528,"start_ms":12000.912,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.451,"start_ms":12051.442000000001,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":12052.894,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":12684.876,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":48.381,"start_ms":12684.987000000001,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.23,"start_ms":12733.373,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.491,"start_ms":12733.605,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":51.111,"start_ms":12684.984999999999,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":12736.097,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":61.638,"start_ms":13001.090999999999,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.698,"start_ms":13062.732,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":13064.431,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":13183.033,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":48.863,"start_ms":13183.165,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.258,"start_ms":13232.033,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.608,"start_ms":13232.295,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":51.739,"start_ms":13183.164,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":13234.904,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":49.995,"start_ms":14001.444,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.669,"start_ms":14051.442000000001,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":14053.112,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":14478.86,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":61.865,"start_ms":14478.901,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.186,"start_ms":14540.769,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.598,"start_ms":14540.957,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":64.656,"start_ms":14478.9,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":14543.557,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":14576.795,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":48.943,"start_ms":14576.916000000001,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.319,"start_ms":14625.865,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":3.579,"start_ms":14626.187,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":52.851,"start_ms":14576.916,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":14629.768,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":48.796,"start_ms":15001.565,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.486,"start_ms":15050.364,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":15051.851,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":47.648,"start_ms":16002.422,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.557,"start_ms":16050.072999999999,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":16051.631,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":16236.337,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":48.702,"start_ms":16236.465,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.209,"start_ms":16285.171999999999,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.718,"start_ms":16285.383,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":51.638,"start_ms":16236.464,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":16288.102,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":16824.339,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":48.241,"start_ms":16824.447999999997,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.303,"start_ms":16872.7,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.525,"start_ms":16873.005999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":51.084,"start_ms":16824.448,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":16875.533,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":49.773,"start_ms":17001.612999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.729,"start_ms":17051.389,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":17053.119,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":17525.011,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":52.236,"start_ms":17525.124,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.507,"start_ms":17577.382999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.827,"start_ms":17577.896999999997,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":55.601,"start_ms":17525.123,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":17580.726,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":60.545,"start_ms":18001.713000000003,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.47,"start_ms":18062.262,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":18063.732,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":18775.909,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":50.594,"start_ms":18776.104,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.431,"start_ms":18826.702,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.955,"start_ms":18827.136,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":53.988,"start_ms":18776.103,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":18830.092,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":48.551,"start_ms":19002.252,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":4.58,"start_ms":19050.806999999997,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":19055.388,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":19340.518,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":49.356,"start_ms":19340.664,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.31,"start_ms":19390.027,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":3.02,"start_ms":19390.346,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":52.712,"start_ms":19340.663,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":19393.376,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":50.526,"start_ms":20001.534,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.857,"start_ms":20052.063,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_read","elapsed_ms":0.182,"start_ms":20053.921,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/hit","elapsed_ms":0,"start_ms":20054.176,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":20684.398,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":49.663,"start_ms":20684.595999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.352,"start_ms":20734.266,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":3.835,"start_ms":20734.621,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":53.861,"start_ms":20684.594999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":20738.457,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":48.351,"start_ms":21001.446,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.629,"start_ms":21049.799,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":21051.429,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":49.84,"start_ms":22001.093,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.635,"start_ms":22050.935,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":22052.572,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":22371.773,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":59.68,"start_ms":22371.918999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.266,"start_ms":22431.605,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.67,"start_ms":22431.873000000003,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":62.625,"start_ms":22371.918,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":22434.544,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":60.203,"start_ms":23001.356,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.417,"start_ms":23061.561999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":23062.98,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":52.201,"start_ms":24002.572,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.804,"start_ms":24054.775,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":24056.581,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":24064.366,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":49.499,"start_ms":24064.54,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.23,"start_ms":24114.05,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.428,"start_ms":24114.283,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":52.173,"start_ms":24064.538,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":24116.712,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":24318.777,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":49.806,"start_ms":24318.882999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.218,"start_ms":24368.694,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.471,"start_ms":24368.912999999997,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":52.502,"start_ms":24318.882999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":24371.386,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":49.021,"start_ms":25002.046,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.47,"start_ms":25051.069,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":25052.54,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":52.206,"start_ms":26001.903000000002,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.588,"start_ms":26054.112,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":26055.701,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":26252.156,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":50.694,"start_ms":26252.325,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.549,"start_ms":26303.041,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":3.533,"start_ms":26303.594,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":54.804,"start_ms":26252.323,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":26307.128,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":26760.91,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":53.195,"start_ms":26761.056,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.276,"start_ms":26814.263,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.606,"start_ms":26814.542,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":56.094,"start_ms":26761.054,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":26817.149,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":49.377,"start_ms":27002.141,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.745,"start_ms":27051.521,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":27053.267,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":27549.664,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":48.169,"start_ms":27549.766,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.179,"start_ms":27597.942,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":3.89,"start_ms":27598.125,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":52.251,"start_ms":27549.765,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":27602.018,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":61.633,"start_ms":28001.347999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":2.492,"start_ms":28062.984,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":28065.478,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":28325.879,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":47.5,"start_ms":28325.989,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.216,"start_ms":28373.505,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.569,"start_ms":28373.724000000002,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":50.305,"start_ms":28325.988,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":28376.294,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":52.516,"start_ms":29001.12,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.582,"start_ms":29053.639000000003,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":29055.222,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":50.766,"start_ms":30002.375,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.628,"start_ms":30053.144,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":30054.773,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":51.226,"start_ms":31001.352000000003,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":1.62,"start_ms":31052.581000000002,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"lookup/miss","elapsed_ms":0,"start_ms":31054.202,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":31412.396,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":49.013,"start_ms":31412.499,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.291,"start_ms":31461.517,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":3.087,"start_ms":31461.812,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":52.402,"start_ms":31412.498000000003,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":31464.901,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":31492.526,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":47.154,"start_ms":31492.638000000003,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.245,"start_ms":31539.797000000002,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.624,"start_ms":31540.044,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":50.032,"start_ms":31492.637000000002,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":31542.67,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":31975.128,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":51.237,"start_ms":31975.220999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.224,"start_ms":32026.471,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":2.42,"start_ms":32026.697,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":53.897,"start_ms":31975.219999999998,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":32029.118,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":33651.931,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":49.651,"start_ms":33652.116,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":0.282,"start_ms":33701.772,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":3.094,"start_ms":33702.057,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":53.036,"start_ms":33652.115,"ok":true}
+    live_ship_load_test.go:191: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":33705.152,"ok":true}
+    live_ship_load_test.go:191: real load failed requests=1
+--- FAIL: TestLiveCacheLoadOnRepeat (36.03s)
+FAIL

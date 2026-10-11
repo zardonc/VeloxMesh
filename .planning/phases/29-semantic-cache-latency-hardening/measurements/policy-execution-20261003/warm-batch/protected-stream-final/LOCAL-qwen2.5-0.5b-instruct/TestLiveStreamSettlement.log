@@ -1,0 +1,26 @@
+=== RUN   TestLiveStreamSettlement
+{"time":"2026-10-04T06:53:48.255727719Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:53:48.277679015Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T06:53:48.277724661Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T06:53:48.277736985Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:53:48.277812587Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:53:48.280515512Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:148: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T06:53:48.394250147Z","level":"INFO","msg":"request completed","request_id":"timing-065348.282424885","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":111}
+    live_ship_protocol_test.go:179: real SSE done=1 fragments=9 cache_hit=false
+    live_ship_protocol_test.go:180: usage_rows_all=1 usage_rows_key=1
+    live_ship_protocol_test.go:180: settled_records=1 total_tokens=45 credits=45 exactly_once=true
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"net_upstream/get_connection","start_ms":5.445,"elapsed_ms":0.019}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"net_upstream/got_connection_reused","start_ms":5.445,"elapsed_ms":0.027}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"net_upstream/request_written","start_ms":5.445,"elapsed_ms":0.058}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"net_upstream/first_byte","start_ms":5.445,"elapsed_ms":4.619}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"upstream_headers","start_ms":5.445,"elapsed_ms":4.677}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"sse_first_meaningful","start_ms":1.194,"elapsed_ms":44.238}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"upstream_http","start_ms":5.445,"elapsed_ms":104.882}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"sse_finish","start_ms":1.194,"elapsed_ms":109.469}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"sse_usage","start_ms":1.194,"elapsed_ms":109.529}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"settlement","start_ms":112.242,"elapsed_ms":1.168}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"sse_done","start_ms":1.194,"elapsed_ms":112.482}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-065348.282424885","name":"http_handler","start_ms":1.798,"elapsed_ms":111.971}
+--- PASS: TestLiveStreamSettlement (0.20s)
+PASS

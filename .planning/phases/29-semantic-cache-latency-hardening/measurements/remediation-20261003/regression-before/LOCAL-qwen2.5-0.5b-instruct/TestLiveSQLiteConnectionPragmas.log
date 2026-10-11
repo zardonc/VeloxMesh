@@ -1,0 +1,18 @@
+=== RUN   TestLiveSQLiteConnectionPragmas
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":5000,"connection":0,"foreign_keys":1,"synchronous":1,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":0,"connection":1,"foreign_keys":0,"synchronous":2,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:37: unconfigured pooled connection 1: foreign_keys=0 busy_timeout=0 synchronous=2
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":0,"connection":2,"foreign_keys":0,"synchronous":2,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:37: unconfigured pooled connection 2: foreign_keys=0 busy_timeout=0 synchronous=2
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":0,"connection":3,"foreign_keys":0,"synchronous":2,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:37: unconfigured pooled connection 3: foreign_keys=0 busy_timeout=0 synchronous=2
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":0,"connection":4,"foreign_keys":0,"synchronous":2,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:37: unconfigured pooled connection 4: foreign_keys=0 busy_timeout=0 synchronous=2
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":0,"connection":5,"foreign_keys":0,"synchronous":2,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:37: unconfigured pooled connection 5: foreign_keys=0 busy_timeout=0 synchronous=2
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":0,"connection":6,"foreign_keys":0,"synchronous":2,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:37: unconfigured pooled connection 6: foreign_keys=0 busy_timeout=0 synchronous=2
+    live_remediation_regression_test.go:35: SAMPLE {"busy_timeout_ms":0,"connection":7,"foreign_keys":0,"synchronous":2,"type":"sqlite_connection_pragmas"}
+    live_remediation_regression_test.go:37: unconfigured pooled connection 7: foreign_keys=0 busy_timeout=0 synchronous=2
+--- FAIL: TestLiveSQLiteConnectionPragmas (0.01s)
+FAIL

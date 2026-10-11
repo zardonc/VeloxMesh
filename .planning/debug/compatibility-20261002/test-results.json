@@ -1,0 +1,292 @@
+{
+  "records": [
+    {
+      "group": "gem-baseline",
+      "test": "TestLiveGeminiNativeContinuation",
+      "status": "PASS",
+      "duration_seconds": 20.81,
+      "log": "gem-baseline/TestLiveGeminiNativeContinuation.log",
+      "sha256": "8e0eafce34e8783f92f81834722aa4af181fe205013baa4f964a638a70b55dc7"
+    },
+    {
+      "group": "gem-baseline",
+      "test": "TestLiveToolRequired",
+      "status": "FAIL",
+      "duration_seconds": 0.89,
+      "log": "gem-baseline/TestLiveToolRequired.log",
+      "sha256": "a95380e499e4d2121c578090813b8ff53f55fe882f1fc12c97a34cca03dd2479"
+    },
+    {
+      "group": "gem-baseline",
+      "test": "TestLiveToolStreaming",
+      "status": "FAIL",
+      "duration_seconds": 0.97,
+      "log": "gem-baseline/TestLiveToolStreaming.log",
+      "sha256": "5c92a7f69772d0b1dcda94b1966e1a8ec911077154c2201b5ae172c11610237c"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestLiveBufferedStream",
+      "status": "PASS",
+      "duration_seconds": 1.25,
+      "log": "gem-fixed/TestLiveBufferedStream.log",
+      "sha256": "b0a7b38a7949551afa29d4adc9297a437891acac8f9d76027c41a8336a2bf0cc"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestLiveFusionStream",
+      "status": "PASS",
+      "duration_seconds": 1.25,
+      "log": "gem-fixed/TestLiveFusionStream.log",
+      "sha256": "3cacb1840859a771ace7947d88ae2c05c45bf73e9287e8dc9b6683e275c4d9d4"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestLiveStreamSettlement",
+      "status": "PASS",
+      "duration_seconds": 0.86,
+      "log": "gem-fixed/TestLiveStreamSettlement.log",
+      "sha256": "6e357c3c3f0fe8ad7e07521261fb8c1df98c414e529ed90965a0f0fe33d69e6b"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestLiveToolAuto",
+      "status": "PASS",
+      "duration_seconds": 8.57,
+      "log": "gem-fixed/TestLiveToolAuto.log",
+      "sha256": "0a891e3a47e64182796f1d6de38ab60c7c23d7948a8cc5f158ea77cd3c34da62"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestLiveToolInvalidSignature",
+      "status": "SKIP",
+      "duration_seconds": 0,
+      "log": "gem-fixed/TestLiveToolInvalidSignature.log",
+      "sha256": "161126e07012c633dc4f39d082bcbf5320353daa50e8f3a2eceeb8a3e7a326a7"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestLiveToolNamed",
+      "status": "PASS",
+      "duration_seconds": 1.67,
+      "log": "gem-fixed/TestLiveToolNamed.log",
+      "sha256": "2bdd26fb22274d7255f1f63e1278203a8d656ef125ac42e6910b0f6679bffd96"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestLiveToolNone",
+      "status": "PASS",
+      "duration_seconds": 0.63,
+      "log": "gem-fixed/TestLiveToolNone.log",
+      "sha256": "bd8571bbcc63880e9f03642bba096a38741d9fc1a8d4211b8f350df53c193055"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestLiveToolOmitted",
+      "status": "PASS",
+      "duration_seconds": 3.78,
+      "log": "gem-fixed/TestLiveToolOmitted.log",
+      "sha256": "efd11d6116ba27deb9ac879bd661525a918abae390fc14ec62af34cafc7a8456"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestLiveToolRequired",
+      "status": "PASS",
+      "duration_seconds": 6.55,
+      "log": "gem-fixed/TestLiveToolRequired.log",
+      "sha256": "c3276837487edfb705401c589dd573d0000cc4b9f6e177f05c927c6c8e8410cc"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestLiveToolStreaming",
+      "status": "PASS",
+      "duration_seconds": 1.31,
+      "log": "gem-fixed/TestLiveToolStreaming.log",
+      "sha256": "55afeba7f9f4ce67d8554d2ea1895f2a8b62e81235719bfd98674cc8efffcbca"
+    },
+    {
+      "group": "gem-fixed",
+      "test": "TestPhase29LocalGatewayAcceptance",
+      "status": "PASS",
+      "duration_seconds": 7.84,
+      "log": "gem-fixed/TestPhase29LocalGatewayAcceptance.log",
+      "sha256": "eab3ff7986ce87c7f3085f411dee2dd031dcf82bb12d99756bca29af5241d6d7"
+    },
+    {
+      "group": "gem-native-stream",
+      "test": "TestLiveGeminiNativeToolStream",
+      "status": "PASS",
+      "duration_seconds": 0.98,
+      "log": "gem-native-stream/TestLiveGeminiNativeToolStream.log",
+      "sha256": "be7a00a8b3ba32fca3b6e0cfb1d5c5610bed95330be7c4a2f8f79f29bed69bf7"
+    },
+    {
+      "group": "gem-native-stream",
+      "test": "TestLiveToolStreaming",
+      "status": "PASS",
+      "duration_seconds": 1.71,
+      "log": "gem-native-stream/TestLiveToolStreaming.log",
+      "sha256": "5410bbeff7a0163d261845f2f1e2fb891e530627abe4093772be3c75afedb9f3"
+    },
+    {
+      "group": "gem-recheck",
+      "test": "TestLiveGeminiNativeContinuation",
+      "status": "PASS",
+      "duration_seconds": 4.02,
+      "log": "gem-recheck/TestLiveGeminiNativeContinuation.log",
+      "sha256": "b9f30ae1c18286a6a5095127027aae248465daae8be67c611db26c609e967149"
+    },
+    {
+      "group": "gem-recheck",
+      "test": "TestLiveToolStreaming",
+      "status": "FAIL",
+      "duration_seconds": 5.82,
+      "log": "gem-recheck/TestLiveToolStreaming.log",
+      "sha256": "33b64435cf5c96c2fb22eaffc3a3a329d727826027eee84fc43bbe4b7caeb70f"
+    },
+    {
+      "group": "gem-signature-final",
+      "test": "TestLiveToolInvalidSignature",
+      "status": "PASS",
+      "duration_seconds": 1.75,
+      "log": "gem-signature-final/TestLiveToolInvalidSignature.log",
+      "sha256": "ab5781c83bf26240fd755c7e399fe4f6e72f23de7094d5733b741b8fbc810d74"
+    },
+    {
+      "group": "gem-signature-final",
+      "test": "TestLiveToolRequired",
+      "status": "PASS",
+      "duration_seconds": 1.38,
+      "log": "gem-signature-final/TestLiveToolRequired.log",
+      "sha256": "a3cbde7bf46365c7d434ab65465e26df282b237385ea5541bac0c25fd60f4942"
+    },
+    {
+      "group": "gem-signature-final",
+      "test": "TestLiveToolStreaming",
+      "status": "FAIL",
+      "duration_seconds": 12.08,
+      "log": "gem-signature-final/TestLiveToolStreaming.log",
+      "sha256": "18c9362cd67411fcbdcf60bcf392354865feb52c9611237f24c29b23cf642488"
+    },
+    {
+      "group": "gpt-baseline-ready",
+      "test": "TestLiveStreamSettlement",
+      "status": "FAIL",
+      "duration_seconds": 1.8,
+      "log": "gpt-baseline-ready/TestLiveStreamSettlement.log",
+      "sha256": "d889536126388d91eff20264f2d98cddf7b6f99baf173b76120929504bfe40bf"
+    },
+    {
+      "group": "gpt-baseline-ready",
+      "test": "TestLiveToolStreaming",
+      "status": "FAIL",
+      "duration_seconds": 4.96,
+      "log": "gpt-baseline-ready/TestLiveToolStreaming.log",
+      "sha256": "70e61587dc4ada2ed7687a01df04f5f2a118b69a520658fa5250af8012018e7d"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveAuthentication",
+      "status": "PASS",
+      "duration_seconds": 0.07,
+      "log": "gpt-fixed/TestLiveAuthentication.log",
+      "sha256": "55e2472921ea00dc2e9ca2177d573bdd3157cb4d80a77b25e92fd9841e715fbc"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveBufferedStream",
+      "status": "PASS",
+      "duration_seconds": 1.5,
+      "log": "gpt-fixed/TestLiveBufferedStream.log",
+      "sha256": "479592e4b800bdf22dd26fc2d15e20214bdc3d6d4fddc9376f5e30cb8e965f93"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveFusionStream",
+      "status": "PASS",
+      "duration_seconds": 3.38,
+      "log": "gpt-fixed/TestLiveFusionStream.log",
+      "sha256": "a79dc5d1e327b885eb41dfcf7f25423fc85523e28795284a519f3c1425fa2dba"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveStreamCancellation",
+      "status": "PASS",
+      "duration_seconds": 4.03,
+      "log": "gpt-fixed/TestLiveStreamCancellation.log",
+      "sha256": "1f2dd832a3ce5a26c9d40f6831b50d833cb527a52b1e9a4e177673779a00b8b7"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveStreamSettlement",
+      "status": "PASS",
+      "duration_seconds": 1.64,
+      "log": "gpt-fixed/TestLiveStreamSettlement.log",
+      "sha256": "6be74c323d8c5ae3b4c6312062e78f829c8c0064641c2dd1ad2ce6ac5c9fef79"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveToolAuto",
+      "status": "PASS",
+      "duration_seconds": 6.14,
+      "log": "gpt-fixed/TestLiveToolAuto.log",
+      "sha256": "327ef8633234d0d1010ba66ec55bc7f674dc784af3d5dc9f9d42e319c3a9f10d"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveToolNamed",
+      "status": "PASS",
+      "duration_seconds": 6.3,
+      "log": "gpt-fixed/TestLiveToolNamed.log",
+      "sha256": "7251c40da42ad509d0c7ddd3e358a8cdc71d7ae375a358704b787882da8efbc9"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveToolNone",
+      "status": "PASS",
+      "duration_seconds": 1.48,
+      "log": "gpt-fixed/TestLiveToolNone.log",
+      "sha256": "e6564581ac738c4c20d0e668facc44c44dab70ae61ad7f118d0ab4cd75f85e73"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveToolOmitted",
+      "status": "PASS",
+      "duration_seconds": 4.38,
+      "log": "gpt-fixed/TestLiveToolOmitted.log",
+      "sha256": "34c1dcb4b2f6c232674a0c84ce5932ddc1f1697c35e7fc36a0d6f9670f6436f9"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveToolRequired",
+      "status": "PASS",
+      "duration_seconds": 7.38,
+      "log": "gpt-fixed/TestLiveToolRequired.log",
+      "sha256": "7f254d8a56eb5287c263c3d075d992bdc3a81d3c3af02607c539a77c0eaa30f0"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestLiveToolStreaming",
+      "status": "PASS",
+      "duration_seconds": 7.51,
+      "log": "gpt-fixed/TestLiveToolStreaming.log",
+      "sha256": "10042c7c55e799e888baf4815942563c72342f31d4752620fa632cb6a5d3a100"
+    },
+    {
+      "group": "gpt-fixed",
+      "test": "TestPhase29LocalGatewayAcceptance",
+      "status": "PASS",
+      "duration_seconds": 9.92,
+      "log": "gpt-fixed/TestPhase29LocalGatewayAcceptance.log",
+      "sha256": "039cf529f4d2fb1d9f9e3b9d83b38aba417a6f4ef47314422f7bb7eaf2bdf6eb"
+    }
+  ],
+  "gateway": {
+    "unique_tests_with_pass": 23,
+    "passed_attempts": 25,
+    "failed_attempts": 2,
+    "skipped_attempts": 1
+  },
+  "full_acceptance_passed": false,
+  "merge_allowed": false
+}

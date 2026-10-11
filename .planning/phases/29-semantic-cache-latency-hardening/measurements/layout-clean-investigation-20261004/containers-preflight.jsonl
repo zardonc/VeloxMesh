@@ -1,0 +1,3 @@
+"530617927ea481190bfd6fe919cba3b167e425bf8da36594d116e57eafa07605" "veloxmesh-test-redis" "redis/redis-stack-server:latest" "exited"
+"f2a0336f2a2eea587376221b3a10a65dbea527d22a7c5527b39073cc4e59db57" "veloxmesh-test-qdrant" "qdrant/qdrant:latest" "exited"
+"64a822005dced6cb7692bc13b852998631fddef94b49f8cc9de549b618d0f1a9" "veloxmesh-test-postgres" "pgvector/pgvector:pg16" "exited"

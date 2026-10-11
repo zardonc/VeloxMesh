@@ -1,0 +1,12 @@
+=== RUN   TestLiveStreamSettlement
+{"time":"2026-10-02T05:52:36.411557325Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:52:36.415488719Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T05:52:36.415518956Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T05:52:36.415528684Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:52:36.415573058Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:52:36.417713266Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:134: model=text-embedding-embedder_collection dimension=768 primary=gpt-6-luna
+{"time":"2026-10-02T05:52:38.102414155Z","level":"INFO","msg":"request completed","request_id":"ebf3692fadb42a97f8b9d9607b86170e","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1683}
+    live_ship_protocol_test.go:141: gateway SSE error_code=provider_bad_response
+--- FAIL: TestLiveStreamSettlement (1.80s)
+FAIL

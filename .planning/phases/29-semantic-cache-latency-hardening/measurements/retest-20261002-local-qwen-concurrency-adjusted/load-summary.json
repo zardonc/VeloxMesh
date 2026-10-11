@@ -1,0 +1,166 @@
+{
+  "runs": [
+    {
+      "file": "TestLiveCacheLoadOff.log",
+      "passed": true,
+      "metadata": {
+        "count": 80,
+        "elapsed_ms": 5197.551,
+        "failed": 0,
+        "interval_ms": 50,
+        "max_concurrency": 4,
+        "mode": "off",
+        "model": "text-embedding-embedder_collection",
+        "type": "metadata"
+      },
+      "attempted": 80,
+      "ok": 80,
+      "failed": 0,
+      "errors": {},
+      "hits": 0,
+      "actual_rps": 15.391864360734505,
+      "successful_rps": 15.391864360734505,
+      "observed_concurrency": 4,
+      "average_concurrency": 3.886493273466677,
+      "schedule_lag_p95_ms": 1018.7299999999996,
+      "full_response": {
+        "n": 80,
+        "p50_ms": 248.948,
+        "p95_ms": 325.155,
+        "p99_ms": 490.512
+      },
+      "all_attempts": {
+        "n": 80,
+        "p50_ms": 248.948,
+        "p95_ms": 325.155,
+        "p99_ms": 490.512
+      }
+    },
+    {
+      "file": "TestLiveCacheLoadOffRepeat.log",
+      "passed": true,
+      "metadata": {
+        "count": 80,
+        "elapsed_ms": 5343.28,
+        "failed": 0,
+        "interval_ms": 50,
+        "max_concurrency": 4,
+        "mode": "off",
+        "model": "text-embedding-embedder_collection",
+        "type": "metadata"
+      },
+      "attempted": 80,
+      "ok": 80,
+      "failed": 0,
+      "errors": {},
+      "hits": 0,
+      "actual_rps": 14.972077076252788,
+      "successful_rps": 14.972077076252788,
+      "observed_concurrency": 4,
+      "average_concurrency": 3.8970205566618277,
+      "schedule_lag_p95_ms": 1203.714,
+      "full_response": {
+        "n": 80,
+        "p50_ms": 253.752,
+        "p95_ms": 320.826,
+        "p99_ms": 457.534
+      },
+      "all_attempts": {
+        "n": 80,
+        "p50_ms": 253.752,
+        "p95_ms": 320.826,
+        "p99_ms": 457.534
+      }
+    },
+    {
+      "file": "TestLiveCacheLoadOn.log",
+      "passed": true,
+      "metadata": {
+        "count": 80,
+        "elapsed_ms": 5525.901,
+        "failed": 0,
+        "interval_ms": 50,
+        "max_concurrency": 4,
+        "mode": "on",
+        "model": "text-embedding-embedder_collection",
+        "type": "metadata"
+      },
+      "attempted": 80,
+      "ok": 80,
+      "failed": 0,
+      "errors": {},
+      "hits": 3,
+      "actual_rps": 14.477277099245896,
+      "successful_rps": 14.477277099245896,
+      "observed_concurrency": 4,
+      "average_concurrency": 3.8463888513384505,
+      "schedule_lag_p95_ms": 1243.187,
+      "full_response": {
+        "n": 80,
+        "p50_ms": 264.167,
+        "p95_ms": 371.177,
+        "p99_ms": 463.359
+      },
+      "all_attempts": {
+        "n": 80,
+        "p50_ms": 264.167,
+        "p95_ms": 371.177,
+        "p99_ms": 463.359
+      }
+    },
+    {
+      "file": "TestLiveCacheLoadOnRepeat.log",
+      "passed": true,
+      "metadata": {
+        "count": 80,
+        "elapsed_ms": 5335.116,
+        "failed": 0,
+        "interval_ms": 50,
+        "max_concurrency": 4,
+        "mode": "on",
+        "model": "text-embedding-embedder_collection",
+        "type": "metadata"
+      },
+      "attempted": 80,
+      "ok": 80,
+      "failed": 0,
+      "errors": {},
+      "hits": 3,
+      "actual_rps": 14.994987925285972,
+      "successful_rps": 14.994987925285972,
+      "observed_concurrency": 4,
+      "average_concurrency": 3.891295896846479,
+      "schedule_lag_p95_ms": 1147.661,
+      "full_response": {
+        "n": 80,
+        "p50_ms": 265.637,
+        "p95_ms": 327.558,
+        "p99_ms": 505.894
+      },
+      "all_attempts": {
+        "n": 80,
+        "p50_ms": 265.637,
+        "p95_ms": 327.558,
+        "p99_ms": 505.894
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "off": "TestLiveCacheLoadOff.log",
+      "on": "TestLiveCacheLoadOn.log",
+      "complete_without_errors": true,
+      "p95_ratio": 1.1415386507973122,
+      "limit": 1.05,
+      "gate_passed": false
+    },
+    {
+      "off": "TestLiveCacheLoadOffRepeat.log",
+      "on": "TestLiveCacheLoadOnRepeat.log",
+      "complete_without_errors": true,
+      "p95_ratio": 1.020983336761983,
+      "limit": 1.05,
+      "gate_passed": true
+    }
+  ]
+}

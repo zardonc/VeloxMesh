@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "go",
+    "test",
+    "-c",
+    "-tags=phase29preflight",
+    "-o",
+    ".tmp/phase29-followup-20261008/app-comprehensive3-linux.test",
+    "./internal/app"
+  ],
+  "exit_code": 0,
+  "seconds": 3.454318600008264
+}

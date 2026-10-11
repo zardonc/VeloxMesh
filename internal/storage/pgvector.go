@@ -9,6 +9,7 @@ import (
 	"strings"
 	"veloxmesh/internal/postgresconn"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -146,8 +147,8 @@ func (p *PGVectorAdapter) Delete(ctx context.Context, collection string, filter 
 func (p *PGVectorAdapter) ensureSchema(ctx context.Context, opts PGVectorOptions) error {
 	m := max(opts.HNSWM, 1)
 	ef := max(opts.HNSWEFConstruction, 1)
-	_, err := p.pool.Exec(ctx, fmt.Sprintf(`
-		CREATE EXTENSION IF NOT EXISTS vector;
+	return postgresconn.WithVectorBootstrap(ctx, p.pool, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS semantic_cache_vectors (
 			id TEXT PRIMARY KEY,
 			collection TEXT NOT NULL,
@@ -160,7 +161,8 @@ func (p *PGVectorAdapter) ensureSchema(ctx context.Context, opts PGVectorOptions
 		CREATE INDEX IF NOT EXISTS idx_semantic_cache_vectors_embedding_hnsw
 			ON semantic_cache_vectors USING hnsw (embedding vector_cosine_ops)
 			WITH (m = %d, ef_construction = %d);`, opts.Dimension, m, ef))
-	return err
+		return err
+	})
 }
 
 func (p *PGVectorAdapter) EnsureCollection(ctx context.Context, collection string, dimension int) error {

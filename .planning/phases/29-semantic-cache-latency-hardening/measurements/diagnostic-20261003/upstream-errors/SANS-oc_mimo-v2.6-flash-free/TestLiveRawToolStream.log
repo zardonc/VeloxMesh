@@ -1,0 +1,5 @@
+=== RUN   TestLiveRawToolStream
+    live_upstream_probe_test.go:59: direct tool SSE done=2 finish=tool_calls name=add arguments_length=18
+    live_upstream_probe_test.go:61: direct upstream invalid tool stream terminal
+--- FAIL: TestLiveRawToolStream (7.54s)
+FAIL

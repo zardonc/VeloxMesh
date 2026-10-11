@@ -1,0 +1,9 @@
+=== RUN   TestLiveModelAvailability
+{"time":"2026-10-03T19:16:14.088359887Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=oc/ling-3.1-flash-free
+{"time":"2026-10-03T19:16:15.827518845Z","level":"INFO","msg":"request completed","request_id":"1d9abad31f24c6b947c2e761ed2c9e6c","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1731}
+    live_diagnostic_test.go:38: usage_rows_all=1 usage_rows_key=1
+    live_diagnostic_test.go:38: settled_records=1 total_tokens=38 credits=38 exactly_once=true
+    live_diagnostic_test.go:39: SAMPLE {"elapsed_ms":1758.36,"model":"oc/ling-3.1-flash-free","type":"availability","usage":{"prompt_tokens":24,"completion_tokens":14,"total_tokens":38}}
+--- PASS: TestLiveModelAvailability (1.98s)
+PASS

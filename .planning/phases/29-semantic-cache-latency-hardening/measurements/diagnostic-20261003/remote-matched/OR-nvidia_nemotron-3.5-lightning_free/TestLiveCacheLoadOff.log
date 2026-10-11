@@ -1,0 +1,8 @@
+=== RUN   TestLiveCacheLoadOff
+{"time":"2026-10-03T19:32:13.52142295Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_load_test.go:226: model=text-embedding-embedder_collection dimension=768 primary=nvidia/nemotron-3.5-lightning:free
+{"time":"2026-10-03T19:32:13.545214068Z","level":"INFO","msg":"request completed","request_id":"diag-1","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":17}
+    live_ship_load_test.go:226: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"nvidia/nemotron-3.5-lightning:free","index":999,"start_ms":0.179,"elapsed_ms":19.961,"status":502,"ok":false,"hit":false,"concurrent":0,"error":"provider_unavailable","planned_ms":0},"type":"warmup"}
+    live_ship_load_test.go:226: real primary warmup failed; no valid latency gate
+--- FAIL: TestLiveCacheLoadOff (0.28s)
+FAIL

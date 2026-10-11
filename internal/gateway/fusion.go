@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +20,9 @@ import (
 )
 
 func (s *Service) executeFusion(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision) (*llm.LLMResponse, time.Duration, error) {
+	if err := rejectFusionToolProtocol(req); err != nil {
+		return nil, 0, err
+	}
 	if len(decision.FusionProviders) == 0 {
 		return nil, 0, errors.NewGatewayError("fusion_no_providers", "No healthy providers available for fusion", 503)
 	}
@@ -183,7 +187,6 @@ func (s *Service) finishFusionProvider(req *llm.LLMRequest, decision routing.Rou
 }
 
 type fusionStreamResult struct {
-	service       *Service
 	ctx           context.Context
 	req           *llm.LLMRequest
 	comboDecision routing.RoutingDecision
@@ -191,9 +194,8 @@ type fusionStreamResult struct {
 	respMeta      *llm.LLMResponse
 	events        <-chan llm.StreamEvent
 	start         time.Time
-	release       admission.ReleaseFunc
-	trace         *observability.RequestTrace
 	done          sync.Once
+	terminal      *streamTerminalState
 }
 
 type streamFinishInput struct {
@@ -205,6 +207,9 @@ type streamFinishInput struct {
 }
 
 func (s *Service) executeFusionStream(ctx context.Context, req *llm.LLMRequest, decision routing.RoutingDecision, rt *observability.RequestTrace) (*fusionStreamResult, error) {
+	if err := rejectFusionToolProtocol(req); err != nil {
+		return nil, err
+	}
 	if len(decision.FusionProviders) == 0 {
 		return nil, errors.NewGatewayError("fusion_no_providers", "No healthy providers available for fusion", 503)
 	}
@@ -257,18 +262,28 @@ func (s *Service) executeFusionStream(ctx context.Context, req *llm.LLMRequest, 
 	judgeRespMeta.QueueWaitMs = queuedMeta.QueueWaitMs
 
 	result := &fusionStreamResult{
-		service: s, ctx: ctx, req: req, comboDecision: decision, judgeDecision: judgeDecision,
-		respMeta: judgeRespMeta, start: start, release: release, trace: rt,
+		ctx: ctx, req: req, comboDecision: decision, judgeDecision: judgeDecision,
+		respMeta: judgeRespMeta, start: start,
+		terminal: s.newFusionStreamTerminal(fusionStreamTerminalConfig{
+			ctx:           ctx,
+			req:           req,
+			comboDecision: decision,
+			judgeDecision: judgeDecision,
+			response:      judgeRespMeta,
+			start:         start,
+			release:       release,
+			trace:         rt,
+		}),
 	}
 	if err != nil {
 		result.finishError(err)
 		return nil, fmt.Errorf("judge model failed: %w", err)
 	}
-	result.events = addFusionUsageToStream(streamCh, promptTokens, completionTokens)
+	result.events = addFusionUsageToStream(ctx, streamCh, promptTokens, completionTokens)
 	return result, nil
 }
 
-func addFusionUsageToStream(streamCh <-chan llm.StreamEvent, promptTokens, completionTokens int) <-chan llm.StreamEvent {
+func addFusionUsageToStream(ctx context.Context, streamCh <-chan llm.StreamEvent, promptTokens, completionTokens int) <-chan llm.StreamEvent {
 	outCh := make(chan llm.StreamEvent)
 	go func() {
 		defer close(outCh)
@@ -280,7 +295,9 @@ func addFusionUsageToStream(streamCh <-chan llm.StreamEvent, promptTokens, compl
 				usage.TotalTokens = usage.PromptTokens + usage.CompletionTokens
 				event.Usage = &usage
 			}
-			outCh <- event
+			if !forwardStreamEvent(ctx, outCh, event) {
+				return
+			}
 		}
 	}()
 	return outCh
@@ -292,6 +309,7 @@ func (r *fusionStreamResult) forward() <-chan llm.StreamEvent {
 		defer close(outCh)
 		result := bufferedStreamResult{status: 200}
 		firstChunk := true
+		terminalSeen := false
 		for event := range r.events {
 			if firstChunk {
 				result.ttft = time.Since(r.start)
@@ -303,19 +321,35 @@ func (r *fusionStreamResult) forward() <-chan llm.StreamEvent {
 			if event.Error != nil {
 				result.streamErr = event.Error
 				result.status, result.errCategory = streamErrorStatus(event.Error)
+				if !terminalSeen {
+					r.finish(streamFinishInput{usage: result.finalUsage, ttft: result.ttft, streamErr: event.Error})
+					terminalSeen = true
+				}
 			}
-			outCh <- event
+			if event.Done && !terminalSeen {
+				r.finish(streamFinishInput{usage: result.finalUsage, ttft: result.ttft})
+				terminalSeen = true
+			}
+			if !forwardStreamEvent(r.ctx, outCh, event) {
+				result.streamErr = context.Canceled
+				break
+			}
 		}
-		r.finish(streamFinishInput{
-			usage: result.finalUsage, ttft: result.ttft, status: result.status,
-			errCategory: result.errCategory, streamErr: result.streamErr,
-		})
+		if result.streamErr == nil && r.ctx.Err() != nil {
+			result.streamErr = r.ctx.Err()
+		}
+		if !terminalSeen {
+			r.finish(streamFinishInput{usage: result.finalUsage, ttft: result.ttft, streamErr: result.streamErr})
+		}
 	}()
 	return outCh
 }
 
-func (s *Service) bufferFusionStreamWithResponseRules(r *fusionStreamResult, p *pipeline.Pipeline, scope pipeline.RequestScope, state *pipeline.RunState, rt *observability.RequestTrace) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
+func (s *Service) bufferFusionStreamWithResponseRules(r *fusionStreamResult, p *pipeline.Pipeline, scope pipeline.RequestScope, state *pipeline.RunState) (<-chan llm.StreamEvent, *llm.LLMResponse, error) {
 	result := collectBufferedStream(r.events, r.start)
+	if result.streamErr == nil && r.ctx.Err() != nil {
+		result.streamErr = r.ctx.Err()
+	}
 	if result.streamErr == nil && !result.hasToolCalls {
 		r.respMeta.Choices = []llm.Choice{{Message: llm.Message{Role: llm.RoleAssistant, Content: result.content}}}
 		r.respMeta.Usage = result.finalUsage
@@ -331,13 +365,12 @@ func (s *Service) bufferFusionStreamWithResponseRules(r *fusionStreamResult, p *
 	if result.hasToolCalls {
 		slog.Warn("skipping streaming response rules for tool-call stream", "request_id", r.req.RequestID, "provider", r.judgeDecision.ProviderID)
 	}
-	r.trace = rt
 	r.finish(streamFinishInput{usage: result.finalUsage, ttft: result.ttft, status: result.status, errCategory: result.errCategory, streamErr: result.streamErr})
 	if result.streamErr != nil {
 		return nil, nil, result.streamErr
 	}
 	if result.hasToolCalls {
-		return replayStreamEvents(result.events), r.respMeta, nil
+		return replayStreamEvents(r.ctx, result.events), r.respMeta, nil
 	}
 	return singleTextStream(r.respMeta.Choices, result.finalUsage), r.respMeta, nil
 }
@@ -349,36 +382,13 @@ func (r *fusionStreamResult) finishError(err error) {
 
 func (r *fusionStreamResult) finish(in streamFinishInput) {
 	r.done.Do(func() {
-		latency := time.Since(r.start)
-		healthErr := in.streamErr
-		if in.streamErr != nil && !errors.AffectsProviderHealth(in.streamErr) {
-			healthErr = nil
-		}
-		if in.status == 0 {
-			in.status = 200
-		}
-		model := r.judgeDecision.UpstreamModel
-		if model == "" {
-			model = r.req.Model
-		}
-		r.service.healthStore.EndRequest(r.judgeDecision.ProviderID, latency, healthErr)
-		r.service.cb.RecordResult(r.judgeDecision.ProviderID, healthErr == nil)
-		r.service.healthStore.RecordModelOutcome(r.judgeDecision.ProviderID, model, healthErr == nil)
-		observability.DefaultMetrics.RecordRequestOutcome(r.req.RequestID, r.judgeDecision.ProviderID, model, r.judgeDecision.Strategy, in.status, in.errCategory, "none", float64(latency.Milliseconds()))
-		if r.trace != nil {
-			tpot := 0.0
-			if in.usage != nil && in.usage.CompletionTokens > 0 {
-				tpot = float64(latency-in.ttft) / float64(in.usage.CompletionTokens) / float64(time.Millisecond)
-			}
-			r.trace.RecordRouting(r.comboDecision.Strategy, "none", "", "")
-			r.trace.RecordOutcome(r.judgeDecision.ProviderID, in.status, in.errCategory, float64(in.ttft.Milliseconds()), tpot, float64(latency.Milliseconds()))
-		}
-		r.release()
-		observability.DefaultMetrics.IncRequestCount(r.judgeDecision.ProviderID, model, in.status)
-		if in.status == 200 {
-			observability.DefaultMetrics.RecordProviderLatency(r.judgeDecision.ProviderID, float64(latency.Milliseconds()))
-			r.service.settle(r.ctx, r.req, r.comboDecision, in.usage, latency)
-		}
-		r.respMeta.Usage = in.usage
+		r.terminal.complete(in.streamErr, in.usage, in.ttft)
 	})
+}
+
+func rejectFusionToolProtocol(req *llm.LLMRequest) error {
+	if req != nil && req.ToolRequirements.UsesProtocol() {
+		return errors.NewGatewayError(errors.UnsupportedToolCalling, "Fusion does not support tool protocol requests", http.StatusBadRequest)
+	}
+	return nil
 }

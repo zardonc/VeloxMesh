@@ -1,0 +1,17 @@
+dependency ready: veloxmesh-investigation-20261004-01a1089d-redis
+dependency ready: veloxmesh-investigation-20261004-01a1089d-qdrant
+dependency ready: veloxmesh-investigation-20261004-01a1089d-postgres
+dependency readiness attempt=1 error=Process exited with status 2 output=PONG
+/var/run/postgresql:5432 - no response
+dependency readiness attempt=2 error=Process exited with status 2 output=PONG
+/var/run/postgresql:5432 - no response
+Dependencies ready; existing 10-second quiet gate required before hardware screen
+Recovery gate passed: 10 consecutive quiet seconds
+{"label":"availability","status":0}
+{"label":"low-rate","status":0}
+{"label":"target-rate-1","status":0}
+{"label":"target-rate-2","status":0}
+{"label":"components","status":0}
+/veloxmesh-investigation-20261004-01a1089d-redis false
+/veloxmesh-investigation-20261004-01a1089d-qdrant false
+/veloxmesh-investigation-20261004-01a1089d-postgres false

@@ -1,0 +1,8 @@
+=== RUN   TestLiveCacheLoadOffRepeat
+{"time":"2026-10-02T04:24:47.959917616Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_load_test.go:173: model=text-embedding-embedder_collection dimension=768 primary=oc/big-pickle
+{"time":"2026-10-02T04:24:48.231802121Z","level":"INFO","msg":"request completed","request_id":"dc07e8457f68e915f67993308ed855c6","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":271}
+    live_ship_load_test.go:173: SAMPLE {"sample":{"type":"client","index":999,"start_ms":0.081,"elapsed_ms":271.676,"status":502,"ok":false,"hit":false,"concurrent":0,"error":"provider_rate_limit"},"type":"warmup"}
+    live_ship_load_test.go:173: real primary warmup failed; no valid latency gate
+--- FAIL: TestLiveCacheLoadOffRepeat (0.34s)
+FAIL

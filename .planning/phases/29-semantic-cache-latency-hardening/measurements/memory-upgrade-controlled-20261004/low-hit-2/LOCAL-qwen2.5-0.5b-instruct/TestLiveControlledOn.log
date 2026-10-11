@@ -1,0 +1,4 @@
+=== RUN   TestLiveControlledOn
+    live_controlled_load_test.go:19: failed to load config: cache use_case reuse_mode must be disabled, exact or semantic
+--- FAIL: TestLiveControlledOn (0.02s)
+FAIL

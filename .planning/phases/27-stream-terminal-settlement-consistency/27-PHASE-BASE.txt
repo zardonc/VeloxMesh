@@ -1,0 +1,13 @@
+Phase 27 Plan 01 execution baseline
+
+Baseline commit: cd61c3afa9f9b20e62f54467fa449eaf75f6d242
+
+Allowed source and test paths:
+- internal/gateway/stream_terminal.go
+- internal/gateway/stream_terminal_test.go
+- internal/errors/errors.go
+- internal/errors/errors_test.go
+
+Excluded from this plan:
+- internal/gateway/service.go
+- internal/gateway/service_test.go

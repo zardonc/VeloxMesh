@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -12,8 +13,11 @@ import (
 	"veloxmesh/internal/storage"
 )
 
+const validTestAnswer = `[{"message":{"role":"assistant","content":"answer"},"finish_reason":"stop"}]`
+
 type mockEmbedAdapter struct {
 	embeddings map[string][]float32
+	models     []string
 }
 
 func (m *mockEmbedAdapter) ID() string       { return "mock" }
@@ -28,6 +32,7 @@ func (m *mockEmbedAdapter) Capabilities() providers.CapabilitySet {
 	return providers.CapabilitySet{SupportedOperations: []providers.Operation{providers.OperationEmbeddings}}
 }
 func (m *mockEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
+	m.models = append(m.models, req.Model)
 	if len(req.Input) == 0 {
 		return nil, errors.New("empty input")
 	}
@@ -116,16 +121,14 @@ func TestSemanticCacheService_Hit(t *testing.T) {
 	}
 
 	svc := NewSemanticCacheService(SemanticCacheConfig{
-		Enabled:       true,
-		Threshold:     0.8,
-		MaxCandidates: 10,
-		TTL:           1 * time.Hour,
+		Enabled: true, Threshold: 0.8, MaxCandidates: 10, TTL: time.Hour,
+		EmbeddingModel: "mock-model", VectorDimension: 2,
 	}, repo, nil, adapter)
 
 	ctx := context.Background()
 
 	// Store "hello world"
-	err := svc.Store(ctx, "id-1", "scope-1", "gpt-4", "hello world", `{"response":"hi"}`, nil)
+	err := svc.Store(ctx, "id-1", "scope-1", "gpt-4", "hello world", `[{"index":0,"message":{"role":"assistant","content":"hi"},"finish_reason":"stop"}]`, nil)
 	if err != nil {
 		t.Fatalf("Store failed: %v", err)
 	}
@@ -164,14 +167,12 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 	}
 
 	svc := NewSemanticCacheService(SemanticCacheConfig{
-		Enabled:       true,
-		Threshold:     0.8,
-		MaxCandidates: 10,
-		TTL:           1 * time.Hour,
+		Enabled: true, Threshold: 0.8, MaxCandidates: 10, TTL: time.Hour,
+		EmbeddingModel: "mock-model", VectorDimension: 2,
 	}, repo, nil, adapter)
 
 	ctx := context.Background()
-	_ = svc.Store(ctx, "id-1", "scope-1", "gpt-4", "test", `{}`, nil)
+	_ = svc.Store(ctx, "id-1", "scope-1", "gpt-4", "test", validTestAnswer, nil)
 
 	// Miss: different scope
 	e, _ := svc.Lookup(ctx, "scope-2", "gpt-4", "test")
@@ -196,18 +197,16 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 
 	// Miss: expired (simulate by storing with negative TTL)
 	svcExp := NewSemanticCacheService(SemanticCacheConfig{
-		Enabled:       true,
-		Threshold:     0.8,
-		MaxCandidates: 10,
-		TTL:           -1 * time.Hour,
+		Enabled: true, Threshold: 0.8, MaxCandidates: 10, TTL: -time.Hour,
+		EmbeddingModel: "mock-model", VectorDimension: 2,
 	}, repo, nil, adapter)
-	_ = svcExp.Store(ctx, "id-exp", "scope-1", "gpt-4", "test", `{}`, nil)
+	_ = svcExp.Store(ctx, "id-exp", "scope-1", "gpt-4", "test", validTestAnswer, nil)
 	e, _ = svcExp.Lookup(ctx, "scope-1", "gpt-4", "test")
 	// the first store might be found if we don't clear the repo, but the ID-exp will be expired
 	// wait, since list candidates filters by expiration, id-exp will be skipped. id-1 will hit.
 	// let's clear repo
 	repo.entries = nil
-	_ = svcExp.Store(ctx, "id-exp", "scope-1", "gpt-4", "test", `{}`, nil)
+	_ = svcExp.Store(ctx, "id-exp", "scope-1", "gpt-4", "test", validTestAnswer, nil)
 	e, _ = svcExp.Lookup(ctx, "scope-1", "gpt-4", "test")
 	if e != nil {
 		t.Errorf("Expected miss for expired entry")
@@ -216,17 +215,94 @@ func TestSemanticCacheService_Misses(t *testing.T) {
 
 func TestSemanticCacheService_NilEmbeddingResponseIsMiss(t *testing.T) {
 	svc := NewSemanticCacheService(SemanticCacheConfig{
-		Enabled: true, Threshold: 0.8, MaxCandidates: 10, TTL: time.Hour,
+		Enabled: true, Threshold: 0.8, MaxCandidates: 10, TTL: time.Hour, EmbeddingModel: "mock-model", VectorDimension: 2,
 	}, &mockRepo{hits: make(map[string]int)}, nil, &nilEmbedAdapter{})
 
 	entry, err := svc.Lookup(context.Background(), "scope-1", "gpt-4", "test")
-	if err != nil || entry != nil {
+	if err == nil || entry != nil {
 		t.Fatalf("expected nil-response lookup miss, entry=%#v err=%v", entry, err)
 	}
-	if err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "test", `{}`, nil); err != nil {
-		t.Fatalf("expected nil-response store no-op, got %v", err)
+	if err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "test", validTestAnswer, nil); err == nil {
+		t.Fatal("nil-response store must report its failure")
 	}
 }
+
+func TestSemanticCacheRejectsWrongVectorLength(t *testing.T) {
+	repo := &mockRepo{hits: make(map[string]int)}
+	adapter := &mockEmbedAdapter{embeddings: map[string][]float32{
+		"answer":   {1, 0},
+		"question": {1, 0, 0},
+	}}
+	svc := NewSemanticCacheService(SemanticCacheConfig{
+		Enabled: true, Threshold: 0.8, MaxCandidates: 1, TTL: time.Hour, EmbeddingModel: "mock-model", VectorDimension: 2,
+	}, repo, nil, adapter)
+
+	if err := svc.Store(context.Background(), "entry", "scope", "model", "answer", validTestAnswer, nil); err != nil {
+		t.Fatalf("Store: %v", err)
+	}
+	entry, err := svc.Lookup(context.Background(), "scope", "model", "question")
+	if entry != nil || err == nil {
+		t.Fatal("wrong-length embedding must be a cache miss")
+	}
+}
+
+func TestSemanticCacheUsesConfiguredEmbeddingModel(t *testing.T) {
+	repo := &mockRepo{hits: make(map[string]int)}
+	adapter := &mockEmbedAdapter{embeddings: map[string][]float32{"question": {1, 0}}}
+	svc := NewSemanticCacheService(SemanticCacheConfig{
+		Enabled: true, Threshold: 0.8, MaxCandidates: 1, TTL: time.Hour, EmbeddingModel: "configured-embedding-model", VectorDimension: 2,
+	}, repo, nil, adapter)
+
+	if _, err := svc.Lookup(context.Background(), "scope", "model", "question"); err != nil {
+		t.Fatalf("Lookup: %v", err)
+	}
+	if len(adapter.models) != 1 || adapter.models[0] != "configured-embedding-model" {
+		t.Fatalf("embedding model=%v, want configured-embedding-model", adapter.models)
+	}
+}
+
+func TestSemanticCacheRejectsMalformedCachedChoices(t *testing.T) {
+	repo := &mockRepo{hits: make(map[string]int)}
+	adapter := &mockEmbedAdapter{embeddings: map[string][]float32{"question": {1, 0}}}
+	svc := NewSemanticCacheService(SemanticCacheConfig{
+		Enabled: true, Threshold: 0.8, MaxCandidates: 1, TTL: time.Hour, EmbeddingModel: "mock-model", VectorDimension: 2,
+	}, repo, nil, adapter)
+	if err := repo.Store(context.Background(), &controlstate.SemanticCacheEntry{ID: "entry", Scope: "scope", Model: "model", Response: `{}`, Vector: floatsToBytes([]float32{1, 0}), Enabled: true, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
+		t.Fatalf("Store: %v", err)
+	}
+	entry, err := svc.Lookup(context.Background(), "scope", "model", "question")
+	if err != nil {
+		t.Fatalf("Lookup: %v", err)
+	}
+	if entry != nil {
+		t.Fatal("malformed cached choices must not produce a hit")
+	}
+}
+
+func TestSemanticCacheKnowledgeVersionChangesScope(t *testing.T) {
+	keyID := fmt.Sprintf("test-key-%d", time.Now().UnixNano())
+	req := &llm.LLMRequest{
+		Model: "faq-model", Temperature: float64Ptr(0), MaxTokens: intPtr(256),
+		Messages: []llm.Message{{Role: llm.RoleSystem, Content: "Static FAQ only"}, {Role: llm.RoleUser, Content: "Question"}},
+	}
+	v1 := NewSemanticCacheService(testSemanticCacheConfig(keyID, "faq-v1"), nil, nil, nil)
+	v2 := NewSemanticCacheService(testSemanticCacheConfig(keyID, "faq-v2"), nil, nil, nil)
+	scopeV1, okV1 := v1.Eligible(keyID, "user", req)
+	scopeV2, okV2 := v2.Eligible(keyID, "user", req)
+	if !okV1 || !okV2 || scopeV1 == scopeV2 {
+		t.Fatalf("knowledge version must produce a new cache scope: v1=%q v2=%q", scopeV1, scopeV2)
+	}
+}
+
+func testSemanticCacheConfig(keyID, version string) SemanticCacheConfig {
+	return SemanticCacheConfig{Enabled: true, EmbeddingModel: "mock-model", VectorDimension: 2, UseCases: []SemanticCacheUseCase{{
+		ReuseMode: "semantic",
+		APIKeyIDs: []string{keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: version, TargetModel: "faq-model", SystemPrompt: "Static FAQ only",
+	}}}
+}
+
+func float64Ptr(value float64) *float64 { return &value }
+func intPtr(value int) *int             { return &value }
 
 func TestSecretSafe(t *testing.T) {
 	// A placeholder negative assertion: test won't run if it contains secrets.
@@ -264,13 +340,11 @@ func TestSemanticCacheVectorMapsThroughRepository(t *testing.T) {
 		"similar":             {1, 0},
 	}}
 	svc := NewSemanticCacheService(SemanticCacheConfig{
-		Enabled:       true,
-		Threshold:     0.8,
-		MaxCandidates: 10,
-		TTL:           time.Hour,
+		Enabled: true, Threshold: 0.8, MaxCandidates: 10, TTL: time.Hour,
+		EmbeddingModel: "mock-model", VectorDimension: 2,
 	}, repo, vector, adapter)
 
-	err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "raw prompt sentinel", `{"ok":true}`, nil)
+	err := svc.Store(context.Background(), "id-1", "scope-1", "gpt-4", "raw prompt sentinel", `[{"index":0,"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}]`, nil)
 	if err != nil {
 		t.Fatalf("store: %v", err)
 	}

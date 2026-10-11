@@ -14,7 +14,7 @@ import (
 )
 
 func TestAdapter_Capabilities(t *testing.T) {
-	adapter := NewAdapter("anthropic-1", "https://example.test/", "test-key", "claude-3-5-sonnet-20240620")
+	adapter := NewAdapter(AdapterConfig{ID: "anthropic-1", BaseURL: "https://example.test/", APIKey: "test-key", ModelsCSV: "claude-3-5-sonnet-20240620"})
 	caps := adapter.Capabilities()
 
 	if caps.ProviderType != providers.ProviderTypeAnthropic {
@@ -167,7 +167,7 @@ func TestAdapter_Complete(t *testing.T) {
 			}))
 			defer server.Close()
 
-			adapter := NewAdapter("anthropic-1", server.URL+"/", "test-key", "claude-3-5-sonnet-20240620")
+			adapter := NewAdapter(AdapterConfig{ID: "anthropic-1", BaseURL: server.URL + "/", APIKey: "test-key", ModelsCSV: "claude-3-5-sonnet-20240620"})
 
 			resp, err := adapter.Complete(context.Background(), tt.request)
 
@@ -224,7 +224,7 @@ func TestAdapter_Conformance(t *testing.T) {
 	}))
 	defer server.Close()
 
-	adapter := NewAdapter("anthropic-1", server.URL+"/", "test-key", "claude-3-5-sonnet-20240620")
+	adapter := NewAdapter(AdapterConfig{ID: "anthropic-1", BaseURL: server.URL + "/", APIKey: "test-key", ModelsCSV: "claude-3-5-sonnet-20240620"})
 
 	spec := adaptertest.ConformanceSpec{
 		Adapter:        adapter,

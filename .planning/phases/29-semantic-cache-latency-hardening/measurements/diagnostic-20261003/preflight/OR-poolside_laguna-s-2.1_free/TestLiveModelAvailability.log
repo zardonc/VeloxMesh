@@ -1,0 +1,9 @@
+=== RUN   TestLiveModelAvailability
+{"time":"2026-10-03T19:14:27.884146992Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=poolside/laguna-s-2.1:free
+{"time":"2026-10-03T19:14:30.56150825Z","level":"INFO","msg":"request completed","request_id":"18aaf04baa31f234a6d56df5a10b89af","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2671}
+    live_diagnostic_test.go:38: usage_rows_all=1 usage_rows_key=1
+    live_diagnostic_test.go:38: settled_records=1 total_tokens=50 credits=50 exactly_once=true
+    live_diagnostic_test.go:39: SAMPLE {"elapsed_ms":2696.349,"model":"poolside/laguna-s-2.1:free","type":"availability","usage":{"prompt_tokens":47,"completion_tokens":3,"total_tokens":50}}
+--- PASS: TestLiveModelAvailability (2.87s)
+PASS

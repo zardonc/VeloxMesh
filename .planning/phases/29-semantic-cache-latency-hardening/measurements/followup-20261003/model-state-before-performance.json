@@ -1,0 +1,47 @@
+{
+  "at": "2026-10-04T04:22:09.155Z",
+  "response": {
+    "data": [
+      {
+        "id": "qwen2.5-0.5b-instruct",
+        "object": "model",
+        "type": "llm",
+        "publisher": "lmstudio-community",
+        "arch": "qwen2",
+        "compatibility_type": "gguf",
+        "quantization": "Q8_0",
+        "state": "loaded",
+        "max_context_length": 32768,
+        "loaded_context_length": 8192,
+        "capabilities": [
+          "tool_use"
+        ]
+      },
+      {
+        "id": "text-embedding-embedder_collection",
+        "object": "model",
+        "type": "embeddings",
+        "publisher": "kalle07",
+        "arch": "nomic-bert-moe",
+        "compatibility_type": "gguf",
+        "quantization": "Q8_0",
+        "state": "loaded",
+        "max_context_length": 512,
+        "loaded_context_length": 2048
+      },
+      {
+        "id": "text-embedding-nomic-embed-text-v1.5",
+        "object": "model",
+        "type": "embeddings",
+        "publisher": "nomic-ai",
+        "arch": "nomic-bert",
+        "compatibility_type": "gguf",
+        "quantization": "Q4_K_M",
+        "state": "loaded",
+        "max_context_length": 2048,
+        "loaded_context_length": 2048
+      }
+    ],
+    "object": "list"
+  }
+}

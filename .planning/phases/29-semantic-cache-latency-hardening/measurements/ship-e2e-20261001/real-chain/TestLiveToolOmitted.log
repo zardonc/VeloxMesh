@@ -1,0 +1,12 @@
+=== RUN   TestLiveToolOmitted
+{"time":"2026-10-02T04:15:44.105552235Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:44.107391947Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:15:44.107423266Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:15:44.107431161Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:44.107464103Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:44.109136816Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:246: model=text-embedding-embedder_collection dimension=768 primary=oc/big-pickle
+{"time":"2026-10-02T04:15:47.142291781Z","level":"INFO","msg":"request completed","request_id":"f432b230975cdc9d2ccfd4c768d7ad02","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":3031}
+    live_ship_protocol_test.go:246: real gateway status=502 error_code= error_type= read_error=<nil>
+--- FAIL: TestLiveToolOmitted (3.11s)
+FAIL

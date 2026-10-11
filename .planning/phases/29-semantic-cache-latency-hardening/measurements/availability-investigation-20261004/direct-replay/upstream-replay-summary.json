@@ -1,0 +1,138 @@
+{
+  "model": "qwen2.5-0.5b-instruct",
+  "endpoint": "http://127.0.0.1:1234/v1/chat/completions",
+  "summaries": [
+    {
+      "label": "c1-reuse",
+      "concurrency": 1,
+      "keepAlive": true,
+      "requests": 32,
+      "failed": 0,
+      "reused_requests": 31,
+      "elapsed_ms": 3461.6690000000003,
+      "p95_ms": 132.25059999999985
+    },
+    {
+      "label": "c4-fresh",
+      "concurrency": 4,
+      "keepAlive": false,
+      "requests": 32,
+      "failed": 0,
+      "reused_requests": 0,
+      "elapsed_ms": 1893.9777999999997,
+      "p95_ms": 273.14630000000034
+    },
+    {
+      "label": "c4-reuse",
+      "concurrency": 4,
+      "keepAlive": true,
+      "requests": 32,
+      "failed": 0,
+      "reused_requests": 28,
+      "elapsed_ms": 1939.5119999999997,
+      "p95_ms": 291.82800000000043
+    },
+    {
+      "label": "c1-fresh",
+      "concurrency": 1,
+      "keepAlive": false,
+      "requests": 32,
+      "failed": 0,
+      "reused_requests": 0,
+      "elapsed_ms": 3576.860599999999,
+      "p95_ms": 137.9303
+    },
+    {
+      "label": "c4-after-cancel",
+      "concurrency": 4,
+      "keepAlive": true,
+      "requests": 32,
+      "failed": 0,
+      "reused_requests": 28,
+      "elapsed_ms": 1750.3361999999997,
+      "p95_ms": 246.05239999999867
+    }
+  ],
+  "cancellations": [
+    {
+      "type": "upstream_request",
+      "time": "2026-10-04T15:08:11.720Z",
+      "id": 129,
+      "window": "intentional-cancel",
+      "elapsed_ms": 20.15979999999945,
+      "reused_socket": false,
+      "ok": false,
+      "error": "intentional_client_cancel"
+    },
+    {
+      "type": "upstream_request",
+      "time": "2026-10-04T15:08:11.735Z",
+      "id": 130,
+      "window": "intentional-cancel",
+      "elapsed_ms": 14.51469999999972,
+      "reused_socket": false,
+      "ok": false,
+      "error": "intentional_client_cancel"
+    },
+    {
+      "type": "upstream_request",
+      "time": "2026-10-04T15:08:11.751Z",
+      "id": 131,
+      "window": "intentional-cancel",
+      "elapsed_ms": 13.799300000000585,
+      "reused_socket": false,
+      "ok": false,
+      "error": "intentional_client_cancel"
+    },
+    {
+      "type": "upstream_request",
+      "time": "2026-10-04T15:08:11.766Z",
+      "id": 132,
+      "window": "intentional-cancel",
+      "elapsed_ms": 14.754799999998795,
+      "reused_socket": false,
+      "ok": false,
+      "error": "intentional_client_cancel"
+    },
+    {
+      "type": "upstream_request",
+      "time": "2026-10-04T15:08:11.782Z",
+      "id": 133,
+      "window": "intentional-cancel",
+      "elapsed_ms": 14.597100000000864,
+      "reused_socket": false,
+      "ok": false,
+      "error": "intentional_client_cancel"
+    },
+    {
+      "type": "upstream_request",
+      "time": "2026-10-04T15:08:11.797Z",
+      "id": 134,
+      "window": "intentional-cancel",
+      "elapsed_ms": 14.699000000000524,
+      "reused_socket": false,
+      "ok": false,
+      "error": "intentional_client_cancel"
+    },
+    {
+      "type": "upstream_request",
+      "time": "2026-10-04T15:08:11.812Z",
+      "id": 135,
+      "window": "intentional-cancel",
+      "elapsed_ms": 15.12249999999949,
+      "reused_socket": false,
+      "ok": false,
+      "error": "intentional_client_cancel"
+    },
+    {
+      "type": "upstream_request",
+      "time": "2026-10-04T15:08:11.828Z",
+      "id": 136,
+      "window": "intentional-cancel",
+      "elapsed_ms": 14.922700000000987,
+      "reused_socket": false,
+      "ok": false,
+      "error": "intentional_client_cancel"
+    }
+  ]
+}

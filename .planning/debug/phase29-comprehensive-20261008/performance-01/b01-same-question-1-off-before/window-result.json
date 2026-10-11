@@ -1,0 +1,18 @@
+{
+  "ended": "2026-10-09T02:18:44.8616839Z",
+  "error": "",
+  "pure_miss": true,
+  "reuse_mode": "semantic",
+  "started": "2026-10-09T02:18:30.0965792Z",
+  "status": 0,
+  "threshold": "0.99999",
+  "window": {
+    "block": 1,
+    "group": "same_question",
+    "label": "b01-same-question-1-off-before",
+    "test": "TestLiveControlledSameQuestionOff",
+    "pure_miss": true,
+    "reuse_mode": "semantic",
+    "expected_hits": 0
+  }
+}

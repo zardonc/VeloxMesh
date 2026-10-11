@@ -1,0 +1,98 @@
+{
+  "runs": [
+    {
+      "file": "TestLiveCacheLoadOff.log",
+      "passed": false,
+      "warmup": {
+        "sample": {
+          "type": "client",
+          "index": 999,
+          "start_ms": 0.141,
+          "elapsed_ms": 272.803,
+          "status": 502,
+          "ok": false,
+          "hit": false,
+          "concurrent": 0,
+          "error": "provider_rate_limit"
+        },
+        "type": "warmup"
+      },
+      "excluded": "No completed load; inspect the run log."
+    },
+    {
+      "file": "TestLiveCacheLoadOffRepeat.log",
+      "passed": false,
+      "warmup": {
+        "sample": {
+          "type": "client",
+          "index": 999,
+          "start_ms": 0.081,
+          "elapsed_ms": 271.676,
+          "status": 502,
+          "ok": false,
+          "hit": false,
+          "concurrent": 0,
+          "error": "provider_rate_limit"
+        },
+        "type": "warmup"
+      },
+      "excluded": "No completed load; inspect the run log."
+    },
+    {
+      "file": "TestLiveCacheLoadOn.log",
+      "passed": false,
+      "warmup": {
+        "sample": {
+          "type": "client",
+          "index": 999,
+          "start_ms": 0.132,
+          "elapsed_ms": 338.758,
+          "status": 502,
+          "ok": false,
+          "hit": false,
+          "concurrent": 0,
+          "error": "provider_rate_limit"
+        },
+        "type": "warmup"
+      },
+      "excluded": "No completed load; inspect the run log."
+    },
+    {
+      "file": "TestLiveCacheLoadOnRepeat.log",
+      "passed": false,
+      "warmup": {
+        "sample": {
+          "type": "client",
+          "index": 999,
+          "start_ms": 0.092,
+          "elapsed_ms": 324.011,
+          "status": 502,
+          "ok": false,
+          "hit": false,
+          "concurrent": 0,
+          "error": "provider_rate_limit"
+        },
+        "type": "warmup"
+      },
+      "excluded": "No completed load; inspect the run log."
+    }
+  ],
+  "pairs": [
+    {
+      "off": "TestLiveCacheLoadOff.log",
+      "on": "TestLiveCacheLoadOn.log",
+      "complete_without_errors": false,
+      "p95_ratio": null,
+      "limit": 1.05,
+      "gate_passed": false
+    },
+    {
+      "off": "TestLiveCacheLoadOffRepeat.log",
+      "on": "TestLiveCacheLoadOnRepeat.log",
+      "complete_without_errors": false,
+      "p95_ratio": null,
+      "limit": 1.05,
+      "gate_passed": false
+    }
+  ]
+}

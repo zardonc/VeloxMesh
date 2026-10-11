@@ -1,0 +1,10 @@
+Idle condition complete: baseline
+Idle condition complete: redis-only
+Idle condition complete: after-redis
+Idle condition complete: postgres-only
+Idle condition complete: after-postgres
+Idle condition complete: qdrant-only
+Idle condition complete: after-qdrant
+/veloxmesh-test-redis false
+/veloxmesh-test-qdrant false
+/veloxmesh-test-postgres false

@@ -1,0 +1,15 @@
+=== RUN   TestLiveMixedLoadOn
+{"time":"2026-10-03T19:31:52.675782199Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:52.740954254Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-03T19:31:52.741509791Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-03T19:31:52.741679381Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:52.741771354Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:52.745895704Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:138: model=text-embedding-embedder_collection dimension=768 primary=oc/mimo-v2.6-flash-free
+{"time":"2026-10-03T19:31:55.25010152Z","level":"INFO","msg":"request completed","request_id":"diag-1","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2503}
+    live_diagnostic_test.go:151: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"oc/mimo-v2.6-flash-free","index":999,"start_ms":0.096,"elapsed_ms":2504.42,"status":200,"ok":true,"hit":false,"concurrent":0,"answer_hash":"a4f2e3c9fed0d4bcf5a6eda03a27e2128c3eba77d9a919807627015edc22bf7d","planned_ms":0},"type":"warmup"}
+    live_diagnostic_test.go:151: SAMPLE {"sample":{"type":"client","request_id":"diag-2","model":"nvidia/nemotron-3.5-lightning:free","index":999,"start_ms":2504.681,"elapsed_ms":12002.171,"status":0,"ok":false,"hit":false,"concurrent":0,"error":"transport_error: Post \"http://127.0.0.1:38433/v1/chat/completions\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)","planned_ms":0},"type":"warmup"}
+    live_diagnostic_test.go:153: distributed warmup failed model=nvidia/nemotron-3.5-lightning:free
+{"time":"2026-10-03T19:32:07.254163373Z","level":"INFO","msg":"request completed","request_id":"diag-2","method":"POST","path":"/v1/chat/completions","status":499,"latency_ms":12003}
+--- FAIL: TestLiveMixedLoadOn (14.67s)
+FAIL

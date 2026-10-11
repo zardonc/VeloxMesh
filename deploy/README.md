@@ -3,6 +3,17 @@
 This guide is for a host that only has Docker and Docker Compose installed.
 The deployment branch is currently `main`.
 
+Production answer caching remains disabled with an empty allowlist. Phase 29's
+accepted candidate budget authorizes code integration only; installing Redis or
+Qdrant does not authorize cache activation. See the [reuse policy](../docs/cache-reuse-policy.md).
+生产缓存继续关闭、白名单为空；候选预算用于代码合入，不代表生产启用批准。
+
+Legacy `full`/`postgres` cache examples contain `enabled: true` but no trusted
+use-case profiles. Current startup creates no answer-cache service without an
+explicit reuse profile. For production, retain `enabled: false` and an empty
+allowlist in the effective configuration; the integration changes no deployment
+configuration or production environment.
+
 ## One-command install
 
 Use this path when the server does not have a local checkout:

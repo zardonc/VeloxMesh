@@ -1,0 +1,17 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+TestLiveStreamSettlement exit: <nil>
+TestLiveToolRequired exit: <nil>
+TestLiveToolNamed exit: <nil>
+TestLiveToolAuto exit: <nil>
+TestLiveToolOmitted exit: <nil>
+TestLiveToolNone exit: <nil>
+TestLiveToolStreaming exit: <nil>
+TestLiveToolInvalidSignature exit: <nil>
+TestLiveBufferedStream exit: <nil>
+TestLiveFusionStream exit: <nil>
+TestPhase29LocalGatewayAcceptance exit: <nil>
+/veloxmesh-test-redis false
+/veloxmesh-test-qdrant false
+/veloxmesh-test-postgres false

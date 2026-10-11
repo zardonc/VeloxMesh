@@ -1,0 +1,65 @@
+{
+  "policy": "one recheck after recorded failure; original evidence retained; availability failures remain reportable",
+  "blocks": [
+    {
+      "original": "low-hit-1",
+      "selected": "low-hit-1-recheck",
+      "original_status": 1
+    },
+    {
+      "original": "low-hit-2",
+      "selected": "low-hit-2",
+      "original_status": 0
+    },
+    {
+      "original": "low-hit-3",
+      "selected": "low-hit-3",
+      "original_status": 0
+    },
+    {
+      "original": "low-hit-4",
+      "selected": "low-hit-4",
+      "original_status": 0
+    },
+    {
+      "original": "low-hit-5",
+      "selected": "low-hit-5",
+      "original_status": 0
+    },
+    {
+      "original": "low-hit-6",
+      "selected": "low-hit-6",
+      "original_status": 0
+    },
+    {
+      "original": "pure-miss-1",
+      "selected": "pure-miss-1",
+      "original_status": 0
+    },
+    {
+      "original": "pure-miss-2",
+      "selected": "pure-miss-2",
+      "original_status": 0
+    },
+    {
+      "original": "pure-miss-3",
+      "selected": "pure-miss-3",
+      "original_status": 0
+    },
+    {
+      "original": "pure-miss-4",
+      "selected": "pure-miss-4-recheck",
+      "original_status": 1
+    },
+    {
+      "original": "pure-miss-5",
+      "selected": "pure-miss-5",
+      "original_status": 0
+    },
+    {
+      "original": "pure-miss-6",
+      "selected": "pure-miss-6",
+      "original_status": 0
+    }
+  ]
+}

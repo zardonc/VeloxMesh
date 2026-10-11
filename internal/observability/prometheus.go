@@ -36,6 +36,8 @@ type PrometheusMetrics struct {
 	semanticErrors    *prometheus.CounterVec
 	semanticFallbacks *prometheus.CounterVec
 	semanticCoverage  *prometheus.CounterVec
+	cacheOutcomes     *prometheus.CounterVec
+	cacheOperations   *prometheus.HistogramVec
 }
 
 func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
@@ -290,6 +292,7 @@ func NewPrometheusMetrics(reg prometheus.Registerer) *PrometheusMetrics {
 		}
 	}
 
+	m.initCacheMetrics(reg)
 	return m
 }
 

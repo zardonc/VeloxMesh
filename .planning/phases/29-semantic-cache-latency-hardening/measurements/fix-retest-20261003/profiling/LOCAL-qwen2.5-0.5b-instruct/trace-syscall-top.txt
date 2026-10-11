@@ -1,0 +1,25 @@
+Type: delay
+Showing nodes accounting for 278.29ms, 99.30% of 280.25ms total
+Dropped 542 nodes (cum <= 1.40ms)
+Showing top 20 nodes out of 264
+      flat  flat%   sum%        cum   cum%
+  173.42ms 61.88% 61.88%   173.42ms 61.88%  syscall.write
+   76.51ms 27.30% 89.18%    76.51ms 27.30%  syscall.read
+   12.72ms  4.54% 93.72%    12.72ms  4.54%  modernc.org/libc.___syscall_cp
+    7.45ms  2.66% 96.38%     7.45ms  2.66%  modernc.org/libc.X__syscall3
+    2.90ms  1.03% 97.41%     2.90ms  1.03%  syscall.recvfrom
+    1.84ms  0.66% 98.07%     1.84ms  0.66%  syscall.openat
+    1.83ms  0.65% 98.72%     1.83ms  0.65%  syscall.connect
+    1.62ms  0.58% 99.30%     1.62ms  0.58%  golang.org/x/sys/unix.munmap
+         0     0% 99.30%    42.52ms 15.17%  bufio.(*Reader).Peek
+         0     0% 99.30%     2.84ms  1.01%  bufio.(*Reader).Read
+         0     0% 99.30%    42.55ms 15.18%  bufio.(*Reader).fill
+         0     0% 99.30%   100.44ms 35.84%  bufio.(*Writer).Flush
+         0     0% 99.30%    10.85ms  3.87%  database/sql.(*DB).ExecContext
+         0     0% 99.30%    10.85ms  3.87%  database/sql.(*DB).ExecContext.func1
+         0     0% 99.30%     2.60ms  0.93%  database/sql.(*DB).QueryContext
+         0     0% 99.30%     2.60ms  0.93%  database/sql.(*DB).QueryContext.func1
+         0     0% 99.30%     1.65ms  0.59%  database/sql.(*DB).QueryRowContext
+         0     0% 99.30%    10.85ms  3.87%  database/sql.(*DB).exec
+         0     0% 99.30%    11.82ms  4.22%  database/sql.(*DB).execDC
+         0     0% 99.30%    11.82ms  4.22%  database/sql.(*DB).execDC.func2

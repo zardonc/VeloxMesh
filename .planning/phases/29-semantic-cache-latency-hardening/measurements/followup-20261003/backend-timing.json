@@ -1,0 +1,3002 @@
+{
+  "source_file": "2026-10-03.6.log",
+  "source_sha256": "e9e146f5b7b1bee664c73b154e17e28b17649161a5ac28e83d13bfd566a03f77",
+  "clock_validation": "first task launch-to-print 61.098ms vs logged prompt+decode 61.00ms; elapsed clock interpretation consistent",
+  "limits": "wall-time second precision; windows include warmups/boundary tasks; no gateway-request-ID correlation, no embedding inference timing",
+  "windows": [
+    {
+      "start": "2026-10-03 21:37:47",
+      "end": "2026-10-03 21:38:02",
+      "count": 193,
+      "slots": [
+        0,
+        3,
+        1,
+        2
+      ],
+      "peak_observed_slots": 4,
+      "prompt": {
+        "n": 193,
+        "p50_ms": 18.29,
+        "p95_ms": 31.86,
+        "max_ms": 42.95
+      },
+      "decode": {
+        "n": 193,
+        "p50_ms": 190.73,
+        "p95_ms": 245.07,
+        "max_ms": 382.86
+      },
+      "total": {
+        "n": 193,
+        "p50_ms": 209.28,
+        "p95_ms": 271.19,
+        "max_ms": 400.49
+      },
+      "tasks": [
+        {
+          "task_id": "47145",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2640648.388,
+          "end_ms": 2640806.174,
+          "prompt_eval_time_ms": 16.93,
+          "eval_time_ms": 132.98,
+          "total_time_ms": 149.92
+        },
+        {
+          "task_id": "47148",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2640693.293,
+          "end_ms": 2640842.809,
+          "prompt_eval_time_ms": 21.14,
+          "eval_time_ms": 128.29,
+          "total_time_ms": 149.42
+        },
+        {
+          "task_id": "47151",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2640730.567,
+          "end_ms": 2640889.867,
+          "prompt_eval_time_ms": 16.33,
+          "eval_time_ms": 142.88,
+          "total_time_ms": 159.21
+        },
+        {
+          "task_id": "47153",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2640750.724,
+          "end_ms": 2640934.145,
+          "prompt_eval_time_ms": 18.55,
+          "eval_time_ms": 164.8,
+          "total_time_ms": 183.35
+        },
+        {
+          "task_id": "47159",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2640826.758,
+          "end_ms": 2641055.678,
+          "prompt_eval_time_ms": 12.66,
+          "eval_time_ms": 216.2,
+          "total_time_ms": 228.86
+        },
+        {
+          "task_id": "47162",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2640857.629,
+          "end_ms": 2641041.636,
+          "prompt_eval_time_ms": 19.07,
+          "eval_time_ms": 164.88,
+          "total_time_ms": 183.95
+        },
+        {
+          "task_id": "47166",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2640917.022,
+          "end_ms": 2641138.076,
+          "prompt_eval_time_ms": 15.98,
+          "eval_time_ms": 205.02,
+          "total_time_ms": 221
+        },
+        {
+          "task_id": "47170",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2640961.465,
+          "end_ms": 2641199.089,
+          "prompt_eval_time_ms": 19.26,
+          "eval_time_ms": 218.28,
+          "total_time_ms": 237.54
+        },
+        {
+          "task_id": "47178",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2641073.584,
+          "end_ms": 2641339.546,
+          "prompt_eval_time_ms": 17.31,
+          "eval_time_ms": 230.51,
+          "total_time_ms": 247.82
+        },
+        {
+          "task_id": "47179",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2641091.662,
+          "end_ms": 2641343.015,
+          "prompt_eval_time_ms": 21.2,
+          "eval_time_ms": 230,
+          "total_time_ms": 251.2
+        },
+        {
+          "task_id": "47185",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2641166.483,
+          "end_ms": 2641438.02,
+          "prompt_eval_time_ms": 17.05,
+          "eval_time_ms": 254.42,
+          "total_time_ms": 271.48
+        },
+        {
+          "task_id": "47189",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2641231.926,
+          "end_ms": 2641455.243,
+          "prompt_eval_time_ms": 17.52,
+          "eval_time_ms": 205.74,
+          "total_time_ms": 223.26
+        },
+        {
+          "task_id": "47197",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2641369.338,
+          "end_ms": 2641614.356,
+          "prompt_eval_time_ms": 16.21,
+          "eval_time_ms": 205.73,
+          "total_time_ms": 221.94
+        },
+        {
+          "task_id": "47198",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2641392.341,
+          "end_ms": 2641633.311,
+          "prompt_eval_time_ms": 20.15,
+          "eval_time_ms": 220.66,
+          "total_time_ms": 240.81
+        },
+        {
+          "task_id": "47203",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2641456.585,
+          "end_ms": 2641687.291,
+          "prompt_eval_time_ms": 15.4,
+          "eval_time_ms": 205.16,
+          "total_time_ms": 220.55
+        },
+        {
+          "task_id": "47207",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:47",
+          "start_ms": 2641520.093,
+          "end_ms": 2641756.097,
+          "prompt_eval_time_ms": 18.07,
+          "eval_time_ms": 217.86,
+          "total_time_ms": 235.93
+        },
+        {
+          "task_id": "47215",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2641633.726,
+          "end_ms": 2641874.553,
+          "prompt_eval_time_ms": 14.15,
+          "eval_time_ms": 214.52,
+          "total_time_ms": 228.66
+        },
+        {
+          "task_id": "47217",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2641671.623,
+          "end_ms": 2641878.267,
+          "prompt_eval_time_ms": 18.09,
+          "eval_time_ms": 188.49,
+          "total_time_ms": 206.58
+        },
+        {
+          "task_id": "47220",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2641705.645,
+          "end_ms": 2641902.02,
+          "prompt_eval_time_ms": 17.17,
+          "eval_time_ms": 179.14,
+          "total_time_ms": 196.31
+        },
+        {
+          "task_id": "47225",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2641772.667,
+          "end_ms": 2642035.09,
+          "prompt_eval_time_ms": 17.3,
+          "eval_time_ms": 245.07,
+          "total_time_ms": 262.37
+        },
+        {
+          "task_id": "47235",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2641903.422,
+          "end_ms": 2642214.501,
+          "prompt_eval_time_ms": 14.71,
+          "eval_time_ms": 223.68,
+          "total_time_ms": 238.39
+        },
+        {
+          "task_id": "47236",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2641961.966,
+          "end_ms": 2642232.027,
+          "prompt_eval_time_ms": 19.04,
+          "eval_time_ms": 236.53,
+          "total_time_ms": 255.56
+        },
+        {
+          "task_id": "47237",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2641976.018,
+          "end_ms": 2642199.856,
+          "prompt_eval_time_ms": 16.12,
+          "eval_time_ms": 207.34,
+          "total_time_ms": 223.46
+        },
+        {
+          "task_id": "47243",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2642068.949,
+          "end_ms": 2642321.795,
+          "prompt_eval_time_ms": 35.84,
+          "eval_time_ms": 216.95,
+          "total_time_ms": 252.79
+        },
+        {
+          "task_id": "47254",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2642242.826,
+          "end_ms": 2642508.208,
+          "prompt_eval_time_ms": 16.24,
+          "eval_time_ms": 203.78,
+          "total_time_ms": 220.01
+        },
+        {
+          "task_id": "47255",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2642273.89,
+          "end_ms": 2642480.282,
+          "prompt_eval_time_ms": 15.01,
+          "eval_time_ms": 177.14,
+          "total_time_ms": 192.15
+        },
+        {
+          "task_id": "47256",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2642288.055,
+          "end_ms": 2642483.043,
+          "prompt_eval_time_ms": 18.76,
+          "eval_time_ms": 176.05,
+          "total_time_ms": 194.81
+        },
+        {
+          "task_id": "47260",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2642337.443,
+          "end_ms": 2642615.3,
+          "prompt_eval_time_ms": 19.8,
+          "eval_time_ms": 257.99,
+          "total_time_ms": 277.79
+        },
+        {
+          "task_id": "47271",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:48",
+          "start_ms": 2642509.858,
+          "end_ms": 2642803.418,
+          "prompt_eval_time_ms": 15.49,
+          "eval_time_ms": 222.42,
+          "total_time_ms": 237.91
+        },
+        {
+          "task_id": "47272",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2642551.548,
+          "end_ms": 2642726.065,
+          "prompt_eval_time_ms": 19.75,
+          "eval_time_ms": 140.64,
+          "total_time_ms": 160.39
+        },
+        {
+          "task_id": "47273",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2642565.44,
+          "end_ms": 2642788.214,
+          "prompt_eval_time_ms": 17.11,
+          "eval_time_ms": 205.47,
+          "total_time_ms": 222.58
+        },
+        {
+          "task_id": "47278",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2642631.438,
+          "end_ms": 2642866.054,
+          "prompt_eval_time_ms": 20.26,
+          "eval_time_ms": 214.29,
+          "total_time_ms": 234.55
+        },
+        {
+          "task_id": "47286",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2642754.584,
+          "end_ms": 2643003.408,
+          "prompt_eval_time_ms": 18.89,
+          "eval_time_ms": 229.87,
+          "total_time_ms": 248.76
+        },
+        {
+          "task_id": "47290",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2642806.059,
+          "end_ms": 2643027.995,
+          "prompt_eval_time_ms": 15.58,
+          "eval_time_ms": 191.26,
+          "total_time_ms": 206.84
+        },
+        {
+          "task_id": "47292",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2642848.001,
+          "end_ms": 2643029.467,
+          "prompt_eval_time_ms": 16.61,
+          "eval_time_ms": 164.8,
+          "total_time_ms": 181.4
+        },
+        {
+          "task_id": "47296",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2642896.072,
+          "end_ms": 2643031.082,
+          "prompt_eval_time_ms": 20.08,
+          "eval_time_ms": 114.86,
+          "total_time_ms": 134.94
+        },
+        {
+          "task_id": "47307",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2643031.4,
+          "end_ms": 2643225.678,
+          "prompt_eval_time_ms": 16.68,
+          "eval_time_ms": 111.52,
+          "total_time_ms": 128.2
+        },
+        {
+          "task_id": "47308",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2643085.698,
+          "end_ms": 2643332.344,
+          "prompt_eval_time_ms": 21.23,
+          "eval_time_ms": 213.45,
+          "total_time_ms": 234.68
+        },
+        {
+          "task_id": "47309",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2643089.264,
+          "end_ms": 2643227.051,
+          "prompt_eval_time_ms": 18.52,
+          "eval_time_ms": 111,
+          "total_time_ms": 129.51
+        },
+        {
+          "task_id": "47310",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2643097.407,
+          "end_ms": 2643228.372,
+          "prompt_eval_time_ms": 19.82,
+          "eval_time_ms": 110.96,
+          "total_time_ms": 130.78
+        },
+        {
+          "task_id": "47323",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2643258.008,
+          "end_ms": 2643447.714,
+          "prompt_eval_time_ms": 15.75,
+          "eval_time_ms": 144.85,
+          "total_time_ms": 160.6
+        },
+        {
+          "task_id": "47324",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2643287.023,
+          "end_ms": 2643503.86,
+          "prompt_eval_time_ms": 17.07,
+          "eval_time_ms": 199.61,
+          "total_time_ms": 216.68
+        },
+        {
+          "task_id": "47326",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2643310.787,
+          "end_ms": 2643540.446,
+          "prompt_eval_time_ms": 20.16,
+          "eval_time_ms": 209.42,
+          "total_time_ms": 229.59
+        },
+        {
+          "task_id": "47329",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2643348.991,
+          "end_ms": 2643556.097,
+          "prompt_eval_time_ms": 19.22,
+          "eval_time_ms": 187.83,
+          "total_time_ms": 207.05
+        },
+        {
+          "task_id": "47338",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2643470.344,
+          "end_ms": 2643661.084,
+          "prompt_eval_time_ms": 14.53,
+          "eval_time_ms": 176.15,
+          "total_time_ms": 190.68
+        },
+        {
+          "task_id": "47342",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:49",
+          "start_ms": 2643521.46,
+          "end_ms": 2643694.936,
+          "prompt_eval_time_ms": 17.69,
+          "eval_time_ms": 155.72,
+          "total_time_ms": 173.41
+        },
+        {
+          "task_id": "47346",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2643570.528,
+          "end_ms": 2643766.399,
+          "prompt_eval_time_ms": 19.27,
+          "eval_time_ms": 141.55,
+          "total_time_ms": 160.82
+        },
+        {
+          "task_id": "47347",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2643605.495,
+          "end_ms": 2643818.136,
+          "prompt_eval_time_ms": 20.39,
+          "eval_time_ms": 192.1,
+          "total_time_ms": 212.48
+        },
+        {
+          "task_id": "47353",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2643679.665,
+          "end_ms": 2643831.899,
+          "prompt_eval_time_ms": 14.49,
+          "eval_time_ms": 137.68,
+          "total_time_ms": 152.17
+        },
+        {
+          "task_id": "47357",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2643730.415,
+          "end_ms": 2643939.1,
+          "prompt_eval_time_ms": 17.28,
+          "eval_time_ms": 191.34,
+          "total_time_ms": 208.62
+        },
+        {
+          "task_id": "47361",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2643782.116,
+          "end_ms": 2644039.2,
+          "prompt_eval_time_ms": 16.18,
+          "eval_time_ms": 240.84,
+          "total_time_ms": 257.02
+        },
+        {
+          "task_id": "47365",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2643834.676,
+          "end_ms": 2644037.042,
+          "prompt_eval_time_ms": 14.69,
+          "eval_time_ms": 172.01,
+          "total_time_ms": 186.7
+        },
+        {
+          "task_id": "47367",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2643885.328,
+          "end_ms": 2644132.665,
+          "prompt_eval_time_ms": 22.42,
+          "eval_time_ms": 224.85,
+          "total_time_ms": 247.27
+        },
+        {
+          "task_id": "47372",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2643958.463,
+          "end_ms": 2644176.355,
+          "prompt_eval_time_ms": 18.14,
+          "eval_time_ms": 199.69,
+          "total_time_ms": 217.83
+        },
+        {
+          "task_id": "47380",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2644067.884,
+          "end_ms": 2644286.122,
+          "prompt_eval_time_ms": 15.77,
+          "eval_time_ms": 174.15,
+          "total_time_ms": 189.91
+        },
+        {
+          "task_id": "47381",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2644096.136,
+          "end_ms": 2644303.874,
+          "prompt_eval_time_ms": 18.53,
+          "eval_time_ms": 189.06,
+          "total_time_ms": 207.59
+        },
+        {
+          "task_id": "47386",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2644160.354,
+          "end_ms": 2644388.708,
+          "prompt_eval_time_ms": 18.65,
+          "eval_time_ms": 209.64,
+          "total_time_ms": 228.29
+        },
+        {
+          "task_id": "47389",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2644195.968,
+          "end_ms": 2644422.58,
+          "prompt_eval_time_ms": 15.36,
+          "eval_time_ms": 211.19,
+          "total_time_ms": 226.55
+        },
+        {
+          "task_id": "47397",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2644305.306,
+          "end_ms": 2644549.529,
+          "prompt_eval_time_ms": 16.29,
+          "eval_time_ms": 191.97,
+          "total_time_ms": 208.26
+        },
+        {
+          "task_id": "47398",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2644341.175,
+          "end_ms": 2644552.383,
+          "prompt_eval_time_ms": 18.79,
+          "eval_time_ms": 192.26,
+          "total_time_ms": 211.05
+        },
+        {
+          "task_id": "47403",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2644406.233,
+          "end_ms": 2644656.034,
+          "prompt_eval_time_ms": 19.29,
+          "eval_time_ms": 230.44,
+          "total_time_ms": 249.74
+        },
+        {
+          "task_id": "47408",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:50",
+          "start_ms": 2644465.444,
+          "end_ms": 2644738.839,
+          "prompt_eval_time_ms": 31.86,
+          "eval_time_ms": 241.47,
+          "total_time_ms": 273.32
+        },
+        {
+          "task_id": "47414",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2644576.725,
+          "end_ms": 2644808.558,
+          "prompt_eval_time_ms": 16.45,
+          "eval_time_ms": 188.06,
+          "total_time_ms": 204.51
+        },
+        {
+          "task_id": "47415",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2644603.979,
+          "end_ms": 2644810.766,
+          "prompt_eval_time_ms": 19.26,
+          "eval_time_ms": 187.39,
+          "total_time_ms": 206.64
+        },
+        {
+          "task_id": "47420",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2644672.339,
+          "end_ms": 2644915.155,
+          "prompt_eval_time_ms": 19.85,
+          "eval_time_ms": 222.92,
+          "total_time_ms": 242.77
+        },
+        {
+          "task_id": "47427",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2644757.913,
+          "end_ms": 2644995.052,
+          "prompt_eval_time_ms": 20.26,
+          "eval_time_ms": 216.8,
+          "total_time_ms": 237.06
+        },
+        {
+          "task_id": "47434",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2644846.966,
+          "end_ms": 2645264.244,
+          "prompt_eval_time_ms": 17.09,
+          "eval_time_ms": 367.76,
+          "total_time_ms": 384.85
+        },
+        {
+          "task_id": "47435",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2644879.319,
+          "end_ms": 2645131.13,
+          "prompt_eval_time_ms": 19.95,
+          "eval_time_ms": 231.71,
+          "total_time_ms": 251.66
+        },
+        {
+          "task_id": "47439",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2644934.217,
+          "end_ms": 2645205.459,
+          "prompt_eval_time_ms": 17.47,
+          "eval_time_ms": 253.72,
+          "total_time_ms": 271.19
+        },
+        {
+          "task_id": "47445",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2645022.266,
+          "end_ms": 2645281.014,
+          "prompt_eval_time_ms": 16.5,
+          "eval_time_ms": 242.18,
+          "total_time_ms": 258.68
+        },
+        {
+          "task_id": "47453",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2645152.497,
+          "end_ms": 2645419.529,
+          "prompt_eval_time_ms": 28.62,
+          "eval_time_ms": 238.36,
+          "total_time_ms": 266.98
+        },
+        {
+          "task_id": "47457",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2645231.363,
+          "end_ms": 2645469.116,
+          "prompt_eval_time_ms": 18.28,
+          "eval_time_ms": 219.41,
+          "total_time_ms": 237.69
+        },
+        {
+          "task_id": "47461",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2645284.141,
+          "end_ms": 2645529.895,
+          "prompt_eval_time_ms": 16.55,
+          "eval_time_ms": 192.67,
+          "total_time_ms": 209.21
+        },
+        {
+          "task_id": "47462",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2645320.605,
+          "end_ms": 2645531.107,
+          "prompt_eval_time_ms": 18.14,
+          "eval_time_ms": 192.2,
+          "total_time_ms": 210.34
+        },
+        {
+          "task_id": "47472",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2645449.645,
+          "end_ms": 2645684.976,
+          "prompt_eval_time_ms": 18.07,
+          "eval_time_ms": 217.21,
+          "total_time_ms": 235.28
+        },
+        {
+          "task_id": "47475",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:51",
+          "start_ms": 2645487.432,
+          "end_ms": 2645743.112,
+          "prompt_eval_time_ms": 20.18,
+          "eval_time_ms": 235.44,
+          "total_time_ms": 255.62
+        },
+        {
+          "task_id": "47480",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2645557.995,
+          "end_ms": 2645829.293,
+          "prompt_eval_time_ms": 18.22,
+          "eval_time_ms": 227.31,
+          "total_time_ms": 245.53
+        },
+        {
+          "task_id": "47481",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2645583.683,
+          "end_ms": 2645830.494,
+          "prompt_eval_time_ms": 19.72,
+          "eval_time_ms": 226.92,
+          "total_time_ms": 246.64
+        },
+        {
+          "task_id": "47490",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2645701.556,
+          "end_ms": 2645951.563,
+          "prompt_eval_time_ms": 40.35,
+          "eval_time_ms": 209.59,
+          "total_time_ms": 249.94
+        },
+        {
+          "task_id": "47493",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2645766.684,
+          "end_ms": 2645989.778,
+          "prompt_eval_time_ms": 26.64,
+          "eval_time_ms": 196.39,
+          "total_time_ms": 223.03
+        },
+        {
+          "task_id": "47502",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2645873.37,
+          "end_ms": 2646112.902,
+          "prompt_eval_time_ms": 14.58,
+          "eval_time_ms": 195.55,
+          "total_time_ms": 210.13
+        },
+        {
+          "task_id": "47503",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2645902.704,
+          "end_ms": 2646114.136,
+          "prompt_eval_time_ms": 16.3,
+          "eval_time_ms": 195,
+          "total_time_ms": 211.31
+        },
+        {
+          "task_id": "47508",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2645970.112,
+          "end_ms": 2646213.831,
+          "prompt_eval_time_ms": 18.27,
+          "eval_time_ms": 225.39,
+          "total_time_ms": 243.66
+        },
+        {
+          "task_id": "47511",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2646014.389,
+          "end_ms": 2646248.91,
+          "prompt_eval_time_ms": 18.2,
+          "eval_time_ms": 216.26,
+          "total_time_ms": 234.46
+        },
+        {
+          "task_id": "47520",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2646137.847,
+          "end_ms": 2646325.098,
+          "prompt_eval_time_ms": 14.16,
+          "eval_time_ms": 160.31,
+          "total_time_ms": 174.47
+        },
+        {
+          "task_id": "47523",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2646195.908,
+          "end_ms": 2646409.894,
+          "prompt_eval_time_ms": 16.62,
+          "eval_time_ms": 197.29,
+          "total_time_ms": 213.92
+        },
+        {
+          "task_id": "47526",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2646230.878,
+          "end_ms": 2646446.248,
+          "prompt_eval_time_ms": 16.94,
+          "eval_time_ms": 198.36,
+          "total_time_ms": 215.31
+        },
+        {
+          "task_id": "47530",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2646278.384,
+          "end_ms": 2646660.254,
+          "prompt_eval_time_ms": 18.88,
+          "eval_time_ms": 362.93,
+          "total_time_ms": 381.81
+        },
+        {
+          "task_id": "47536",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2646358.074,
+          "end_ms": 2646532.261,
+          "prompt_eval_time_ms": 15.07,
+          "eval_time_ms": 159.05,
+          "total_time_ms": 174.12
+        },
+        {
+          "task_id": "47541",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2646429.228,
+          "end_ms": 2646596.466,
+          "prompt_eval_time_ms": 15.94,
+          "eval_time_ms": 151.24,
+          "total_time_ms": 167.18
+        },
+        {
+          "task_id": "47544",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:52",
+          "start_ms": 2646463.714,
+          "end_ms": 2646626.731,
+          "prompt_eval_time_ms": 17.78,
+          "eval_time_ms": 145.18,
+          "total_time_ms": 162.96
+        },
+        {
+          "task_id": "47551",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2646553.19,
+          "end_ms": 2646710.576,
+          "prompt_eval_time_ms": 25.02,
+          "eval_time_ms": 132.32,
+          "total_time_ms": 157.34
+        },
+        {
+          "task_id": "47566",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2646910.042,
+          "end_ms": 2647039.223,
+          "prompt_eval_time_ms": 14.61,
+          "eval_time_ms": 58.37,
+          "total_time_ms": 72.97
+        },
+        {
+          "task_id": "47577",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2647111.49,
+          "end_ms": 2647252.19,
+          "prompt_eval_time_ms": 21.51,
+          "eval_time_ms": 119.08,
+          "total_time_ms": 140.59
+        },
+        {
+          "task_id": "47579",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2647140.683,
+          "end_ms": 2647316.708,
+          "prompt_eval_time_ms": 18.05,
+          "eval_time_ms": 155.17,
+          "total_time_ms": 173.21
+        },
+        {
+          "task_id": "47580",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2647142.039,
+          "end_ms": 2647276.24,
+          "prompt_eval_time_ms": 19.43,
+          "eval_time_ms": 113.22,
+          "total_time_ms": 132.65
+        },
+        {
+          "task_id": "47581",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2647143.424,
+          "end_ms": 2647277.404,
+          "prompt_eval_time_ms": 21.08,
+          "eval_time_ms": 112.69,
+          "total_time_ms": 133.77
+        },
+        {
+          "task_id": "47591",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2647277.651,
+          "end_ms": 2647536.354,
+          "prompt_eval_time_ms": 19.44,
+          "eval_time_ms": 217.99,
+          "total_time_ms": 237.43
+        },
+        {
+          "task_id": "47593",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2647318.568,
+          "end_ms": 2647497.541,
+          "prompt_eval_time_ms": 17.07,
+          "eval_time_ms": 153.64,
+          "total_time_ms": 170.71
+        },
+        {
+          "task_id": "47594",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2647326.663,
+          "end_ms": 2647463.627,
+          "prompt_eval_time_ms": 15.55,
+          "eval_time_ms": 121.31,
+          "total_time_ms": 136.86
+        },
+        {
+          "task_id": "47597",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2647375.657,
+          "end_ms": 2647498.687,
+          "prompt_eval_time_ms": 19.77,
+          "eval_time_ms": 103.2,
+          "total_time_ms": 122.98
+        },
+        {
+          "task_id": "47607",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:53",
+          "start_ms": 2647499.984,
+          "end_ms": 2647683.34,
+          "prompt_eval_time_ms": 16.95,
+          "eval_time_ms": 148.1,
+          "total_time_ms": 165.05
+        },
+        {
+          "task_id": "47610",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2647547.007,
+          "end_ms": 2647739.351,
+          "prompt_eval_time_ms": 21.04,
+          "eval_time_ms": 171.21,
+          "total_time_ms": 192.25
+        },
+        {
+          "task_id": "47612",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2647570.953,
+          "end_ms": 2647770.296,
+          "prompt_eval_time_ms": 18.86,
+          "eval_time_ms": 180.39,
+          "total_time_ms": 199.25
+        },
+        {
+          "task_id": "47614",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2647596.671,
+          "end_ms": 2647850.429,
+          "prompt_eval_time_ms": 21.76,
+          "eval_time_ms": 231.74,
+          "total_time_ms": 253.51
+        },
+        {
+          "task_id": "47622",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2647712.383,
+          "end_ms": 2647943.603,
+          "prompt_eval_time_ms": 23.94,
+          "eval_time_ms": 207.2,
+          "total_time_ms": 231.14
+        },
+        {
+          "task_id": "47626",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2647771.299,
+          "end_ms": 2648019.55,
+          "prompt_eval_time_ms": 19.27,
+          "eval_time_ms": 217.74,
+          "total_time_ms": 237.01
+        },
+        {
+          "task_id": "47628",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2647815.006,
+          "end_ms": 2647962.658,
+          "prompt_eval_time_ms": 18.99,
+          "eval_time_ms": 128.59,
+          "total_time_ms": 147.58
+        },
+        {
+          "task_id": "47633",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2647882.533,
+          "end_ms": 2648098.295,
+          "prompt_eval_time_ms": 16.43,
+          "eval_time_ms": 199.28,
+          "total_time_ms": 215.71
+        },
+        {
+          "task_id": "47640",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2647962.956,
+          "end_ms": 2648200.088,
+          "prompt_eval_time_ms": 16.6,
+          "eval_time_ms": 204.94,
+          "total_time_ms": 221.54
+        },
+        {
+          "task_id": "47642",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2648004.58,
+          "end_ms": 2648166.904,
+          "prompt_eval_time_ms": 17.13,
+          "eval_time_ms": 145.13,
+          "total_time_ms": 162.26
+        },
+        {
+          "task_id": "47646",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2648050.828,
+          "end_ms": 2648216.175,
+          "prompt_eval_time_ms": 17.29,
+          "eval_time_ms": 147.99,
+          "total_time_ms": 165.29
+        },
+        {
+          "task_id": "47651",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2648116.852,
+          "end_ms": 2648326.186,
+          "prompt_eval_time_ms": 20.74,
+          "eval_time_ms": 188.53,
+          "total_time_ms": 209.28
+        },
+        {
+          "task_id": "47656",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2648183.25,
+          "end_ms": 2648357.301,
+          "prompt_eval_time_ms": 21.18,
+          "eval_time_ms": 152.79,
+          "total_time_ms": 173.97
+        },
+        {
+          "task_id": "47660",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2648234.345,
+          "end_ms": 2648452.914,
+          "prompt_eval_time_ms": 13.72,
+          "eval_time_ms": 185.52,
+          "total_time_ms": 199.24
+        },
+        {
+          "task_id": "47661",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2648253.59,
+          "end_ms": 2648418.195,
+          "prompt_eval_time_ms": 15.06,
+          "eval_time_ms": 149.39,
+          "total_time_ms": 164.45
+        },
+        {
+          "task_id": "47670",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2648357.579,
+          "end_ms": 2648583.341,
+          "prompt_eval_time_ms": 21.14,
+          "eval_time_ms": 190.7,
+          "total_time_ms": 211.85
+        },
+        {
+          "task_id": "47672",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2648401.793,
+          "end_ms": 2648601.965,
+          "prompt_eval_time_ms": 19.2,
+          "eval_time_ms": 180.91,
+          "total_time_ms": 200.11
+        },
+        {
+          "task_id": "47675",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2648456.024,
+          "end_ms": 2648703.534,
+          "prompt_eval_time_ms": 17.82,
+          "eval_time_ms": 221.03,
+          "total_time_ms": 238.85
+        },
+        {
+          "task_id": "47678",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:54",
+          "start_ms": 2648510.703,
+          "end_ms": 2648688.086,
+          "prompt_eval_time_ms": 19.57,
+          "eval_time_ms": 157.75,
+          "total_time_ms": 177.32
+        },
+        {
+          "task_id": "47686",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2648619.452,
+          "end_ms": 2648811.898,
+          "prompt_eval_time_ms": 16.42,
+          "eval_time_ms": 163.39,
+          "total_time_ms": 179.81
+        },
+        {
+          "task_id": "47688",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2648653.629,
+          "end_ms": 2648884.515,
+          "prompt_eval_time_ms": 20.09,
+          "eval_time_ms": 210.73,
+          "total_time_ms": 230.82
+        },
+        {
+          "task_id": "47692",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2648706.41,
+          "end_ms": 2648881.077,
+          "prompt_eval_time_ms": 18.05,
+          "eval_time_ms": 144.51,
+          "total_time_ms": 162.56
+        },
+        {
+          "task_id": "47694",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2648746.661,
+          "end_ms": 2648918.057,
+          "prompt_eval_time_ms": 17.12,
+          "eval_time_ms": 154.21,
+          "total_time_ms": 171.32
+        },
+        {
+          "task_id": "47701",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2648829.532,
+          "end_ms": 2649039.248,
+          "prompt_eval_time_ms": 19.13,
+          "eval_time_ms": 190.53,
+          "total_time_ms": 209.66
+        },
+        {
+          "task_id": "47707",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2648919.541,
+          "end_ms": 2649143.717,
+          "prompt_eval_time_ms": 15.37,
+          "eval_time_ms": 158.82,
+          "total_time_ms": 174.2
+        },
+        {
+          "task_id": "47708",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2648956.92,
+          "end_ms": 2649147.57,
+          "prompt_eval_time_ms": 18.97,
+          "eval_time_ms": 158.96,
+          "total_time_ms": 177.94
+        },
+        {
+          "task_id": "47709",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2648969.443,
+          "end_ms": 2649144.978,
+          "prompt_eval_time_ms": 16.46,
+          "eval_time_ms": 158.93,
+          "total_time_ms": 175.4
+        },
+        {
+          "task_id": "47717",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2649068.285,
+          "end_ms": 2649254.066,
+          "prompt_eval_time_ms": 19.44,
+          "eval_time_ms": 166.28,
+          "total_time_ms": 185.72
+        },
+        {
+          "task_id": "47727",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2649175.075,
+          "end_ms": 2649375.299,
+          "prompt_eval_time_ms": 15.73,
+          "eval_time_ms": 124.09,
+          "total_time_ms": 139.82
+        },
+        {
+          "task_id": "47728",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2649220.369,
+          "end_ms": 2649427.314,
+          "prompt_eval_time_ms": 17.23,
+          "eval_time_ms": 174.52,
+          "total_time_ms": 191.75
+        },
+        {
+          "task_id": "47729",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2649235.412,
+          "end_ms": 2649430.085,
+          "prompt_eval_time_ms": 19.64,
+          "eval_time_ms": 174.84,
+          "total_time_ms": 194.48
+        },
+        {
+          "task_id": "47733",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2649283.678,
+          "end_ms": 2649428.666,
+          "prompt_eval_time_ms": 18.32,
+          "eval_time_ms": 126.6,
+          "total_time_ms": 144.91
+        },
+        {
+          "task_id": "47743",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2649409.339,
+          "end_ms": 2649605.924,
+          "prompt_eval_time_ms": 16.86,
+          "eval_time_ms": 179.66,
+          "total_time_ms": 196.53
+        },
+        {
+          "task_id": "47748",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2649455.702,
+          "end_ms": 2649670.871,
+          "prompt_eval_time_ms": 36.7,
+          "eval_time_ms": 121.63,
+          "total_time_ms": 158.33
+        },
+        {
+          "task_id": "47749",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2649499.57,
+          "end_ms": 2649669.184,
+          "prompt_eval_time_ms": 35.01,
+          "eval_time_ms": 121.7,
+          "total_time_ms": 156.71
+        },
+        {
+          "task_id": "47750",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:55",
+          "start_ms": 2649512.413,
+          "end_ms": 2649672.361,
+          "prompt_eval_time_ms": 38.39,
+          "eval_time_ms": 121.41,
+          "total_time_ms": 159.8
+        },
+        {
+          "task_id": "47759",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2649636.987,
+          "end_ms": 2649817.337,
+          "prompt_eval_time_ms": 13.93,
+          "eval_time_ms": 166.36,
+          "total_time_ms": 180.29
+        },
+        {
+          "task_id": "47764",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2649700.593,
+          "end_ms": 2650019.475,
+          "prompt_eval_time_ms": 18.4,
+          "eval_time_ms": 259.8,
+          "total_time_ms": 278.2
+        },
+        {
+          "task_id": "47765",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2649735.04,
+          "end_ms": 2649888.893,
+          "prompt_eval_time_ms": 19.7,
+          "eval_time_ms": 127.82,
+          "total_time_ms": 147.52
+        },
+        {
+          "task_id": "47766",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2649741.2,
+          "end_ms": 2649890.314,
+          "prompt_eval_time_ms": 21.3,
+          "eval_time_ms": 127.59,
+          "total_time_ms": 148.89
+        },
+        {
+          "task_id": "47774",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2649838.453,
+          "end_ms": 2650071.154,
+          "prompt_eval_time_ms": 22.72,
+          "eval_time_ms": 209.91,
+          "total_time_ms": 232.63
+        },
+        {
+          "task_id": "47780",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2649916.963,
+          "end_ms": 2650144.29,
+          "prompt_eval_time_ms": 29.64,
+          "eval_time_ms": 148.66,
+          "total_time_ms": 178.29
+        },
+        {
+          "task_id": "47781",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2649965.937,
+          "end_ms": 2650145.55,
+          "prompt_eval_time_ms": 31.21,
+          "eval_time_ms": 148.26,
+          "total_time_ms": 179.47
+        },
+        {
+          "task_id": "47786",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2650054.888,
+          "end_ms": 2650244.638,
+          "prompt_eval_time_ms": 17.93,
+          "eval_time_ms": 171.76,
+          "total_time_ms": 189.69
+        },
+        {
+          "task_id": "47789",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2650093.778,
+          "end_ms": 2650283.296,
+          "prompt_eval_time_ms": 16.02,
+          "eval_time_ms": 173.42,
+          "total_time_ms": 189.44
+        },
+        {
+          "task_id": "47795",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2650180.811,
+          "end_ms": 2650395.449,
+          "prompt_eval_time_ms": 18.08,
+          "eval_time_ms": 166.16,
+          "total_time_ms": 184.25
+        },
+        {
+          "task_id": "47796",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2650211.141,
+          "end_ms": 2650375.61,
+          "prompt_eval_time_ms": 19.75,
+          "eval_time_ms": 144.58,
+          "total_time_ms": 164.33
+        },
+        {
+          "task_id": "47800",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2650264.842,
+          "end_ms": 2650492.269,
+          "prompt_eval_time_ms": 20.17,
+          "eval_time_ms": 207.2,
+          "total_time_ms": 227.37
+        },
+        {
+          "task_id": "47805",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2650324.981,
+          "end_ms": 2650528.771,
+          "prompt_eval_time_ms": 17.04,
+          "eval_time_ms": 186.68,
+          "total_time_ms": 203.72
+        },
+        {
+          "task_id": "47810",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2650395.844,
+          "end_ms": 2650580.527,
+          "prompt_eval_time_ms": 17.31,
+          "eval_time_ms": 156.39,
+          "total_time_ms": 173.7
+        },
+        {
+          "task_id": "47812",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2650434.537,
+          "end_ms": 2650644.196,
+          "prompt_eval_time_ms": 18.86,
+          "eval_time_ms": 190.73,
+          "total_time_ms": 209.6
+        },
+        {
+          "task_id": "47818",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:56",
+          "start_ms": 2650510.296,
+          "end_ms": 2650701.286,
+          "prompt_eval_time_ms": 19.96,
+          "eval_time_ms": 170.96,
+          "total_time_ms": 190.92
+        },
+        {
+          "task_id": "47822",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2650565.021,
+          "end_ms": 2650750.916,
+          "prompt_eval_time_ms": 13.58,
+          "eval_time_ms": 172.24,
+          "total_time_ms": 185.82
+        },
+        {
+          "task_id": "47826",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2650607.227,
+          "end_ms": 2650850.579,
+          "prompt_eval_time_ms": 18.6,
+          "eval_time_ms": 224.69,
+          "total_time_ms": 243.29
+        },
+        {
+          "task_id": "47830",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2650667.61,
+          "end_ms": 2650851.896,
+          "prompt_eval_time_ms": 20.6,
+          "eval_time_ms": 163.64,
+          "total_time_ms": 184.24
+        },
+        {
+          "task_id": "47834",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2650717.87,
+          "end_ms": 2650943.544,
+          "prompt_eval_time_ms": 18.66,
+          "eval_time_ms": 206.95,
+          "total_time_ms": 225.62
+        },
+        {
+          "task_id": "47839",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2650781.82,
+          "end_ms": 2651029.536,
+          "prompt_eval_time_ms": 21.67,
+          "eval_time_ms": 225.98,
+          "total_time_ms": 247.65
+        },
+        {
+          "task_id": "47845",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2650874.917,
+          "end_ms": 2651172.444,
+          "prompt_eval_time_ms": 41.34,
+          "eval_time_ms": 227.16,
+          "total_time_ms": 268.49
+        },
+        {
+          "task_id": "47846",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2650903.893,
+          "end_ms": 2651111.065,
+          "prompt_eval_time_ms": 42.95,
+          "eval_time_ms": 164.09,
+          "total_time_ms": 207.03
+        },
+        {
+          "task_id": "47849",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2650969.651,
+          "end_ms": 2651240.965,
+          "prompt_eval_time_ms": 16.62,
+          "eval_time_ms": 254.63,
+          "total_time_ms": 271.25
+        },
+        {
+          "task_id": "47856",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2651068.408,
+          "end_ms": 2651318.106,
+          "prompt_eval_time_ms": 20.58,
+          "eval_time_ms": 229.05,
+          "total_time_ms": 249.63
+        },
+        {
+          "task_id": "47860",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2651127.163,
+          "end_ms": 2651368.231,
+          "prompt_eval_time_ms": 20.8,
+          "eval_time_ms": 220.21,
+          "total_time_ms": 241.01
+        },
+        {
+          "task_id": "47864",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2651189.629,
+          "end_ms": 2651414.372,
+          "prompt_eval_time_ms": 35.95,
+          "eval_time_ms": 188.74,
+          "total_time_ms": 224.69
+        },
+        {
+          "task_id": "47868",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2651259.746,
+          "end_ms": 2651463.977,
+          "prompt_eval_time_ms": 19.27,
+          "eval_time_ms": 184.9,
+          "total_time_ms": 204.17
+        },
+        {
+          "task_id": "47875",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2651350.755,
+          "end_ms": 2651552.297,
+          "prompt_eval_time_ms": 14.6,
+          "eval_time_ms": 186.88,
+          "total_time_ms": 201.48
+        },
+        {
+          "task_id": "47879",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2651396.928,
+          "end_ms": 2651612.133,
+          "prompt_eval_time_ms": 18.99,
+          "eval_time_ms": 196.16,
+          "total_time_ms": 215.15
+        },
+        {
+          "task_id": "47883",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2651448.205,
+          "end_ms": 2651681.529,
+          "prompt_eval_time_ms": 17.19,
+          "eval_time_ms": 216.06,
+          "total_time_ms": 233.25
+        },
+        {
+          "task_id": "47887",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:57",
+          "start_ms": 2651498.289,
+          "end_ms": 2651709.515,
+          "prompt_eval_time_ms": 18.81,
+          "eval_time_ms": 192.32,
+          "total_time_ms": 211.13
+        },
+        {
+          "task_id": "47893",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2651572.063,
+          "end_ms": 2651816.671,
+          "prompt_eval_time_ms": 18.8,
+          "eval_time_ms": 225.74,
+          "total_time_ms": 244.54
+        },
+        {
+          "task_id": "47897",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2651630.946,
+          "end_ms": 2651878.799,
+          "prompt_eval_time_ms": 20.31,
+          "eval_time_ms": 227.48,
+          "total_time_ms": 247.79
+        },
+        {
+          "task_id": "47903",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2651711.181,
+          "end_ms": 2651970.151,
+          "prompt_eval_time_ms": 17.29,
+          "eval_time_ms": 223.48,
+          "total_time_ms": 240.77
+        },
+        {
+          "task_id": "47905",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2651763.544,
+          "end_ms": 2651990.381,
+          "prompt_eval_time_ms": 17.67,
+          "eval_time_ms": 209.09,
+          "total_time_ms": 226.76
+        },
+        {
+          "task_id": "47911",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2651843.762,
+          "end_ms": 2652095.826,
+          "prompt_eval_time_ms": 16.19,
+          "eval_time_ms": 235.81,
+          "total_time_ms": 252
+        },
+        {
+          "task_id": "47915",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2651901.497,
+          "end_ms": 2652156.25,
+          "prompt_eval_time_ms": 32.75,
+          "eval_time_ms": 221.95,
+          "total_time_ms": 254.7
+        },
+        {
+          "task_id": "47921",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2651992.017,
+          "end_ms": 2652246.782,
+          "prompt_eval_time_ms": 17.2,
+          "eval_time_ms": 199.29,
+          "total_time_ms": 216.48
+        },
+        {
+          "task_id": "47922",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2652030.234,
+          "end_ms": 2652191.686,
+          "prompt_eval_time_ms": 18.68,
+          "eval_time_ms": 142.64,
+          "total_time_ms": 161.31
+        },
+        {
+          "task_id": "47929",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2652119.116,
+          "end_ms": 2652519.671,
+          "prompt_eval_time_ms": 17.62,
+          "eval_time_ms": 382.86,
+          "total_time_ms": 400.49
+        },
+        {
+          "task_id": "47933",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2652172.783,
+          "end_ms": 2652335.625,
+          "prompt_eval_time_ms": 20.33,
+          "eval_time_ms": 142.32,
+          "total_time_ms": 162.66
+        },
+        {
+          "task_id": "47937",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2652225.012,
+          "end_ms": 2652439.305,
+          "prompt_eval_time_ms": 23.44,
+          "eval_time_ms": 190.79,
+          "total_time_ms": 214.23
+        },
+        {
+          "task_id": "47940",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2652269.111,
+          "end_ms": 2652475.389,
+          "prompt_eval_time_ms": 16.03,
+          "eval_time_ms": 190.19,
+          "total_time_ms": 206.22
+        },
+        {
+          "task_id": "47947",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2652370.317,
+          "end_ms": 2652523.741,
+          "prompt_eval_time_ms": 19.87,
+          "eval_time_ms": 133.5,
+          "total_time_ms": 153.36
+        },
+        {
+          "task_id": "47954",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2652457.085,
+          "end_ms": 2652684.083,
+          "prompt_eval_time_ms": 19.8,
+          "eval_time_ms": 207.15,
+          "total_time_ms": 226.94
+        },
+        {
+          "task_id": "47958",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:58",
+          "start_ms": 2652505.061,
+          "end_ms": 2652736.901,
+          "prompt_eval_time_ms": 16.29,
+          "eval_time_ms": 215.5,
+          "total_time_ms": 231.79
+        },
+        {
+          "task_id": "47962",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:59",
+          "start_ms": 2652554.831,
+          "end_ms": 2652735.665,
+          "prompt_eval_time_ms": 15.52,
+          "eval_time_ms": 121.02,
+          "total_time_ms": 136.54
+        },
+        {
+          "task_id": "47963",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:59",
+          "start_ms": 2652599.04,
+          "end_ms": 2652814.885,
+          "prompt_eval_time_ms": 19.46,
+          "eval_time_ms": 196.21,
+          "total_time_ms": 215.67
+        },
+        {
+          "task_id": "47972",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:59",
+          "start_ms": 2652702.193,
+          "end_ms": 2652902.098,
+          "prompt_eval_time_ms": 18.29,
+          "eval_time_ms": 181.56,
+          "total_time_ms": 199.85
+        },
+        {
+          "task_id": "47976",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:37:59",
+          "start_ms": 2652766.251,
+          "end_ms": 2653193.135,
+          "prompt_eval_time_ms": 16.7,
+          "eval_time_ms": 381.59,
+          "total_time_ms": 398.29
+        },
+        {
+          "task_id": "47978",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:59",
+          "start_ms": 2652794.766,
+          "end_ms": 2652979.878,
+          "prompt_eval_time_ms": 18.02,
+          "eval_time_ms": 166.95,
+          "total_time_ms": 184.97
+        },
+        {
+          "task_id": "47982",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:37:59",
+          "start_ms": 2652843.052,
+          "end_ms": 2653063.605,
+          "prompt_eval_time_ms": 20,
+          "eval_time_ms": 200.49,
+          "total_time_ms": 220.49
+        },
+        {
+          "task_id": "47987",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:59",
+          "start_ms": 2652931.49,
+          "end_ms": 2653092.729,
+          "prompt_eval_time_ms": 18.31,
+          "eval_time_ms": 142.87,
+          "total_time_ms": 161.18
+        },
+        {
+          "task_id": "47992",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:37:59",
+          "start_ms": 2652998.847,
+          "end_ms": 2653158.259,
+          "prompt_eval_time_ms": 16.91,
+          "eval_time_ms": 142.44,
+          "total_time_ms": 159.35
+        },
+        {
+          "task_id": "47999",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:37:59",
+          "start_ms": 2653093.019,
+          "end_ms": 2653233.884,
+          "prompt_eval_time_ms": 18.12,
+          "eval_time_ms": 109.23,
+          "total_time_ms": 127.35
+        }
+      ]
+    },
+    {
+      "start": "2026-10-03 21:41:00",
+      "end": "2026-10-03 21:41:59",
+      "count": 100,
+      "slots": [
+        0,
+        3,
+        1,
+        2
+      ],
+      "peak_observed_slots": 3,
+      "prompt": {
+        "n": 100,
+        "p50_ms": 13.35,
+        "p95_ms": 32.66,
+        "max_ms": 98.49
+      },
+      "decode": {
+        "n": 100,
+        "p50_ms": 57.92,
+        "p95_ms": 110.43,
+        "max_ms": 284.72
+      },
+      "total": {
+        "n": 100,
+        "p50_ms": 71.89,
+        "p95_ms": 123.98,
+        "max_ms": 359.51
+      },
+      "tasks": [
+        {
+          "task_id": "48061",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:30",
+          "start_ms": 2863983.658,
+          "end_ms": 2864343.265,
+          "prompt_eval_time_ms": 74.79,
+          "eval_time_ms": 284.72,
+          "total_time_ms": 359.51
+        },
+        {
+          "task_id": "48077",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:43",
+          "start_ms": 2876807.293,
+          "end_ms": 2877136.935,
+          "prompt_eval_time_ms": 98.49,
+          "eval_time_ms": 231.05,
+          "total_time_ms": 329.53
+        },
+        {
+          "task_id": "48080",
+          "slot": 3,
+          "wall_time": "2026-10-03 21:41:43",
+          "start_ms": 2877017.056,
+          "end_ms": 2877167.809,
+          "prompt_eval_time_ms": 37.21,
+          "eval_time_ms": 113.46,
+          "total_time_ms": 150.66
+        },
+        {
+          "task_id": "48084",
+          "slot": 1,
+          "wall_time": "2026-10-03 21:41:43",
+          "start_ms": 2877081.952,
+          "end_ms": 2877223.341,
+          "prompt_eval_time_ms": 17.87,
+          "eval_time_ms": 123.45,
+          "total_time_ms": 141.31
+        },
+        {
+          "task_id": "48096",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:43",
+          "start_ms": 2877201.155,
+          "end_ms": 2877269.529,
+          "prompt_eval_time_ms": 12.83,
+          "eval_time_ms": 47.28,
+          "total_time_ms": 60.11
+        },
+        {
+          "task_id": "48106",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:43",
+          "start_ms": 2877325.756,
+          "end_ms": 2877397.001,
+          "prompt_eval_time_ms": 13.99,
+          "eval_time_ms": 48.7,
+          "total_time_ms": 62.69
+        },
+        {
+          "task_id": "48116",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:43",
+          "start_ms": 2877439.939,
+          "end_ms": 2877499.38,
+          "prompt_eval_time_ms": 13.58,
+          "eval_time_ms": 45.74,
+          "total_time_ms": 59.32
+        },
+        {
+          "task_id": "48126",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:44",
+          "start_ms": 2877561.856,
+          "end_ms": 2877624.845,
+          "prompt_eval_time_ms": 14.48,
+          "eval_time_ms": 48.4,
+          "total_time_ms": 62.88
+        },
+        {
+          "task_id": "48136",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:44",
+          "start_ms": 2877688.206,
+          "end_ms": 2877755.585,
+          "prompt_eval_time_ms": 21.65,
+          "eval_time_ms": 45.62,
+          "total_time_ms": 67.28
+        },
+        {
+          "task_id": "48146",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:44",
+          "start_ms": 2877805.61,
+          "end_ms": 2877864.653,
+          "prompt_eval_time_ms": 13.83,
+          "eval_time_ms": 45.13,
+          "total_time_ms": 58.96
+        },
+        {
+          "task_id": "48156",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:44",
+          "start_ms": 2877932.557,
+          "end_ms": 2877993.967,
+          "prompt_eval_time_ms": 12.17,
+          "eval_time_ms": 49,
+          "total_time_ms": 61.17
+        },
+        {
+          "task_id": "48167",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:44",
+          "start_ms": 2878062.677,
+          "end_ms": 2878133.692,
+          "prompt_eval_time_ms": 13,
+          "eval_time_ms": 57.92,
+          "total_time_ms": 70.91
+        },
+        {
+          "task_id": "48179",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:44",
+          "start_ms": 2878179.756,
+          "end_ms": 2878270.402,
+          "prompt_eval_time_ms": 22.85,
+          "eval_time_ms": 67.69,
+          "total_time_ms": 90.54
+        },
+        {
+          "task_id": "48193",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:44",
+          "start_ms": 2878308.209,
+          "end_ms": 2878379.96,
+          "prompt_eval_time_ms": 13.73,
+          "eval_time_ms": 57.92,
+          "total_time_ms": 71.65
+        },
+        {
+          "task_id": "48205",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:44",
+          "start_ms": 2878445.076,
+          "end_ms": 2878507.749,
+          "prompt_eval_time_ms": 13.02,
+          "eval_time_ms": 49.56,
+          "total_time_ms": 62.58
+        },
+        {
+          "task_id": "48216",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:45",
+          "start_ms": 2878568.364,
+          "end_ms": 2878645.695,
+          "prompt_eval_time_ms": 12.31,
+          "eval_time_ms": 64.94,
+          "total_time_ms": 77.25
+        },
+        {
+          "task_id": "48230",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:45",
+          "start_ms": 2878686.307,
+          "end_ms": 2878751.931,
+          "prompt_eval_time_ms": 13.34,
+          "eval_time_ms": 52.19,
+          "total_time_ms": 65.53
+        },
+        {
+          "task_id": "48242",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:45",
+          "start_ms": 2878812.61,
+          "end_ms": 2878883.001,
+          "prompt_eval_time_ms": 12.06,
+          "eval_time_ms": 58.25,
+          "total_time_ms": 70.31
+        },
+        {
+          "task_id": "48254",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:45",
+          "start_ms": 2878937.156,
+          "end_ms": 2879007.292,
+          "prompt_eval_time_ms": 13.72,
+          "eval_time_ms": 56.31,
+          "total_time_ms": 70.03
+        },
+        {
+          "task_id": "48266",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:45",
+          "start_ms": 2879063.701,
+          "end_ms": 2879129.076,
+          "prompt_eval_time_ms": 13.03,
+          "eval_time_ms": 52.27,
+          "total_time_ms": 65.3
+        },
+        {
+          "task_id": "48278",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:45",
+          "start_ms": 2879186.484,
+          "end_ms": 2879249.849,
+          "prompt_eval_time_ms": 12.96,
+          "eval_time_ms": 50.32,
+          "total_time_ms": 63.28
+        },
+        {
+          "task_id": "48289",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:45",
+          "start_ms": 2879307.689,
+          "end_ms": 2879384.45,
+          "prompt_eval_time_ms": 17.8,
+          "eval_time_ms": 58.85,
+          "total_time_ms": 76.65
+        },
+        {
+          "task_id": "48301",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:45",
+          "start_ms": 2879436.517,
+          "end_ms": 2879496.443,
+          "prompt_eval_time_ms": 11.98,
+          "eval_time_ms": 47.87,
+          "total_time_ms": 59.85
+        },
+        {
+          "task_id": "48312",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:46",
+          "start_ms": 2879557.863,
+          "end_ms": 2879637.176,
+          "prompt_eval_time_ms": 13.86,
+          "eval_time_ms": 65.35,
+          "total_time_ms": 79.21
+        },
+        {
+          "task_id": "48326",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:46",
+          "start_ms": 2879693.093,
+          "end_ms": 2879777.301,
+          "prompt_eval_time_ms": 13.46,
+          "eval_time_ms": 70.64,
+          "total_time_ms": 84.11
+        },
+        {
+          "task_id": "48341",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:46",
+          "start_ms": 2879819.343,
+          "end_ms": 2879902.366,
+          "prompt_eval_time_ms": 20.71,
+          "eval_time_ms": 62.22,
+          "total_time_ms": 82.93
+        },
+        {
+          "task_id": "48369",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:46",
+          "start_ms": 2880065.367,
+          "end_ms": 2880137.333,
+          "prompt_eval_time_ms": 12.27,
+          "eval_time_ms": 59.62,
+          "total_time_ms": 71.89
+        },
+        {
+          "task_id": "48383",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:46",
+          "start_ms": 2880189.557,
+          "end_ms": 2880266.706,
+          "prompt_eval_time_ms": 13.9,
+          "eval_time_ms": 63.15,
+          "total_time_ms": 77.05
+        },
+        {
+          "task_id": "48397",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:46",
+          "start_ms": 2880313.15,
+          "end_ms": 2880390.573,
+          "prompt_eval_time_ms": 13.73,
+          "eval_time_ms": 63.6,
+          "total_time_ms": 77.33
+        },
+        {
+          "task_id": "48411",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:46",
+          "start_ms": 2880432.702,
+          "end_ms": 2880513.45,
+          "prompt_eval_time_ms": 12.74,
+          "eval_time_ms": 67.92,
+          "total_time_ms": 80.66
+        },
+        {
+          "task_id": "48425",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:47",
+          "start_ms": 2880555.658,
+          "end_ms": 2880633.05,
+          "prompt_eval_time_ms": 11.22,
+          "eval_time_ms": 66.09,
+          "total_time_ms": 77.31
+        },
+        {
+          "task_id": "48440",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:47",
+          "start_ms": 2880676.312,
+          "end_ms": 2880750.947,
+          "prompt_eval_time_ms": 13.54,
+          "eval_time_ms": 60.91,
+          "total_time_ms": 74.45
+        },
+        {
+          "task_id": "48454",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:47",
+          "start_ms": 2880801.631,
+          "end_ms": 2880874.434,
+          "prompt_eval_time_ms": 13.48,
+          "eval_time_ms": 59.23,
+          "total_time_ms": 72.71
+        },
+        {
+          "task_id": "48468",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:47",
+          "start_ms": 2880946.14,
+          "end_ms": 2881016.978,
+          "prompt_eval_time_ms": 11.95,
+          "eval_time_ms": 58.8,
+          "total_time_ms": 70.75
+        },
+        {
+          "task_id": "48482",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:47",
+          "start_ms": 2881067.71,
+          "end_ms": 2881144.902,
+          "prompt_eval_time_ms": 12.08,
+          "eval_time_ms": 65.02,
+          "total_time_ms": 77.1
+        },
+        {
+          "task_id": "48496",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:47",
+          "start_ms": 2881195.424,
+          "end_ms": 2881283.544,
+          "prompt_eval_time_ms": 13.05,
+          "eval_time_ms": 74.97,
+          "total_time_ms": 88.02
+        },
+        {
+          "task_id": "48510",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:47",
+          "start_ms": 2881312.966,
+          "end_ms": 2881389.79,
+          "prompt_eval_time_ms": 12.67,
+          "eval_time_ms": 64.06,
+          "total_time_ms": 76.73
+        },
+        {
+          "task_id": "48524",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:47",
+          "start_ms": 2881434.141,
+          "end_ms": 2881507.4,
+          "prompt_eval_time_ms": 12.48,
+          "eval_time_ms": 60.7,
+          "total_time_ms": 73.19
+        },
+        {
+          "task_id": "48538",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:48",
+          "start_ms": 2881562.487,
+          "end_ms": 2881639.006,
+          "prompt_eval_time_ms": 13.11,
+          "eval_time_ms": 63.31,
+          "total_time_ms": 76.42
+        },
+        {
+          "task_id": "48552",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:48",
+          "start_ms": 2881684.986,
+          "end_ms": 2881746.857,
+          "prompt_eval_time_ms": 13.39,
+          "eval_time_ms": 48.38,
+          "total_time_ms": 61.77
+        },
+        {
+          "task_id": "48563",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:48",
+          "start_ms": 2881805.941,
+          "end_ms": 2881929.707,
+          "prompt_eval_time_ms": 13.35,
+          "eval_time_ms": 110.31,
+          "total_time_ms": 123.66
+        },
+        {
+          "task_id": "48588",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:48",
+          "start_ms": 2881929.956,
+          "end_ms": 2881991.907,
+          "prompt_eval_time_ms": 13.27,
+          "eval_time_ms": 48.6,
+          "total_time_ms": 61.87
+        },
+        {
+          "task_id": "48599",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:48",
+          "start_ms": 2882053.351,
+          "end_ms": 2882112.628,
+          "prompt_eval_time_ms": 13.69,
+          "eval_time_ms": 45.49,
+          "total_time_ms": 59.18
+        },
+        {
+          "task_id": "48610",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:48",
+          "start_ms": 2882191.665,
+          "end_ms": 2882250.632,
+          "prompt_eval_time_ms": 12.2,
+          "eval_time_ms": 46.68,
+          "total_time_ms": 58.88
+        },
+        {
+          "task_id": "48621",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:48",
+          "start_ms": 2882310.397,
+          "end_ms": 2882392.585,
+          "prompt_eval_time_ms": 14.03,
+          "eval_time_ms": 68.07,
+          "total_time_ms": 82.1
+        },
+        {
+          "task_id": "48635",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:48",
+          "start_ms": 2882435.227,
+          "end_ms": 2882506.918,
+          "prompt_eval_time_ms": 11.78,
+          "eval_time_ms": 59.83,
+          "total_time_ms": 71.61
+        },
+        {
+          "task_id": "48649",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:49",
+          "start_ms": 2882561.688,
+          "end_ms": 2882641.329,
+          "prompt_eval_time_ms": 17.58,
+          "eval_time_ms": 61.96,
+          "total_time_ms": 79.55
+        },
+        {
+          "task_id": "48663",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:49",
+          "start_ms": 2882688.077,
+          "end_ms": 2882746.831,
+          "prompt_eval_time_ms": 12.72,
+          "eval_time_ms": 45.94,
+          "total_time_ms": 58.66
+        },
+        {
+          "task_id": "48674",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:49",
+          "start_ms": 2882813.53,
+          "end_ms": 2882884.063,
+          "prompt_eval_time_ms": 11.78,
+          "eval_time_ms": 58.67,
+          "total_time_ms": 70.45
+        },
+        {
+          "task_id": "48688",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:49",
+          "start_ms": 2882935.136,
+          "end_ms": 2882993.111,
+          "prompt_eval_time_ms": 13.01,
+          "eval_time_ms": 44.88,
+          "total_time_ms": 57.89
+        },
+        {
+          "task_id": "48699",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:49",
+          "start_ms": 2883049.964,
+          "end_ms": 2883174.029,
+          "prompt_eval_time_ms": 13.55,
+          "eval_time_ms": 110.43,
+          "total_time_ms": 123.98
+        },
+        {
+          "task_id": "48724",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:49",
+          "start_ms": 2883181.25,
+          "end_ms": 2883263.185,
+          "prompt_eval_time_ms": 21.4,
+          "eval_time_ms": 60.44,
+          "total_time_ms": 81.84
+        },
+        {
+          "task_id": "48738",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:49",
+          "start_ms": 2883302.014,
+          "end_ms": 2883362.601,
+          "prompt_eval_time_ms": 14.24,
+          "eval_time_ms": 46.21,
+          "total_time_ms": 60.45
+        },
+        {
+          "task_id": "48749",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:49",
+          "start_ms": 2883425.81,
+          "end_ms": 2883508.541,
+          "prompt_eval_time_ms": 28.4,
+          "eval_time_ms": 54.23,
+          "total_time_ms": 82.62
+        },
+        {
+          "task_id": "48760",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:50",
+          "start_ms": 2883576.698,
+          "end_ms": 2883641.11,
+          "prompt_eval_time_ms": 13.72,
+          "eval_time_ms": 50.6,
+          "total_time_ms": 64.32
+        },
+        {
+          "task_id": "48771",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:50",
+          "start_ms": 2883693.979,
+          "end_ms": 2883779.607,
+          "prompt_eval_time_ms": 28.05,
+          "eval_time_ms": 57.48,
+          "total_time_ms": 85.53
+        },
+        {
+          "task_id": "48782",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:50",
+          "start_ms": 2883805.139,
+          "end_ms": 2883869.918,
+          "prompt_eval_time_ms": 13.86,
+          "eval_time_ms": 50.84,
+          "total_time_ms": 64.7
+        },
+        {
+          "task_id": "48793",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:50",
+          "start_ms": 2883940.132,
+          "end_ms": 2884043.601,
+          "prompt_eval_time_ms": 27.03,
+          "eval_time_ms": 76.33,
+          "total_time_ms": 103.36
+        },
+        {
+          "task_id": "48809",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:50",
+          "start_ms": 2884074.229,
+          "end_ms": 2884134.304,
+          "prompt_eval_time_ms": 12.98,
+          "eval_time_ms": 47,
+          "total_time_ms": 59.98
+        },
+        {
+          "task_id": "48820",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:50",
+          "start_ms": 2884180.96,
+          "end_ms": 2884265.588,
+          "prompt_eval_time_ms": 13.25,
+          "eval_time_ms": 71.29,
+          "total_time_ms": 84.55
+        },
+        {
+          "task_id": "48834",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:50",
+          "start_ms": 2884306.595,
+          "end_ms": 2884377.081,
+          "prompt_eval_time_ms": 13.15,
+          "eval_time_ms": 57.26,
+          "total_time_ms": 70.41
+        },
+        {
+          "task_id": "48846",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:50",
+          "start_ms": 2884424.129,
+          "end_ms": 2884482.421,
+          "prompt_eval_time_ms": 11.07,
+          "eval_time_ms": 47.14,
+          "total_time_ms": 58.21
+        },
+        {
+          "task_id": "48857",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:51",
+          "start_ms": 2884554.241,
+          "end_ms": 2884624.78,
+          "prompt_eval_time_ms": 12.07,
+          "eval_time_ms": 58.39,
+          "total_time_ms": 70.46
+        },
+        {
+          "task_id": "48871",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:51",
+          "start_ms": 2884690.405,
+          "end_ms": 2884778.243,
+          "prompt_eval_time_ms": 26.58,
+          "eval_time_ms": 61.17,
+          "total_time_ms": 87.74
+        },
+        {
+          "task_id": "48885",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:51",
+          "start_ms": 2884809.035,
+          "end_ms": 2884868.121,
+          "prompt_eval_time_ms": 12.94,
+          "eval_time_ms": 46.05,
+          "total_time_ms": 58.99
+        },
+        {
+          "task_id": "48896",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:51",
+          "start_ms": 2884937.855,
+          "end_ms": 2885002.694,
+          "prompt_eval_time_ms": 11.95,
+          "eval_time_ms": 52.81,
+          "total_time_ms": 64.76
+        },
+        {
+          "task_id": "48907",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:51",
+          "start_ms": 2885061.851,
+          "end_ms": 2885137.071,
+          "prompt_eval_time_ms": 14.08,
+          "eval_time_ms": 61.02,
+          "total_time_ms": 75.1
+        },
+        {
+          "task_id": "48921",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:51",
+          "start_ms": 2885183.16,
+          "end_ms": 2885258.796,
+          "prompt_eval_time_ms": 27.8,
+          "eval_time_ms": 47.73,
+          "total_time_ms": 75.53
+        },
+        {
+          "task_id": "48932",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:51",
+          "start_ms": 2885311.738,
+          "end_ms": 2885384.984,
+          "prompt_eval_time_ms": 27.53,
+          "eval_time_ms": 45.45,
+          "total_time_ms": 72.98
+        },
+        {
+          "task_id": "48943",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:51",
+          "start_ms": 2885435.867,
+          "end_ms": 2885507.312,
+          "prompt_eval_time_ms": 11.31,
+          "eval_time_ms": 60.06,
+          "total_time_ms": 71.37
+        },
+        {
+          "task_id": "48957",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:52",
+          "start_ms": 2885562.633,
+          "end_ms": 2885648.646,
+          "prompt_eval_time_ms": 32.66,
+          "eval_time_ms": 53.25,
+          "total_time_ms": 85.91
+        },
+        {
+          "task_id": "48969",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:52",
+          "start_ms": 2885692.818,
+          "end_ms": 2885766.507,
+          "prompt_eval_time_ms": 12.51,
+          "eval_time_ms": 61.09,
+          "total_time_ms": 73.6
+        },
+        {
+          "task_id": "48981",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:52",
+          "start_ms": 2885800.375,
+          "end_ms": 2885879.304,
+          "prompt_eval_time_ms": 27.52,
+          "eval_time_ms": 51.3,
+          "total_time_ms": 78.83
+        },
+        {
+          "task_id": "48992",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:52",
+          "start_ms": 2885942.93,
+          "end_ms": 2886001.778,
+          "prompt_eval_time_ms": 11.38,
+          "eval_time_ms": 47.38,
+          "total_time_ms": 58.76
+        },
+        {
+          "task_id": "49003",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:52",
+          "start_ms": 2886060.305,
+          "end_ms": 2886149.089,
+          "prompt_eval_time_ms": 21.38,
+          "eval_time_ms": 67.29,
+          "total_time_ms": 88.67
+        },
+        {
+          "task_id": "49014",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:52",
+          "start_ms": 2886186.929,
+          "end_ms": 2886270.875,
+          "prompt_eval_time_ms": 13.81,
+          "eval_time_ms": 70.04,
+          "total_time_ms": 83.85
+        },
+        {
+          "task_id": "49028",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:52",
+          "start_ms": 2886311.493,
+          "end_ms": 2886373.809,
+          "prompt_eval_time_ms": 12.9,
+          "eval_time_ms": 49.33,
+          "total_time_ms": 62.23
+        },
+        {
+          "task_id": "49039",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:52",
+          "start_ms": 2886431.934,
+          "end_ms": 2886493.571,
+          "prompt_eval_time_ms": 12.29,
+          "eval_time_ms": 49.25,
+          "total_time_ms": 61.55
+        },
+        {
+          "task_id": "49050",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:53",
+          "start_ms": 2886559.475,
+          "end_ms": 2886635.74,
+          "prompt_eval_time_ms": 13.17,
+          "eval_time_ms": 63.01,
+          "total_time_ms": 76.17
+        },
+        {
+          "task_id": "49064",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:53",
+          "start_ms": 2886685.906,
+          "end_ms": 2886751.955,
+          "prompt_eval_time_ms": 13.29,
+          "eval_time_ms": 52.66,
+          "total_time_ms": 65.95
+        },
+        {
+          "task_id": "49075",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:53",
+          "start_ms": 2886806.397,
+          "end_ms": 2886976.022,
+          "prompt_eval_time_ms": 16.11,
+          "eval_time_ms": 153.39,
+          "total_time_ms": 169.5
+        },
+        {
+          "task_id": "49099",
+          "slot": 2,
+          "wall_time": "2026-10-03 21:41:53",
+          "start_ms": 2886941.295,
+          "end_ms": 2887028.32,
+          "prompt_eval_time_ms": 36.32,
+          "eval_time_ms": 50.61,
+          "total_time_ms": 86.93
+        },
+        {
+          "task_id": "49110",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:53",
+          "start_ms": 2887059.947,
+          "end_ms": 2887116.912,
+          "prompt_eval_time_ms": 10.63,
+          "eval_time_ms": 44.25,
+          "total_time_ms": 54.88
+        },
+        {
+          "task_id": "49121",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:53",
+          "start_ms": 2887194.472,
+          "end_ms": 2887268.411,
+          "prompt_eval_time_ms": 13.05,
+          "eval_time_ms": 60.79,
+          "total_time_ms": 73.84
+        },
+        {
+          "task_id": "49135",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:53",
+          "start_ms": 2887317.563,
+          "end_ms": 2887428.332,
+          "prompt_eval_time_ms": 33.62,
+          "eval_time_ms": 77.06,
+          "total_time_ms": 110.67
+        },
+        {
+          "task_id": "49149",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:53",
+          "start_ms": 2887443.633,
+          "end_ms": 2887525.639,
+          "prompt_eval_time_ms": 13.31,
+          "eval_time_ms": 68.63,
+          "total_time_ms": 81.94
+        },
+        {
+          "task_id": "49165",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:54",
+          "start_ms": 2887556.88,
+          "end_ms": 2887640.156,
+          "prompt_eval_time_ms": 12.75,
+          "eval_time_ms": 70.42,
+          "total_time_ms": 83.17
+        },
+        {
+          "task_id": "49179",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:54",
+          "start_ms": 2887690.125,
+          "end_ms": 2887766.564,
+          "prompt_eval_time_ms": 22.35,
+          "eval_time_ms": 53.84,
+          "total_time_ms": 76.19
+        },
+        {
+          "task_id": "49190",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:54",
+          "start_ms": 2887815.502,
+          "end_ms": 2887883.417,
+          "prompt_eval_time_ms": 11.66,
+          "eval_time_ms": 56.18,
+          "total_time_ms": 67.85
+        },
+        {
+          "task_id": "49204",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:54",
+          "start_ms": 2887932.285,
+          "end_ms": 2888003.171,
+          "prompt_eval_time_ms": 12.53,
+          "eval_time_ms": 58.26,
+          "total_time_ms": 70.79
+        },
+        {
+          "task_id": "49215",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:54",
+          "start_ms": 2888058.216,
+          "end_ms": 2888180.81,
+          "prompt_eval_time_ms": 13.3,
+          "eval_time_ms": 109.18,
+          "total_time_ms": 122.48
+        },
+        {
+          "task_id": "49240",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:54",
+          "start_ms": 2888181.083,
+          "end_ms": 2888241.453,
+          "prompt_eval_time_ms": 12.01,
+          "eval_time_ms": 48.26,
+          "total_time_ms": 60.27
+        },
+        {
+          "task_id": "49251",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:54",
+          "start_ms": 2888306.871,
+          "end_ms": 2888367.615,
+          "prompt_eval_time_ms": 13.88,
+          "eval_time_ms": 46.76,
+          "total_time_ms": 60.65
+        },
+        {
+          "task_id": "49262",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:54",
+          "start_ms": 2888425.502,
+          "end_ms": 2888483.6,
+          "prompt_eval_time_ms": 13.59,
+          "eval_time_ms": 44.4,
+          "total_time_ms": 58
+        },
+        {
+          "task_id": "49273",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:55",
+          "start_ms": 2888562.707,
+          "end_ms": 2888633.615,
+          "prompt_eval_time_ms": 24.26,
+          "eval_time_ms": 46.57,
+          "total_time_ms": 70.83
+        },
+        {
+          "task_id": "49284",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:55",
+          "start_ms": 2888684.614,
+          "end_ms": 2888765.003,
+          "prompt_eval_time_ms": 13.68,
+          "eval_time_ms": 66.59,
+          "total_time_ms": 80.27
+        },
+        {
+          "task_id": "49299",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:55",
+          "start_ms": 2888809.394,
+          "end_ms": 2888874.517,
+          "prompt_eval_time_ms": 13.84,
+          "eval_time_ms": 51.19,
+          "total_time_ms": 65.02
+        },
+        {
+          "task_id": "49310",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:55",
+          "start_ms": 2888932.73,
+          "end_ms": 2889018.764,
+          "prompt_eval_time_ms": 29.04,
+          "eval_time_ms": 56.9,
+          "total_time_ms": 85.93
+        },
+        {
+          "task_id": "49321",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:55",
+          "start_ms": 2889052.303,
+          "end_ms": 2889110.899,
+          "prompt_eval_time_ms": 11.9,
+          "eval_time_ms": 46.62,
+          "total_time_ms": 58.51
+        },
+        {
+          "task_id": "49332",
+          "slot": 0,
+          "wall_time": "2026-10-03 21:41:55",
+          "start_ms": 2889182.882,
+          "end_ms": 2889246.803,
+          "prompt_eval_time_ms": 12.34,
+          "eval_time_ms": 51.48,
+          "total_time_ms": 63.83
+        }
+      ]
+    }
+  ]
+}

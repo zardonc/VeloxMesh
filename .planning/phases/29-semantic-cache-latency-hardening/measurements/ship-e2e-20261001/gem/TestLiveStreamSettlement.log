@@ -1,0 +1,12 @@
+=== RUN   TestLiveStreamSettlement
+{"time":"2026-10-02T04:25:44.015955361Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:25:44.035801352Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:25:44.035861736Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:25:44.03587488Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:25:44.036262621Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:25:44.039411976Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:123: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+    live_ship_protocol_test.go:124: Post "http://127.0.0.1:34847/v1/chat/completions": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+{"time":"2026-10-02T04:25:56.04134049Z","level":"INFO","msg":"request completed","request_id":"38a2289e4702bb61e6fb880009dce273","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":12000}
+--- FAIL: TestLiveStreamSettlement (12.14s)
+FAIL

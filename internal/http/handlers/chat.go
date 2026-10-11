@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 	"veloxmesh/internal/errors"
@@ -15,193 +17,41 @@ type ChatHandler struct {
 	service *gateway.Service
 }
 
+type chatProxyMessage struct {
+	Role       llm.Role        `json:"role"`
+	Content    json.RawMessage `json:"content,omitempty"`
+	ToolCalls  []llm.ToolCall  `json:"tool_calls,omitempty"`
+	ToolCallID string          `json:"tool_call_id,omitempty"`
+}
+
+type chatProxyRequest struct {
+	Model        string             `json:"model"`
+	Messages     []chatProxyMessage `json:"messages"`
+	Temperature  *float64           `json:"temperature,omitempty"`
+	MaxTokens    *int               `json:"max_tokens,omitempty"`
+	Stream       bool               `json:"stream,omitempty"`
+	Tools        []llm.Tool         `json:"tools,omitempty"`
+	ToolChoice   json.RawMessage    `json:"tool_choice,omitempty"`
+	Functions    json.RawMessage    `json:"functions,omitempty"`
+	FunctionCall json.RawMessage    `json:"function_call,omitempty"`
+}
+
 func NewChatHandler(svc *gateway.Service) *ChatHandler {
 	return &ChatHandler{service: svc}
 }
 
 func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-
-	type proxyMessage struct {
-		Role       llm.Role        `json:"role"`
-		Content    json.RawMessage `json:"content,omitempty"`
-		ToolCalls  []llm.ToolCall  `json:"tool_calls,omitempty"`
-		ToolCallID string          `json:"tool_call_id,omitempty"`
-	}
-
-	type proxyReq struct {
-		Model       string         `json:"model"`
-		Messages    []proxyMessage `json:"messages"`
-		Temperature *float64       `json:"temperature,omitempty"`
-		MaxTokens   *int           `json:"max_tokens,omitempty"`
-		Stream      bool           `json:"stream,omitempty"`
-		Tools       []llm.Tool     `json:"tools,omitempty"`
-		ToolChoice  any            `json:"tool_choice,omitempty"`
-	}
-
-	var pReq proxyReq
-	if err := json.NewDecoder(r.Body).Decode(&pReq); err != nil {
-		sendError(w, "invalid_request", "Failed to parse JSON body", http.StatusBadRequest)
+	req, requirements, cacheUnsafe, gatewayErr := decodeChatRequest(r)
+	if gatewayErr != nil {
+		sendGatewayError(w, gatewayErr)
 		return
-	}
-
-	var req llm.ChatCompletionRequest
-	req.Model = pReq.Model
-	req.Temperature = pReq.Temperature
-	req.MaxTokens = pReq.MaxTokens
-	req.Stream = pReq.Stream
-	req.Tools = pReq.Tools
-	req.ToolChoice = pReq.ToolChoice
-
-	for _, pm := range pReq.Messages {
-		m := llm.Message{
-			Role:       pm.Role,
-			ToolCalls:  pm.ToolCalls,
-			ToolCallID: pm.ToolCallID,
-		}
-		if len(pm.Content) > 0 {
-			if pm.Content[0] == '"' {
-				_ = json.Unmarshal(pm.Content, &m.Content)
-			} else if pm.Content[0] == '[' {
-				_ = json.Unmarshal(pm.Content, &m.MultiContent)
-			}
-		}
-		req.Messages = append(req.Messages, m)
-	}
-
-	if len(req.Messages) == 0 {
-		sendError(w, "invalid_request", "Messages array is required", http.StatusBadRequest)
-		return
-	}
-
-	for _, msg := range req.Messages {
-		if err := validateMessageRole(msg); err != "" {
-			sendError(w, "invalid_request", err, http.StatusBadRequest)
-			return
-		}
 	}
 
 	reqID := middleware.GetReqID(r.Context())
-	priority := r.Header.Get("X-Priority")
-	routeOverride := r.Header.Get("X-Route-To")
-
-	llmReq := &llm.LLMRequest{
-		RequestID:     reqID,
-		Model:         req.Model,
-		Messages:      req.Messages,
-		Temperature:   req.Temperature,
-		MaxTokens:     req.MaxTokens,
-		Stream:        req.Stream,
-		PriorityClass: priority,
-		RouteOverride: routeOverride,
-		Tools:         req.Tools,
-		ToolChoice:    req.ToolChoice,
-	}
-
+	llmReq := newLLMRequest(reqID, r, req, requirements, cacheUnsafe)
 	if req.Stream {
-		ch, respMeta, err := h.service.HandleChatCompletionStream(r.Context(), llmReq)
-		if err != nil {
-			sendGatewayError(w, errors.TranslateError(err))
-			return
-		}
-
-		duration := time.Since(start)
-
-		w.Header().Set("X-Request-ID", reqID)
-		w.Header().Set("X-Provider", respMeta.Provider)
-		w.Header().Set("X-Model", respMeta.Model)
-		w.Header().Set("X-Cache-Hit", "false")
-		w.Header().Set("X-Cache-Level", "none")
-		w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
-		w.Header().Set("X-Queue-Wait-Ms", fmt.Sprintf("%d", respMeta.QueueWaitMs))
-		if respMeta.Strategy != "" {
-			w.Header().Set("X-Routing-Strategy", respMeta.Strategy)
-		}
-		if respMeta.AttemptCount > 0 {
-			w.Header().Set("X-Provider-Attempts", fmt.Sprintf("%d", respMeta.AttemptCount))
-		}
-		if respMeta.FallbackUsed {
-			w.Header().Set("X-Fallback-Used", "true")
-		} else {
-			w.Header().Set("X-Fallback-Used", "false")
-		}
-
-		w.Header().Set("Content-Type", "text/event-stream")
-		w.Header().Set("Cache-Control", "no-cache")
-		w.Header().Set("Connection", "keep-alive")
-
-		flusher, ok := w.(http.Flusher)
-		if !ok {
-			sendError(w, "not_supported", "Streaming not supported by client", http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		flusher.Flush()
-
-		encoder := json.NewEncoder(w)
-		first := true
-		sentDone := false
-		sawError := false
-
-		for event := range ch {
-			if event.Error != nil {
-				sawError = true
-				fmt.Fprintf(w, "event: error\n")
-				fmt.Fprintf(w, "data: ")
-				_ = encoder.Encode(errors.TranslateError(event.Error))
-				fmt.Fprintf(w, "\n")
-				fmt.Fprintf(w, "data: [DONE]\n\n")
-				flusher.Flush()
-				sentDone = true
-				break
-			}
-			if event.Done {
-				fmt.Fprintf(w, "data: [DONE]\n\n")
-				flusher.Flush()
-				sentDone = true
-				break
-			}
-
-			var fr *string
-			if event.FinishReason != "" {
-				s := event.FinishReason
-				fr = &s
-			}
-
-			chunk := llm.ChatCompletionChunkResponse{
-				ID:      reqID,
-				Object:  "chat.completion.chunk",
-				Created: time.Now().Unix(),
-				Model:   respMeta.Model,
-				Choices: []llm.ChunkChoice{
-					{
-						Index: 0,
-						Delta: llm.Delta{
-							Content:   event.DeltaContent,
-							ToolCalls: event.ToolCalls,
-						},
-						FinishReason: fr,
-					},
-				},
-				Usage: event.Usage,
-			}
-
-			if first {
-				chunk.Choices[0].Delta.Role = llm.RoleAssistant
-				first = false
-			}
-
-			fmt.Fprintf(w, "data: ")
-			_ = encoder.Encode(chunk)
-			fmt.Fprintf(w, "\n")
-			flusher.Flush()
-		}
-		if !sentDone && !sawError {
-			fmt.Fprintf(w, "data: [DONE]\n\n")
-			flusher.Flush()
-		}
-
+		h.streamChatCompletions(w, r, llmReq, reqID, start)
 		return
 	}
 
@@ -210,59 +60,127 @@ func (h *ChatHandler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		sendGatewayError(w, errors.TranslateError(err))
 		return
 	}
-
-	duration := time.Since(start)
-
-	w.Header().Set("X-Request-ID", reqID)
-	w.Header().Set("X-Provider", resp.Provider)
-	w.Header().Set("X-Model", resp.Model)
-	if resp.CacheHit {
-		w.Header().Set("X-Cache-Hit", "true")
-		w.Header().Set("X-Cache-Level", resp.CacheLevel)
-	} else {
-		w.Header().Set("X-Cache-Hit", "false")
-		w.Header().Set("X-Cache-Level", "none")
-	}
-	w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
-	w.Header().Set("X-Queue-Wait-Ms", fmt.Sprintf("%d", resp.QueueWaitMs))
-	if resp.Strategy != "" {
-		w.Header().Set("X-Routing-Strategy", resp.Strategy)
-	}
-	if resp.AttemptCount > 0 {
-		w.Header().Set("X-Provider-Attempts", fmt.Sprintf("%d", resp.AttemptCount))
-	}
-	if resp.FallbackUsed {
-		w.Header().Set("X-Fallback-Used", "true")
-	} else {
-		w.Header().Set("X-Fallback-Used", "false")
-	}
-
-	openAIResp := llm.ChatCompletionResponse{
-		ID:      reqID,
-		Object:  "chat.completion",
-		Created: time.Now().Unix(),
-		Model:   resp.Model,
-		Choices: resp.Choices,
-		Usage:   resp.Usage,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(openAIResp)
+	writeChatCompletionResponse(w, reqID, resp, time.Since(start))
 }
 
-func validateMessageRole(msg llm.Message) string {
-	switch msg.Role {
-	case llm.RoleSystem, llm.RoleUser, llm.RoleAssistant:
-		return ""
-	case llm.RoleTool:
-		if msg.ToolCallID == "" {
-			return "Tool messages require tool_call_id"
-		}
-		return ""
-	default:
-		return "Invalid message role"
+func decodeChatRequest(r *http.Request) (llm.ChatCompletionRequest, llm.ToolProtocolRequirements, bool, *errors.GatewayError) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, errors.NewGatewayError("invalid_request", "Failed to parse JSON body", http.StatusBadRequest)
 	}
+	var proxyRequest chatProxyRequest
+	if err := json.Unmarshal(body, &proxyRequest); err != nil {
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, errors.NewGatewayError("invalid_request", "Failed to parse JSON body", http.StatusBadRequest)
+	}
+	if len(proxyRequest.Functions) > 0 || len(proxyRequest.FunctionCall) > 0 {
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, errors.NewInvalidToolProtocolRequest()
+	}
+	choice, gatewayErr := llm.ParseToolChoice(proxyRequest.ToolChoice)
+	if gatewayErr != nil {
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, gatewayErr
+	}
+	messages, gatewayErr := decodeChatMessages(proxyRequest.Messages)
+	if gatewayErr != nil {
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, gatewayErr
+	}
+	if len(messages) == 0 {
+		return llm.ChatCompletionRequest{}, llm.ToolProtocolRequirements{}, true, errors.NewGatewayError("invalid_request", "Messages array is required", http.StatusBadRequest)
+	}
+	request, requirements, gatewayErr := llm.NormalizeToolProtocol(llm.ChatCompletionRequest{
+		Model: proxyRequest.Model, Messages: messages, Temperature: proxyRequest.Temperature,
+		MaxTokens: proxyRequest.MaxTokens, Stream: proxyRequest.Stream, Tools: proxyRequest.Tools, ToolChoice: choice,
+	})
+	return request, requirements, hasUnknownChatFields(body), gatewayErr
+}
+
+func newLLMRequest(requestID string, r *http.Request, request llm.ChatCompletionRequest, requirements llm.ToolProtocolRequirements, cacheUnsafe bool) *llm.LLMRequest {
+	return &llm.LLMRequest{
+		RequestID: requestID, Model: request.Model, Messages: request.Messages,
+		Temperature: request.Temperature, MaxTokens: request.MaxTokens, Stream: request.Stream,
+		PriorityClass: r.Header.Get("X-Priority"), RouteOverride: r.Header.Get("X-Route-To"),
+		Tools: request.Tools, ToolChoice: request.ToolChoice, ToolRequirements: requirements, CacheUnsafe: cacheUnsafe,
+	}
+}
+
+func hasUnknownChatFields(body []byte) bool {
+	var fields map[string]json.RawMessage
+	if json.Unmarshal(body, &fields) != nil {
+		return true
+	}
+	for field := range fields {
+		switch field {
+		case "model", "messages", "temperature", "max_tokens", "stream", "tools", "tool_choice", "functions", "function_call":
+		default:
+			return true
+		}
+	}
+	return false
+}
+
+func writeChatCompletionResponse(w http.ResponseWriter, requestID string, response *llm.LLMResponse, duration time.Duration) {
+	w.Header().Set("X-Request-ID", requestID)
+	w.Header().Set("X-Provider", response.Provider)
+	w.Header().Set("X-Model", response.Model)
+	w.Header().Set("X-Latency-E2E-Ms", fmt.Sprintf("%d", duration.Milliseconds()))
+	w.Header().Set("X-Queue-Wait-Ms", fmt.Sprintf("%d", response.QueueWaitMs))
+	w.Header().Set("X-Cache-Hit", fmt.Sprintf("%t", response.CacheHit))
+	if response.CacheHit {
+		w.Header().Set("X-Cache-Level", response.CacheLevel)
+	} else {
+		w.Header().Set("X-Cache-Level", "none")
+	}
+	if response.Strategy != "" {
+		w.Header().Set("X-Routing-Strategy", response.Strategy)
+	}
+	if response.AttemptCount > 0 {
+		w.Header().Set("X-Provider-Attempts", fmt.Sprintf("%d", response.AttemptCount))
+	}
+	w.Header().Set("X-Fallback-Used", fmt.Sprintf("%t", response.FallbackUsed))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(llm.ChatCompletionResponse{
+		ID: requestID, Object: "chat.completion", Created: time.Now().Unix(),
+		Model: response.Model, Choices: response.Choices, Usage: response.Usage,
+	})
+}
+func decodeChatMessages(proxyMessages []chatProxyMessage) ([]llm.Message, *errors.GatewayError) {
+	messages := make([]llm.Message, 0, len(proxyMessages))
+	for _, proxyMessage := range proxyMessages {
+		rawContent := proxyMessage.Content
+		if proxyMessage.Role == llm.RoleAssistant && len(proxyMessage.ToolCalls) > 0 && bytes.Equal(bytes.TrimSpace(rawContent), []byte("null")) {
+			rawContent = nil
+		}
+		content, multiContent, err := decodeChatContent(rawContent)
+		if err != nil {
+			return nil, err
+		}
+		messages = append(messages, llm.Message{
+			Role: proxyMessage.Role, Content: content, MultiContent: multiContent,
+			ToolCalls: proxyMessage.ToolCalls, ToolCallID: proxyMessage.ToolCallID,
+		})
+	}
+	return messages, nil
+}
+
+func decodeChatContent(raw json.RawMessage) (string, []llm.ContentPart, *errors.GatewayError) {
+	value := bytes.TrimSpace(raw)
+	if len(value) == 0 {
+		return "", nil, nil
+	}
+	if value[0] == '"' {
+		var content string
+		if err := json.Unmarshal(value, &content); err == nil {
+			return content, nil, nil
+		}
+		return "", nil, errors.NewInvalidToolProtocolRequest()
+	}
+	if value[0] == '[' {
+		var content []llm.ContentPart
+		if err := json.Unmarshal(value, &content); err == nil {
+			return "", content, nil
+		}
+	}
+	return "", nil, errors.NewInvalidToolProtocolRequest()
 }
 
 func sendError(w http.ResponseWriter, code, message string, status int) {

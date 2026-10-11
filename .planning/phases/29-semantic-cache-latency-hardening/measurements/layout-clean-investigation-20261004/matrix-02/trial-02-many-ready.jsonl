@@ -1,0 +1,96 @@
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53068-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:15.1637063Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53074-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:15.364787967Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53088-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:15.566130146Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53098-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:15.767813953Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53100-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:15.970174927Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:16.171763694Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53124-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:16.373094108Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53134-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:16.574575783Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53150-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:16.776470448Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:16.978338383Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53160-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:17.179797168Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53172-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:17.38145081Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53184-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:17.582879135Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53190-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:17.784590757Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53192-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:17.986743158Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53208-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:18.189870831Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53218-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:18.391662405Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:18.593426854Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53244-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:18.797106531Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53258-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:19.024639911Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53260-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:19.226415914Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53266-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:19.428448549Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:19.642340811Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53276-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:19.843626775Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53282-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:20.046814945Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53286-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:20.249368545Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53302-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:20.450791971Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53314-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:20.652417223Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53324-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:20.854116075Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53330-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:21.056234663Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:21.266965555Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53348-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:21.486071276Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:21.687337748Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53370-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:21.903029733Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:22.1061095Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53926-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:22.307787994Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:22.509201482Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53954-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:22.711133928Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53968-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:22.913446802Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53982-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:23.114471643Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53984-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:23.315861594Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:53994-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:23.517005223Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54010-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:23.71881065Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:23.921924235Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54024-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:24.124517516Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54034-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:24.326050728Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:24.529128987Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54052-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:24.730316153Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54064-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:24.932223963Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54078-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:25.133503394Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54090-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:25.3351393Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54096-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:25.537087174Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54112-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:25.743933028Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54126-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:25.945003967Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54136-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:26.147719904Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:26.348839283Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54156-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:26.55310282Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54164-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:26.755625433Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:26.958160349Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54194-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:27.161677424Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54200-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:27.364250261Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54214-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:27.565999313Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54220-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:27.768185782Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54222-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:27.96941851Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:28.171101356Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:28.372201414Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:28.574200735Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54272-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:28.776655145Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54280-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:28.980920195Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:29.208489181Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54292-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:29.412537834Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54296-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:29.616398932Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:29.819544704Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:30.027112994Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54324-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:30.229181241Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54332-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:30.430728401Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54338-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:30.632186101Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54350-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:30.834115842Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54366-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:31.036035544Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:31.239153978Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:31.440339582Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54404-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:31.643319981Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54414-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:31.844524957Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54422-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:32.046873295Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:54430-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:32.250386799Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:59586-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:32.451781213Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:59602-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:32.665724397Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:59608-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:32.867262779Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:33.071905882Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:59628-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:33.273917237Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:33.475730637Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:59654-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:33.677678468Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:33.879384712Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:59668-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:10:34.080866026Z"}
+{"error":"Get \"http://127.0.0.1:16333/\": EOF","type":"readiness-poll","utc":"2026-10-04T19:10:34.282438149Z"}
+{"type":"ready","utc":"2026-10-04T19:10:34.492740598Z","version":{"title":"qdrant - vector search engine","version":"1.18.2","commit":"44ad62f8cd69642be5afa6441612525e24a0d063"},"wait_ms":19329.996}

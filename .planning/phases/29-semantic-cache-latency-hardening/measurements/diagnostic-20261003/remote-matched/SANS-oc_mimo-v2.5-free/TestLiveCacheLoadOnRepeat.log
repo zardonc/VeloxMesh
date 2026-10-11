@@ -1,0 +1,668 @@
+=== RUN   TestLiveCacheLoadOnRepeat
+{"time":"2026-10-03T19:34:33.202270161Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:34:33.204925283Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-03T19:34:33.204954769Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-03T19:34:33.204963596Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:34:33.205030141Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:34:33.207238176Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_load_test.go:228: model=text-embedding-embedder_collection dimension=768 primary=oc/mimo-v2.5-free
+{"time":"2026-10-03T19:34:39.829804116Z","level":"INFO","msg":"request completed","request_id":"diag-1","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":6621}
+    live_ship_load_test.go:228: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"oc/mimo-v2.5-free","index":999,"start_ms":0.145,"elapsed_ms":6622.346,"status":200,"ok":true,"hit":false,"concurrent":0,"answer_hash":"ad9da81d7a71cab20966e46ebd9704f85f7c545966c9061fa0baab4430e436d8","planned_ms":0},"type":"warmup"}
+{"time":"2026-10-03T19:34:42.496884029Z","level":"INFO","msg":"request completed","request_id":"diag-2","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2666}
+{"time":"2026-10-03T19:34:45.34994976Z","level":"INFO","msg":"request completed","request_id":"diag-3","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":4519}
+{"time":"2026-10-03T19:34:48.042967359Z","level":"INFO","msg":"request completed","request_id":"diag-4","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":5545}
+{"time":"2026-10-03T19:34:48.844313098Z","level":"INFO","msg":"request completed","request_id":"diag-5","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":3493}
+{"time":"2026-10-03T19:34:51.190456432Z","level":"INFO","msg":"request completed","request_id":"diag-6","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":3147}
+{"time":"2026-10-03T19:34:51.252098597Z","level":"INFO","msg":"request completed","request_id":"diag-7","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2407}
+{"time":"2026-10-03T19:34:53.510551153Z","level":"INFO","msg":"request completed","request_id":"diag-8","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2319}
+{"time":"2026-10-03T19:34:53.606258648Z","level":"INFO","msg":"request completed","request_id":"diag-9","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2353}
+{"time":"2026-10-03T19:34:55.004543217Z","level":"INFO","msg":"request completed","request_id":"diag-10","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1493}
+{"time":"2026-10-03T19:34:55.685590805Z","level":"INFO","msg":"request completed","request_id":"diag-11","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2079}
+{"time":"2026-10-03T19:34:57.591150899Z","level":"INFO","msg":"request completed","request_id":"diag-13","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1905}
+{"time":"2026-10-03T19:34:59.67908001Z","level":"INFO","msg":"request completed","request_id":"diag-12","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":4674}
+{"time":"2026-10-03T19:35:01.191144785Z","level":"INFO","msg":"request completed","request_id":"diag-14","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":3599}
+{"time":"2026-10-03T19:35:03.572891962Z","level":"INFO","msg":"request completed","request_id":"diag-15","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":3893}
+{"time":"2026-10-03T19:35:04.578670917Z","level":"INFO","msg":"request completed","request_id":"diag-16","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":3386}
+{"time":"2026-10-03T19:35:06.538889274Z","level":"INFO","msg":"request completed","request_id":"diag-18","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1959}
+{"time":"2026-10-03T19:35:11.300262949Z","level":"INFO","msg":"request completed","request_id":"diag-19","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":4760}
+{"time":"2026-10-03T19:35:15.579896991Z","level":"INFO","msg":"request completed","request_id":"diag-17","method":"POST","path":"/v1/chat/completions","status":499,"latency_ms":12006}
+{"time":"2026-10-03T19:35:16.694647831Z","level":"INFO","msg":"request completed","request_id":"diag-20","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":5393}
+{"time":"2026-10-03T19:35:19.333109809Z","level":"INFO","msg":"request completed","request_id":"diag-22","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2638}
+{"time":"2026-10-03T19:35:23.371066479Z","level":"INFO","msg":"request completed","request_id":"diag-23","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":4037}
+{"time":"2026-10-03T19:35:27.576778155Z","level":"INFO","msg":"request completed","request_id":"diag-21","method":"POST","path":"/v1/chat/completions","status":499,"latency_ms":12002}
+{"time":"2026-10-03T19:35:29.377703659Z","level":"INFO","msg":"request completed","request_id":"diag-25","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1802}
+panic: test timed out after 1m0s
+	running tests:
+		TestLiveCacheLoadOnRepeat (1m0s)
+
+goroutine 719 [running]:
+testing.(*M).startAlarm.func1()
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/testing/testing.go:2802 +0x34b
+created by time.goFunc
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/time/sleep.go:215 +0x2d
+
+goroutine 1 [chan receive]:
+testing.(*T).Run(0x191e930de908, {0x1dc1fec?, 0x191e9335fb30?}, 0x1e32818)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/testing/testing.go:2109 +0x4e5
+testing.runTests.func1(0x191e930de908)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/testing/testing.go:2585 +0x37
+testing.tRunner(0x191e930de908, 0x191e9335fc58)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/testing/testing.go:2036 +0xea
+testing.runTests({0x1daa5dc, 0x9}, {0x1dbd100, 0x16}, 0x191e9301a948, {0x30f26c0, 0x35, 0x35}, {0xc2a8742146a65d48, 0xdf8aa46a0, ...})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/testing/testing.go:2583 +0x505
+testing.(*M).Run(0x191e930cbc20)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/testing/testing.go:2443 +0x6ac
+main.main()
+	_testmain.go:150 +0x9b
+
+goroutine 19 [select]:
+go.opencensus.io/stats/view.(*worker).start(0x191e931a9380)
+	C:/Users/inthe/go/pkg/mod/go.opencensus.io@v0.24.0/stats/view/worker.go:292 +0xa5
+created by go.opencensus.io/stats/view.init.0 in goroutine 1
+	C:/Users/inthe/go/pkg/mod/go.opencensus.io@v0.24.0/stats/view/worker.go:34 +0x8d
+
+goroutine 5 [sync.WaitGroup.Wait]:
+sync.runtime_SemacquireWaitGroup(0x191e93662fc0?, 0xa0?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/sema.go:114 +0x2e
+sync.(*WaitGroup).Wait(0x191e935c73a0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/sync/waitgroup.go:206 +0x85
+veloxmesh/internal/app.shipScheduledLoad(0x191e930deb48, 0x191e930c7b00, {0x191e9350a4b0, {0x191e931fe060, 0x16}, {0x191e9304e618, 0x18}, {0x191e9304e528, 0x11}, {0x0, ...}, ...})
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/live_ship_load_test.go:163 +0x427
+veloxmesh/internal/app.shipLoad(0x191e930deb48, {0x1da2c93, 0x2})
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/live_ship_load_test.go:140 +0x5e5
+veloxmesh/internal/app.TestLiveCacheLoadOnRepeat(0x191e930deb48?)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/live_ship_load_test.go:228 +0x1f
+testing.tRunner(0x191e930deb48, 0x1e32818)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/testing/testing.go:2036 +0xea
+created by testing.(*T).Run in goroutine 1
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/testing/testing.go:2101 +0x4c5
+
+goroutine 6 [select]:
+database/sql.(*DB).connectionOpener(0x191e934af1e0, {0x1e696c8, 0x191e930c4a00})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/database/sql/sql.go:1261 +0x89
+created by database/sql.OpenDB in goroutine 5
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/database/sql/sql.go:841 +0x130
+
+goroutine 169 [IO wait]:
+internal/poll.runtime_pollWait(0x7a116cdd4800, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0x15?, 0xb?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).RawRead(0x191e933aa400, 0x191e933916d0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:710 +0x125
+net.(*rawConn).Read(0x191e930da198, 0x191e93505ca0?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/rawconn.go:44 +0x36
+google.golang.org/grpc/internal/transport/readyreader.(*nonBlockingReader).ReadOnReady(0x191e931814f0, 0x191e93505d00?, {0x1e61490, 0x191e9312e810})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/readyreader/ready_reader.go:114 +0xa7
+google.golang.org/grpc/internal/transport/readyreader.(*bufReadyReader).Read(0x191e933bb960, {0x191e93666044, 0x9, 0x1c02e00?})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/readyreader/ready_reader.go:221 +0x174
+io.ReadAtLeast({0x1e59900, 0x191e933bb960}, {0x191e93666044, 0x9, 0x9}, 0x9)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/io/io.go:335 +0x8e
+io.ReadFull(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/io/io.go:354
+golang.org/x/net/http2.readFrameHeader({0x191e93666044, 0x9, 0x191e00000000?}, {0x1e59900?, 0x191e933bb960?})
+	C:/Users/inthe/go/pkg/mod/golang.org/x/net@v0.55.0/http2/frame.go:250 +0x65
+golang.org/x/net/http2.(*Framer).ReadFrameHeader(0x191e93666000)
+	C:/Users/inthe/go/pkg/mod/golang.org/x/net@v0.55.0/http2/frame.go:513 +0x6b
+google.golang.org/grpc/internal/transport.(*framer).readFrame(0x191e933aa480)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http_util.go:493 +0x45
+google.golang.org/grpc/internal/transport.(*http2Client).reader(0x191e932d18c8, 0x191e933bb9d0)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:1669 +0x1ba
+created by google.golang.org/grpc/internal/transport.NewHTTP2Client in goroutine 166
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:413 +0x1e13
+
+goroutine 81 [select]:
+database/sql.(*DB).connectionOpener(0x191e933c84e0, {0x1e696c8, 0x191e9360ad20})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/database/sql/sql.go:1261 +0x89
+created by database/sql.OpenDB in goroutine 5
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/database/sql/sql.go:841 +0x130
+
+goroutine 726 [select]:
+net/http.(*persistConn).writeLoop(0x191e9368d180)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:2652 +0xe6
+created by net/http.(*Transport).dialConn in goroutine 724
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:1995 +0x16fe
+
+goroutine 199 [IO wait]:
+internal/poll.runtime_pollWait(0x7a11b3a47000, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0x191e93632a00?, 0x191e93273000?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x191e93632a00, {0x191e93273000, 0x1000, 0x1000})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:165 +0x2ae
+net.(*netFD).Read(0x191e93632a00, {0x191e93273000?, 0x0?, 0x4?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/fd_posix.go:68 +0x25
+net.(*conn).Read(0x191e9300c388, {0x191e93273000?, 0x191e9350a810?, 0x1aacee0?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/net.go:196 +0x45
+net/http.(*persistConn).Read(0x191e9372cdc0, {0x191e93273000?, 0x1e4c220?, 0x30cdc30?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:2174 +0x47
+bufio.(*Reader).fill(0x191e93705380)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:113 +0x103
+bufio.(*Reader).Peek(0x191e93705380, 0x1)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:152 +0x53
+net/http.(*persistConn).readLoop(0x191e9372cdc0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:2330 +0x172
+created by net/http.(*Transport).dialConn in goroutine 198
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:1994 +0x16ac
+
+goroutine 201 [select]:
+google.golang.org/grpc/internal/transport.(*controlBuffer).get(0x191e9339f480, 0x1)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/controlbuf.go:420 +0x10a
+google.golang.org/grpc/internal/transport.(*loopyWriter).run(0x191e932cf5e0)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/controlbuf.go:597 +0x78
+google.golang.org/grpc/internal/transport.NewHTTP2Client.func6()
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:471 +0xd2
+created by google.golang.org/grpc/internal/transport.NewHTTP2Client in goroutine 166
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:469 +0x23db
+
+goroutine 200 [select]:
+net/http.(*persistConn).writeLoop(0x191e9372cdc0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:2652 +0xe6
+created by net/http.(*Transport).dialConn in goroutine 198
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:1995 +0x16fe
+
+goroutine 712 [IO wait]:
+internal/poll.runtime_pollWait(0x7a11b3a46400, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0x191e933abc00?, 0x191e933cd000?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x191e933abc00, {0x191e933cd000, 0x1000, 0x1000})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:165 +0x2ae
+net.(*netFD).Read(0x191e933abc00, {0x191e933cd000?, 0x4d5f60?, 0x191e933abc00?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/fd_posix.go:68 +0x25
+net.(*conn).Read(0x191e930da408, {0x191e933cd000?, 0x0?, 0x72?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/net.go:196 +0x45
+net/http.(*connReader).Read(0x191e933097c0, {0x191e933cd000, 0x1000, 0x1000})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:812 +0x154
+bufio.(*Reader).fill(0x191e93049320)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:113 +0x103
+bufio.(*Reader).Peek(0x191e93049320, 0x4)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:152 +0x53
+net/http.(*conn).serve(0x191e93380360, {0x1e69690, 0x191e93246c90})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:2109 +0x7b3
+created by net/http.(*Server).Serve in goroutine 147
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:3464 +0x485
+
+goroutine 32 [IO wait]:
+internal/poll.runtime_pollWait(0x7a116cdd4a00, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0x191e933aa200?, 0x191e931d2600?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x191e933aa200, {0x191e931d2600, 0x1300, 0x1300})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:165 +0x2ae
+net.(*netFD).Read(0x191e933aa200, {0x191e931d2600?, 0x191e931d281f?, 0x5?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/fd_posix.go:68 +0x25
+net.(*conn).Read(0x191e9300c1d0, {0x191e931d2600?, 0x7a116d0232a8?, 0x7a11b3d0d2f8?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/net.go:196 +0x45
+crypto/tls.(*atLeastReader).Read(0x191e933d4fc0, {0x191e931d2600?, 0x191e9360eb40?, 0x191e93417a48?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/crypto/tls/conn.go:815 +0x3b
+bytes.(*Buffer).ReadFrom(0x191e933822a8, {0x1e4dce0, 0x191e933d4fc0})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bytes/buffer.go:229 +0x98
+crypto/tls.(*Conn).readFromUntil(0x191e93382008, {0x1e4e020, 0x191e9300c1d0}, 0x191e93417c08?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/crypto/tls/conn.go:837 +0xde
+crypto/tls.(*Conn).readRecordOrCCS(0x191e93382008, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/crypto/tls/conn.go:626 +0x3db
+crypto/tls.(*Conn).readRecord(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/crypto/tls/conn.go:588
+crypto/tls.(*Conn).Read(0x191e93382008, {0x191e93272000, 0x1000, 0x7a40a0?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/crypto/tls/conn.go:1393 +0x145
+bufio.(*Reader).Read(0x191e93705260, {0x191e93724ac4, 0x9, 0x7c0bae?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:245 +0x197
+io.ReadAtLeast({0x1e4c820, 0x191e93705260}, {0x191e93724ac4, 0x9, 0x9}, 0x9)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/io/io.go:335 +0x8e
+io.ReadFull(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/io/io.go:354
+net/http.http2readFrameHeader({0x191e93724ac4, 0x9, 0x191e00000031?}, {0x1e4c820?, 0x191e93705260?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:1805 +0x65
+net/http.(*http2Framer).ReadFrameHeader(0x191e93724a80)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:2071 +0x6b
+net/http.(*http2Framer).ReadFrame(0x191e93724a80)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:2130 +0x18
+net/http.(*http2clientConnReadLoop).run(0x191e93417fa8)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:9550 +0xca
+net/http.(*http2ClientConn).readLoop(0x191e931b61c0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:9419 +0x52
+created by net/http.(*http2Transport).newClientConn in goroutine 31
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:8171 +0xda5
+
+goroutine 168 [select]:
+google.golang.org/grpc/internal/transport.(*http2Client).keepalive(0x191e932d18c8)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:1743 +0x185
+created by google.golang.org/grpc/internal/transport.NewHTTP2Client in goroutine 166
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:403 +0x1d9d
+
+goroutine 725 [IO wait]:
+internal/poll.runtime_pollWait(0x7a11b3a46600, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0x191e9352a380?, 0x191e93565000?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x191e9352a380, {0x191e93565000, 0x1000, 0x1000})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:165 +0x2ae
+net.(*netFD).Read(0x191e9352a380, {0x191e93565000?, 0x0?, 0x1?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/fd_posix.go:68 +0x25
+net.(*conn).Read(0x191e9300c580, {0x191e93565000?, 0x191e9350a810?, 0x1aacee0?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/net.go:196 +0x45
+net/http.(*persistConn).Read(0x191e9368d180, {0x191e93565000?, 0x1e4c220?, 0x30cdc30?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:2174 +0x47
+bufio.(*Reader).fill(0x191e93663080)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:113 +0x103
+bufio.(*Reader).Peek(0x191e93663080, 0x1)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:152 +0x53
+net/http.(*persistConn).readLoop(0x191e9368d180)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:2330 +0x172
+created by net/http.(*Transport).dialConn in goroutine 724
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:1994 +0x16ac
+
+goroutine 695 [IO wait]:
+internal/poll.runtime_pollWait(0x7a116cdd4600, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0x191e932c8c80?, 0x191e93722061?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x191e932c8c80, {0x191e93722061, 0x1, 0x1})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:165 +0x2ae
+net.(*netFD).Read(0x191e932c8c80, {0x191e93722061?, 0x191e93021798?, 0x191e9302177c?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/fd_posix.go:68 +0x25
+net.(*conn).Read(0x191e935e01b8, {0x191e93722061?, 0x191e93806f90?, 0x191e9390dd50?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/net.go:196 +0x45
+net/http.(*connReader).backgroundRead(0x191e93722040)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:702 +0x33
+created by net/http.(*connReader).startBackgroundRead in goroutine 210
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:698 +0xb6
+
+goroutine 684 [select]:
+net/http.setRequestCancel.func4()
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:407 +0x85
+created by net/http.setRequestCancel in goroutine 210
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:406 +0x3fa
+
+goroutine 130 [chan receive]:
+google.golang.org/grpc/internal/grpcsync.(*CallbackSerializer).run(0x191e93390b30, {0x1e696c8, 0x191e931804b0})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:88 +0xe5
+created by google.golang.org/grpc/internal/grpcsync.NewCallbackSerializer in goroutine 5
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:52 +0x11a
+
+goroutine 133 [select]:
+google.golang.org/grpc/internal/transport.(*controlBuffer).get(0x191e930ec000, 0x1)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/controlbuf.go:420 +0x10a
+google.golang.org/grpc/internal/transport.(*loopyWriter).run(0x191e935c99a0)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/controlbuf.go:597 +0x78
+google.golang.org/grpc/internal/transport.NewHTTP2Client.func6()
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:471 +0xd2
+created by google.golang.org/grpc/internal/transport.NewHTTP2Client in goroutine 132
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:469 +0x23db
+
+goroutine 134 [chan receive]:
+veloxmesh/internal/hotstate.(*redisSubscription).Channel.func1()
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/hotstate/redis.go:142 +0x79
+created by veloxmesh/internal/hotstate.(*redisSubscription).Channel in goroutine 146
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/hotstate/redis.go:140 +0x78
+
+goroutine 136 [IO wait]:
+internal/poll.runtime_pollWait(0x7a11b3a46a00, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0x191e9352a800?, 0x191e93432000?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x191e9352a800, {0x191e93432000, 0x8000, 0x8000})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:165 +0x2ae
+net.(*netFD).Read(0x191e9352a800, {0x191e93432000?, 0x0?, 0x191e93119c08?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/fd_posix.go:68 +0x25
+net.(*conn).Read(0x191e931022d0, {0x191e93432000?, 0x0?, 0x0?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/net.go:196 +0x45
+bufio.(*Reader).fill(0x191e93140540)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:113 +0x103
+bufio.(*Reader).Peek(0x191e93140540, 0x1)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:152 +0x53
+github.com/redis/go-redis/v9/internal/proto.(*Reader).PeekReplyType(0x191e931022d8)
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/internal/proto/reader.go:90 +0x25
+github.com/redis/go-redis/v9/push.(*Processor).ProcessPendingNotifications(0x191e935e0128, {0x1e69770, 0x3127300}, {{0x0, 0x0}, {0x0, 0x0}, {0x1d56400, 0x191e930c7b90}, {0x1d75820, ...}, ...}, ...)
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/push/processor.go:61 +0x6e
+github.com/redis/go-redis/v9.(*PubSub).processPendingPushNotificationWithReader(0x0?, {0x1e69770?, 0x3127300?}, 0x0?, 0x0?)
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/pubsub.go:617 +0xe3
+github.com/redis/go-redis/v9.(*PubSub).ReceiveTimeout.func1(0x191e931022d8)
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/pubsub.go:503 +0x51
+github.com/redis/go-redis/v9/internal/pool.(*Conn).WithReader(0x191e9319c600?, {0x1e69770?, 0x3127300?}, 0x0?, 0x191e93119ee8?)
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/internal/pool/conn.go:891 +0x107
+github.com/redis/go-redis/v9.(*PubSub).ReceiveTimeout(0x191e930c7b90, {0x1e69770, 0x3127300}, 0x0)
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/pubsub.go:501 +0x11d
+github.com/redis/go-redis/v9.(*PubSub).Receive(...)
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/pubsub.go:529
+github.com/redis/go-redis/v9.(*channel).initMsgChan.func1()
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/pubsub.go:730 +0x7e
+created by github.com/redis/go-redis/v9.(*channel).initMsgChan in goroutine 134
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/pubsub.go:724 +0xa5
+
+goroutine 131 [chan receive]:
+google.golang.org/grpc/internal/grpcsync.(*CallbackSerializer).run(0x191e93390bc0, {0x1e696c8, 0x191e93180550})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:88 +0xe5
+created by google.golang.org/grpc/internal/grpcsync.NewCallbackSerializer in goroutine 5
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:52 +0x11a
+
+goroutine 129 [chan receive]:
+google.golang.org/grpc/internal/grpcsync.(*CallbackSerializer).run(0x191e93390a90, {0x1e696c8, 0x191e93180460})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:88 +0xe5
+created by google.golang.org/grpc/internal/grpcsync.NewCallbackSerializer in goroutine 5
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:52 +0x11a
+
+goroutine 135 [select]:
+github.com/redis/go-redis/v9.(*channel).initHealthCheck.func1()
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/pubsub.go:701 +0xcb
+created by github.com/redis/go-redis/v9.(*channel).initHealthCheck in goroutine 134
+	C:/Users/inthe/go/pkg/mod/github.com/redis/go-redis/v9@v9.20.1/pubsub.go:695 +0xa5
+
+goroutine 37 [select]:
+google.golang.org/grpc/internal/transport.(*http2Client).keepalive(0x191e930de008)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:1743 +0x185
+created by google.golang.org/grpc/internal/transport.NewHTTP2Client in goroutine 132
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:403 +0x1d9d
+
+goroutine 38 [IO wait]:
+internal/poll.runtime_pollWait(0x7a11b3a46c00, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0xd?, 0xb?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).RawRead(0x191e93632480, 0x191e930560e0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:710 +0x125
+net.(*rawConn).Read(0x191e930da008, 0x191e932e3ca0?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/rawconn.go:44 +0x36
+google.golang.org/grpc/internal/transport/readyreader.(*nonBlockingReader).ReadOnReady(0x191e930c4730, 0x191e932e3d00?, {0x1e61490, 0x191e9312e810})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/readyreader/ready_reader.go:114 +0xa7
+google.golang.org/grpc/internal/transport/readyreader.(*bufReadyReader).Read(0x191e934fc000, {0x191e930e8044, 0x9, 0x1c02e00?})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/readyreader/ready_reader.go:221 +0x174
+io.ReadAtLeast({0x1e59900, 0x191e934fc000}, {0x191e930e8044, 0x9, 0x9}, 0x9)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/io/io.go:335 +0x8e
+io.ReadFull(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/io/io.go:354
+golang.org/x/net/http2.readFrameHeader({0x191e930e8044, 0x9, 0x191e00000000?}, {0x1e59900?, 0x191e934fc000?})
+	C:/Users/inthe/go/pkg/mod/golang.org/x/net@v0.55.0/http2/frame.go:250 +0x65
+golang.org/x/net/http2.(*Framer).ReadFrameHeader(0x191e930e8000)
+	C:/Users/inthe/go/pkg/mod/golang.org/x/net@v0.55.0/http2/frame.go:513 +0x6b
+google.golang.org/grpc/internal/transport.(*framer).readFrame(0x191e9352a080)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http_util.go:493 +0x45
+google.golang.org/grpc/internal/transport.(*http2Client).reader(0x191e930de008, 0x191e934fc070)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:1669 +0x1ba
+created by google.golang.org/grpc/internal/transport.NewHTTP2Client in goroutine 132
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:413 +0x1e13
+
+goroutine 39 [chan receive]:
+google.golang.org/grpc/internal/grpcsync.(*CallbackSerializer).run(0x191e93056a50, {0x1e696c8, 0x191e930c4c80})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:88 +0xe5
+created by google.golang.org/grpc/internal/grpcsync.NewCallbackSerializer in goroutine 5
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:52 +0x11a
+
+goroutine 40 [chan receive]:
+google.golang.org/grpc/internal/grpcsync.(*CallbackSerializer).run(0x191e93056bf0, {0x1e696c8, 0x191e930c4cd0})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:88 +0xe5
+created by google.golang.org/grpc/internal/grpcsync.NewCallbackSerializer in goroutine 5
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:52 +0x11a
+
+goroutine 41 [chan receive]:
+google.golang.org/grpc/internal/grpcsync.(*CallbackSerializer).run(0x191e93056c30, {0x1e696c8, 0x191e930c4d20})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:88 +0xe5
+created by google.golang.org/grpc/internal/grpcsync.NewCallbackSerializer in goroutine 5
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:52 +0x11a
+
+goroutine 42 [chan receive]:
+google.golang.org/grpc/internal/grpcsync.(*CallbackSerializer).run(0x191e93056ed0, {0x1e696c8, 0x191e930c4e10})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:88 +0xe5
+created by google.golang.org/grpc/internal/grpcsync.NewCallbackSerializer in goroutine 5
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:52 +0x11a
+
+goroutine 43 [chan receive]:
+google.golang.org/grpc/internal/grpcsync.(*CallbackSerializer).run(0x191e93056f00, {0x1e696c8, 0x191e930c4e60})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:88 +0xe5
+created by google.golang.org/grpc/internal/grpcsync.NewCallbackSerializer in goroutine 5
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:52 +0x11a
+
+goroutine 44 [chan receive]:
+google.golang.org/grpc/internal/grpcsync.(*CallbackSerializer).run(0x191e93056f30, {0x1e696c8, 0x191e930c4eb0})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:88 +0xe5
+created by google.golang.org/grpc/internal/grpcsync.NewCallbackSerializer in goroutine 5
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/grpcsync/callback_serializer.go:52 +0x11a
+
+goroutine 45 [chan receive]:
+veloxmesh/internal/cache.(*SemanticCacheService).writeWorker(0x191e9304a480)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/cache/writes.go:53 +0xbc
+created by veloxmesh/internal/cache.(*SemanticCacheService).startWorkers in goroutine 5
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/cache/writes.go:21 +0xbb
+
+goroutine 46 [chan receive]:
+veloxmesh/internal/cache.(*SemanticCacheService).writeWorker(0x191e9304a480)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/cache/writes.go:53 +0xbc
+created by veloxmesh/internal/cache.(*SemanticCacheService).startWorkers in goroutine 5
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/cache/writes.go:21 +0xbb
+
+goroutine 146 [select]:
+veloxmesh/internal/app.(*App).StartConfigChangeSubscriber.func1()
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/provider_reload.go:113 +0x153
+created by veloxmesh/internal/app.(*App).StartConfigChangeSubscriber in goroutine 5
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/provider_reload.go:110 +0x1c8
+
+goroutine 147 [IO wait]:
+internal/poll.runtime_pollWait(0x7a11b3a46800, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0x191e9352a980?, 0x900000036?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Accept(0x191e9352a980)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:613 +0x28c
+net.(*netFD).accept(0x191e9352a980)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/fd_unix.go:150 +0x29
+net.(*TCPListener).accept(0x191e930ed940)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/tcpsock_posix.go:159 +0x1b
+net.(*TCPListener).Accept(0x191e930ed940)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/tcpsock.go:387 +0x30
+net/http.(*Server).Serve(0x191e935fa700, {0x1e644f0, 0x191e930ed940})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:3434 +0x30c
+net/http/httptest.(*Server).goServe.func1()
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/httptest/server.go:341 +0x55
+created by net/http/httptest.(*Server).goServe in goroutine 5
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/httptest/server.go:339 +0x65
+
+goroutine 156 [select]:
+google.golang.org/grpc/internal/transport.(*controlBuffer).get(0x191e932cc180, 0x1)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/controlbuf.go:420 +0x10a
+google.golang.org/grpc/internal/transport.(*loopyWriter).run(0x191e932ce140)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/controlbuf.go:597 +0x78
+google.golang.org/grpc/internal/transport.NewHTTP2Client.func6()
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:471 +0xd2
+created by google.golang.org/grpc/internal/transport.NewHTTP2Client in goroutine 126
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:469 +0x23db
+
+goroutine 639 [select]:
+net/http.(*persistConn).roundTrip(0x191e9372cb40, 0x191e932c5c20)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:2911 +0x83d
+net/http.(*Transport).roundTrip(0x30ef980, 0x191e933c1040)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:704 +0xaba
+net/http.(*Transport).RoundTrip(0x48b705?, 0x1a4ec40?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/roundtrip.go:33 +0x18
+veloxmesh/internal/app.liveTimingTransport.RoundTrip({{0x1e4ce80?, 0x30ef980?}, 0x191e93061240?}, 0x191e933c1040)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/live_timing_test.go:62 +0x4ff
+net/http.send(0x191e933c0f00, {0x1e4c380, 0x191e931d8870}, {0x191e9328f620?, 0x4911e6?, 0x3103960?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:264 +0x64b
+net/http.(*Client).send(0x191e9350a4b0, 0x191e933c0f00, {0x191e9328f6d0?, 0x528c0c?, 0x3103960?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:185 +0x258
+net/http.(*Client).do(0x191e9350a4b0, 0x191e933c0f00)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:733 +0x9d7
+net/http.(*Client).Do(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:592
+veloxmesh/internal/app.shipRequest({0x191e9350a4b0, {0x191e931fe060, 0x16}, {0x191e9304e618, 0x18}, {0x191e9304e528, 0x11}, {0x0, 0x0}, {0x0, ...}, ...})
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/live_ship_load_test.go:75 +0x8d8
+veloxmesh/internal/app.liveScheduledRequest.execute({{0x191e9350a4b0, {0x191e931fe060, 0x16}, {0x191e9304e618, 0x18}, {0x191e9304e528, 0x11}, {0x0, 0x0}, {0x0, ...}, ...}, ...})
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/live_ship_load_test.go:213 +0x349
+created by veloxmesh/internal/app.shipScheduledLoad in goroutine 5
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/live_ship_load_test.go:161 +0x225
+
+goroutine 128 [select]:
+google.golang.org/grpc/internal/transport.(*http2Client).keepalive(0x191e932d0008)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:1743 +0x185
+created by google.golang.org/grpc/internal/transport.NewHTTP2Client in goroutine 126
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:403 +0x1d9d
+
+goroutine 161 [IO wait]:
+internal/poll.runtime_pollWait(0x7a11b3a46200, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0x12?, 0xb?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).RawRead(0x191e933ab000, 0x191e934092b0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:710 +0x125
+net.(*rawConn).Read(0x191e9300c378, 0x191e93501ca0?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/rawconn.go:44 +0x36
+google.golang.org/grpc/internal/transport/readyreader.(*nonBlockingReader).ReadOnReady(0x191e932c4410, 0x191e93501d00?, {0x1e61490, 0x191e9312e810})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/readyreader/ready_reader.go:114 +0xa7
+google.golang.org/grpc/internal/transport/readyreader.(*bufReadyReader).Read(0x191e93407490, {0x191e9361eba4, 0x9, 0x1c02e00?})
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/readyreader/ready_reader.go:221 +0x174
+io.ReadAtLeast({0x1e59900, 0x191e93407490}, {0x191e9361eba4, 0x9, 0x9}, 0x9)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/io/io.go:335 +0x8e
+io.ReadFull(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/io/io.go:354
+golang.org/x/net/http2.readFrameHeader({0x191e9361eba4, 0x9, 0x191e00000000?}, {0x1e59900?, 0x191e93407490?})
+	C:/Users/inthe/go/pkg/mod/golang.org/x/net@v0.55.0/http2/frame.go:250 +0x65
+golang.org/x/net/http2.(*Framer).ReadFrameHeader(0x191e9361eb60)
+	C:/Users/inthe/go/pkg/mod/golang.org/x/net@v0.55.0/http2/frame.go:513 +0x6b
+google.golang.org/grpc/internal/transport.(*framer).readFrame(0x191e933ab080)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http_util.go:493 +0x45
+google.golang.org/grpc/internal/transport.(*http2Client).reader(0x191e932d0008, 0x191e93407500)
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:1669 +0x1ba
+created by google.golang.org/grpc/internal/transport.NewHTTP2Client in goroutine 126
+	C:/Users/inthe/go/pkg/mod/google.golang.org/grpc@v1.81.1/internal/transport/http2_client.go:413 +0x1e13
+
+goroutine 685 [select]:
+net/http.(*http2clientStream).writeRequest(0x191e939ae900, 0x191e9380a000, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:8857 +0xc68
+net/http.(*http2clientStream).doRequest(0x191e939ae900, 0x0?, 0x191e937568e8?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:8718 +0x18
+created by net/http.(*http2ClientConn).roundTrip in goroutine 210
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:8624 +0x470
+
+goroutine 210 [select]:
+net/http.(*http2ClientConn).roundTrip(0x191e931b61c0, 0x191e9380a000, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:8688 +0x525
+net/http.(*http2ClientConn).RoundTrip(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:8603
+net/http.(*http2Transport).RoundTripOpt(0x191e9350e5a0, 0x191e9380a000, {0x90?, 0xe9?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:7901 +0x1ed
+net/http.(*http2Transport).RoundTrip(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:7852
+net/http.http2noDialH2RoundTripper.RoundTrip({0x30ef980?}, 0x191e9380a000?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/h2_bundle.go:10560 +0x1c
+net/http.(*Transport).roundTrip(0x30ef980, 0x191e9372dcc0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:623 +0x4ff
+net/http.(*Transport).RoundTrip(0x1e69738?, 0x191e932d8cb0?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/roundtrip.go:33 +0x18
+veloxmesh/internal/app.liveTimingTransport.RoundTrip({{0x1e4ce80?, 0x30ef980?}, 0x191e93061240?}, 0x191e9372db80)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/live_timing_test.go:70 +0x2ad
+net/http.send(0x191e9372da40, {0x1e4c380, 0x191e931d8870}, {0x191e936bc9c0?, 0x4911e6?, 0x3103960?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:264 +0x64b
+net/http.(*Client).send(0x191e93402540, 0x191e9372da40, {0x1?, 0x191e936bca48?, 0x3103960?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:185 +0x258
+net/http.(*Client).do(0x191e93402540, 0x191e9372da40)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:733 +0x9d7
+net/http.(*Client).Do(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:592
+veloxmesh/internal/providers/openai.(*Adapter).Complete(0x191e935fd200, {0x1e69690, 0x191e93807410}, 0x191e93706a90)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/providers/openai/adapter.go:159 +0x3a5
+veloxmesh/internal/gateway.(*Service).HandleChatCompletion.func1({0x1e69690, 0x191e93807410}, 0x191e93706a90)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/gateway/service.go:272 +0x88
+veloxmesh/internal/gateway.(*Service).runScheduledChat(0x191e930be300?, {0x1e69690?, 0x191e93807410?}, 0x7?, 0x109112339?)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/gateway/service.go:387 +0x64
+veloxmesh/internal/gateway.(*Service).HandleChatCompletion(0x191e930c6f30, {0x1e69690?, 0x191e938072c0?}, 0x191e9390b380)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/gateway/service.go:270 +0xeef
+veloxmesh/internal/http/handlers.(*ChatHandler).ChatCompletions(0x191e930da130, {0x1e64670, 0x191e933d4c78}, 0x191e9368c3c0)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/http/handlers/chat.go:58 +0x38e
+net/http.HandlerFunc.ServeHTTP(0x1e69690?, {0x1e64670?, 0x191e933d4c78?}, 0x1e41160?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:2286 +0x29
+veloxmesh/internal/http/middleware.Auth.func1.1({0x1e64670, 0x191e933d4c78}, 0x191e933c1680)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/http/middleware/auth.go:78 +0x4bf
+net/http.HandlerFunc.ServeHTTP(0x191e93184a00?, {0x1e64670?, 0x191e933d4c78?}, 0x0?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:2286 +0x29
+github.com/go-chi/chi/v5.(*ChainHandler).ServeHTTP(0x1ab1280?, {0x1e64670?, 0x191e933d4c78?}, 0x191e9324cff5?)
+	C:/Users/inthe/go/pkg/mod/github.com/go-chi/chi/v5@v5.3.0/chain.go:31 +0x26
+github.com/go-chi/chi/v5.(*Mux).routeHTTP(0x191e93048d20, {0x1e64670, 0x191e933d4c78}, 0x191e933c1680)
+	C:/Users/inthe/go/pkg/mod/github.com/go-chi/chi/v5@v5.3.0/mux.go:477 +0x4ee
+net/http.HandlerFunc.ServeHTTP(0x7ed845?, {0x1e64670?, 0x191e933d4c78?}, 0x191e936bd7e8?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:2286 +0x29
+veloxmesh/internal/http/middleware.Logging.func1({0x1e62eb0, 0x191e93622780}, 0x191e933c1680)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/http/middleware/logging.go:30 +0xcb
+net/http.HandlerFunc.ServeHTTP(0x7a11b3d0d2f8?, {0x1e62eb0?, 0x191e93622780?}, 0x191e933c1680?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:2286 +0x29
+veloxmesh/internal/http/middleware.Recover.func1({0x1e62eb0?, 0x191e93622780?}, 0x1e41201?)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/http/middleware/recover.go:27 +0x6c
+net/http.HandlerFunc.ServeHTTP(0x1c30940?, {0x1e62eb0?, 0x191e93622780?}, 0xc?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:2286 +0x29
+veloxmesh/internal/http/middleware.RequestID.func1({0x1e62eb0, 0x191e93622780}, 0x191e933c1540)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/http/middleware/requestid.go:28 +0x302
+net/http.HandlerFunc.ServeHTTP(0x1e69690?, {0x1e62eb0?, 0x191e93622780?}, 0x30ce8c0?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:2286 +0x29
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP(0x191e93048d20, {0x1e62eb0, 0x191e93622780}, 0x191e933c1400)
+	C:/Users/inthe/go/pkg/mod/github.com/go-chi/chi/v5@v5.3.0/mux.go:90 +0x322
+veloxmesh/internal/app.installLiveTiming.(*liveTiming).handler.func2({0x1e62eb0, 0x191e93622780}, 0x191e933c12c0)
+	C:/Users/inthe/IdeaProjects/VeloxMesh/internal/app/live_timing_test.go:50 +0x159
+net/http.HandlerFunc.ServeHTTP(0x426045?, {0x1e62eb0?, 0x191e93622780?}, 0x191e93622701?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:2286 +0x29
+net/http.serverHandler.ServeHTTP({0x1e5be10?}, {0x1e62eb0?, 0x191e93622780?}, 0x1?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:3311 +0x8e
+net/http.(*conn).serve(0x191e93610480, {0x1e69690, 0x191e93246c90})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:2073 +0x650
+created by net/http.(*Server).Serve in goroutine 147
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/server.go:3464 +0x485
+
+goroutine 176 [IO wait]:
+internal/poll.runtime_pollWait(0x7a116cdd4c00, 0x72)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/runtime/netpoll.go:351 +0x85
+internal/poll.(*pollDesc).wait(0x191e932c8c00?, 0x191e93471000?, 0x0)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:84 +0x27
+internal/poll.(*pollDesc).waitRead(...)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x191e932c8c00, {0x191e93471000, 0x1000, 0x1000})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/internal/poll/fd_unix.go:165 +0x2ae
+net.(*netFD).Read(0x191e932c8c00, {0x191e93471000?, 0x0?, 0x2?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/fd_posix.go:68 +0x25
+net.(*conn).Read(0x191e935e01b0, {0x191e93471000?, 0x191e9350a810?, 0x1aacee0?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/net.go:196 +0x45
+net/http.(*persistConn).Read(0x191e9372cb40, {0x191e93471000?, 0x1e4c220?, 0x30cdc30?})
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:2174 +0x47
+bufio.(*Reader).fill(0x191e93662240)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:113 +0x103
+bufio.(*Reader).Peek(0x191e93662240, 0x1)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/bufio/bufio.go:152 +0x53
+net/http.(*persistConn).readLoop(0x191e9372cb40)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:2330 +0x172
+created by net/http.(*Transport).dialConn in goroutine 175
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:1994 +0x16ac
+
+goroutine 209 [select]:
+net/http.(*persistConn).writeLoop(0x191e9372cb40)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:2652 +0xe6
+created by net/http.(*Transport).dialConn in goroutine 175
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:1995 +0x16fe
+
+goroutine 705 [select]:
+net/http.awaitLegacyCancel({0x1e696c8?, 0x191e932c5bd0?}, 0x191e93136710, 0x191e93722040?)
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:752 +0x74
+created by net/http.(*Transport).roundTrip in goroutine 639
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/transport.go:658 +0x899
+
+goroutine 640 [select]:
+net/http.setRequestCancel.func4()
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:407 +0x85
+created by net/http.setRequestCancel in goroutine 639
+	C:/Soft/1A-Coding/go1.26.1.windows-amd64/go/src/net/http/client.go:406 +0x3fa

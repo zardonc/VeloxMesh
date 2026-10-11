@@ -1,0 +1,7 @@
+=== RUN   TestLiveHealthDependencyHealthyPeer
+2026/10/04 15:14:32 ERROR Redis health snapshot read failed provider=diagnostic error="context deadline exceeded"
+    live_health_routing_modes_test.go:96: SAMPLE {"selected":"peer","type":"health_dependency_peer"}
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:33083->127.0.0.1:59666: read tcp 127.0.0.1:46416->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:82: real TCP relay response error: readfrom tcp 127.0.0.1:33083->127.0.0.1:59664: write tcp 127.0.0.1:33083->127.0.0.1:59664: use of closed network connection
+--- PASS: TestLiveHealthDependencyHealthyPeer (0.07s)
+PASS

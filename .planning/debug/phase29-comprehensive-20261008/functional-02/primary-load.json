@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "load",
+    "qwen2.5-0.5b-instruct",
+    "--identifier",
+    "qwen2.5-0.5b-instruct",
+    "--gpu",
+    "max",
+    "--context-length",
+    "8192",
+    "--parallel",
+    "4",
+    "--no-speculative-draft-mtp"
+  ],
+  "exit_code": 0,
+  "stdout": "\n\u001b[?25l\nLoading qwen2.5-0.5b-instruct 0% \u280b\u001b[?25l\nLoading qwen2.5-0.5b-instruct 0% \u2819\u001b[?25l\nLoading qwen2.5-0.5b-instruct 2% \u2819\u001b[?25l\nLoading qwen2.5-0.5b-instruct 2% \u2839\u001b[?25l\nLoading qwen2.5-0.5b-instruct 2% \u2838\u001b[?25l\nLoading qwen2.5-0.5b-instruct 4% \u2838\u001b[?25l\nLoading qwen2.5-0.5b-instruct 4% \u283c\u001b[?25l\nLoading qwen2.5-0.5b-instruct 6% \u283c\u001b[?25l\nLoading qwen2.5-0.5b-instruct 6% \u2834\u001b[?25l\nLoading qwen2.5-0.5b-instruct 7% \u2834\u001b[?25l\nLoading qwen2.5-0.5b-instruct 7% \u2826\u001b[?25l\nLoading qwen2.5-0.5b-instruct 9% \u2826\u001b[?25l\nLoading qwen2.5-0.5b-instruct 9% \u2827\u001b[?25l\nLoading qwen2.5-0.5b-instruct 9% \u2807\u001b[?25l\nLoading qwen2.5-0.5b-instruct 11% \u2807\u001b[?25l\nLoading qwen2.5-0.5b-instruct 11% \u280f\u001b[?25l\nLoading qwen2.5-0.5b-instruct 12% \u280f\u001b[?25l\nLoading qwen2.5-0.5b-instruct 12% \u280b\u001b[?25l\nLoading qwen2.5-0.5b-instruct 14% \u280b\u001b[?25l\nLoading qwen2.5-0.5b-instruct 14% \u2819\u001b[?25l\nLoading qwen2.5-0.5b-instruct 14% \u2839\u001b[?25l\nLoading qwen2.5-0.5b-instruct 15% \u2839\u001b[?25l\nLoading qwen2.5-0.5b-instruct 15% \u2838\u001b[?25l\nLoading qwen2.5-0.5b-instruct 17% \u2838\u001b[?25l\nLoading qwen2.5-0.5b-instruct 17% \u283c\u001b[?25l\nLoading qwen2.5-0.5b-instruct 18% \u283c\u001b[?25l\nLoading qwen2.5-0.5b-instruct 18% \u2834\u001b[?25l\nLoading qwen2.5-0.5b-instruct 18% \u2826\u001b[?25l\nLoading qwen2.5-0.5b-instruct 19% \u2826\u001b[?25l\nLoading qwen2.5-0.5b-instruct 19% \u2827\u001b[?25l\nLoading qwen2.5-0.5b-instruct 100% \u2827\n\u001b[K\u001b[?25h",
+  "stderr": "Model loaded successfully in 1.60s.\n(506.47 MiB)\nTo use the model in the API/SDK, use the identifier \"qwen2.5-0.5b-instruct\".\n"
+}

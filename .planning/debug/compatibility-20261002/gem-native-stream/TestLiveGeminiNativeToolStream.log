@@ -1,0 +1,6 @@
+=== RUN   TestLiveGeminiNativeToolStream
+    live_ship_gemini_diagnostic_test.go:97: direct native stream first_response_ms=935.821
+    live_ship_gemini_diagnostic_test.go:103: native function_calls=1 parts_with_opaque_signature=1
+    live_ship_gemini_diagnostic_test.go:104: direct native stream responses=2 complete_ms=978.099
+--- PASS: TestLiveGeminiNativeToolStream (0.98s)
+PASS

@@ -1,0 +1,176 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"net"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/joho/godotenv"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
+)
+
+const inventoryOutput = ".planning/phases/29-semantic-cache-latency-hardening/measurements/memory-upgrade-controlled-20261004/collections-post-test.json"
+
+func main() {
+	if err := inventoryRun(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func inventoryClient() (*ssh.Client, error) {
+	env, err := godotenv.Read(".env.local")
+	if err != nil {
+		return nil, err
+	}
+	userDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	callback, err := knownhosts.New(filepath.Join(userDir, ".ssh", "known_hosts"))
+	if err != nil {
+		return nil, err
+	}
+	port := env["DEV_SERVER_PORT"]
+	if port == "" {
+		port = "22"
+	}
+	return ssh.Dial("tcp", net.JoinHostPort(env["DEV_SERVER_IP"], port), &ssh.ClientConfig{
+		User: env["DEV_SERVER_USER"], Auth: []ssh.AuthMethod{ssh.Password(env["DEV_SERVER_PW"])},
+		HostKeyCallback: callback, Timeout: 10 * time.Second})
+}
+
+func inventoryCommand(client *ssh.Client, command, input string) ([]byte, error) {
+	session, err := client.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+	session.Stdin = strings.NewReader(input)
+	return session.CombinedOutput(command)
+}
+
+func inventoryRun() error {
+	client, err := inventoryClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	deadline := time.AfterFunc(3*time.Minute, func() { client.Close() })
+	defer deadline.Stop()
+	if err := inventoryStart(client); err != nil {
+		return err
+	}
+	defer inventoryStop(client)
+	key, err := inventoryKey(client)
+	if err != nil {
+		return err
+	}
+	return inventoryQuery(client, key)
+}
+
+func inventoryStart(client *ssh.Client) error {
+	state, err := inventoryCommand(client, "docker inspect --format '{{.State.Running}}' veloxmesh-test-qdrant", "")
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(string(state)) != "false" {
+		return fmt.Errorf("inventory requires completed tests and stopped Qdrant")
+	}
+	if _, err := inventoryCommand(client, "docker start veloxmesh-test-qdrant", ""); err != nil {
+		return err
+	}
+	return nil
+}
+
+func inventoryStop(client *ssh.Client) {
+	output, err := inventoryCommand(client, "docker stop --time 5 veloxmesh-test-qdrant && docker inspect --format '{{.Name}} running={{.State.Running}} oom={{.State.OOMKilled}} restarts={{.RestartCount}}' veloxmesh-test-redis veloxmesh-test-qdrant veloxmesh-test-postgres", "")
+	fmt.Printf("post-inventory cleanup: %s error=%v\n", output, err)
+}
+
+func inventoryKey(client *ssh.Client) (string, error) {
+	encoded, err := inventoryCommand(client, "docker inspect --format '{{json .Config.Env}}' veloxmesh-test-qdrant", "")
+	if err != nil {
+		return "", err
+	}
+	var entries []string
+	if err := json.Unmarshal(encoded, &entries); err != nil {
+		return "", err
+	}
+	key := ""
+	for _, entry := range entries {
+		if value, found := strings.CutPrefix(entry, "QDRANT__SERVICE__API_KEY="); found {
+			key = value
+		}
+	}
+	if key == "" {
+		return "", fmt.Errorf("missing existing Qdrant authentication")
+	}
+	return key, nil
+}
+
+func inventoryQuery(client *ssh.Client, key string) error {
+	end := time.Now().Add(2 * time.Minute)
+	for {
+		_, err := inventoryCommand(client, "timeout 3s curl --fail --silent --show-error -H @- http://127.0.0.1:6333/readyz", "api-key: "+key+"\n")
+		if err == nil {
+			break
+		}
+		if time.Now().After(end) {
+			return fmt.Errorf("Qdrant inventory readiness: %w", err)
+		}
+		time.Sleep(250 * time.Millisecond)
+	}
+	command := "timeout 50s python3 -c '" + strings.ReplaceAll(collectionScript, "'", "'\"'\"'") + "'"
+	output, err := inventoryCommand(client, command, key+"\n")
+	if err != nil {
+		return fmt.Errorf("read-only collection inventory: %w", err)
+	}
+	if !json.Valid(output) {
+		return fmt.Errorf("invalid collection inventory JSON")
+	}
+	if err := os.WriteFile(inventoryOutput, output, 0600); err != nil {
+		return err
+	}
+	var summary map[string]any
+	if err := json.Unmarshal(output, &summary); err != nil {
+		return err
+	}
+	compact := make(map[string]any, len(summary)-1)
+	for name, value := range summary {
+		if name != "collections" {
+			compact[name] = value
+		}
+	}
+	encoded, err := json.Marshal(compact)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(encoded))
+	return nil
+}
+
+const collectionScript = `import datetime,json,sys,time,urllib.parse,urllib.request
+key=sys.stdin.readline().strip()
+def get(path):
+ req=urllib.request.Request("http://127.0.0.1:6333/"+path,headers={"api-key":key})
+ with urllib.request.urlopen(req,timeout=2) as response:
+  return json.load(response)["result"]
+started=time.monotonic()
+names=[r["name"] for r in get("collections")["collections"]]
+rows=[]
+for name in names:
+ if time.monotonic()-started>40:break
+ try:
+  value=get("collections/"+urllib.parse.quote(name,safe=""))
+  rows.append({"name":name,"status":value.get("status"),"points_count":value.get("points_count"),"segments_count":value.get("segments_count")})
+ except Exception as error:
+  rows.append({"name":name,"error_type":type(error).__name__})
+known=[r for r in rows if isinstance(r.get("points_count"),int)]
+print(json.dumps({"utc":datetime.datetime.now(datetime.timezone.utc).isoformat(),"read_only":True,"post_test_only":True,"total_collections":len(names),"semantic_collections":sum(n.startswith("semantic_cache_") for n in names),"metadata_attempted":len(rows),"metadata_valid":len(known),"complete":len(rows)==len(names) and len(known)==len(names),"known_points":sum(r["points_count"] for r in known),"empty_collections":sum(r["points_count"]==0 for r in known),"collections":rows}))
+`

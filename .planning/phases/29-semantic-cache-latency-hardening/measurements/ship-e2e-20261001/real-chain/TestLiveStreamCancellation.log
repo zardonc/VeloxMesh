@@ -1,0 +1,12 @@
+=== RUN   TestLiveStreamCancellation
+{"time":"2026-10-02T04:15:22.970918741Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:22.973097948Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:15:22.973114529Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:15:22.973122043Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:22.97317851Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:15:22.975093644Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:157: model=text-embedding-embedder_collection dimension=768 primary=oc/big-pickle
+{"time":"2026-10-02T04:15:24.625571277Z","level":"INFO","msg":"request completed","request_id":"bf7a85c577e0037628b3bdd8713cc69b","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1649}
+    live_ship_protocol_test.go:182: real client disconnected after a fragment; no usage settlement
+--- PASS: TestLiveStreamCancellation (3.73s)
+PASS

@@ -1,0 +1,15 @@
+=== RUN   TestPhase29LocalQueueBurst
+{"time":"2026-10-03T20:09:00.786883509Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T20:09:00.800559214Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-03T20:09:00.80058367Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-03T20:09:00.800595703Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T20:09:00.80064189Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T20:09:00.803411377Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_burst_acceptance_test.go:25: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-03T20:09:01.220174875Z","level":"INFO","msg":"request completed","request_id":"bfdc720df55c7c19d1e3d1b5e920ea5c","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":415}
+    phase29_burst_acceptance_test.go:55: candidates=128 accepted=33 dropped_newest=95 enqueue_ms=0.088 close_ms=413.480 heap_before=3029488 heap_after=3892648
+    phase29_burst_acceptance_test.go:56: failed_operation=vector_insert error_category=AlreadyExists elapsed_ms=26.067
+    phase29_burst_acceptance_test.go:56: failed_operation=store_total error_category=AlreadyExists elapsed_ms=57.394
+    phase29_burst_acceptance_test.go:56: reason_counts=map[enqueue/accepted:33 enqueue/closed:1 enqueue/queue_full:95 store/stored:33 store/vector_error:1]
+--- PASS: TestPhase29LocalQueueBurst (0.95s)
+PASS

@@ -1,0 +1,8 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+TestPhase29LocalHitReadMeasure exit: Process exited with status 1
+/veloxmesh-test-redis false
+/veloxmesh-test-qdrant false
+/veloxmesh-test-postgres false
+TestPhase29LocalHitReadMeasure: Process exited with status 1

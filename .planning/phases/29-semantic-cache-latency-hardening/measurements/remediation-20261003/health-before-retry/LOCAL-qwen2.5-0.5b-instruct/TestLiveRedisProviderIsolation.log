@@ -1,0 +1,7 @@
+=== RUN   TestLiveRedisProviderIsolation
+    live_health_concurrency_test.go:42: SAMPLE {"type":"redis_provider_isolation","unrelated_provider_ms":200.29}
+    live_health_concurrency_test.go:44: one Redis delay blocked unrelated provider: 200.290468ms
+    live_network_proxy_test.go:76: real TCP relay request error: writeto tcp 127.0.0.1:37513->127.0.0.1:39014: readfrom tcp 127.0.0.1:49776->127.0.0.1:6379: use of closed network connection
+    live_network_proxy_test.go:81: real TCP relay response error: readfrom tcp 127.0.0.1:37513->127.0.0.1:39014: read tcp 127.0.0.1:49776->127.0.0.1:6379: use of closed network connection
+--- FAIL: TestLiveRedisProviderIsolation (0.24s)
+FAIL

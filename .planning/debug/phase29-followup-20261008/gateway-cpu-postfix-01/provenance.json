@@ -1,0 +1,19 @@
+{
+  "app_binary_sha256": "d911ac07a1228a39b8700870a59d2b48a9f0f3ddd6b93afa40f26af118ac5b69",
+  "source_count": 410,
+  "current_sources_verified": true,
+  "runner_sha256": "0c410a97728a6556c0a71dc7b3e9bbf1af7f12c91b6790892f19ffd61ca58eed",
+  "launcher_sha256": "5edba8c5e27ce0a4742798b63bbebe474515552fb8d8f00a51fda91b312a3931",
+  "weight": {
+    "path": "C:/Users/inthe/.lmstudio/.internal/bundled-models/nomic-ai/nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q4_K_M.gguf",
+    "sha256": "d4e388894e09cf3816e8b0896d81d265b55e7a9fff9ab03fe8bf4ef5e11295ac",
+    "historical_sha256": "d4e388894e09cf3816e8b0896d81d265b55e7a9fff9ab03fe8bf4ef5e11295ac",
+    "size_bytes": 84106624,
+    "checked_at": "2026-10-07T23:47:44.432Z",
+    "last_modified": "2026-09-19T02:45:52.000Z"
+  },
+  "plan_sha256": "e3a6b22c65c47b36421f22e8e5eb52dffac8e5a4774dd6f7c0d5869aa73eb433",
+  "model": "veloxmesh-followup-nomic15-device-v1",
+  "test_selection": "TestLiveControlledOff,TestLiveControlledOn,TestLiveControlledOffAfter",
+  "count_per_window": 100
+}

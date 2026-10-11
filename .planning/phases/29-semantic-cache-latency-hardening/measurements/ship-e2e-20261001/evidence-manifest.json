@@ -1,0 +1,532 @@
+{
+  "source_revision": "1b58f04f70d957ec2b21549b47ac356df8a115cc",
+  "branch": "codex/phase-27-stream-terminal-settlement",
+  "status": "gaps_found",
+  "merge_allowed": false,
+  "final_test_binary_sha256": "d37c2094e35c5bae0d3ea6506a9ec8d7c8557b749952d705e7e9c9dab3ebc3f7",
+  "final_runner_sha256": "7a06bd248320d389e0bc65451c362f007e4365810f35f0ced8218894f10a12a1",
+  "sources": [
+    {
+      "path": "internal/app/live_ship_protocol_test.go",
+      "sha256": "b57b57fce6a1c7b6d8cbacd7265c233822b9a65e90852f5e6df8d0a5f0c12377"
+    },
+    {
+      "path": "internal/app/live_ship_features_test.go",
+      "sha256": "97ce2ef9c113ee74f873d43b8abcb6dcf7004d1898df4fab23384c07e06a66fc"
+    },
+    {
+      "path": "internal/app/live_ship_load_test.go",
+      "sha256": "5d231e9ae8c2bf0e0667031067431c8ad460585366c4ef1c42b66c9509e14152"
+    },
+    {
+      "path": "internal/app/live_ship_gemini_diagnostic_test.go",
+      "sha256": "2df2999cfbfed724be55db126345c0a37c7a13badd2751003e857333348142f5"
+    },
+    {
+      "path": "internal/app/phase29_live_test.go",
+      "sha256": "c9b6f45ef7e7e872cbc1436075974e853c153b638f2b03dfb7dab64f43007b05"
+    },
+    {
+      "path": "internal/app/phase29_acceptance_test.go",
+      "sha256": "44fa57f83bc2b278116f0c1a15ca25bc1450d379b9b15b4e1ac4ba715d3e8cf7"
+    },
+    {
+      "path": "scripts/live-embedding-check.py",
+      "sha256": "b6275bbe4b892138a32c46b848c5ca01758b570d82de689a3df6c1955de185a3"
+    },
+    {
+      "path": "scripts/live-ship-analyze.mjs",
+      "sha256": "514f0b119be3efe93fe16142913379c34c4cabc673420670089429fbd7a02939"
+    },
+    {
+      "path": ".planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001/runner/main.go",
+      "sha256": "2a9896fdc40b79390be2ea2f7c2474c1c98331b364608164c8b7fbc05f2b694c"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "embedding-c1.jsonl",
+      "sha256": "b93098e9e9c6cd55a0b48b580eb1c576abd9fd8bd0c4b1d984caa454b25dabee"
+    },
+    {
+      "path": "embedding-c16.jsonl",
+      "sha256": "cdbf4e674572dd732b6df3959af0281a5ded142b126541bbc789cc9348877073"
+    },
+    {
+      "path": "embedding-c4-sustained.jsonl",
+      "sha256": "b1fc948ef5a6a839d0060362f69bb78f99e5a8894732d33f932796c210fdc5d5"
+    },
+    {
+      "path": "embedding-c4.jsonl",
+      "sha256": "efc11e2a635d6142f8d96bdd073d9296329662e335bae2ec09bae24b6314743c"
+    },
+    {
+      "path": "embedding-c8.jsonl",
+      "sha256": "7b0d0eb82230bdb3711b2030de416562c407734d3c7890fcb322bc4c96c241c2"
+    },
+    {
+      "path": "final-refactor-gem/runner.log",
+      "sha256": "3414405aa8b36697ec379177cdaebcc60b47efa40ae6bc169ffe447020f2c724"
+    },
+    {
+      "path": "final-refactor-gem/TestLiveBufferedStream.log",
+      "sha256": "f9d3b80263503edfbec8540dd0aa86cf4bc1c86133a64c637654b4006c03286d"
+    },
+    {
+      "path": "final-refactor-gem/TestLiveGeminiNativeContinuation.log",
+      "sha256": "bbe0c10dfdfd543ec58dbf03195ff6e53bea80eb33e688f3ca900f48bd537877"
+    },
+    {
+      "path": "final-refactor-gpt/runner.log",
+      "sha256": "881186138ffbd14f1c4f1ad9ac0c2dc209ad831ed90ee8a8d8b9d246966c956b"
+    },
+    {
+      "path": "final-refactor-gpt/TestLiveAuthentication.log",
+      "sha256": "c96ede6839adbb9399345a466d6f9c6be225b203b93099bb022885a7eb8cf6a4"
+    },
+    {
+      "path": "final-refactor-gpt/TestLiveStreamCancellation.log",
+      "sha256": "dcba114f6b7f429a28ca012626821ad5d589eabd0ed2cafa30dc6f989c254b09"
+    },
+    {
+      "path": "final-refactor-gpt/TestLiveStreamSettlement.log",
+      "sha256": "c63f3c3bcb297d365c24fff63e17ad15056f75925e01d759ceef1f866de4857f"
+    },
+    {
+      "path": "final-refactor-gpt/TestLiveToolRequired.log",
+      "sha256": "a3f98a51aa7dec96699e41fdbaddb6f30c1f0de54c0319a57e2edbc9f348572c"
+    },
+    {
+      "path": "final-refactor-gpt/TestLiveUpstreamStreamDiagnostic.log",
+      "sha256": "09fa688be5e67bd1a2b4be43a11f55d4a55e3d572e6d986c68e4f1f134110912"
+    },
+    {
+      "path": "final-source-gpt/runner.log",
+      "sha256": "21a2ec03ed8621a64ebb27583e6e2cd62e3456465ef9ad22979c0445db0b38a3"
+    },
+    {
+      "path": "final-source-gpt/TestLiveStreamSettlement.log",
+      "sha256": "8c0b9af56b39211c8d978b2905cebec760207c9867c50fa9cfa4614076006476"
+    },
+    {
+      "path": "final-source-gpt/TestLiveToolRequired.log",
+      "sha256": "fea43a7dfd68f872198d357f5c76ff80aeaefd00cec1f013de5113106f857929"
+    },
+    {
+      "path": "final-source-gpt/TestLiveUpstreamStreamDiagnostic.log",
+      "sha256": "df041d181c6ce600faf7d4be5aeaf35fe17ad94de5e0dd8c684deffd58dba651"
+    },
+    {
+      "path": "gem/TestLiveStreamCancellation.log",
+      "sha256": "80094e8b5c65a7dd9f005093d05f781d68396f693dee14df8a95ccdcee6415e7"
+    },
+    {
+      "path": "gem/TestLiveStreamSettlement.log",
+      "sha256": "ca4c15771108bd25d1ef2a34f496d6403626c4fed667e39cd206c23098c71441"
+    },
+    {
+      "path": "gem/TestLiveToolAuto.log",
+      "sha256": "193bec26d0624bdf63cd0d4c52c46a30fb6ae1266c9e989f579f866b6a20f3c9"
+    },
+    {
+      "path": "gem/TestLiveToolNamed.log",
+      "sha256": "ec81d03179491dd4b82398246b65c864086686e91be479a14575100de661d644"
+    },
+    {
+      "path": "gem/TestLiveToolNone.log",
+      "sha256": "c6baa0d31319f55455fb44e055f3316e59647a243a769570b46ea2149e8a7da8"
+    },
+    {
+      "path": "gem/TestLiveToolOmitted.log",
+      "sha256": "868a8b118f92e95034945acfa0f1c8a87a9edca5811d1716c2138338e139108d"
+    },
+    {
+      "path": "gem/TestLiveToolRequired.log",
+      "sha256": "720c19c660bd605a2cc9331463736c3b9ac1fb0ba96cc549d97239f5272b94f6"
+    },
+    {
+      "path": "gem/TestLiveToolStreaming.log",
+      "sha256": "160a6c1f80351e40441ab668527a1e57f61c150875cc9281cd32be8d8e9289d4"
+    },
+    {
+      "path": "gem/TestPhase29LocalGatewayAcceptance.log",
+      "sha256": "b5956e86dcc4e49617a7f954353cdbdb5aa50c5ce66e5321b297d7f34ad49823"
+    },
+    {
+      "path": "gem-buffer-confirm/TestLiveBufferedStream.log",
+      "sha256": "423f43b2ac71734500054ded779d6bd36a9cc5fee7390f64e375a04fd5752c3d"
+    },
+    {
+      "path": "gem-buffer-final/TestLiveBufferedStream.log",
+      "sha256": "bf1e2d11cf9f12d94a72068544502d428badbbdb730bcdc979e69678407c53ce"
+    },
+    {
+      "path": "gem-confirm/TestLiveBufferedStream.log",
+      "sha256": "58434cf9b5963fef7202b3c89042e9c27e0c3ebebd37dd52102007ddcec29b9e"
+    },
+    {
+      "path": "gem-confirm/TestLiveFusionStream.log",
+      "sha256": "838753624af774148fb60a08a69e58187e040c9b7c454562fa59e17ed735d659"
+    },
+    {
+      "path": "gem-confirm/TestLiveGeminiNativeContinuation.log",
+      "sha256": "2e5ae5fa63fe12d29f05005e85e921a035498a6ed22d337da16da7a7442f11c4"
+    },
+    {
+      "path": "gem-diagnostics/TestLiveAuthentication.log",
+      "sha256": "c6ce8ba7383d60c9df6146f80e20d6a9e69b877a24b8cf098ca29e64a0ce9c33"
+    },
+    {
+      "path": "gem-diagnostics/TestLiveBufferedStream.log",
+      "sha256": "d1058fd6c7c370d4d23a150b3228bad17d9b0dbcabd8a71ee46758281c1d0df0"
+    },
+    {
+      "path": "gem-diagnostics/TestLiveFusionStream.log",
+      "sha256": "4bca565a4445513d41ba6f4e857b5f15dae99be58436466a9b68bb42027e6a11"
+    },
+    {
+      "path": "gem-diagnostics/TestLiveGeminiNativeContinuation.log",
+      "sha256": "9f3340de37c2a45f1690c3da71f2ebc2453fba8e03993536a57716cc183bada0"
+    },
+    {
+      "path": "gem-final/TestLiveStreamCancellation.log",
+      "sha256": "091a4a16060c1cd01a0647302d27dfcd9dfd7ea2e05c53b4f7a0c7daeb0abe5a"
+    },
+    {
+      "path": "gem-final/TestLiveStreamSettlement.log",
+      "sha256": "332faf3a59bd74a7dc820d72ef8eca8341b3a2453172e6dbbcfe21d24b560908"
+    },
+    {
+      "path": "gem-final/TestLiveToolAuto.log",
+      "sha256": "2beea0bcc2950f215628c71fb2c2079a63bda0560494788d48347f2f8d2474e2"
+    },
+    {
+      "path": "gem-final/TestLiveToolNamed.log",
+      "sha256": "ccbd6f0b78182ec5715a7553934563695e2fbf9d79eb3b5d0fe482c5bf4a28ce"
+    },
+    {
+      "path": "gem-final/TestLiveToolNone.log",
+      "sha256": "fd421cdd19246a7aaf15cb51421de8915eae66c01faca0ac8abd2cc53c5086ec"
+    },
+    {
+      "path": "gem-final/TestLiveToolOmitted.log",
+      "sha256": "8c5c0cf0c02b99a6783df1456713d7251865acf5ceb65bf44c86e37e5d6daf04"
+    },
+    {
+      "path": "gem-final/TestLiveToolRequired.log",
+      "sha256": "4fe461853eed9410995129100358607305302db6b1458815ee3428f36dca09d6"
+    },
+    {
+      "path": "gem-final/TestLiveToolStreaming.log",
+      "sha256": "08ac16d8da7650a8ccaf5452f25d3ef21370f2a3e240419f77469de2ef69a758"
+    },
+    {
+      "path": "gem-final/TestPhase29LocalGatewayAcceptance.log",
+      "sha256": "f7d7aa5d543d47e526d37d8142e2e9f23ec1e30caa71fc60f9a9e499089a4930"
+    },
+    {
+      "path": "gpt/load-summary.json",
+      "sha256": "1c5bc83abe30b5ae957b9e2a5a1605fd20ff9e7c3f26506618040b3274b809ee"
+    },
+    {
+      "path": "gpt/TestLiveCacheLoadOff.jsonl",
+      "sha256": "fe464b3371a2e156dee24a7d19949b9ba0a2efae91ca4965ca1bf0c0d2fd5dcf"
+    },
+    {
+      "path": "gpt/TestLiveCacheLoadOff.log",
+      "sha256": "df5cfd389fac56c95477a7ef1199f029e9723f6951faf9113539b8f337b2a702"
+    },
+    {
+      "path": "gpt/TestLiveCacheLoadOffRepeat.jsonl",
+      "sha256": "6300dcb2246b899370c36676f7b9b6bbc6902a6e4d9f32efe1185687dd2e92b9"
+    },
+    {
+      "path": "gpt/TestLiveCacheLoadOffRepeat.log",
+      "sha256": "56e43a342d38241162bf0aeb2ed4788c6720680f3c70d6945a54ddc31c15435f"
+    },
+    {
+      "path": "gpt/TestLiveCacheLoadOn.jsonl",
+      "sha256": "01d27ca5e3995b4a0b13d533b618716ec783396d30823da889578e2d7032b6db"
+    },
+    {
+      "path": "gpt/TestLiveCacheLoadOn.log",
+      "sha256": "c5bb8f30b3f3d028e3080bbbb1070c58b12edcd2fdf8935b0d83f306ef164b88"
+    },
+    {
+      "path": "gpt/TestLiveCacheLoadOnRepeat.jsonl",
+      "sha256": "9cf6f5728890f8b55fcaa9e932e7deced1ee61b2ecf399b2db0df8a4b0f8f2bf"
+    },
+    {
+      "path": "gpt/TestLiveCacheLoadOnRepeat.log",
+      "sha256": "4b55770fca6f7d0bc11d28cd65d4172bc6e33307f607b29b6f2246aeb97c59fb"
+    },
+    {
+      "path": "gpt/TestLiveStreamCancellation.log",
+      "sha256": "0f1084145db5a8018af5a19239f9b9e1a5aab88d7a7456cdda8923999a9ff30d"
+    },
+    {
+      "path": "gpt/TestLiveStreamSettlement.log",
+      "sha256": "a7ea29832bec4d7bdcc561e818e697f724a24368b73d432c26faabf5084851f5"
+    },
+    {
+      "path": "gpt/TestLiveToolAuto.log",
+      "sha256": "a9ff67562cdbbccfb83a1cb7d07d18934d83fa638d0594fa63990909bf30b231"
+    },
+    {
+      "path": "gpt/TestLiveToolNamed.log",
+      "sha256": "be9ad7e729bad4722e6eb1a53d6c2c6c37caed3cff6c451272b43bd2dd426709"
+    },
+    {
+      "path": "gpt/TestLiveToolNone.log",
+      "sha256": "af013c82a7ade49859377ba2bf62f1cc52fac33a8d7b2f3dfbc7f51bf6b4022e"
+    },
+    {
+      "path": "gpt/TestLiveToolOmitted.log",
+      "sha256": "aa0becd983cada37a0ed56e9733efd3fa15cf56a4b1a0d08e0d37cd3f3123b11"
+    },
+    {
+      "path": "gpt/TestLiveToolRequired.log",
+      "sha256": "f6947b89dd6570e3d18a36e8b294b2d90513c5e5a985ceee0fa1b98a1867497e"
+    },
+    {
+      "path": "gpt/TestLiveToolStreaming.log",
+      "sha256": "f5a74ef9ff72f8af6ee2c2f4284f00452cae463f460b23b78629752192744f71"
+    },
+    {
+      "path": "gpt/TestPhase29LocalGatewayAcceptance.log",
+      "sha256": "8be87620100a56693e8fe77d7ef26298c36c6847106c5a0526b7fda36f8e8b1b"
+    },
+    {
+      "path": "gpt-buffer-confirm/TestLiveBufferedStream.log",
+      "sha256": "e6984457cf616c73469d308493db434edc1cd9ec276d83f9c1f5ded5dff2eab0"
+    },
+    {
+      "path": "gpt-buffer-confirm/TestLiveFusionStream.log",
+      "sha256": "679faf327db7933ee69504eaa6bff0cf6c14525c1c5d532ba18eb5b62623932a"
+    },
+    {
+      "path": "gpt-buffer-final/TestLiveBufferedStream.log",
+      "sha256": "756561bcc20a4d6e37124d8ed3375473faec930a5aee40bcd5b5150a31f14e87"
+    },
+    {
+      "path": "gpt-features/TestLiveAuthentication.log",
+      "sha256": "b092062dc04d8855ad49bd97fa188c14cd041bf1de9fefd01df851e95e5705ca"
+    },
+    {
+      "path": "gpt-features/TestLiveBufferedStream.log",
+      "sha256": "60aa7811eb6100d754d845d68b580b40d2055c2e9bc8438e8db7a2b1693deea9"
+    },
+    {
+      "path": "gpt-features/TestLiveFusionStream.log",
+      "sha256": "5fde2bfd9547c7d11edbfe1c366646ee946bcd4c3928e9c2f6bc1cb644ceb672"
+    },
+    {
+      "path": "gpt-final/TestLiveStreamCancellation.log",
+      "sha256": "c05d72b27eb4dc145d7443cef20a94b3ce92354f8ba194169227b2c29d19cff6"
+    },
+    {
+      "path": "gpt-final/TestLiveStreamSettlement.log",
+      "sha256": "926baa4098f519c2bd5bdc5cf436338f7cea54df6204c3d3641314ee2936a722"
+    },
+    {
+      "path": "gpt-final/TestLiveToolAuto.log",
+      "sha256": "182b972e913d729c3bf168c804a76b15e08975c4cc1ea9f6009fcbc4cc3cc8a8"
+    },
+    {
+      "path": "gpt-final/TestLiveToolNamed.log",
+      "sha256": "f035788b5ad469208314149fac0d1bce69abc0b802d160740c06fd80e7068acd"
+    },
+    {
+      "path": "gpt-final/TestLiveToolNone.log",
+      "sha256": "3e0acc163f768bdc198d3a60335a961311ed8bb04a20e5e998a36941961bb7e2"
+    },
+    {
+      "path": "gpt-final/TestLiveToolOmitted.log",
+      "sha256": "5f760121d39be8efa741160fe72a67dfb2f0c1bafa2d8ae14925b241a20a688d"
+    },
+    {
+      "path": "gpt-final/TestLiveToolRequired.log",
+      "sha256": "03606c6ba2195698465e5ec97505b3e0acbbcd53e6ec6af85e3c71ceba40ed8d"
+    },
+    {
+      "path": "gpt-final/TestLiveToolStreaming.log",
+      "sha256": "549c6e9f4bf08623e306f1bd6d8d9e179a44a8ac113c7596a133fa49acaa5d2e"
+    },
+    {
+      "path": "gpt-final/TestLiveUpstreamStreamDiagnostic.log",
+      "sha256": "5882d85dbcbdfb6a0d3e2a6eea1e74774b52a36d29543c5b318fa6e134ebf38f"
+    },
+    {
+      "path": "gpt-root-cause/TestLiveFusionStream.log",
+      "sha256": "23eacc75bd5b99f828d3480d6f8832917a90d22b91b963dd77f9c1f9080e1669"
+    },
+    {
+      "path": "gpt-root-cause/TestLiveStreamSettlement.log",
+      "sha256": "3dbd0bf0360f0d44df883a6db14300830b90ee4de4023765f8443081dcbcb5b5"
+    },
+    {
+      "path": "gpt-root-cause/TestLiveToolStreaming.log",
+      "sha256": "e97fc65fb0078bea14570065b22022424fed9967b2e5829f623d05a150900682"
+    },
+    {
+      "path": "gpt-root-cause/TestLiveUpstreamStreamDiagnostic.log",
+      "sha256": "a1960d7c779cd57cb82403e51f1797e1745ec47bcdea034dc7c6dfd8b2b7e6df"
+    },
+    {
+      "path": "real-chain/TestLiveStreamCancellation.log",
+      "sha256": "2b122996ca22c5e25f7f5cd1a37d364c1393ccf87066bfe869f1e511e28e2e89"
+    },
+    {
+      "path": "real-chain/TestLiveStreamSettlement.log",
+      "sha256": "ff908c580594c8af06b66731d107b537ac806638f25b5d45e550440f78f81158"
+    },
+    {
+      "path": "real-chain/TestLiveToolAuto.log",
+      "sha256": "87dcae805ab3edbbc6745f506b89070aaa3113a6b82f0aeff59ee894d13057b0"
+    },
+    {
+      "path": "real-chain/TestLiveToolNamed.log",
+      "sha256": "ebe87be832ff61260eda45f633ed7de9bc99cf65686701f7bc613d61681be48c"
+    },
+    {
+      "path": "real-chain/TestLiveToolNone.log",
+      "sha256": "8f1cbb8e7f2d8a4801b235b7060127deeb28da0d6c3c86ba4b3db9129022bad8"
+    },
+    {
+      "path": "real-chain/TestLiveToolOmitted.log",
+      "sha256": "ba63614e8c9863524dd93bd3b4d8bb5012862e334f6883061ee4e56917db7b3e"
+    },
+    {
+      "path": "real-chain/TestLiveToolRequired.log",
+      "sha256": "2339b011e01a815a0591a528e03fb99c5ca92654d6fa8ae59c5baeee08bf134f"
+    },
+    {
+      "path": "real-chain/TestLiveToolStreaming.log",
+      "sha256": "7246bf30d4cb781b6f780ce5df9fc8edb4039e4d0a24f8fea39fb108f7b95ff2"
+    },
+    {
+      "path": "real-chain/TestPhase29LocalGatewayAcceptance.log",
+      "sha256": "65b2596f0c3bba41bb28ee254966c8680d52701e53ac9b1283bf258f0b304d16"
+    },
+    {
+      "path": "sans/load-analysis.log",
+      "sha256": "0f3958a2c50976770fd93e1139bd7ecc68b878448ccee8927e8d07a47eeb3150"
+    },
+    {
+      "path": "sans/load-summary.json",
+      "sha256": "0f3958a2c50976770fd93e1139bd7ecc68b878448ccee8927e8d07a47eeb3150"
+    },
+    {
+      "path": "sans/TestLiveCacheLoadOff.log",
+      "sha256": "14a5967383fc35c544116af913959e943bcbc89e8e91b203dbcb4e4a22a69df3"
+    },
+    {
+      "path": "sans/TestLiveCacheLoadOffRepeat.log",
+      "sha256": "4cf6d3e58022d7c1bd3b2b575fa6bb7d21b4d9d26e5f06d49532a32ab55335d1"
+    },
+    {
+      "path": "sans/TestLiveCacheLoadOn.log",
+      "sha256": "2718c44d51f2ad03af27be7972e0c7f06e456af64db579a87b70661ce309a7eb"
+    },
+    {
+      "path": "sans/TestLiveCacheLoadOnRepeat.log",
+      "sha256": "15051d3a02a38e7c8acc07c6f76b7dc1b0465504cef75102a007f4b2fd58fe80"
+    },
+    {
+      "path": "sans/TestLiveStreamCancellation.log",
+      "sha256": "4a93a180a74d945f6c0e13cd0e1bc4f4ca5a19eed1cb727e543bcf4dd71c9551"
+    },
+    {
+      "path": "sans/TestLiveStreamSettlement.log",
+      "sha256": "924643a2ad37d514dd0dfa1c825483fb48937a14481e320c225414f108c3673c"
+    },
+    {
+      "path": "sans/TestLiveToolOmitted.log",
+      "sha256": "17848a1d645fd4b406b0bf9b97d14a2cc78dc27e34d7ccaea4a6336cd915a0e9"
+    },
+    {
+      "path": "sans/TestLiveToolRequired.log",
+      "sha256": "dc4bec136e93a75c2f9bb9630aef1ed6c4734548da32367073ca2f647cb618a2"
+    },
+    {
+      "path": "sans/TestLiveToolStreaming.log",
+      "sha256": "7f6a7d4f1b275e3f7e64a5af9fc2ee3a66ee8101a7b459e53b0e9fc1d2efd68a"
+    },
+    {
+      "path": "sans/TestLiveUpstreamStreamDiagnostic.log",
+      "sha256": "ff5b3249f57635ddcfa1e3d053b4e5eaa56eba8582cae58b397dc75d6db44282"
+    },
+    {
+      "path": "TestLiveStreamCancellation.log",
+      "sha256": "534c617fd8109bb4107cee587eeb59bf48ac2d73d2222d7fb9c3420aea4e9f4a"
+    },
+    {
+      "path": "TestLiveStreamSettlement.log",
+      "sha256": "f9fd557c8be6ec5ed5795d9b6070dfe950970dfa5b0c0474d81539872a54854e"
+    },
+    {
+      "path": "TestLiveToolAuto.log",
+      "sha256": "f3af30c510fcc81498490fbdfdf14c0fd212f27a38b5a3c05bc7ba1fd86027de"
+    },
+    {
+      "path": "TestLiveToolNamed.log",
+      "sha256": "7b23897c0b544cd6b6656ec40f744e91713eafa1fa3385c10ba5bcd12a400d86"
+    },
+    {
+      "path": "TestLiveToolNone.log",
+      "sha256": "a6609a11ef4094e65ac192deb99a56e80004ffab5aa23407df55c72edde1556b"
+    },
+    {
+      "path": "TestLiveToolOmitted.log",
+      "sha256": "a9a2e8e1bff79c7d74cc6bdde15cd033e49addc82c4915cd1cf6e1b231774250"
+    },
+    {
+      "path": "TestLiveToolRequired.log",
+      "sha256": "0fb3fcad75a7bd716679c8f02afcbc599e91553bc9fc36ca2c734594edc9ebe6"
+    },
+    {
+      "path": "TestLiveToolStreaming.log",
+      "sha256": "4ee7b471937a58981caec86937724492bb829191836836e767f82e467a1b7119"
+    },
+    {
+      "path": "TestPhase29LocalGatewayAcceptance.log",
+      "sha256": "53d8ac09efa9bb47ad0c92d9f4716732a3758e2774dee7d307ae52105456ce50"
+    },
+    {
+      "path": "v1-chain/TestLiveStreamCancellation.log",
+      "sha256": "93520af053c35ca83b3067ca0ca57074e832b53c5109c0fee7d1cd6018ab2c80"
+    },
+    {
+      "path": "v1-chain/TestLiveStreamSettlement.log",
+      "sha256": "ff0d404f2c1b681540dc58cb14224fe3982a69ac7b4f93aaf8fae28da635976c"
+    },
+    {
+      "path": "v1-chain/TestLiveToolAuto.log",
+      "sha256": "f5f8e14398a8a75596b7a46b8617847225a78761f9b94102401a78afec03429b"
+    },
+    {
+      "path": "v1-chain/TestLiveToolNamed.log",
+      "sha256": "b39b04fcb883837b11fdcfe66ee35fd66831a134cdab968f5cd7d72855ae50aa"
+    },
+    {
+      "path": "v1-chain/TestLiveToolNone.log",
+      "sha256": "e6758f3f39b9089e008dcd963f38901c5e127942e8ea46ae97a2d8e91c611fe4"
+    },
+    {
+      "path": "v1-chain/TestLiveToolOmitted.log",
+      "sha256": "f266dc71fa2556d31d31eed6e3a0b7280833b4118a7cdb8b9d2c22af87321a97"
+    },
+    {
+      "path": "v1-chain/TestLiveToolRequired.log",
+      "sha256": "e621f3fd913095b16522ae337b6cf257762d18cda01d75533f4294f7ddaa614d"
+    },
+    {
+      "path": "v1-chain/TestLiveToolStreaming.log",
+      "sha256": "5eca0daec7063976f6462fa56062e309d0baedff8fe99fad4da7899edeb71427"
+    },
+    {
+      "path": "v1-chain/TestPhase29LocalGatewayAcceptance.log",
+      "sha256": "bf95635f3c5355f1f36ebf18d530a292611e53ca779e14da3c854a303dadbbbe"
+    }
+  ]
+}

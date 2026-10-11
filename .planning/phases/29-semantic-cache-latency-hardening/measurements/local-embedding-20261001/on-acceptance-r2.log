@@ -1,0 +1,15 @@
+=== RUN   TestPhase29LocalGatewayAcceptance
+{"time":"2026-10-02T03:09:12.747374557Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T03:09:12.749516263Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T03:09:12.749536731Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T03:09:12.749543644Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T03:09:12.749616151Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T03:09:12.751291789Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_acceptance_test.go:52: model=text-embedding-embedder_collection dimension=768 primary=oc/big-pickle
+{"time":"2026-10-02T03:09:15.722856469Z","level":"INFO","msg":"request completed","request_id":"131ebeb33d5689b021b6d299a3a58fc5","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2971}
+{"time":"2026-10-02T03:09:15.985862048Z","level":"INFO","msg":"request completed","request_id":"201887c93c0a20360941ec64b00e07ac","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":70}
+    phase29_acceptance_test.go:67: positive paraphrase 1/1 hit, complete_response_ms=71.238, identical_answer=true
+{"time":"2026-10-02T03:09:16.004580354Z","level":"INFO","msg":"request completed","request_id":"a44ec0e2e100e0d879a66308e617be80","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":18}
+    phase29_acceptance_test.go:72: negative: {Type:client Name: ElapsedMS:18.475 StartMS:3234.762 OK:true Status:200 Hit:true Concurrent:0 AnswerHash:e932be2dfa285222aca94c70ad7938ad12c229aab9d124413a3e5a7a4e9e1e6c}
+--- FAIL: TestPhase29LocalGatewayAcceptance (3.33s)
+FAIL

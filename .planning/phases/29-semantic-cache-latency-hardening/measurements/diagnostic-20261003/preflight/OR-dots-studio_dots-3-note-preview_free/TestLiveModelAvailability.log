@@ -1,0 +1,7 @@
+=== RUN   TestLiveModelAvailability
+{"time":"2026-10-03T19:14:36.503803943Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:24: model=text-embedding-embedder_collection dimension=768 primary=dots-studio/dots-3-note-preview:free
+{"time":"2026-10-03T19:14:38.218930115Z","level":"INFO","msg":"request completed","request_id":"c9d17534b3918a7575e70aa770f5fb52","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":1710}
+    live_diagnostic_test.go:36: real completion returned no text
+--- FAIL: TestLiveModelAvailability (1.92s)
+FAIL

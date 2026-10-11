@@ -1,0 +1,28 @@
+File: verified-linux.test
+Build ID: a427e9f80faa33238f29649e907c0d10fc01b1fd
+Type: delay
+Time: 2026-10-03 18:16:02 PDT
+Showing nodes accounting for 12.23ms, 100% of 12.24ms total
+Dropped 113 nodes (cum <= 0.06ms)
+Showing top 20 nodes out of 199
+      flat  flat%   sum%        cum   cum%
+    8.95ms 73.18% 73.18%     8.95ms 73.18%  sync.(*Mutex).Unlock (partial-inline)
+    3.28ms 26.81%   100%     3.28ms 26.81%  runtime.unlock (inline)
+         0     0%   100%     2.31ms 18.84%  bufio.(*Reader).Peek
+         0     0%   100%     2.31ms 18.84%  bufio.(*Reader).fill
+         0     0%   100%     8.58ms 70.12%  database/sql.(*DB).QueryContext
+         0     0%   100%     8.58ms 70.12%  database/sql.(*DB).QueryContext.func1
+         0     0%   100%     8.34ms 68.17%  database/sql.(*DB).QueryRowContext (inline)
+         0     0%   100%     7.33ms 59.90%  database/sql.(*DB).conn
+         0     0%   100%     8.58ms 70.12%  database/sql.(*DB).query
+         0     0%   100%     1.25ms 10.24%  database/sql.(*DB).queryDC
+         0     0%   100%     1.25ms 10.24%  database/sql.(*DB).queryDC.func1
+         0     0%   100%     8.58ms 70.12%  database/sql.(*DB).retry
+         0     0%   100%     0.08ms  0.63%  database/sql.(*Row).Scan
+         0     0%   100%     0.08ms  0.63%  database/sql.(*Rows).Close
+         0     0%   100%     0.08ms  0.63%  database/sql.(*Rows).close
+         0     0%   100%     1.25ms 10.24%  database/sql.ctxDriverQuery
+         0     0%   100%     7.33ms 59.90%  database/sql.dsnConnector.Connect
+         0     0%   100%     1.28ms 10.42%  database/sql.withLock
+         0     0%   100%    10.97ms 89.62%  github.com/go-chi/chi/v5.(*ChainHandler).ServeHTTP
+         0     0%   100%    10.97ms 89.62%  github.com/go-chi/chi/v5.(*Mux).ServeHTTP

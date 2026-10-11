@@ -1,0 +1,15 @@
+{"Time":"2026-10-01T20:42:52.812685-07:00","Action":"start","Package":"veloxmesh/tests/integration"}
+{"Time":"2026-10-01T20:42:53.0566448-07:00","Action":"run","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_CacheHeaders"}
+{"Time":"2026-10-01T20:42:53.0566448-07:00","Action":"output","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_CacheHeaders","Output":"=== RUN   TestSemanticCache_CacheHeaders\n"}
+{"Time":"2026-10-01T20:42:53.0656693-07:00","Action":"output","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_CacheHeaders","Output":"2026/10/01 20:42:53 INFO request completed request_id=07a971516ff4ba5e4f6bb9b6f38b75fa method=POST path=/v1/chat/completions status=200 latency_ms=1\n"}
+{"Time":"2026-10-01T20:42:53.0661701-07:00","Action":"output","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_CacheHeaders","Output":"2026/10/01 20:42:53 INFO request completed request_id=4199011610d5b91e0d14e9abe52eba05 method=POST path=/v1/chat/completions status=200 latency_ms=0\n"}
+{"Time":"2026-10-01T20:42:53.0661701-07:00","Action":"output","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_CacheHeaders","Output":"--- PASS: TestSemanticCache_CacheHeaders (0.01s)\n"}
+{"Time":"2026-10-01T20:42:53.0661701-07:00","Action":"pass","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_CacheHeaders","Elapsed":0.01}
+{"Time":"2026-10-01T20:42:53.0661701-07:00","Action":"run","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_DevKeyBypassesCache"}
+{"Time":"2026-10-01T20:42:53.0661701-07:00","Action":"output","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_DevKeyBypassesCache","Output":"=== RUN   TestSemanticCache_DevKeyBypassesCache\n"}
+{"Time":"2026-10-01T20:42:53.0661701-07:00","Action":"output","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_DevKeyBypassesCache","Output":"2026/10/01 20:42:53 INFO request completed request_id=915a4ef3e7c278b4e8450165f9bde0de method=POST path=/v1/chat/completions status=200 latency_ms=0\n"}
+{"Time":"2026-10-01T20:42:53.0661701-07:00","Action":"output","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_DevKeyBypassesCache","Output":"--- PASS: TestSemanticCache_DevKeyBypassesCache (0.00s)\n"}
+{"Time":"2026-10-01T20:42:53.0661701-07:00","Action":"pass","Package":"veloxmesh/tests/integration","Test":"TestSemanticCache_DevKeyBypassesCache","Elapsed":0}
+{"Time":"2026-10-01T20:42:53.0661701-07:00","Action":"output","Package":"veloxmesh/tests/integration","Output":"PASS\n"}
+{"Time":"2026-10-01T20:42:53.0702902-07:00","Action":"output","Package":"veloxmesh/tests/integration","Output":"ok  \tveloxmesh/tests/integration\t0.258s\n"}
+{"Time":"2026-10-01T20:42:53.0702902-07:00","Action":"pass","Package":"veloxmesh/tests/integration","Elapsed":0.258}

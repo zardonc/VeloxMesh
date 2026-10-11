@@ -1,0 +1,14 @@
+=== RUN   TestLiveStreamSettlement
+{"time":"2026-10-02T05:55:59.195597326Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:55:59.217301852Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T05:55:59.217498232Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T05:55:59.217515886Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:55:59.217642414Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T05:55:59.224523738Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:134: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+{"time":"2026-10-02T05:55:59.92186272Z","level":"INFO","msg":"request completed","request_id":"b14d0e2c83711f3b5877acd98f28e797","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":693}
+    live_ship_protocol_test.go:165: real SSE done=1 fragments=1 cache_hit=false
+    live_ship_protocol_test.go:166: usage_rows_all=1 usage_rows_key=1
+    live_ship_protocol_test.go:166: settled_records=1 total_tokens=16 credits=16 exactly_once=true
+--- PASS: TestLiveStreamSettlement (0.86s)
+PASS

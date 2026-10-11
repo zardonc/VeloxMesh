@@ -1,0 +1,58 @@
+=== RUN   TestLiveStageAccounting
+{"time":"2026-10-03T19:24:24.728286891Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:24:24.764062964Z","level":"WARN","msg":"Unable to get server version, use default","err":"rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\"","default":"Unknown"}
+{"time":"2026-10-03T19:24:24.766751219Z","level":"WARN","msg":"Failed to obtain server version. Unable to check client-server compatibility. Set SkipCompatibilityCheck=true to skip version check."}
+{"time":"2026-10-03T19:24:24.766782197Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:24:24.766882326Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:24:24.766962066Z","level":"WARN","msg":"failed to initialize Qdrant; evaluating fallback","error":"failed to connect to qdrant: HealthCheck() failed: rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\""}
+{"time":"2026-10-03T19:24:24.772595715Z","level":"INFO","msg":"activated Redis VSS fallback for vector store"}
+{"time":"2026-10-03T19:24:24.780010279Z","level":"INFO","msg":"starting config change subscriber"}
+    live_diagnostic_test.go:168: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-03T19:24:25.261324463Z","level":"INFO","msg":"request completed","request_id":"timing-192424.787000334","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":474}
+    live_diagnostic_test.go:181: usage_rows_all=1 usage_rows_key=1
+    live_diagnostic_test.go:181: settled_records=1 total_tokens=65 credits=65 exactly_once=true
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"request_rules","start_ms":8.162,"elapsed_ms":0.136}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_embedding/get_connection","start_ms":8.845,"elapsed_ms":0.322}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_embedding/got_connection_reused","start_ms":8.845,"elapsed_ms":0.332}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_embedding/request_written","start_ms":8.845,"elapsed_ms":0.376}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_embedding/first_byte","start_ms":8.845,"elapsed_ms":88.418}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"embedding_headers","start_ms":8.845,"elapsed_ms":88.505}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"embedding_http","start_ms":8.845,"elapsed_ms":88.772}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"lookup_embedding","start_ms":8.658,"elapsed_ms":89.449}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"vector_search","start_ms":98.11,"elapsed_ms":4.066}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"cache_read","start_ms":8.432,"elapsed_ms":93.771}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"routing","start_ms":102.205,"elapsed_ms":1.27}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"admission","start_ms":103.478,"elapsed_ms":1.033}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_upstream/get_connection","start_ms":105.238,"elapsed_ms":0.015}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_upstream/got_connection_reused","start_ms":105.238,"elapsed_ms":0.022}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_upstream/request_written","start_ms":105.238,"elapsed_ms":0.046}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_upstream/first_byte","start_ms":105.238,"elapsed_ms":368.101}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"upstream_headers","start_ms":105.238,"elapsed_ms":368.166}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"upstream_http","start_ms":105.238,"elapsed_ms":368.639}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"provider_complete","start_ms":105.163,"elapsed_ms":369.049}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"response_rules","start_ms":475.925,"elapsed_ms":0.003}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"settlement","start_ms":475.937,"elapsed_ms":1.717}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"write_enqueue","start_ms":477.679,"elapsed_ms":0.026}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"write_queue_wait","start_ms":477.68,"elapsed_ms":0.56}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"http_handler","start_ms":4.277,"elapsed_ms":474.165}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_embedding/get_connection","start_ms":478.853,"elapsed_ms":0.023}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_embedding/got_connection_reused","start_ms":478.853,"elapsed_ms":0.039}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_embedding/request_written","start_ms":478.853,"elapsed_ms":0.117}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"net_embedding/first_byte","start_ms":478.853,"elapsed_ms":20.127}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"embedding_headers","start_ms":478.853,"elapsed_ms":20.171}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"embedding_http","start_ms":478.853,"elapsed_ms":20.262}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"store_embedding","start_ms":478.391,"elapsed_ms":20.948}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"repo_write","start_ms":499.342,"elapsed_ms":1.055}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"vector_insert","start_ms":500.404,"elapsed_ms":11.619}
+    live_timing_test.go:136: SAMPLE {"type":"stage","request_id":"timing-192424.787000334","name":"store_total","start_ms":478.388,"elapsed_ms":33.641}
+    live_timing_test.go:139: SAMPLE {"type":"operation","name":"lookup_embedding","elapsed_ms":89.234,"start_ms":8.870000000000005,"ok":true}
+    live_timing_test.go:139: SAMPLE {"type":"operation","name":"vector_search","elapsed_ms":4.071,"start_ms":98.11,"ok":false}
+    live_timing_test.go:139: SAMPLE {"type":"outcome","name":"lookup/vector_error","elapsed_ms":0,"start_ms":102.184,"ok":true}
+    live_timing_test.go:139: SAMPLE {"type":"outcome","name":"enqueue/accepted","elapsed_ms":0,"start_ms":477.703,"ok":true}
+    live_timing_test.go:139: SAMPLE {"type":"operation","name":"store_embedding","elapsed_ms":20.945,"start_ms":478.391,"ok":true}
+    live_timing_test.go:139: SAMPLE {"type":"operation","name":"repo_write","elapsed_ms":1.058,"start_ms":499.343,"ok":true}
+    live_timing_test.go:139: SAMPLE {"type":"operation","name":"vector_insert","elapsed_ms":11.624,"start_ms":500.405,"ok":true}
+    live_timing_test.go:139: SAMPLE {"type":"operation","name":"store_total","elapsed_ms":33.639,"start_ms":478.39,"ok":true}
+    live_timing_test.go:139: SAMPLE {"type":"outcome","name":"store/stored","elapsed_ms":0,"start_ms":512.031,"ok":true}
+--- PASS: TestLiveStageAccounting (0.77s)
+PASS

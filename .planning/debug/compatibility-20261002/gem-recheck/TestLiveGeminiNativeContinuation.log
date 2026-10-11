@@ -1,0 +1,6 @@
+=== RUN   TestLiveGeminiNativeContinuation
+    live_ship_gemini_diagnostic_test.go:43: native function_calls=1 parts_with_opaque_signature=1
+    live_ship_gemini_diagnostic_test.go:50: direct native continuation passed with the real provider's complete content retained
+    live_ship_gemini_diagnostic_test.go:51: real provider rejects the same continuation without opaque signature: HTTP=400 signature_required=true
+--- PASS: TestLiveGeminiNativeContinuation (4.02s)
+PASS

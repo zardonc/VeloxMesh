@@ -1,0 +1,14 @@
+=== RUN   TestPhase29LocalQueueBurst
+{"time":"2026-10-04T06:47:07.503294764Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:47:07.506089825Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T06:47:07.506146161Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T06:47:07.506157713Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:47:07.506240459Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T06:47:07.509385078Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_burst_acceptance_test.go:25: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T06:47:07.532536232Z","level":"ERROR","msg":"semantic cache operation failed","operation":"lookup","reason":"vector_error","error":"failed to search points in qdrant: Query() failed: semantic_cache_bc5fcd121796e529f027e038f94bd575ac75dab69ee4775044e41f85f8af3764: rpc error: code = NotFound desc = Not found: Collection `semantic_cache_bc5fcd121796e529f027e038f94bd575ac75dab69ee4775044e41f85f8af3764` doesn't exist!"}
+{"time":"2026-10-04T06:47:07.603825966Z","level":"INFO","msg":"request completed","request_id":"973fac8ee7bad00c18f1e60f57a083a5","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":93}
+    phase29_burst_acceptance_test.go:55: candidates=128 accepted=33 dropped_newest=95 enqueue_ms=0.091 close_ms=544.597 heap_before=3079544 heap_after=4122976
+    phase29_burst_acceptance_test.go:56: reason_counts=map[enqueue/accepted:33 enqueue/closed:1 enqueue/queue_full:95 store/stored:34]
+--- PASS: TestPhase29LocalQueueBurst (0.68s)
+PASS

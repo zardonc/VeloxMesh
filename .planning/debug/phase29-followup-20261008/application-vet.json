@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "go",
+    "vet",
+    "./internal/cache",
+    "./internal/gateway",
+    "./internal/providers/openai"
+  ],
+  "exit_code": 0,
+  "seconds": 6.4215370999882
+}

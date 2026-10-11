@@ -98,6 +98,22 @@ type SemanticCacheRepository interface {
 	Disable(ctx context.Context, id string) error
 }
 
+// Cleanup is restricted to reconstructible cache entries, never usage or keys.
+type SemanticCacheCleanupRepository interface {
+	ListDiscardable(context.Context, CacheCleanupQuery) ([]CacheGarbage, error)
+	RemoveDiscardable(context.Context, CacheGarbage) error
+}
+
+type CacheCleanupQuery struct {
+	PendingBefore, ExpiredBefore time.Time
+	Limit                        int
+}
+
+type CacheGarbage struct {
+	ID, Scope, Model     string
+	CreatedAt, ExpiresAt time.Time
+}
+
 type FallbackLogRepository interface {
 	Insert(ctx context.Context, record *FallbackLogRecord) error
 	ListPending(ctx context.Context, limit int) ([]*FallbackLogRecord, error)

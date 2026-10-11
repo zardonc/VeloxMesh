@@ -1,0 +1,4 @@
+=== RUN   TestLiveToolStreaming
+    live_ship_protocol_test.go:258: failed to seed config: static provider phase29-embedding has no api_key or env resolved, skipping seed
+--- FAIL: TestLiveToolStreaming (0.08s)
+FAIL

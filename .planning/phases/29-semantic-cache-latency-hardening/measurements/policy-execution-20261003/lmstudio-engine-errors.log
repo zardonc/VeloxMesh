@@ -1,0 +1,13 @@
+Read-only, bounded excerpts collected 2026-10-04. No prompts, credentials or full server log copied.
+Source: LM Studio server-logs/2026-10/2026-10-03.8.log; original lines 37565/37570 and 38347/38352.
+LM Studio timestamps use America/Vancouver; gateway timestamps use UTC.
+Time/count correlation is evidence for investigation, not an end-to-end request ID or root-cause proof.
+
+[2026-10-03 23:47:41][ERROR][qwen2.5-0.5b-instruct] Error: Channel Error
+- Caused By: Error: Engine protocol predict request failed: fetch failed
+[2026-10-03 23:47:43][ERROR][qwen2.5-0.5b-instruct] Error: Channel Error
+- Caused By: Error: Engine protocol predict request failed: fetch failed
+
+Source: warm-batch/low-hit-1-recheck/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log; original lines 75 and 90.
+{"time":"2026-10-04T06:47:42.013981608Z","level":"INFO","msg":"request completed","request_id":"diag-71","method":"POST","path":"/v1/chat/completions","status":400,"latency_ms":40}
+{"time":"2026-10-04T06:47:43.910600271Z","level":"INFO","msg":"request completed","request_id":"diag-85","method":"POST","path":"/v1/chat/completions","status":400,"latency_ms":186}

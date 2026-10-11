@@ -1,5 +1,7 @@
 package llm
 
+import "encoding/json"
+
 type Role string
 
 const (
@@ -42,9 +44,9 @@ const (
 )
 
 type Function struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Parameters  any    `json:"parameters,omitempty"` // Usually JSON Schema
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	Parameters  json.RawMessage `json:"parameters,omitempty"`
 }
 
 type Tool struct {
@@ -53,9 +55,18 @@ type Tool struct {
 }
 
 type ToolCall struct {
-	ID       string       `json:"id"`
-	Type     ToolType     `json:"type"`
-	Function FunctionCall `json:"function"`
+	ID           string                `json:"id"`
+	Type         ToolType              `json:"type"`
+	Function     FunctionCall          `json:"function"`
+	ExtraContent *ToolCallExtraContent `json:"extra_content,omitempty"`
+}
+
+type ToolCallExtraContent struct {
+	Google GoogleToolCallExtraContent `json:"google"`
+}
+
+type GoogleToolCallExtraContent struct {
+	ThoughtSignature string `json:"thought_signature"`
 }
 
 type FunctionCall struct {
@@ -64,10 +75,11 @@ type FunctionCall struct {
 }
 
 type ToolCallChunk struct {
-	Index    *int               `json:"index,omitempty"`
-	ID       *string            `json:"id,omitempty"`
-	Type     *ToolType          `json:"type,omitempty"`
-	Function *FunctionCallChunk `json:"function,omitempty"`
+	Index        *int                  `json:"index,omitempty"`
+	ID           *string               `json:"id,omitempty"`
+	Type         *ToolType             `json:"type,omitempty"`
+	Function     *FunctionCallChunk    `json:"function,omitempty"`
+	ExtraContent *ToolCallExtraContent `json:"extra_content,omitempty"`
 }
 
 type FunctionCallChunk struct {
@@ -76,26 +88,28 @@ type FunctionCallChunk struct {
 }
 
 type ChatCompletionRequest struct {
-	Model       string    `json:"model"`
-	Messages    []Message `json:"messages"`
-	Temperature *float64  `json:"temperature,omitempty"`
-	MaxTokens   *int      `json:"max_tokens,omitempty"`
-	Stream      bool      `json:"stream,omitempty"`
-	Tools       []Tool    `json:"tools,omitempty"`
-	ToolChoice  any       `json:"tool_choice,omitempty"`
+	Model       string      `json:"model"`
+	Messages    []Message   `json:"messages"`
+	Temperature *float64    `json:"temperature,omitempty"`
+	MaxTokens   *int        `json:"max_tokens,omitempty"`
+	Stream      bool        `json:"stream,omitempty"`
+	Tools       []Tool      `json:"tools,omitempty"`
+	ToolChoice  *ToolChoice `json:"tool_choice,omitempty"`
 }
 
 type LLMRequest struct {
-	RequestID     string
-	Model         string
-	Messages      []Message
-	Temperature   *float64
-	MaxTokens     *int
-	Stream        bool
-	PriorityClass string
-	RouteOverride string
-	Tools         []Tool
-	ToolChoice    any
+	RequestID        string
+	Model            string
+	Messages         []Message
+	Temperature      *float64
+	MaxTokens        *int
+	Stream           bool
+	PriorityClass    string
+	RouteOverride    string
+	Tools            []Tool
+	ToolChoice       *ToolChoice
+	ToolRequirements ToolProtocolRequirements
+	CacheUnsafe      bool
 }
 
 type Choice struct {

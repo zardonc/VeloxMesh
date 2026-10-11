@@ -1,0 +1,6 @@
+=== RUN   TestLiveDirectBusinessFAQResponses
+    live_business_faq_test.go:115: SAMPLE {"answer":"The free trial lasts 14 days.","correct":true,"index":0,"model":"oc/mimo-v2.6-flash-free","type":"direct_business_faq"}
+    live_business_faq_test.go:115: SAMPLE {"answer":"Refunds are allowed within 7 days of purchase.","correct":true,"index":1,"model":"oc/mimo-v2.6-flash-free","type":"direct_business_faq"}
+    live_business_faq_test.go:115: SAMPLE {"answer":"Paid access continues until the end of your current billing period.","correct":true,"index":2,"model":"oc/mimo-v2.6-flash-free","type":"direct_business_faq"}
+--- PASS: TestLiveDirectBusinessFAQResponses (10.54s)
+PASS

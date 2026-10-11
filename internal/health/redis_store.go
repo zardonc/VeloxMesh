@@ -4,22 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
-
 	"veloxmesh/internal/hotstate"
 )
 
-type RedisStore struct {
-	client hotstate.Client
-	ttl    time.Duration
+const defaultHealthSyncTimeout = 50 * time.Millisecond
 
-	// Local state for atomic counters since snapshot is a full struct replacement
-	mu       sync.RWMutex
-	localMap map[string]*RedisProviderState
-	localModels map[string]*RedisModelState
+type RedisStoreOptions struct {
+	TTL         string
+	SyncTimeout time.Duration
+	Logger      *slog.Logger
 }
-
+type RedisStore struct {
+	client           hotstate.Client
+	ttl, syncTimeout time.Duration
+	logger           *slog.Logger
+	mu               sync.RWMutex
+	localMap         map[string]*RedisProviderState
+	localModels      map[string]*RedisModelState
+	gates            map[string]chan struct{}
+}
 type RedisModelState struct {
 	ProviderID     string    `json:"provider_id"`
 	Model          string    `json:"model"`
@@ -27,7 +33,6 @@ type RedisModelState struct {
 	TotalFailures  int       `json:"total_failures"`
 	LastUpdated    time.Time `json:"last_updated"`
 }
-
 type RedisProviderState struct {
 	ID                   string        `json:"id"`
 	Status               Status        `json:"status"`
@@ -41,26 +46,29 @@ type RedisProviderState struct {
 	LastUpdated          time.Time     `json:"last_updated"`
 	FailureThreshold     int           `json:"failure_threshold"`
 	SuccessThreshold     int           `json:"success_threshold"`
-
-	LastProbeAt       time.Time     `json:"last_probe_at"`
-	LastProbeSuccess  bool          `json:"last_probe_success"`
-	LastProbeError    string        `json:"last_probe_error"`
-	LastProbeDuration time.Duration `json:"last_probe_duration"`
+	LastProbeAt          time.Time     `json:"last_probe_at"`
+	LastProbeSuccess     bool          `json:"last_probe_success"`
+	LastProbeError       string        `json:"last_probe_error"`
+	LastProbeDuration    time.Duration `json:"last_probe_duration"`
 }
 
-func NewRedisStore(client hotstate.Client, ttlStr string) *RedisStore {
-	ttl, _ := time.ParseDuration(ttlStr)
+func NewRedisStore(client hotstate.Client, ttl string) *RedisStore {
+	return NewRedisStoreWithOptions(client, RedisStoreOptions{TTL: ttl})
+}
+func NewRedisStoreWithOptions(client hotstate.Client, options RedisStoreOptions) *RedisStore {
+	ttl, _ := time.ParseDuration(options.TTL)
 	if ttl <= 0 {
 		ttl = time.Minute
 	}
-	return &RedisStore{
-		client:      client,
-		ttl:         ttl,
-		localMap:    make(map[string]*RedisProviderState),
-		localModels: make(map[string]*RedisModelState),
+	if options.SyncTimeout <= 0 {
+		options.SyncTimeout = defaultHealthSyncTimeout
 	}
+	if options.Logger == nil {
+		options.Logger = slog.Default()
+	}
+	return &RedisStore{client: client, ttl: ttl, syncTimeout: options.SyncTimeout, logger: options.Logger,
+		localMap: make(map[string]*RedisProviderState), localModels: make(map[string]*RedisModelState), gates: make(map[string]chan struct{})}
 }
-
 func (s *RedisStore) EnsureProvider(id string, failureThreshold, successThreshold int) {
 	if failureThreshold <= 0 {
 		failureThreshold = 3
@@ -68,268 +76,137 @@ func (s *RedisStore) EnsureProvider(id string, failureThreshold, successThreshol
 	if successThreshold <= 0 {
 		successThreshold = 1
 	}
-
 	s.mu.Lock()
-	defer s.mu.Unlock()
-	if _, exists := s.localMap[id]; !exists {
-		s.localMap[id] = &RedisProviderState{
-			ID:               id,
-			Status:           StatusHealthy,
-			FailureThreshold: failureThreshold,
-			SuccessThreshold: successThreshold,
-			LastUpdated:      time.Now(),
-		}
-		s.syncToRedis(context.Background(), id, s.localMap[id])
+	_, exists := s.localMap[id]
+	if !exists {
+		s.localMap[id] = &RedisProviderState{ID: id, Status: StatusHealthy, FailureThreshold: failureThreshold, SuccessThreshold: successThreshold, LastUpdated: time.Now()}
+	}
+	s.mu.Unlock()
+	if !exists {
+		s.publishProvider(id)
 	}
 }
-
+func (s *RedisStore) updateProvider(id string, update func(RedisProviderState) RedisProviderState) {
+	s.mu.Lock()
+	state, exists := s.localMap[id]
+	if exists {
+		updated := update(*state)
+		updated.LastUpdated = time.Now()
+		s.localMap[id] = &updated
+	}
+	s.mu.Unlock()
+	if exists {
+		s.publishProvider(id)
+	}
+}
 func (s *RedisStore) BeginRequest(id string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	state, exists := s.localMap[id]
-	if !exists {
-		return
-	}
-	state.PendingRequests++
-	state.LastUpdated = time.Now()
-	s.syncToRedis(context.Background(), id, state)
+	s.updateProvider(id, func(state RedisProviderState) RedisProviderState { state.PendingRequests++; return state })
 }
-
 func (s *RedisStore) EndRequest(id string, latency time.Duration, err error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	state, exists := s.localMap[id]
-	if !exists {
-		return
-	}
-	if state.PendingRequests > 0 {
-		state.PendingRequests--
-	}
-
+	s.updateProvider(id, func(state RedisProviderState) RedisProviderState {
+		if state.PendingRequests > 0 {
+			state.PendingRequests--
+		}
+		return redisOutcome(state, latency, err)
+	})
+}
+func redisOutcome(state RedisProviderState, latency time.Duration, err error) RedisProviderState {
 	if err != nil {
 		state.ConsecutiveFailures++
 		state.ConsecutiveSuccesses = 0
 		state.TotalFailures++
 		state.LastError = err.Error()
-	} else {
-		state.ConsecutiveSuccesses++
-		state.TotalSuccesses++
-		if state.ConsecutiveSuccesses >= state.SuccessThreshold {
-			state.ConsecutiveFailures = 0
-			state.ConsecutiveSuccesses = 0
-			state.LastError = ""
-		}
-		if state.EWMALatency == 0 {
-			state.EWMALatency = latency
-		} else {
-			state.EWMALatency = time.Duration(float64(latency)*0.2 + float64(state.EWMALatency)*0.8)
-		}
+		return state
 	}
-	state.LastUpdated = time.Now()
-	s.syncToRedis(context.Background(), id, state)
+	state.ConsecutiveSuccesses++
+	state.TotalSuccesses++
+	if state.ConsecutiveSuccesses >= state.SuccessThreshold {
+		state.ConsecutiveFailures, state.ConsecutiveSuccesses, state.LastError = 0, 0, ""
+	}
+	if state.EWMALatency == 0 {
+		state.EWMALatency = latency
+	} else {
+		state.EWMALatency = time.Duration(float64(latency)*0.2 + float64(state.EWMALatency)*0.8)
+	}
+	return state
 }
-
 func (s *RedisStore) RecordProbe(id string, success bool, latency time.Duration, errMsg string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	state, exists := s.localMap[id]
-	if !exists {
-		return
-	}
-
-	state.LastProbeAt = time.Now()
-	state.LastProbeDuration = latency
-	state.LastProbeSuccess = success
-	state.LastProbeError = errMsg
-
-	if !success {
-		state.ConsecutiveFailures++
-		state.ConsecutiveSuccesses = 0
-		state.TotalFailures++
-		if state.Status == StatusHealthy && state.ConsecutiveFailures >= state.FailureThreshold {
-			state.Status = StatusUnhealthy
+	s.updateProvider(id, func(state RedisProviderState) RedisProviderState {
+		var err error
+		if !success {
+			err = fmt.Errorf("%s", errMsg)
 		}
-	} else {
-		state.ConsecutiveSuccesses++
-		state.TotalSuccesses++
-		if state.Status == StatusUnhealthy && state.ConsecutiveSuccesses >= state.SuccessThreshold {
-			state.Status = StatusHealthy
-			state.ConsecutiveFailures = 0
-			state.ConsecutiveSuccesses = 0
+		updated := redisOutcome(state, latency, err)
+		updated.LastProbeAt, updated.LastProbeDuration = time.Now(), latency
+		updated.LastProbeSuccess, updated.LastProbeError = success, errMsg
+		return updated
+	})
+	s.publish("probe:"+id, func(ctx context.Context) error {
+		state := s.providerCopy(id)
+		if state == nil {
+			return nil
 		}
-	}
-	state.LastUpdated = time.Now()
-
-	s.syncToRedis(context.Background(), id, state)
-
-	// Save probe snapshot directly (RedisStore specifics)
-	probeData := map[string]interface{}{
-		"success": success,
-		"latency": latency,
-		"error":   errMsg,
-		"time":    state.LastProbeAt,
-	}
-	data, _ := json.Marshal(probeData)
-	_ = s.client.SetProbeSnapshot(context.Background(), id, data, s.ttl)
+		data, err := json.Marshal(map[string]interface{}{"success": state.LastProbeSuccess, "latency": state.LastProbeDuration, "error": state.LastProbeError, "time": state.LastProbeAt})
+		if err != nil {
+			return err
+		}
+		return s.writeSnapshot(ctx, hotstate.SnapshotWrite{Category: "probe", Key: id, Version: fmt.Sprintf("%020d", state.LastProbeAt.UnixNano()), Data: data, TTL: s.ttl})
+	})
 }
-
-func (s *RedisStore) Snapshot(id string) ProviderSnapshot {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	data, err := s.client.GetHealthSnapshot(ctx, id)
-	if err != nil {
-		if err == hotstate.ErrCacheMiss {
-			// Fallback to local
-			s.mu.RLock()
-			defer s.mu.RUnlock()
-			state, exists := s.localMap[id]
-			if !exists {
-				return ProviderSnapshot{ID: id, Status: StatusUnhealthy}
-			}
-			return s.buildSnapshot(state)
-		}
-		return ProviderSnapshot{ID: id, Status: StatusUnhealthy}
-	}
-
-	var state RedisProviderState
-	if err := json.Unmarshal(data, &state); err != nil {
-		return ProviderSnapshot{ID: id, Status: StatusUnhealthy}
-	}
-
-	// Sync local map
-	s.mu.Lock()
-	if existing, ok := s.localMap[id]; ok {
-		*existing = state
-	}
-	s.mu.Unlock()
-
-	return s.buildSnapshot(&state)
-}
-
-func (s *RedisStore) Snapshots() map[string]ProviderSnapshot {
+func (s *RedisStore) providerCopy(id string) *RedisProviderState {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
-	result := make(map[string]ProviderSnapshot, len(s.localMap))
-	for id, state := range s.localMap {
-		result[id] = s.buildSnapshot(state)
+	if state := s.localMap[id]; state != nil {
+		clone := *state
+		return &clone
 	}
-	return result
+	return nil
+}
+func (s *RedisStore) publishProvider(id string) {
+	s.publish("provider:"+id, func(ctx context.Context) error {
+		state := s.providerCopy(id)
+		if state == nil {
+			return nil
+		}
+		return s.syncToRedis(ctx, id, state)
+	})
 }
 
-func (s *RedisStore) buildSnapshot(state *RedisProviderState) ProviderSnapshot {
-	status := StatusHealthy
-	if state.ConsecutiveFailures >= state.FailureThreshold {
-		status = StatusUnhealthy
-	} else if state.ConsecutiveFailures > 0 {
-		status = StatusDegraded
+// Atomic ordered writers reject stale snapshots at the destination, so a slow
+// reply must not queue newer requests for the same provider behind it. Legacy
+// writers retain the per-key gate and copy the latest state after acquiring it.
+// Both paths keep network I/O bounded without holding the global state mutex.
+func (s *RedisStore) publish(key string, send func(context.Context) error) {
+	ctx, cancel := context.WithTimeout(context.Background(), s.syncTimeout)
+	defer cancel()
+	if _, ordered := s.client.(hotstate.OrderedSnapshotWriter); ordered {
+		if err := send(ctx); err != nil {
+			s.logger.Error("Redis health replication failed", "key", key, "error", err)
+		}
+		return
 	}
-
-	var lastErr error
-	if state.LastError != "" {
-		lastErr = fmt.Errorf("%s", state.LastError)
+	s.mu.Lock()
+	gate := s.gates[key]
+	if gate == nil {
+		gate = make(chan struct{}, 1)
+		s.gates[key] = gate
 	}
-
-	return ProviderSnapshot{
-		ID:                  state.ID,
-		Status:              status,
-		EWMALatency:         state.EWMALatency,
-		PendingRequests:     state.PendingRequests,
-		ConsecutiveFailures: state.ConsecutiveFailures,
-		TotalSuccesses:      state.TotalSuccesses,
-		TotalFailures:       state.TotalFailures,
-		LastError:           lastErr,
-		LastUpdated:         state.LastUpdated,
-		LastProbeAt:         state.LastProbeAt,
-		LastProbeSuccess:    state.LastProbeSuccess,
-		LastProbeError:      state.LastProbeError,
-		LastProbeDuration:   state.LastProbeDuration,
+	s.mu.Unlock()
+	select {
+	case gate <- struct{}{}:
+		defer func() { <-gate }()
+	case <-ctx.Done():
+		s.logger.Error("Redis health replication failed", "key", key, "error", ctx.Err())
+		return
+	}
+	if err := send(ctx); err != nil {
+		s.logger.Error("Redis health replication failed", "key", key, "error", err)
 	}
 }
-
 func (s *RedisStore) syncToRedis(ctx context.Context, id string, state *RedisProviderState) error {
 	data, err := json.Marshal(state)
 	if err != nil {
-		return fmt.Errorf("failed to marshal health state: %w", err)
+		return fmt.Errorf("marshal health state: %w", err)
 	}
-	return s.client.SetHealthSnapshot(ctx, id, data, s.ttl)
-}
-
-func (s *RedisStore) RecordModelOutcome(providerID, model string, success bool) {
-	key := providerID + ":" + model
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	state, exists := s.localModels[key]
-	if !exists {
-		state = &RedisModelState{
-			ProviderID: providerID,
-			Model:      model,
-		}
-		s.localModels[key] = state
-	}
-
-	if success {
-		state.TotalSuccesses++
-	} else {
-		state.TotalFailures++
-	}
-	state.LastUpdated = time.Now()
-
-	// Sync to Redis byte cache
-	data, err := json.Marshal(state)
-	if err == nil {
-		redisKey := "model_snapshot:" + key
-		_ = s.client.SetBytes(context.Background(), redisKey, data, s.ttl)
-	}
-}
-
-func (s *RedisStore) ModelSnapshot(providerID, model string) ModelSnapshot {
-	key := providerID + ":" + model
-	redisKey := "model_snapshot:" + key
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	data, err := s.client.GetBytes(ctx, redisKey)
-	if err != nil {
-		// Fallback to local
-		s.mu.RLock()
-		defer s.mu.RUnlock()
-		state, exists := s.localModels[key]
-		if !exists {
-			return ModelSnapshot{ProviderID: providerID, Model: model}
-		}
-		return ModelSnapshot{
-			ProviderID:     state.ProviderID,
-			Model:          state.Model,
-			TotalSuccesses: state.TotalSuccesses,
-			TotalFailures:  state.TotalFailures,
-			LastUpdated:    state.LastUpdated,
-		}
-	}
-
-	var state RedisModelState
-	if err := json.Unmarshal(data, &state); err != nil {
-		return ModelSnapshot{ProviderID: providerID, Model: model}
-	}
-
-	// Sync local map
-	s.mu.Lock()
-	if existing, ok := s.localModels[key]; ok {
-		*existing = state
-	} else {
-		s.localModels[key] = &state
-	}
-	s.mu.Unlock()
-
-	return ModelSnapshot{
-		ProviderID:     state.ProviderID,
-		Model:          state.Model,
-		TotalSuccesses: state.TotalSuccesses,
-		TotalFailures:  state.TotalFailures,
-		LastUpdated:    state.LastUpdated,
-	}
+	return s.writeSnapshot(ctx, hotstate.SnapshotWrite{Category: "health", Key: id, Version: fmt.Sprintf("%020d", state.LastUpdated.UnixNano()), Data: data, TTL: s.ttl})
 }

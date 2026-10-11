@@ -1,0 +1,126 @@
+{
+  "source_revision": "c8849c98aae1a57c9c0b04e21e19896e82c33cd8",
+  "branch": "codex/phase-27-stream-terminal-settlement",
+  "fixed_binary_sha256": "890181235d2fcceb77c27b7b129fe9b230a0c938d83a650bd8c3551f9fffafeb",
+  "baseline_binary_sha256": "9a35b76961950e115599bfcff40e12b107eb8a5519bb891fe9534ff1682dba53",
+  "baseline_overlay": {
+    "original_revision": "c8849c98aae1a57c9c0b04e21e19896e82c33cd8",
+    "replace": [
+      "internal/providers/openai/adapter.go",
+      "internal/providers/gemini/tool_protocol.go",
+      "internal/providers/toolstream/state.go"
+    ],
+    "omit": [
+      "internal/providers/openai/stream.go"
+    ],
+    "unchanged": "Current real E2E assertions and shared DTOs remain enabled in both builds."
+  },
+  "files": [
+    {
+      "path": "internal/providers/openai/adapter.go",
+      "sha256": "4025d9da26e61dec1d23fce2537a95f4a493d5b1abbb8533e68c17d3c69928e0"
+    },
+    {
+      "path": "internal/providers/openai/stream.go",
+      "sha256": "a494cc66a86e88a0345f61867c388a5b0094c5a18329b162ab4dc0fb19577881"
+    },
+    {
+      "path": "internal/providers/gemini/tool_protocol.go",
+      "sha256": "1cfefc6f07054bcde095ce25666bc1e3f744b6ade440e93ae9bb5524a1fdd08d"
+    },
+    {
+      "path": "internal/providers/toolstream/state.go",
+      "sha256": "1ddb19768d5652ab76b90d25abb58fec16e38fe0393cf3699f6d6b8f638a3f36"
+    },
+    {
+      "path": "internal/llm/types.go",
+      "sha256": "c9991efdf9c7bd7730840b1540ac4deb6dde27a58235d52213874d22bffa896a"
+    },
+    {
+      "path": "internal/llm/tool_protocol.go",
+      "sha256": "131acab3a05c0504631bb80a365f6964a503b595bfa609d294dcc4e34ae586f8"
+    },
+    {
+      "path": "internal/app/live_ship_protocol_test.go",
+      "sha256": "9d464643eb271b4f69768cbd6e0ba0857d1a69d0d9804f226c0ca390247b6559"
+    },
+    {
+      "path": ".planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001/runner/main.go",
+      "sha256": "f3e48b2fa972381c7bc17d7efcbd0ccd1d351345c1875d48b535053afbb65679"
+    },
+    {
+      "path": "internal/app/live_ship_gemini_diagnostic_test.go",
+      "sha256": "087d4662705e2e597f391b51d8ceff105c3221b15a1bc44353460e24cd957db5"
+    }
+  ],
+  "backend_test_timeout_seconds": 60,
+  "production_config_changed": false,
+  "merge_performed": false,
+  "initial_fixed_files": [
+    {
+      "path": "internal/providers/openai/adapter.go",
+      "sha256": "4025d9da26e61dec1d23fce2537a95f4a493d5b1abbb8533e68c17d3c69928e0"
+    },
+    {
+      "path": "internal/providers/openai/stream.go",
+      "sha256": "a494cc66a86e88a0345f61867c388a5b0094c5a18329b162ab4dc0fb19577881"
+    },
+    {
+      "path": "internal/providers/gemini/tool_protocol.go",
+      "sha256": "1cfefc6f07054bcde095ce25666bc1e3f744b6ade440e93ae9bb5524a1fdd08d"
+    },
+    {
+      "path": "internal/providers/toolstream/state.go",
+      "sha256": "1ddb19768d5652ab76b90d25abb58fec16e38fe0393cf3699f6d6b8f638a3f36"
+    },
+    {
+      "path": "internal/llm/types.go",
+      "sha256": "c9991efdf9c7bd7730840b1540ac4deb6dde27a58235d52213874d22bffa896a"
+    },
+    {
+      "path": "internal/llm/tool_protocol.go",
+      "sha256": "131acab3a05c0504631bb80a365f6964a503b595bfa609d294dcc4e34ae586f8"
+    },
+    {
+      "path": "internal/app/live_ship_protocol_test.go",
+      "sha256": "43c127b3560427016a583634e8505dcb772dba641b4c6fe6967aadeaaddd0d99"
+    },
+    {
+      "path": ".planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001/runner/main.go",
+      "sha256": "d53cecaa8778c7e971010eac0a2bddbc9285067d8d3d67b99a07fdfb7c97c7dd"
+    }
+  ],
+  "binaries": {
+    "baseline": {
+      "sha256": "9a35b76961950e115599bfcff40e12b107eb8a5519bb891fe9534ff1682dba53",
+      "groups": [
+        "gpt-baseline-ready",
+        "gem-baseline"
+      ]
+    },
+    "first_fixed": {
+      "sha256": "890181235d2fcceb77c27b7b129fe9b230a0c938d83a650bd8c3551f9fffafeb",
+      "groups": [
+        "gpt-fixed",
+        "gem-fixed"
+      ]
+    },
+    "signature_final": {
+      "sha256": "acadbfda5d8823bfd628ee04686e4c67b87046c2013242a325ba63854f517c87",
+      "groups": [
+        "gem-signature-final",
+        "gem-recheck"
+      ]
+    },
+    "diagnostic_final": {
+      "sha256": "3f5c4ade02b391f620c00c577ce36b9c01031bebbe2b2454f72ffce24d5c41d4",
+      "groups": [
+        "gem-native-stream"
+      ]
+    },
+    "runner_final": {
+      "sha256": "96e0bb595d7e8c35e9caea7bd83fd4cf4f3792c45461617e0be36407cf20355d"
+    }
+  },
+  "production_files_unchanged_between_fixed_runs": true
+}

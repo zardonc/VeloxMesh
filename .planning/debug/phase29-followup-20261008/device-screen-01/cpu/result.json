@@ -1,0 +1,63 @@
+{
+  "complete": true,
+  "device": "cpu",
+  "requests": 30,
+  "successes": 30,
+  "http_ms": {
+    "count": 30,
+    "p50": 11.22919999761507,
+    "p95": 13.56399999349378,
+    "p99": 14.100200001848862,
+    "max": 14.100200001848862
+  },
+  "dispatch_lag_ms": {
+    "count": 30,
+    "p50": 8.226900012232363,
+    "p95": 15.089900000020862,
+    "p99": 15.178000001469627,
+    "max": 15.178000001469627
+  },
+  "cpu": {
+    "before": {
+      "created": 13435983148.683428,
+      "exited": 0.0,
+      "process_kernel": 0.546875,
+      "process_user": 0.484375,
+      "system_idle": 1605201.96875,
+      "system_kernel": 1710835.484375,
+      "system_user": 151563.0625,
+      "pid": 4740,
+      "creation_filetime_ticks": 134359831486834270,
+      "process_at": 178195.6681544,
+      "system_at": 178195.6682009,
+      "utc": "2026-10-09T01:32:31.289563+00:00"
+    },
+    "after": {
+      "created": 13435983148.683428,
+      "exited": 0.0,
+      "process_kernel": 5.734375,
+      "process_user": 5.140625,
+      "system_idle": 1605239.203125,
+      "system_kernel": 1710882.5,
+      "system_user": 151574.296875,
+      "pid": 4740,
+      "creation_filetime_ticks": 134359831486834270,
+      "process_at": 178199.3124639,
+      "system_at": 178199.3125061,
+      "utc": "2026-10-09T01:32:34.933854+00:00"
+    },
+    "logical_processors": 16,
+    "process_elapsed_s": 3.6443094999995083,
+    "host_elapsed_s": 3.6443051999958698,
+    "process_cpu_s": 9.84375,
+    "process_core_equivalents": 2.7011289793035766,
+    "host_active_cpu_s": 21.015625,
+    "host_core_equivalents": 5.766702799761068,
+    "host_busy_percent": 36.07832618025751,
+    "process_logical_capacity_percent": 16.882056120647356
+  },
+  "watchdog_expired": false,
+  "port_free": true,
+  "exit_verified": true,
+  "owned_server_exit_code": 1
+}

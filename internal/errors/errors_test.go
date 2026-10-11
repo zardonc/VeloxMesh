@@ -36,6 +36,16 @@ func TestAffectsProviderHealth(t *testing.T) {
 			expected: false,
 		},
 		{
+			name:     "client cancellation",
+			err:      context.Canceled,
+			expected: false,
+		},
+		{
+			name:     "policy rejection",
+			err:      ErrPolicyBlocked,
+			expected: false,
+		},
+		{
 			name:     "standard go error",
 			err:      errors.New("connection reset by peer"),
 			expected: true,

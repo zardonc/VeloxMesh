@@ -1,0 +1,12 @@
+=== RUN   TestLiveFusionStream
+{"time":"2026-10-04T00:54:15.62981193Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T00:54:15.6334083Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T00:54:15.63345036Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T00:54:15.633459066Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T00:54:15.633498089Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T00:54:15.636029554Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_features_test.go:139: model=text-embedding-embedder_collection dimension=768 primary=inclusionai/ling-3.0-flash-sante:free
+{"time":"2026-10-04T00:54:18.845782074Z","level":"INFO","msg":"request completed","request_id":"ea3de056b9542c22248471e46dc98326","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":3208}
+    live_ship_features_test.go:139: gateway SSE error_code=provider_bad_response
+--- FAIL: TestLiveFusionStream (3.29s)
+FAIL

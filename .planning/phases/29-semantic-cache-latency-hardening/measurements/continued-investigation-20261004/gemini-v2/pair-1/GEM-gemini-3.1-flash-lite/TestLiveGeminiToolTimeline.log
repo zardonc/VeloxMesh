@@ -1,0 +1,25 @@
+=== RUN   TestLiveGeminiToolTimeline
+{"time":"2026-10-04T20:59:28.130624116Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T20:59:28.133450391Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T20:59:28.133482431Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T20:59:28.133491548Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T20:59:28.133545229Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T20:59:28.136200723Z","level":"INFO","msg":"starting config change subscriber"}
+    live_gemini_timeline_test.go:224: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+    live_gemini_timeline_test.go:224: Post "http://127.0.0.1:43333/v1/chat/completions": context deadline exceeded
+    live_gemini_timeline_test.go:55: upstream transport_failed=true elapsed_ms=11998.589 cancelled=true error_type=*errors.errorString
+{"time":"2026-10-04T20:59:40.139645745Z","level":"INFO","msg":"request completed","request_id":"timing-205928.137549544","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":12002}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"net_upstream/get_connection","start_ms":4.305,"elapsed_ms":0.027}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"net_upstream/dns_start","start_ms":4.305,"elapsed_ms":0.089}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"net_upstream/dns_done","start_ms":4.305,"elapsed_ms":3.477}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"net_upstream/connect_start","start_ms":4.305,"elapsed_ms":3.499}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"net_upstream/connect_done","start_ms":4.305,"elapsed_ms":13.904}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"net_upstream/tls_start","start_ms":4.305,"elapsed_ms":13.99}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"net_upstream/tls_done","start_ms":4.305,"elapsed_ms":51.118}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"net_upstream/got_connection_new","start_ms":4.305,"elapsed_ms":51.277}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"net_upstream/request_written","start_ms":4.305,"elapsed_ms":51.336}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"","name":"cache_cleanup","start_ms":9999.012,"elapsed_ms":0.561}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"upstream_headers","start_ms":4.305,"elapsed_ms":11998.717}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-205928.137549544","name":"http_handler","start_ms":1.266,"elapsed_ms":12002.139}
+--- FAIL: TestLiveGeminiToolTimeline (12.10s)
+FAIL

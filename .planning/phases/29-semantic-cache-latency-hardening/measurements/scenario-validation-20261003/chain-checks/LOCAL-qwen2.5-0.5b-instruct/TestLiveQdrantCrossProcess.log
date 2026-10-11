@@ -1,0 +1,24 @@
+=== RUN   TestLiveQdrantCrossProcess
+    live_qdrant_process_test.go:55: === RUN   TestLiveQdrantChild
+        2026/10/03 22:39:02 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+        2026/10/03 22:39:02 WARN Unable to compare versions err="unable to parse version, expected format: x.y[.z], found: "
+        2026/10/03 22:39:02 WARN Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check. clientVersion=Unknown serverVersion=1.18.2
+        2026/10/03 22:39:02 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+        2026/10/03 22:39:02 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+        QDRANT_READY
+        --- PASS: TestLiveQdrantChild (0.05s)
+        PASS
+        
+    live_qdrant_process_test.go:55: === RUN   TestLiveQdrantChild
+        2026/10/03 22:39:02 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+        2026/10/03 22:39:02 WARN Unable to compare versions err="unable to parse version, expected format: x.y[.z], found: "
+        2026/10/03 22:39:02 WARN Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check. clientVersion=Unknown serverVersion=1.18.2
+        2026/10/03 22:39:02 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+        2026/10/03 22:39:02 WARN API key is being used without TLS(HTTPS). It will be transmitted in plaintext.
+        QDRANT_READY
+        --- PASS: TestLiveQdrantChild (0.05s)
+        PASS
+        
+    live_qdrant_process_test.go:60: SAMPLE {"cold_collection":true,"creators_per_process":16,"processes":2,"type":"cross_process_collection"}
+--- PASS: TestLiveQdrantCrossProcess (0.06s)
+PASS

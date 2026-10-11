@@ -1,0 +1,12 @@
+=== RUN   TestPhase29LocalGatewayAcceptance
+{"time":"2026-10-02T04:33:11.667459472Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:33:11.669965976Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-02T04:33:11.66999478Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-02T04:33:11.670003847Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:33:11.670064631Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-02T04:33:11.671855977Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_acceptance_test.go:47: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+    phase29_acceptance_test.go:54: first response: {Type:client Name: ElapsedMS:10000.761 StartMS:0.083 OK:false Status:0 Hit:false Concurrent:0 AnswerHash:}
+{"time":"2026-10-02T04:33:21.674274676Z","level":"INFO","msg":"request completed","request_id":"7a03a3fcbd40852d5f72ee86cec60118","method":"POST","path":"/v1/chat/completions","status":502,"latency_ms":10001}
+--- FAIL: TestPhase29LocalGatewayAcceptance (10.07s)
+FAIL

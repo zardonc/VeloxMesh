@@ -60,6 +60,7 @@ type RequestTrace struct {
 
 // StartRequestTrace creates a new RequestTrace wrapping a trace span.
 func StartRequestTrace(ctx context.Context, reqID string, model string) (context.Context, *RequestTrace) {
+	ctx = WithTimingID(ctx, reqID)
 	tracer := otel.Tracer("veloxmesh/gateway")
 	ctx, span := tracer.Start(ctx, "HandleChatCompletion")
 

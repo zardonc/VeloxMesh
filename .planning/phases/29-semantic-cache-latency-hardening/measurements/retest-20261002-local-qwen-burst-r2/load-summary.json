@@ -1,0 +1,94 @@
+{
+  "runs": [
+    {
+      "file": "TestLiveCacheLoadOff.log",
+      "passed": true,
+      "metadata": {
+        "count": 80,
+        "elapsed_ms": 5090.497,
+        "failed": 0,
+        "interval_ms": 50,
+        "max_concurrency": 4,
+        "mode": "off",
+        "model": "text-embedding-embedder_collection",
+        "type": "metadata"
+      },
+      "attempted": 80,
+      "ok": 80,
+      "failed": 0,
+      "errors": {},
+      "hits": 0,
+      "actual_rps": 15.715557832565269,
+      "successful_rps": 15.715557832565269,
+      "observed_concurrency": 4,
+      "average_concurrency": 3.898136861685609,
+      "schedule_lag_p95_ms": 945.7370000000001,
+      "full_response": {
+        "n": 80,
+        "p50_ms": 241.965,
+        "p95_ms": 305.998,
+        "p99_ms": 474.425
+      },
+      "all_attempts": {
+        "n": 80,
+        "p50_ms": 241.965,
+        "p95_ms": 305.998,
+        "p99_ms": 474.425
+      }
+    },
+    {
+      "file": "TestLiveCacheLoadOn.log",
+      "passed": true,
+      "metadata": {
+        "count": 80,
+        "elapsed_ms": 5320.49,
+        "failed": 0,
+        "interval_ms": 50,
+        "max_concurrency": 4,
+        "mode": "on",
+        "model": "text-embedding-embedder_collection",
+        "type": "metadata"
+      },
+      "attempted": 80,
+      "ok": 80,
+      "failed": 0,
+      "errors": {},
+      "hits": 3,
+      "actual_rps": 15.03620907096903,
+      "successful_rps": 15.03620907096903,
+      "observed_concurrency": 4,
+      "average_concurrency": 3.889914650718261,
+      "schedule_lag_p95_ms": 1076.0780000000004,
+      "full_response": {
+        "n": 80,
+        "p50_ms": 260.213,
+        "p95_ms": 350.215,
+        "p99_ms": 482.273
+      },
+      "all_attempts": {
+        "n": 80,
+        "p50_ms": 260.213,
+        "p95_ms": 350.215,
+        "p99_ms": 482.273
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "off": "TestLiveCacheLoadOff.log",
+      "on": "TestLiveCacheLoadOn.log",
+      "complete_without_errors": true,
+      "p95_ratio": 1.1445009444506173,
+      "limit": 1.05,
+      "gate_passed": false
+    },
+    {
+      "off": "TestLiveCacheLoadOffRepeat.log",
+      "on": "TestLiveCacheLoadOnRepeat.log",
+      "complete_without_errors": false,
+      "p95_ratio": null,
+      "limit": 1.05,
+      "gate_passed": false
+    }
+  ]
+}

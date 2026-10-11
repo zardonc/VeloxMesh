@@ -1,0 +1,16 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+TestLiveDirectLoad exit: Process exited with status 1
+TestLiveCacheLoadOff exit: Process exited with status 1
+TestLiveCacheLoadOn exit: Process exited with status 1
+TestLiveCacheLoadOnRepeat exit: Process exited with status 2
+TestLiveCacheLoadOffRepeat exit: Process exited with status 1
+/veloxmesh-test-redis false
+/veloxmesh-test-qdrant false
+/veloxmesh-test-postgres false
+TestLiveDirectLoad: Process exited with status 1
+TestLiveCacheLoadOff: Process exited with status 1
+TestLiveCacheLoadOn: Process exited with status 1
+TestLiveCacheLoadOnRepeat: Process exited with status 2
+TestLiveCacheLoadOffRepeat: Process exited with status 1

@@ -1,0 +1,48 @@
+[
+  {
+    "command": "go",
+    "args": [
+      "vet",
+      "-tags",
+      "phase29preflight",
+      "./..."
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": "go",
+    "args": [
+      "build",
+      "./..."
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": "go",
+    "args": [
+      "vet",
+      "./.planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001/runner"
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "command": "git",
+    "args": [
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "output": "warning: in the working copy of '.planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001/runner/main.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/app/phase29_live_test.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/cache/semantic.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/cache/writes.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/gateway/service.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/storage/qdrant.go', LF will be replaced by CRLF the next time Git touches it\n"
+  },
+  {
+    "command": ".tmp/phase29-diagnostic-20261003/runner-profile.exe",
+    "args": [
+      "audit"
+    ],
+    "exit": 0,
+    "output": "credential audit passed\n"
+  }
+]

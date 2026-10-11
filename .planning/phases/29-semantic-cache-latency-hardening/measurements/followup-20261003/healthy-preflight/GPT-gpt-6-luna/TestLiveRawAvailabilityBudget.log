@@ -1,0 +1,4 @@
+=== RUN   TestLiveRawAvailabilityBudget
+    live_diagnostic_test.go:95: SAMPLE {"content_characters":3,"finish_reason":"stop","max_tokens":256,"model":"gpt-6-luna","status":200,"type":"raw_availability","usage":{"prompt_tokens":10,"completion_tokens":6,"total_tokens":16}}
+--- PASS: TestLiveRawAvailabilityBudget (2.11s)
+PASS

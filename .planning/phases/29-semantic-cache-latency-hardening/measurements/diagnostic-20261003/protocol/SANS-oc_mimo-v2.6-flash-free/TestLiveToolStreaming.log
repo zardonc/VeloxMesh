@@ -1,0 +1,14 @@
+=== RUN   TestLiveToolStreaming
+{"time":"2026-10-03T19:30:30.245206384Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:30.305102239Z","level":"WARN","msg":"Unable to get server version, use default","err":"rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\"","default":"Unknown"}
+{"time":"2026-10-03T19:30:30.306638734Z","level":"WARN","msg":"Failed to obtain server version. Unable to check client-server compatibility. Set SkipCompatibilityCheck=true to skip version check."}
+{"time":"2026-10-03T19:30:30.306659333Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:30.306740225Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:30:30.307324386Z","level":"WARN","msg":"failed to initialize Qdrant; evaluating fallback","error":"failed to connect to qdrant: HealthCheck() failed: rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\""}
+{"time":"2026-10-03T19:30:30.320093824Z","level":"INFO","msg":"activated Redis VSS fallback for vector store"}
+{"time":"2026-10-03T19:30:30.337745901Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:353: model=text-embedding-embedder_collection dimension=768 primary=oc/mimo-v2.6-flash-free
+{"time":"2026-10-03T19:30:35.05133846Z","level":"INFO","msg":"request completed","request_id":"f8e2fbdd61c251fd9e15a87cfc429bcd","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":4706}
+    live_ship_protocol_test.go:358: gateway SSE error_code=provider_bad_response
+--- FAIL: TestLiveToolStreaming (5.09s)
+FAIL

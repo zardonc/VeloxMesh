@@ -1,0 +1,50 @@
+[
+  {
+    "script": "controlled-suite.mjs",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "script": "gemini.mjs",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "script": "hardware-suite.mjs",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "script": "run.mjs",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "script": "seal.mjs",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "script": "setup.mjs",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "script": "git diff --check",
+    "status": 0,
+    "stdout": "",
+    "stderr": "warning: in the working copy of '.planning/STATE.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.planning/phases/29-semantic-cache-latency-hardening/29-VERIFICATION.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of '.planning/phases/29-semantic-cache-latency-hardening/measurements/acceptance-20261001/runner/main.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/app/live_ship_gemini_diagnostic_test.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/app/live_ship_protocol_test.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'internal/providers/gemini/adapter.go', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/integration/redis_hotstate_test.go', LF will be replaced by CRLF the next time Git touches it\n"
+  },
+  {
+    "script": "Python AST",
+    "status": 0,
+    "stdout": "4\r\n",
+    "stderr": "WARN `--no-project` was provided, but no project was found\n"
+  }
+]

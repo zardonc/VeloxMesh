@@ -1,0 +1,21 @@
+File: verified-linux.test
+Type: delay
+Showing nodes accounting for 115.20ms, 92.54% of 124.49ms total
+Dropped 270 nodes (cum <= 0.62ms)
+Showing top 15 nodes out of 148
+      flat  flat%   sum%        cum   cum%
+   62.05ms 49.85% 49.85%    63.19ms 50.76%  veloxmesh/internal/app.liveBurstRequests
+   22.40ms 18.00% 67.85%    22.40ms 18.00%  net/http.setRequestCancel.func3
+    7.49ms  6.02% 73.87%     7.49ms  6.02%  context.(*cancelCtx).cancel
+    5.42ms  4.36% 78.22%     5.42ms  4.36%  runtime.chansend1
+    3.66ms  2.94% 81.16%     3.66ms  2.94%  runtime.systemstack_switch
+    3.34ms  2.68% 83.84%     3.34ms  2.68%  modernc.org/libc.Xmalloc.deferwrap1
+    2.41ms  1.93% 85.78%     2.56ms  2.06%  runtime.selectgo
+    2.30ms  1.84% 87.62%     2.30ms  1.84%  modernc.org/sqlite.interruptOnDone.func2
+    2.10ms  1.68% 89.31%     2.10ms  1.68%  runtime.chanrecv1
+    1.42ms  1.14% 90.45%     1.42ms  1.14%  runtime.goschedIfBusy
+    1.14ms  0.92% 91.37%     1.14ms  0.92%  sync.(*WaitGroup).Add
+    0.69ms  0.55% 91.92%     0.69ms  0.55%  sync.(*RWMutex).Unlock
+    0.64ms  0.51% 92.44%     0.64ms  0.51%  modernc.org/libc.Xpthread_mutex_unlock
+    0.10ms 0.082% 92.52%     1.87ms  1.50%  runtime.gcMarkDone
+    0.03ms 0.026% 92.54%     3.06ms  2.46%  modernc.org/sqlite/lib._sqlite3Malloc

@@ -3,9 +3,14 @@ package integration
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -13,6 +18,7 @@ import (
 	"veloxmesh/internal/cache"
 	"veloxmesh/internal/config"
 	"veloxmesh/internal/controlstate"
+	controlsqlite "veloxmesh/internal/controlstate/sqlite"
 	"veloxmesh/internal/gateway"
 	"veloxmesh/internal/health"
 	router "veloxmesh/internal/http"
@@ -23,7 +29,9 @@ import (
 )
 
 type mockEmbedAdapter struct {
-	id string
+	id          string
+	calls       atomic.Int64
+	completions atomic.Int64
 }
 
 func (m *mockEmbedAdapter) ID() string       { return m.id }
@@ -37,6 +45,7 @@ func (m *mockEmbedAdapter) Capabilities() providers.CapabilitySet {
 	}
 }
 func (m *mockEmbedAdapter) Complete(ctx context.Context, req *llm.LLMRequest) (*llm.LLMResponse, error) {
+	m.completions.Add(1)
 	return &llm.LLMResponse{
 		Provider: m.id,
 		Model:    req.Model,
@@ -50,23 +59,49 @@ func (m *mockEmbedAdapter) HealthCheck(ctx context.Context) providers.HealthStat
 	return providers.HealthStatus{}
 }
 func (m *mockEmbedAdapter) Embed(ctx context.Context, req *llm.EmbeddingRequest) (*llm.EmbeddingResponse, error) {
+	m.calls.Add(1)
 	return &llm.EmbeddingResponse{
 		Data: []llm.Embedding{{Index: 0, Embedding: []float32{1.0, 0.0, 0.0}}},
 	}, nil
 }
 
 type memorySemanticCacheRepo struct {
-	entries []*controlstate.SemanticCacheEntry
+	mu           sync.RWMutex
+	entries      []*controlstate.SemanticCacheEntry
+	stored       chan struct{}
+	storeStarted chan struct{}
+	releaseStore chan struct{}
+	startOnce    sync.Once
 }
 
 func (m *memorySemanticCacheRepo) Store(ctx context.Context, entry *controlstate.SemanticCacheEntry) error {
+	if m.storeStarted != nil {
+		m.startOnce.Do(func() { close(m.storeStarted) })
+		select {
+		case <-m.releaseStore:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.entries = append(m.entries, entry)
+	if m.stored != nil {
+		select {
+		case m.stored <- struct{}{}:
+		default:
+		}
+	}
 	return nil
 }
 func (m *memorySemanticCacheRepo) ListCandidates(ctx context.Context, scope, model string) ([]*controlstate.SemanticCacheEntry, error) {
-	return m.entries, nil
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return append([]*controlstate.SemanticCacheEntry(nil), m.entries...), nil
 }
 func (m *memorySemanticCacheRepo) GetCandidate(ctx context.Context, id, scope, model string) (*controlstate.SemanticCacheEntry, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	for _, entry := range m.entries {
 		if entry.ID == id && entry.Scope == scope && entry.Model == model && entry.Enabled && entry.ExpiresAt.After(time.Now().UTC()) {
 			return entry, nil
@@ -79,40 +114,67 @@ func (m *memorySemanticCacheRepo) Disable(ctx context.Context, id string) error 
 
 func TestSemanticCache_CacheHeaders(t *testing.T) {
 	ctx := context.Background()
-	_ = ctx
+	repo, err := controlsqlite.Open(fmt.Sprintf("file:semantic-cache-%d?mode=memory&cache=shared", time.Now().UnixNano()))
+	if err != nil {
+		t.Fatalf("open test database: %v", err)
+	}
+	defer repo.Close()
+	if err := repo.Migrate(ctx); err != nil {
+		t.Fatalf("migrate test database: %v", err)
+	}
+	token := fmt.Sprintf("phase29-token-%d", time.Now().UnixNano())
+	keyHash := sha256.Sum256([]byte(token))
+	keyID := fmt.Sprintf("phase29-key-%d", time.Now().UnixNano())
+	if err := repo.APIKeys().Create(ctx, &controlstate.APIKeyRecord{
+		ID: keyID, Hash: hex.EncodeToString(keyHash[:]), Name: "phase29 cache test", Role: "user", Enabled: true, CreditBalance: 1,
+	}); err != nil {
+		t.Fatalf("create test API key: %v", err)
+	}
 	store := health.NewInMemoryStore()
 	store.EnsureProvider("p1", 3, 1)
 
-	cfg := &config.Config{
-		DevAPIKey: "dev-key",
-	}
+	cfg := &config.Config{}
 
 	p1 := &mockEmbedAdapter{id: "p1"}
+	storeStarted, releaseStore := make(chan struct{}), make(chan struct{})
+	release := sync.OnceFunc(func() { close(releaseStore) })
+	t.Cleanup(release)
 	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1}, nil)
 	route := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
 
-	cacheRepo := &memorySemanticCacheRepo{}
+	cacheRepo := &memorySemanticCacheRepo{stored: make(chan struct{}, 1), storeStarted: storeStarted, releaseStore: releaseStore}
 	semanticCacheSvc := cache.NewSemanticCacheService(cache.SemanticCacheConfig{
-		Enabled:       true,
-		Threshold:     0.9,
-		MaxCandidates: 10,
-		TTL:           1 * time.Hour,
+		Enabled: true, Threshold: 0.9, MaxCandidates: 10, TTL: time.Hour,
+		EmbeddingModel: "emb", VectorDimension: 3,
+		ReadTimeout: 100 * time.Millisecond, ReadConcurrency: 4, WriteTimeout: time.Second, WriteWorkers: 1, QueueCapacity: 2, ShutdownGrace: time.Second,
+		UseCases: []cache.SemanticCacheUseCase{{
+			ReuseMode: "semantic",
+			APIKeyIDs: []string{keyID}, UseCaseID: "phase29-static-faq", KnowledgeVersion: "faq-v1", TargetModel: "emb", SystemPrompt: "Static FAQ only",
+		}},
 	}, cacheRepo, nil, p1)
+	t.Cleanup(semanticCacheSvc.Close)
 
 	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc, pipeline.DefaultRegistry(), nil, nil)
 
-	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil, nil, nil, nil)
+	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil, repo, nil, nil)
 
+	temperature, maxTokens := 0.0, 256
 	reqBody, _ := json.Marshal(llm.ChatCompletionRequest{
-		Model:    "emb",
-		Messages: []llm.Message{{Role: llm.RoleUser, Content: "Hello"}},
+		Model: "emb", Temperature: &temperature, MaxTokens: &maxTokens,
+		Messages: []llm.Message{{Role: llm.RoleSystem, Content: "Static FAQ only"}, {Role: llm.RoleUser, Content: "Hello"}},
 	})
 
 	// First Request - Miss
 	req1 := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(reqBody))
-	req1.Header.Set("Authorization", "Bearer dev-key")
+	req1.Header.Set("Authorization", "Bearer "+token)
 	rec1 := httptest.NewRecorder()
-	appRouter.ServeHTTP(rec1, req1)
+	completed := make(chan struct{})
+	go func() { appRouter.ServeHTTP(rec1, req1); close(completed) }()
+	select {
+	case <-completed:
+	case <-time.After(time.Second):
+		t.Fatal("foreground response waited for slow cache write")
+	}
 
 	if rec1.Code != http.StatusOK {
 		t.Fatalf("req1 expected 200, got %d", rec1.Code)
@@ -122,8 +184,19 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 	}
 
 	// Second Request - Hit
+	select {
+	case <-cacheRepo.storeStarted:
+	case <-time.After(time.Second):
+		t.Fatal("write worker did not start")
+	}
+	release()
+	select {
+	case <-cacheRepo.stored:
+	case <-time.After(time.Second):
+		t.Fatal("async cache write did not complete")
+	}
 	req2 := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(reqBody))
-	req2.Header.Set("Authorization", "Bearer dev-key")
+	req2.Header.Set("Authorization", "Bearer "+token)
 	rec2 := httptest.NewRecorder()
 	appRouter.ServeHTTP(rec2, req2)
 
@@ -135,5 +208,34 @@ func TestSemanticCache_CacheHeaders(t *testing.T) {
 	}
 	if rec2.Header().Get("X-Cache-Level") != "semantic" {
 		t.Errorf("req2 expected X-Cache-Level: semantic")
+	}
+	if p1.completions.Load() != 1 {
+		t.Fatal("cache hit forwarded to primary again")
+	}
+}
+
+func TestSemanticCache_DevKeyBypassesCache(t *testing.T) {
+	store := health.NewInMemoryStore()
+	store.EnsureProvider("p1", 3, 1)
+	cfg := &config.Config{DevAPIKey: "dev-key"}
+	p1 := &mockEmbedAdapter{id: "p1"}
+	registry := providers.NewRegistry(cfg, []providers.ProviderAdapter{p1}, nil)
+	route := routing.NewHealthAwareRouter(registry, store, "round-robin", nil)
+	semanticCacheSvc := cache.NewSemanticCacheService(cache.SemanticCacheConfig{
+		Enabled: true, Threshold: 0.9, MaxCandidates: 10, TTL: time.Hour,
+	}, &memorySemanticCacheRepo{}, nil, p1)
+	gwSvc := gateway.NewService(route, admission.NewPassThroughController(), store, true, 2, nil, semanticCacheSvc, pipeline.DefaultRegistry(), nil, nil)
+	appRouter := router.NewRouter(cfg, gwSvc, nil, nil, nil, nil, nil, nil, nil, nil)
+	body, _ := json.Marshal(llm.ChatCompletionRequest{Model: "emb", Messages: []llm.Message{{Role: llm.RoleUser, Content: "FAQ"}}})
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer dev-key")
+	rec := httptest.NewRecorder()
+
+	appRouter.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status=%d, want %d", rec.Code, http.StatusOK)
+	}
+	if p1.calls.Load() != 0 {
+		t.Fatalf("embedding calls=%d, want 0 for development key", p1.calls.Load())
 	}
 }

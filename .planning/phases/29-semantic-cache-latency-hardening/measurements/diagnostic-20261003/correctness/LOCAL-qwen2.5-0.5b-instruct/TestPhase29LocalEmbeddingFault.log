@@ -1,0 +1,15 @@
+=== RUN   TestPhase29LocalEmbeddingFault
+{"time":"2026-10-03T19:24:26.627884654Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:24:26.629803954Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-03T19:24:26.629827318Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-03T19:24:26.629834201Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:24:26.629867834Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:24:26.631790283Z","level":"INFO","msg":"starting config change subscriber"}
+    phase29_fault_acceptance_test.go:39: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-03T19:24:26.727355694Z","level":"INFO","msg":"request completed","request_id":"1343e3c1885bc8db1aa5a31cca1ef62c","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":95}
+    phase29_fault_acceptance_test.go:52: reason=lookup/embedding_error
+    phase29_fault_acceptance_test.go:52: reason=enqueue/accepted
+    phase29_fault_acceptance_test.go:52: reason=store/embedding_error
+    phase29_fault_acceptance_test.go:52: HTTP=200 cache_hit=false complete_response_ms=95.680 failed_optional_operations=3
+--- PASS: TestPhase29LocalEmbeddingFault (0.14s)
+PASS

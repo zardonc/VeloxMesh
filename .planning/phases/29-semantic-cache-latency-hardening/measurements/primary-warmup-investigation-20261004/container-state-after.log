@@ -1,0 +1,3 @@
+/veloxmesh-test-redis running=false oom=false restarts=0
+/veloxmesh-test-qdrant running=false oom=false restarts=0
+/veloxmesh-test-postgres running=false oom=false restarts=0

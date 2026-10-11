@@ -1,0 +1,1506 @@
+[
+  {
+    "file": "off-fixed-r1.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 0.16,
+      "elapsed_ms": 51141.99,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "off",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 62,
+    "failed": 2,
+    "hit_count": 0,
+    "actual_rps": 1.2514178662191284,
+    "successful_rps": 1.2123110578997807,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.3120133768748543,
+    "full_response": {
+      "n": 62,
+      "p50_ms": 1924.353,
+      "p95_ms": 5979.132,
+      "p99_ms": 9813.718
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 2003.27,
+      "p95_ms": 9349.921,
+      "p99_ms": 10000.985
+    },
+    "operations": {}
+  },
+  {
+    "file": "off-fixed-r2.jsonl",
+    "excluded": "empty output; inspect retained run log for the failure"
+  },
+  {
+    "file": "off-fixed-r3.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 0.245,
+      "elapsed_ms": 42934.221,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "off",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 64,
+    "failed": 0,
+    "hit_count": 0,
+    "actual_rps": 1.490652409880687,
+    "successful_rps": 1.490652409880687,
+    "observed_concurrency": 4,
+    "average_concurrency": 2.6122968435831173,
+    "full_response": {
+      "n": 64,
+      "p50_ms": 1408.763,
+      "p95_ms": 3807.286,
+      "p99_ms": 4592.183
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1408.763,
+      "p95_ms": 3807.286,
+      "p99_ms": 4592.183
+    },
+    "operations": {}
+  },
+  {
+    "file": "off-r1.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 0.094,
+      "elapsed_ms": 52523.181,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "off",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 57,
+    "failed": 7,
+    "hit_count": 0,
+    "actual_rps": 1.2185095948396576,
+    "successful_rps": 1.08523510790407,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.7317026933307806,
+    "full_response": {
+      "n": 57,
+      "p50_ms": 1592.16,
+      "p95_ms": 6484.09,
+      "p99_ms": 7783.643
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1722.378,
+      "p95_ms": 10000.57,
+      "p99_ms": 10000.986
+    },
+    "operations": {}
+  },
+  {
+    "file": "off-r2.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 0.172,
+      "elapsed_ms": 44153.249,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "off",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 61,
+    "failed": 3,
+    "hit_count": 0,
+    "actual_rps": 1.4494969554788595,
+    "successful_rps": 1.381551785690788,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.7018973394234242,
+    "full_response": {
+      "n": 61,
+      "p50_ms": 1640.857,
+      "p95_ms": 6318.858,
+      "p99_ms": 9924.909
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1645.369,
+      "p95_ms": 9924.909,
+      "p99_ms": 10001.167
+    },
+    "operations": {}
+  },
+  {
+    "file": "off-r3.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 0.128,
+      "elapsed_ms": 49356.264,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "off",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 59,
+    "failed": 5,
+    "hit_count": 0,
+    "actual_rps": 1.2966945796383615,
+    "successful_rps": 1.1953903156041146,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.5816089118900885,
+    "full_response": {
+      "n": 59,
+      "p50_ms": 1551.655,
+      "p95_ms": 5896.071,
+      "p99_ms": 9151.24
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1566.489,
+      "p95_ms": 10000.582,
+      "p99_ms": 10001.216
+    },
+    "operations": {}
+  },
+  {
+    "file": "off-steady1.jsonl",
+    "metadata": {
+      "count": 40,
+      "drain_ms": 0.15,
+      "elapsed_ms": 47002.12,
+      "interval_ms": 1000,
+      "max_concurrency": 4,
+      "mode": "off",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 40,
+    "received_ok": 39,
+    "failed": 1,
+    "hit_count": 0,
+    "actual_rps": 0.8510254431076725,
+    "successful_rps": 0.8297498070299807,
+    "observed_concurrency": 4,
+    "average_concurrency": 2.661729066688907,
+    "full_response": {
+      "n": 39,
+      "p50_ms": 1758.41,
+      "p95_ms": 8465.536,
+      "p99_ms": 9047.19
+    },
+    "attempts_including_failed": {
+      "n": 40,
+      "p50_ms": 1758.41,
+      "p95_ms": 8465.536,
+      "p99_ms": 10001.487
+    },
+    "operations": {}
+  },
+  {
+    "file": "off-steady2.jsonl",
+    "excluded": "empty output; inspect retained run log for the failure"
+  },
+  {
+    "file": "off-steady3.jsonl",
+    "excluded": "empty output; inspect retained run log for the failure"
+  },
+  {
+    "file": "off-steady4.jsonl",
+    "metadata": {
+      "count": 40,
+      "drain_ms": 0.095,
+      "elapsed_ms": 45002.511,
+      "interval_ms": 1000,
+      "max_concurrency": 4,
+      "mode": "off",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 40,
+    "received_ok": 37,
+    "failed": 3,
+    "hit_count": 0,
+    "actual_rps": 0.8888392916564145,
+    "successful_rps": 0.8221763447821834,
+    "observed_concurrency": 4,
+    "average_concurrency": 2.6814683962857093,
+    "full_response": {
+      "n": 37,
+      "p50_ms": 2136.972,
+      "p95_ms": 7649.462,
+      "p99_ms": 8290.006
+    },
+    "attempts_including_failed": {
+      "n": 40,
+      "p50_ms": 2142.873,
+      "p95_ms": 10000.375,
+      "p99_ms": 10001.457
+    },
+    "operations": {}
+  },
+  {
+    "file": "on-fixed-r1.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 0.162,
+      "elapsed_ms": 51381.695,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "on",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 61,
+    "failed": 3,
+    "hit_count": 1,
+    "actual_rps": 1.2455797731079132,
+    "successful_rps": 1.1871932212434797,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.3578211851516384,
+    "full_response": {
+      "n": 61,
+      "p50_ms": 1795.951,
+      "p95_ms": 6832.858,
+      "p99_ms": 8146.2
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1970.14,
+      "p95_ms": 8146.2,
+      "p99_ms": 10000.846
+    },
+    "operations": {
+      "store_embedding": {
+        "n": 61,
+        "p50_ms": 50.398,
+        "p95_ms": 76.068,
+        "p99_ms": 112.628,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 50.398,
+          "p95_ms": 76.068,
+          "p99_ms": 112.628
+        }
+      },
+      "repo_write": {
+        "n": 61,
+        "p50_ms": 0.297,
+        "p95_ms": 0.455,
+        "p99_ms": 1.131,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 0.297,
+          "p95_ms": 0.455,
+          "p99_ms": 1.131
+        }
+      },
+      "vector_insert": {
+        "n": 61,
+        "p50_ms": 2.768,
+        "p95_ms": 4.298,
+        "p99_ms": 33.065,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 2.768,
+          "p95_ms": 4.298,
+          "p99_ms": 33.065
+        }
+      },
+      "store_total": {
+        "n": 61,
+        "p50_ms": 53.689,
+        "p95_ms": 89.321,
+        "p99_ms": 116.63,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 53.689,
+          "p95_ms": 89.321,
+          "p99_ms": 116.63
+        }
+      },
+      "lookup_embedding": {
+        "n": 64,
+        "p50_ms": 90.884,
+        "p95_ms": 100.856,
+        "p99_ms": 102.077,
+        "errors": 9,
+        "successful": {
+          "n": 55,
+          "p50_ms": 89.016,
+          "p95_ms": 99.365,
+          "p99_ms": 99.987
+        }
+      },
+      "vector_search": {
+        "n": 55,
+        "p50_ms": 1.682,
+        "p95_ms": 2.542,
+        "p99_ms": 3.91,
+        "errors": 3,
+        "successful": {
+          "n": 52,
+          "p50_ms": 1.687,
+          "p95_ms": 2.542,
+          "p99_ms": 3.91
+        }
+      },
+      "repo_read": {
+        "n": 1,
+        "p50_ms": 0.412,
+        "p95_ms": 0.412,
+        "p99_ms": 0.412,
+        "errors": 0,
+        "successful": {
+          "n": 1,
+          "p50_ms": 0.412,
+          "p95_ms": 0.412,
+          "p99_ms": 0.412
+        }
+      }
+    }
+  },
+  {
+    "file": "on-fixed-r2.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 0.744,
+      "elapsed_ms": 45750.776,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "on",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 60,
+    "failed": 4,
+    "hit_count": 0,
+    "actual_rps": 1.3988833763169395,
+    "successful_rps": 1.3114531652971309,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.2989429294051758,
+    "full_response": {
+      "n": 60,
+      "p50_ms": 1472.185,
+      "p95_ms": 3565.431,
+      "p99_ms": 5361.321
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1575.894,
+      "p95_ms": 10000.392,
+      "p99_ms": 10001.995
+    },
+    "operations": {
+      "store_embedding": {
+        "n": 61,
+        "p50_ms": 50.454,
+        "p95_ms": 61.04,
+        "p99_ms": 82.712,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 50.454,
+          "p95_ms": 61.04,
+          "p99_ms": 82.712
+        }
+      },
+      "repo_write": {
+        "n": 61,
+        "p50_ms": 0.27,
+        "p95_ms": 0.418,
+        "p99_ms": 7.105,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 0.27,
+          "p95_ms": 0.418,
+          "p99_ms": 7.105
+        }
+      },
+      "vector_insert": {
+        "n": 61,
+        "p50_ms": 2.715,
+        "p95_ms": 4.094,
+        "p99_ms": 34.598,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 2.715,
+          "p95_ms": 4.094,
+          "p99_ms": 34.598
+        }
+      },
+      "store_total": {
+        "n": 61,
+        "p50_ms": 53.717,
+        "p95_ms": 69.543,
+        "p99_ms": 86.259,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 53.717,
+          "p95_ms": 69.543,
+          "p99_ms": 86.259
+        }
+      },
+      "lookup_embedding": {
+        "n": 64,
+        "p50_ms": 53.024,
+        "p95_ms": 99.395,
+        "p99_ms": 101.492,
+        "errors": 2,
+        "successful": {
+          "n": 62,
+          "p50_ms": 51.191,
+          "p95_ms": 99.218,
+          "p99_ms": 100.196
+        }
+      },
+      "vector_search": {
+        "n": 62,
+        "p50_ms": 1.648,
+        "p95_ms": 2.586,
+        "p99_ms": 3.648,
+        "errors": 2,
+        "successful": {
+          "n": 60,
+          "p50_ms": 1.652,
+          "p95_ms": 2.586,
+          "p99_ms": 3.648
+        }
+      }
+    }
+  },
+  {
+    "file": "on-fixed-r3.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 53.336,
+      "elapsed_ms": 49750.039,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "on",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 59,
+    "failed": 5,
+    "hit_count": 1,
+    "actual_rps": 1.2864311523454284,
+    "successful_rps": 1.185928718568442,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.6356735117333274,
+    "full_response": {
+      "n": 59,
+      "p50_ms": 1766.925,
+      "p95_ms": 5751.333,
+      "p99_ms": 8993.873
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1818.554,
+      "p95_ms": 10000.449,
+      "p99_ms": 10001.116
+    },
+    "operations": {
+      "store_embedding": {
+        "n": 59,
+        "p50_ms": 50.31,
+        "p95_ms": 63.952,
+        "p99_ms": 137.887,
+        "errors": 0,
+        "successful": {
+          "n": 59,
+          "p50_ms": 50.31,
+          "p95_ms": 63.952,
+          "p99_ms": 137.887
+        }
+      },
+      "repo_write": {
+        "n": 59,
+        "p50_ms": 0.273,
+        "p95_ms": 0.472,
+        "p99_ms": 0.842,
+        "errors": 0,
+        "successful": {
+          "n": 59,
+          "p50_ms": 0.273,
+          "p95_ms": 0.472,
+          "p99_ms": 0.842
+        }
+      },
+      "vector_insert": {
+        "n": 59,
+        "p50_ms": 2.79,
+        "p95_ms": 5.054,
+        "p99_ms": 29.874,
+        "errors": 0,
+        "successful": {
+          "n": 59,
+          "p50_ms": 2.79,
+          "p95_ms": 5.054,
+          "p99_ms": 29.874
+        }
+      },
+      "store_total": {
+        "n": 59,
+        "p50_ms": 53.293,
+        "p95_ms": 85.148,
+        "p99_ms": 141.102,
+        "errors": 0,
+        "successful": {
+          "n": 59,
+          "p50_ms": 53.293,
+          "p95_ms": 85.148,
+          "p99_ms": 141.102
+        }
+      },
+      "lookup_embedding": {
+        "n": 64,
+        "p50_ms": 89.663,
+        "p95_ms": 100.599,
+        "p99_ms": 101.689,
+        "errors": 8,
+        "successful": {
+          "n": 56,
+          "p50_ms": 60.556,
+          "p95_ms": 98.886,
+          "p99_ms": 100.241
+        }
+      },
+      "vector_search": {
+        "n": 56,
+        "p50_ms": 1.635,
+        "p95_ms": 2.504,
+        "p99_ms": 3.511,
+        "errors": 2,
+        "successful": {
+          "n": 54,
+          "p50_ms": 1.64,
+          "p95_ms": 2.504,
+          "p99_ms": 3.511
+        }
+      },
+      "repo_read": {
+        "n": 1,
+        "p50_ms": 0.173,
+        "p95_ms": 0.173,
+        "p99_ms": 0.173,
+        "errors": 0,
+        "successful": {
+          "n": 1,
+          "p50_ms": 0.173,
+          "p95_ms": 0.173,
+          "p99_ms": 0.173
+        }
+      }
+    }
+  },
+  {
+    "file": "on-hit-path.jsonl",
+    "metadata": {
+      "count": 100,
+      "elapsed_ms": 1784.241,
+      "max_concurrency": 1,
+      "mode": "hit-path-only",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 100,
+    "received_ok": 100,
+    "failed": 0,
+    "hit_count": 100,
+    "actual_rps": 56.046240390171505,
+    "successful_rps": 56.046240390171505,
+    "observed_concurrency": 1,
+    "average_concurrency": 0.9988297545006528,
+    "full_response": {
+      "n": 100,
+      "p50_ms": 16.559,
+      "p95_ms": 24.475,
+      "p99_ms": 54.641
+    },
+    "attempts_including_failed": {
+      "n": 100,
+      "p50_ms": 16.559,
+      "p95_ms": 24.475,
+      "p99_ms": 54.641
+    },
+    "operations": {
+      "lookup_embedding": {
+        "n": 100,
+        "p50_ms": 13.906,
+        "p95_ms": 21.853,
+        "p99_ms": 51.576,
+        "errors": 0,
+        "successful": {
+          "n": 100,
+          "p50_ms": 13.906,
+          "p95_ms": 21.853,
+          "p99_ms": 51.576
+        }
+      },
+      "vector_search": {
+        "n": 100,
+        "p50_ms": 1.431,
+        "p95_ms": 2.002,
+        "p99_ms": 2.574,
+        "errors": 0,
+        "successful": {
+          "n": 100,
+          "p50_ms": 1.431,
+          "p95_ms": 2.002,
+          "p99_ms": 2.574
+        }
+      },
+      "repo_read": {
+        "n": 100,
+        "p50_ms": 0.184,
+        "p95_ms": 0.36,
+        "p99_ms": 0.408,
+        "errors": 0,
+        "successful": {
+          "n": 100,
+          "p50_ms": 0.184,
+          "p95_ms": 0.36,
+          "p99_ms": 0.408
+        }
+      }
+    }
+  },
+  {
+    "file": "on-r1.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 147.8,
+      "elapsed_ms": 44606.462,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "on",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 60,
+    "failed": 4,
+    "hit_count": 0,
+    "actual_rps": 1.434769697717788,
+    "successful_rps": 1.3450965916104263,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.3750582370778486,
+    "full_response": {
+      "n": 60,
+      "p50_ms": 1460.279,
+      "p95_ms": 3675.834,
+      "p99_ms": 6157.673
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1484.515,
+      "p95_ms": 10000.24,
+      "p99_ms": 10001.692
+    },
+    "operations": {
+      "store_embedding": {
+        "n": 61,
+        "p50_ms": 45.508,
+        "p95_ms": 98.144,
+        "p99_ms": 181.28,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 45.508,
+          "p95_ms": 98.144,
+          "p99_ms": 181.28
+        }
+      },
+      "repo_write": {
+        "n": 61,
+        "p50_ms": 0.257,
+        "p95_ms": 0.483,
+        "p99_ms": 1.095,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 0.257,
+          "p95_ms": 0.483,
+          "p99_ms": 1.095
+        }
+      },
+      "lookup_embedding": {
+        "n": 64,
+        "p50_ms": 68.63,
+        "p95_ms": 101.552,
+        "p99_ms": 101.717,
+        "errors": 23,
+        "successful": {
+          "n": 41,
+          "p50_ms": 63.444,
+          "p95_ms": 76.805,
+          "p99_ms": 78.887
+        }
+      },
+      "vector_insert": {
+        "n": 61,
+        "p50_ms": 2.858,
+        "p95_ms": 4.291,
+        "p99_ms": 35.15,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 2.858,
+          "p95_ms": 4.291,
+          "p99_ms": 35.15
+        }
+      },
+      "store_total": {
+        "n": 61,
+        "p50_ms": 49.358,
+        "p95_ms": 109.752,
+        "p99_ms": 184.171,
+        "errors": 0,
+        "successful": {
+          "n": 61,
+          "p50_ms": 49.358,
+          "p95_ms": 109.752,
+          "p99_ms": 184.171
+        }
+      },
+      "vector_search": {
+        "n": 41,
+        "p50_ms": 1.69,
+        "p95_ms": 3.018,
+        "p99_ms": 3.277,
+        "errors": 0,
+        "successful": {
+          "n": 41,
+          "p50_ms": 1.69,
+          "p95_ms": 3.018,
+          "p99_ms": 3.277
+        }
+      }
+    }
+  },
+  {
+    "file": "on-r2.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 69.282,
+      "elapsed_ms": 48111.529,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "on",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 61,
+    "failed": 3,
+    "hit_count": 0,
+    "actual_rps": 1.3302424872009366,
+    "successful_rps": 1.2678873706133929,
+    "observed_concurrency": 4,
+    "average_concurrency": 2.936684884822512,
+    "full_response": {
+      "n": 61,
+      "p50_ms": 1565.592,
+      "p95_ms": 3339.823,
+      "p99_ms": 8460.354
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 1584.936,
+      "p95_ms": 8460.354,
+      "p99_ms": 10000.972
+    },
+    "operations": {
+      "store_embedding": {
+        "n": 62,
+        "p50_ms": 63.716,
+        "p95_ms": 77.475,
+        "p99_ms": 181.846,
+        "errors": 0,
+        "successful": {
+          "n": 62,
+          "p50_ms": 63.716,
+          "p95_ms": 77.475,
+          "p99_ms": 181.846
+        }
+      },
+      "repo_write": {
+        "n": 62,
+        "p50_ms": 0.299,
+        "p95_ms": 0.562,
+        "p99_ms": 1.572,
+        "errors": 0,
+        "successful": {
+          "n": 62,
+          "p50_ms": 0.299,
+          "p95_ms": 0.562,
+          "p99_ms": 1.572
+        }
+      },
+      "lookup_embedding": {
+        "n": 64,
+        "p50_ms": 64.205,
+        "p95_ms": 101.783,
+        "p99_ms": 102.157,
+        "errors": 18,
+        "successful": {
+          "n": 46,
+          "p50_ms": 62.397,
+          "p95_ms": 73.754,
+          "p99_ms": 81.819
+        }
+      },
+      "vector_insert": {
+        "n": 62,
+        "p50_ms": 2.767,
+        "p95_ms": 3.917,
+        "p99_ms": 31.885,
+        "errors": 0,
+        "successful": {
+          "n": 62,
+          "p50_ms": 2.767,
+          "p95_ms": 3.917,
+          "p99_ms": 31.885
+        }
+      },
+      "store_total": {
+        "n": 62,
+        "p50_ms": 66.583,
+        "p95_ms": 99.799,
+        "p99_ms": 184.583,
+        "errors": 0,
+        "successful": {
+          "n": 62,
+          "p50_ms": 66.583,
+          "p95_ms": 99.799,
+          "p99_ms": 184.583
+        }
+      },
+      "vector_search": {
+        "n": 46,
+        "p50_ms": 1.562,
+        "p95_ms": 2.29,
+        "p99_ms": 2.891,
+        "errors": 0,
+        "successful": {
+          "n": 46,
+          "p50_ms": 1.562,
+          "p95_ms": 2.29,
+          "p99_ms": 2.891
+        }
+      }
+    }
+  },
+  {
+    "file": "on-r3.jsonl",
+    "metadata": {
+      "count": 64,
+      "drain_ms": 70.384,
+      "elapsed_ms": 43790.837,
+      "interval_ms": 650,
+      "max_concurrency": 4,
+      "mode": "on",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 64,
+    "received_ok": 63,
+    "failed": 1,
+    "hit_count": 0,
+    "actual_rps": 1.4614929602738582,
+    "successful_rps": 1.4386571327695792,
+    "observed_concurrency": 4,
+    "average_concurrency": 3.698329355979198,
+    "full_response": {
+      "n": 63,
+      "p50_ms": 2150.442,
+      "p95_ms": 4872.676,
+      "p99_ms": 7272.196
+    },
+    "attempts_including_failed": {
+      "n": 64,
+      "p50_ms": 2150.442,
+      "p95_ms": 5050.932,
+      "p99_ms": 10001.382
+    },
+    "operations": {
+      "store_embedding": {
+        "n": 64,
+        "p50_ms": 62.203,
+        "p95_ms": 104.502,
+        "p99_ms": 204.951,
+        "errors": 0,
+        "successful": {
+          "n": 64,
+          "p50_ms": 62.203,
+          "p95_ms": 104.502,
+          "p99_ms": 204.951
+        }
+      },
+      "repo_write": {
+        "n": 64,
+        "p50_ms": 0.3,
+        "p95_ms": 0.513,
+        "p99_ms": 0.633,
+        "errors": 0,
+        "successful": {
+          "n": 64,
+          "p50_ms": 0.3,
+          "p95_ms": 0.513,
+          "p99_ms": 0.633
+        }
+      },
+      "lookup_embedding": {
+        "n": 64,
+        "p50_ms": 68.202,
+        "p95_ms": 101.582,
+        "p99_ms": 101.7,
+        "errors": 31,
+        "successful": {
+          "n": 33,
+          "p50_ms": 63.697,
+          "p95_ms": 68.202,
+          "p99_ms": 70.186
+        }
+      },
+      "vector_insert": {
+        "n": 64,
+        "p50_ms": 2.797,
+        "p95_ms": 4.092,
+        "p99_ms": 31.997,
+        "errors": 0,
+        "successful": {
+          "n": 64,
+          "p50_ms": 2.797,
+          "p95_ms": 4.092,
+          "p99_ms": 31.997
+        }
+      },
+      "store_total": {
+        "n": 64,
+        "p50_ms": 65.168,
+        "p95_ms": 110.785,
+        "p99_ms": 207.75,
+        "errors": 0,
+        "successful": {
+          "n": 64,
+          "p50_ms": 65.168,
+          "p95_ms": 110.785,
+          "p99_ms": 207.75
+        }
+      },
+      "vector_search": {
+        "n": 33,
+        "p50_ms": 1.62,
+        "p95_ms": 3.082,
+        "p99_ms": 6.689,
+        "errors": 0,
+        "successful": {
+          "n": 33,
+          "p50_ms": 1.62,
+          "p95_ms": 3.082,
+          "p99_ms": 6.689
+        }
+      }
+    }
+  },
+  {
+    "file": "on-steady1.jsonl",
+    "metadata": {
+      "count": 40,
+      "drain_ms": 71.952,
+      "elapsed_ms": 40119.711,
+      "interval_ms": 1000,
+      "max_concurrency": 4,
+      "mode": "on",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 40,
+    "received_ok": 40,
+    "failed": 0,
+    "hit_count": 1,
+    "actual_rps": 0.9970161549767893,
+    "successful_rps": 0.9970161549767893,
+    "observed_concurrency": 4,
+    "average_concurrency": 2.204730188609783,
+    "full_response": {
+      "n": 40,
+      "p50_ms": 1540.583,
+      "p95_ms": 4966.865,
+      "p99_ms": 7959.617
+    },
+    "attempts_including_failed": {
+      "n": 40,
+      "p50_ms": 1540.583,
+      "p95_ms": 4966.865,
+      "p99_ms": 7959.617
+    },
+    "operations": {
+      "store_embedding": {
+        "n": 40,
+        "p50_ms": 66.496,
+        "p95_ms": 94.782,
+        "p99_ms": 126.424,
+        "errors": 0,
+        "successful": {
+          "n": 40,
+          "p50_ms": 66.496,
+          "p95_ms": 94.782,
+          "p99_ms": 126.424
+        }
+      },
+      "repo_write": {
+        "n": 40,
+        "p50_ms": 0.284,
+        "p95_ms": 0.492,
+        "p99_ms": 0.638,
+        "errors": 0,
+        "successful": {
+          "n": 40,
+          "p50_ms": 0.284,
+          "p95_ms": 0.492,
+          "p99_ms": 0.638
+        }
+      },
+      "vector_insert": {
+        "n": 40,
+        "p50_ms": 2.885,
+        "p95_ms": 4.083,
+        "p99_ms": 29.765,
+        "errors": 0,
+        "successful": {
+          "n": 40,
+          "p50_ms": 2.885,
+          "p95_ms": 4.083,
+          "p99_ms": 29.765
+        }
+      },
+      "store_total": {
+        "n": 40,
+        "p50_ms": 69.861,
+        "p95_ms": 99.002,
+        "p99_ms": 129.159,
+        "errors": 0,
+        "successful": {
+          "n": 40,
+          "p50_ms": 69.861,
+          "p95_ms": 99.002,
+          "p99_ms": 129.159
+        }
+      },
+      "lookup_embedding": {
+        "n": 40,
+        "p50_ms": 66.934,
+        "p95_ms": 100.498,
+        "p99_ms": 101.862,
+        "errors": 3,
+        "successful": {
+          "n": 37,
+          "p50_ms": 66.772,
+          "p95_ms": 83.623,
+          "p99_ms": 86.384
+        }
+      },
+      "vector_search": {
+        "n": 37,
+        "p50_ms": 1.74,
+        "p95_ms": 2.858,
+        "p99_ms": 2.883,
+        "errors": 0,
+        "successful": {
+          "n": 37,
+          "p50_ms": 1.74,
+          "p95_ms": 2.858,
+          "p99_ms": 2.883
+        }
+      },
+      "repo_read": {
+        "n": 1,
+        "p50_ms": 0.369,
+        "p95_ms": 0.369,
+        "p99_ms": 0.369,
+        "errors": 0,
+        "successful": {
+          "n": 1,
+          "p50_ms": 0.369,
+          "p95_ms": 0.369,
+          "p99_ms": 0.369
+        }
+      }
+    }
+  },
+  {
+    "file": "on-steady2.jsonl",
+    "metadata": {
+      "count": 40,
+      "drain_ms": 37.726,
+      "elapsed_ms": 40635.876,
+      "interval_ms": 1000,
+      "max_concurrency": 4,
+      "mode": "on",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 40,
+    "received_ok": 36,
+    "failed": 4,
+    "hit_count": 1,
+    "actual_rps": 0.9843518569650129,
+    "successful_rps": 0.8859166712685117,
+    "observed_concurrency": 4,
+    "average_concurrency": 2.805538878994513,
+    "full_response": {
+      "n": 36,
+      "p50_ms": 1940.205,
+      "p95_ms": 4313.103,
+      "p99_ms": 5093.055
+    },
+    "attempts_including_failed": {
+      "n": 40,
+      "p50_ms": 2014.356,
+      "p95_ms": 10000.901,
+      "p99_ms": 10001.433
+    },
+    "operations": {
+      "store_embedding": {
+        "n": 36,
+        "p50_ms": 64.275,
+        "p95_ms": 119.475,
+        "p99_ms": 157.909,
+        "errors": 0,
+        "successful": {
+          "n": 36,
+          "p50_ms": 64.275,
+          "p95_ms": 119.475,
+          "p99_ms": 157.909
+        }
+      },
+      "repo_write": {
+        "n": 36,
+        "p50_ms": 0.298,
+        "p95_ms": 0.958,
+        "p99_ms": 1.076,
+        "errors": 0,
+        "successful": {
+          "n": 36,
+          "p50_ms": 0.298,
+          "p95_ms": 0.958,
+          "p99_ms": 1.076
+        }
+      },
+      "lookup_embedding": {
+        "n": 40,
+        "p50_ms": 67.212,
+        "p95_ms": 101.293,
+        "p99_ms": 101.746,
+        "errors": 7,
+        "successful": {
+          "n": 33,
+          "p50_ms": 66.443,
+          "p95_ms": 84.069,
+          "p99_ms": 87.193
+        }
+      },
+      "vector_insert": {
+        "n": 36,
+        "p50_ms": 2.89,
+        "p95_ms": 4.233,
+        "p99_ms": 29.775,
+        "errors": 0,
+        "successful": {
+          "n": 36,
+          "p50_ms": 2.89,
+          "p95_ms": 4.233,
+          "p99_ms": 29.775
+        }
+      },
+      "store_total": {
+        "n": 36,
+        "p50_ms": 67.797,
+        "p95_ms": 123.117,
+        "p99_ms": 161.198,
+        "errors": 0,
+        "successful": {
+          "n": 36,
+          "p50_ms": 67.797,
+          "p95_ms": 123.117,
+          "p99_ms": 161.198
+        }
+      },
+      "vector_search": {
+        "n": 33,
+        "p50_ms": 1.684,
+        "p95_ms": 2.236,
+        "p99_ms": 2.409,
+        "errors": 0,
+        "successful": {
+          "n": 33,
+          "p50_ms": 1.684,
+          "p95_ms": 2.236,
+          "p99_ms": 2.409
+        }
+      },
+      "repo_read": {
+        "n": 1,
+        "p50_ms": 0.252,
+        "p95_ms": 0.252,
+        "p99_ms": 0.252,
+        "errors": 0,
+        "successful": {
+          "n": 1,
+          "p50_ms": 0.252,
+          "p95_ms": 0.252,
+          "p99_ms": 0.252
+        }
+      }
+    }
+  },
+  {
+    "file": "on-steady3.jsonl",
+    "metadata": {
+      "count": 40,
+      "drain_ms": 0.156,
+      "elapsed_ms": 41000.794,
+      "interval_ms": 1000,
+      "max_concurrency": 4,
+      "mode": "on",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 40,
+    "received_ok": 38,
+    "failed": 2,
+    "hit_count": 0,
+    "actual_rps": 0.9755908629476785,
+    "successful_rps": 0.9268113198002946,
+    "observed_concurrency": 4,
+    "average_concurrency": 2.2182449198422844,
+    "full_response": {
+      "n": 38,
+      "p50_ms": 1617.095,
+      "p95_ms": 3535.902,
+      "p99_ms": 4395.776
+    },
+    "attempts_including_failed": {
+      "n": 40,
+      "p50_ms": 1696.434,
+      "p95_ms": 4395.776,
+      "p99_ms": 10001.732
+    },
+    "operations": {
+      "store_embedding": {
+        "n": 39,
+        "p50_ms": 65.076,
+        "p95_ms": 115.677,
+        "p99_ms": 119.388,
+        "errors": 0,
+        "successful": {
+          "n": 39,
+          "p50_ms": 65.076,
+          "p95_ms": 115.677,
+          "p99_ms": 119.388
+        }
+      },
+      "repo_write": {
+        "n": 39,
+        "p50_ms": 0.281,
+        "p95_ms": 0.506,
+        "p99_ms": 1.598,
+        "errors": 0,
+        "successful": {
+          "n": 39,
+          "p50_ms": 0.281,
+          "p95_ms": 0.506,
+          "p99_ms": 1.598
+        }
+      },
+      "vector_insert": {
+        "n": 39,
+        "p50_ms": 2.876,
+        "p95_ms": 4.13,
+        "p99_ms": 28.469,
+        "errors": 0,
+        "successful": {
+          "n": 39,
+          "p50_ms": 2.876,
+          "p95_ms": 4.13,
+          "p99_ms": 28.469
+        }
+      },
+      "store_total": {
+        "n": 39,
+        "p50_ms": 68.048,
+        "p95_ms": 119.33,
+        "p99_ms": 123.742,
+        "errors": 0,
+        "successful": {
+          "n": 39,
+          "p50_ms": 68.048,
+          "p95_ms": 119.33,
+          "p99_ms": 123.742
+        }
+      },
+      "lookup_embedding": {
+        "n": 40,
+        "p50_ms": 65.573,
+        "p95_ms": 100.917,
+        "p99_ms": 101.498,
+        "errors": 3,
+        "successful": {
+          "n": 37,
+          "p50_ms": 65.5,
+          "p95_ms": 75.135,
+          "p99_ms": 77.097
+        }
+      },
+      "vector_search": {
+        "n": 37,
+        "p50_ms": 1.718,
+        "p95_ms": 2.269,
+        "p99_ms": 2.705,
+        "errors": 0,
+        "successful": {
+          "n": 37,
+          "p50_ms": 1.718,
+          "p95_ms": 2.269,
+          "p99_ms": 2.705
+        }
+      }
+    }
+  },
+  {
+    "file": "on-steady4.jsonl",
+    "metadata": {
+      "count": 40,
+      "drain_ms": 0.193,
+      "elapsed_ms": 48001.383,
+      "interval_ms": 1000,
+      "max_concurrency": 4,
+      "mode": "on",
+      "model": "text-embedding-embedder_collection",
+      "type": "metadata"
+    },
+    "attempted": 40,
+    "received_ok": 36,
+    "failed": 4,
+    "hit_count": 0,
+    "actual_rps": 0.8333093236084468,
+    "successful_rps": 0.7499783912476021,
+    "observed_concurrency": 4,
+    "average_concurrency": 2.4836076285552022,
+    "full_response": {
+      "n": 36,
+      "p50_ms": 2000.747,
+      "p95_ms": 4842.194,
+      "p99_ms": 5825.188
+    },
+    "attempts_including_failed": {
+      "n": 40,
+      "p50_ms": 2070.394,
+      "p95_ms": 10000.35,
+      "p99_ms": 10000.88
+    },
+    "operations": {
+      "store_embedding": {
+        "n": 37,
+        "p50_ms": 66.407,
+        "p95_ms": 127.784,
+        "p99_ms": 128.353,
+        "errors": 0,
+        "successful": {
+          "n": 37,
+          "p50_ms": 66.407,
+          "p95_ms": 127.784,
+          "p99_ms": 128.353
+        }
+      },
+      "repo_write": {
+        "n": 37,
+        "p50_ms": 0.275,
+        "p95_ms": 0.403,
+        "p99_ms": 0.45,
+        "errors": 0,
+        "successful": {
+          "n": 37,
+          "p50_ms": 0.275,
+          "p95_ms": 0.403,
+          "p99_ms": 0.45
+        }
+      },
+      "vector_insert": {
+        "n": 37,
+        "p50_ms": 2.855,
+        "p95_ms": 4.387,
+        "p99_ms": 29.835,
+        "errors": 0,
+        "successful": {
+          "n": 37,
+          "p50_ms": 2.855,
+          "p95_ms": 4.387,
+          "p99_ms": 29.835
+        }
+      },
+      "store_total": {
+        "n": 37,
+        "p50_ms": 69.707,
+        "p95_ms": 130.82,
+        "p99_ms": 131.497,
+        "errors": 0,
+        "successful": {
+          "n": 37,
+          "p50_ms": 69.707,
+          "p95_ms": 130.82,
+          "p99_ms": 131.497
+        }
+      },
+      "lookup_embedding": {
+        "n": 40,
+        "p50_ms": 65.433,
+        "p95_ms": 101.329,
+        "p99_ms": 101.637,
+        "errors": 4,
+        "successful": {
+          "n": 36,
+          "p50_ms": 64.96,
+          "p95_ms": 76.53,
+          "p99_ms": 78.589
+        }
+      },
+      "vector_search": {
+        "n": 36,
+        "p50_ms": 1.68,
+        "p95_ms": 2.499,
+        "p99_ms": 2.876,
+        "errors": 0,
+        "successful": {
+          "n": 36,
+          "p50_ms": 1.68,
+          "p95_ms": 2.499,
+          "p99_ms": 2.876
+        }
+      }
+    }
+  }
+]

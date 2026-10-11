@@ -1,0 +1,27 @@
+=== RUN   TestLiveProviderSharedResource
+{"time":"2026-10-04T06:53:38.303347523Z","level":"INFO","msg":"starting config change subscriber"}
+    live_provider_protection_test.go:90: model=text-embedding-embedder_collection dimension=768 primary=qwen2.5-0.5b-instruct
+{"time":"2026-10-04T06:53:40.406796056Z","level":"INFO","msg":"request completed","request_id":"diag-1","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2102}
+    live_provider_protection_test.go:119: usage_rows_all=1 usage_rows_key=1
+    live_provider_protection_test.go:119: settled_records=1 total_tokens=61 credits=61 exactly_once=true
+    live_provider_protection_test.go:120: SAMPLE {"limit":1,"recovered":true,"rejected_embedding":true,"type":"shared_provider_resource"}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"request_rules","start_ms":2.767,"elapsed_ms":0.008}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"routing","start_ms":2.778,"elapsed_ms":3.166}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"admission","start_ms":5.948,"elapsed_ms":0.668}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/get_connection","start_ms":8.01,"elapsed_ms":0.015}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/connect_start","start_ms":8.01,"elapsed_ms":0.067}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/connect_done","start_ms":8.01,"elapsed_ms":0.325}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/got_connection_new","start_ms":8.01,"elapsed_ms":0.363}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/request_written","start_ms":8.01,"elapsed_ms":0.481}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"net_upstream/first_byte","start_ms":8.01,"elapsed_ms":2093.726}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"upstream_headers","start_ms":8.01,"elapsed_ms":2093.764}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"upstream_http","start_ms":8.01,"elapsed_ms":2093.808}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"provider_complete","start_ms":7.852,"elapsed_ms":2094.041}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"health_provider_sync","start_ms":2101.896,"elapsed_ms":0.449}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"circuit_result","start_ms":2102.345,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"health_model_sync","start_ms":2102.346,"elapsed_ms":0.438}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"response_rules","start_ms":2102.788,"elapsed_ms":0.001}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"settlement","start_ms":2102.791,"elapsed_ms":0.526}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"diag-1","name":"http_handler","start_ms":1.294,"elapsed_ms":2102.08}
+--- PASS: TestLiveProviderSharedResource (2.19s)
+PASS

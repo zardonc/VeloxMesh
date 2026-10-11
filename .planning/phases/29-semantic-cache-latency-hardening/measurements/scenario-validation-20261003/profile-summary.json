@@ -1,0 +1,71 @@
+{
+  "stw_count": 13,
+  "stw_max_ms": 0.462272,
+  "stw_total_ms": 1.631232,
+  "stw_events": [
+    {
+      "name": "stop-the-world (start trace)",
+      "duration_ms": 0.002048
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.067648
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.041984
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.462272
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.185408
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.04608
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.12832
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.073792
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.233984
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.175488
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.04032
+    },
+    {
+      "name": "stop-the-world (GC sweep termination)",
+      "duration_ms": 0.052032
+    },
+    {
+      "name": "stop-the-world (GC mark termination)",
+      "duration_ms": 0.121856
+    }
+  ],
+  "vm_cpu_deltas": [
+    14,
+    0,
+    104,
+    2428,
+    9,
+    0,
+    83,
+    0
+  ],
+  "vm_busy_percent": 7.619408642911297,
+  "vm_steal_percent": 0.0
+}

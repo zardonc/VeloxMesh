@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-03",
+  "real_application": "App.New + live HTTP router",
+  "mock_results_excluded": [
+    "correctness/TestPhase29LocalEmbeddingFault",
+    "correctness/TestPhase29LocalQueueBurst",
+    "final-correctness/TestPhase29LocalQueueBurst"
+  ],
+  "replacement_real_burst": "real-burst-regression/TestPhase29LocalQueueBurst",
+  "backend": "SQLite business persistence, Redis, Qdrant; PostgreSQL readiness only",
+  "scheduler_enabled": false,
+  "embedding_model": "text-embedding-embedder_collection",
+  "embedding_dimension": 768,
+  "controls": {
+    "read_timeout_ms": 100,
+    "read_concurrency": 4,
+    "write_workers": 2,
+    "write_queue_capacity": 32,
+    "write_timeout_ms": 2000,
+    "shutdown_grace_ms": 1000
+  },
+  "performance_primary": "qwen2.5-0.5b-instruct",
+  "stable_load": {
+    "rate_per_second": 8,
+    "client_cap": 4,
+    "samples_per_window": 100,
+    "blocks": 3,
+    "order": "direct,off,on,on_repeat,off_repeat",
+    "off_samples": 600,
+    "on_samples": 600,
+    "direct_samples": 300
+  },
+  "mixed_load": {
+    "models": 5,
+    "samples_per_window": 40,
+    "interval_ms": 700,
+    "total_cap": 5,
+    "per_model_cap": 1,
+    "off_ok": 40,
+    "on_ok": 39
+  },
+  "quantile_method": "nearest rank",
+  "merge_allowed": false,
+  "notes": [
+    "Production configuration and env.local untouched.",
+    "Final binary hash applies to the latest diagnostics; earlier superseded binaries were not hashed at execution and must not be identified as this binary.",
+    "Synthetic failure injection and legacy fixed-answer bursts are retained as excluded historical auxiliary logs."
+  ],
+  "retained_binary_sha256": {
+    "preflight-linux.test": "670e16781a9c233c684d15a593bc2e5d6420c5627514777548b80a9bcc15331f",
+    "app-linux.test": "cb426c91418a45e0d02d061028d7f6f2181767c57f98e71b0ae0320ba49caeb3"
+  },
+  "git_head": "e8b5e29096856e8c92953a6da19e54293c10beb7",
+  "open_gateway_findings": [
+    "Qdrant concurrent cold collection creation AlreadyExists",
+    "cold collection NotFound classified as vector error",
+    "low hit P95 gate failure and intermittent gateway stage outliers"
+  ]
+}

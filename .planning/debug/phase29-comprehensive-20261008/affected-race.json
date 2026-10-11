@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "go",
+    "test",
+    "-race",
+    "-count=1",
+    "-timeout=60s",
+    "-json",
+    "./internal/health",
+    "./internal/hotstate",
+    "./internal/cache",
+    "./internal/gateway"
+  ],
+  "exit_code": 0,
+  "seconds": 12.994728299992858
+}

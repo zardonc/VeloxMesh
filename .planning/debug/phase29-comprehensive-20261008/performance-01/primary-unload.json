@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "unload",
+    "qwen2.5-0.5b-instruct"
+  ],
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": "Model \"qwen2.5-0.5b-instruct\" unloaded.\n"
+}

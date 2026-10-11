@@ -1,0 +1,15 @@
+{
+  "resources": {
+    "samples_host": 558,
+    "cpu_mean": 26.887348862255685,
+    "cpu_peak": 57.72994129158513,
+    "available_min_gib": 8.82546615600586,
+    "samples_vm": 558,
+    "vm_min_idle_pct": 27,
+    "vm_max_wait_pct": 3,
+    "vm_swap_in_nonzero": 1,
+    "vm_swap_out_nonzero": 0,
+    "scope": "whole controller capture; first vm cumulative row excluded; clocks not calibrated for request attribution"
+  },
+  "per_block_budget_violations": []
+}

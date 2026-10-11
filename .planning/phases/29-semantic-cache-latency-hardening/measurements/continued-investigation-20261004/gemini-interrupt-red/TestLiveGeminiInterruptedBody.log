@@ -1,0 +1,32 @@
+=== RUN   TestLiveGeminiInterruptedBody
+{"time":"2026-10-04T21:03:42.222118978Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:03:42.226284927Z","level":"WARN","msg":"Unable to compare versions","err":"unable to parse version, expected format: x.y[.z], found: "}
+{"time":"2026-10-04T21:03:42.22632378Z","level":"WARN","msg":"Client version is not compatible with server version. Major versions should match and minor version difference must not exceed 1. Set SkipCompatibilityCheck=true to skip version check.","clientVersion":"Unknown","serverVersion":"1.18.2"}
+{"time":"2026-10-04T21:03:42.226336484Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:03:42.226422686Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-04T21:03:42.22958292Z","level":"INFO","msg":"starting config change subscriber"}
+    live_gemini_timeline_test.go:249: model=text-embedding-embedder_collection dimension=768 primary=gemini-3.1-flash-lite
+    live_gemini_timeline_test.go:59: upstream status=200 headers_ms=2391.245 stream=true
+    live_gemini_timeline_test.go:114: real_nonterminal_frame_sha256=1be8dc402a37adcd96814f6d1595b5812abd87ed08032bfec51cd1afab24053f delivered_utc=2026-10-04T21:03:44.626970058Z
+{"time":"2026-10-04T21:03:44.627112737Z","level":"INFO","msg":"Error unexpected EOF"}
+{"time":"2026-10-04T21:03:44.628554714Z","level":"INFO","msg":"request completed","request_id":"timing-210342.231430070","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":2397}
+    live_gemini_timeline_test.go:258: interrupted real upstream body did not produce a provider protocol failure
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"net_upstream/get_connection","start_ms":5.349,"elapsed_ms":0.014}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"net_upstream/dns_start","start_ms":5.349,"elapsed_ms":0.074}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"net_upstream/dns_done","start_ms":5.349,"elapsed_ms":113.408}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"net_upstream/connect_start","start_ms":5.349,"elapsed_ms":113.5}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"net_upstream/connect_done","start_ms":5.349,"elapsed_ms":123.358}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"net_upstream/tls_start","start_ms":5.349,"elapsed_ms":123.404}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"net_upstream/tls_done","start_ms":5.349,"elapsed_ms":228.439}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"net_upstream/got_connection_new","start_ms":5.349,"elapsed_ms":228.544}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"net_upstream/request_written","start_ms":5.349,"elapsed_ms":228.685}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"net_upstream/first_byte","start_ms":5.349,"elapsed_ms":2391.179}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"upstream_headers","start_ms":5.349,"elapsed_ms":2391.339}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"upstream_http","start_ms":5.349,"elapsed_ms":2392.062}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"sse_first_meaningful","start_ms":1.24,"elapsed_ms":2396.515}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"sse_usage","start_ms":1.24,"elapsed_ms":2396.522}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"settlement","start_ms":2398.319,"elapsed_ms":0.495}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"sse_done","start_ms":1.24,"elapsed_ms":2397.659}
+    live_timing_test.go:146: SAMPLE {"type":"stage","request_id":"timing-210342.231430070","name":"http_handler","start_ms":1.755,"elapsed_ms":2397.226}
+--- FAIL: TestLiveGeminiInterruptedBody (2.49s)
+FAIL

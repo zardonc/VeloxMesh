@@ -1,0 +1,2 @@
+{"error":"Get \"http://127.0.0.1:16333/\": read tcp 127.0.0.1:45934-\u003e127.0.0.1:16333: read: connection reset by peer","type":"readiness-poll","utc":"2026-10-04T19:14:02.334232178Z"}
+{"type":"ready","utc":"2026-10-04T19:14:02.537273851Z","version":{"title":"qdrant - vector search engine","version":"1.18.2","commit":"44ad62f8cd69642be5afa6441612525e24a0d063"},"wait_ms":204.413}

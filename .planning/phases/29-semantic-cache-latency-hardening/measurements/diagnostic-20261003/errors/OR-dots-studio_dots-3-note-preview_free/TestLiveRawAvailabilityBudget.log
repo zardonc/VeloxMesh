@@ -1,0 +1,4 @@
+=== RUN   TestLiveRawAvailabilityBudget
+    live_diagnostic_test.go:88: SAMPLE {"content_characters":4,"finish_reason":"stop","max_tokens":256,"model":"dots-studio/dots-3-note-preview:free","status":200,"type":"raw_availability","usage":{"prompt_tokens":17,"completion_tokens":39,"total_tokens":56}}
+--- PASS: TestLiveRawAvailabilityBudget (1.58s)
+PASS

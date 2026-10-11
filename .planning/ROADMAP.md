@@ -1,8 +1,8 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Updated:** 2026-09-20
-**Current focus:** Phase 27 - Stream Terminal and Settlement Consistency planning
+**Updated:** 2026-10-08
+**Current focus:** Integrate all Phase 27–29 branch commits under the user-accepted candidate budget. Current application and bounded performance verification pass; production cache remains disabled with an empty allowlist. Phase 29 production readiness remains partial.
 
 ## Overview
 
@@ -12,7 +12,7 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 
 ## Milestones
 
-- [ ] **v7.9 Gateway Protocol Correctness** - Phase 27 (planning)
+- [x] **v7.9 Gateway Protocol Correctness** - Phases 27-28 verified 2026-09-25; no deployment recorded
 - [x] **v7.8 Scheduler Scoring Backpressure Hardening** - Phase 26 (shipped 2026-07-10)
 - [x] **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** - Phases 23-25 (shipped 2026-07-08; archive: `.planning/milestones/v7.7-ROADMAP.md`)
 - [x] **v7.6 Scheduler 1.0 + Config** - Phases 20-22 (shipped 2026-07-06; archive: `.planning/milestones/v7.6-ROADMAP.md`)
@@ -24,13 +24,14 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - [x] **v7.0 Plan 1 Foundation** - Phases 7-9 (shipped 2026-06-30; archive: `.planning/milestones/v7.0-ROADMAP.md`)
 - [x] **v5** - Phases 5-6 (shipped 2026-06-29)
 - [x] **v4** - Phases 1-4 (shipped 2026-06-23; archive: `.planning/milestones/v4-ROADMAP.md`)
-- [ ] **Future milestones** - Tool calling, semantic-cache latency, staged timeouts, or BFF/Admin Console
+- [ ] **Future milestones** - Semantic-cache latency, staged timeouts, BFF/Admin Console, or Scheduler automation
 
-## Planned v7.9 Phase
+## Completed v7.9 Phases
 
 | Phase | Name | Goal | Requirements | Status |
 |-------|------|------|--------------|--------|
-| 27 | Stream Terminal and Settlement Consistency | Unify stream terminal classification and exactly-once finalization across ordinary, buffered, and Fusion paths without adding hot-path I/O. | TERM-01..08 | Planning |
+| 27 | Stream Terminal and Settlement Consistency | Unify stream terminal classification and exactly-once finalization across ordinary, buffered, and Fusion paths without adding hot-path I/O. | TERM-01..08 | Verified |
+| 28 | Tool Calling Protocol Completion | Complete strict OpenAI-compatible tool protocol handling across validation, routing, gateway, provider adapters, streaming state, and observability. | TOOL-F01 | Complete    |
 
 ### Phase 27: Stream Terminal and Settlement Consistency
 
@@ -59,7 +60,64 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 5. `27-06` P1 — Fusion consistency verification only; no aggregation, routing, or Judge change (Wave 4, 0.5 day).
 6. `27-05` P0 — Cross-layer terminal regression matrix and phase-gate evidence (Wave 5, 1.5 days).
 
-## Planned v7.8 Phase
+### Phase 28: Tool Calling Protocol Completion
+
+**Goal:** Complete the `/v1/chat/completions` tool-calling protocol end to end so OpenAI-compatible, Anthropic, and Gemini preserve one strict public contract across validated requests, capability-aware routing, non-stream and stream responses, and multi-turn tool-result continuation while Phase 27 remains the sole terminal and Usage-settlement owner.
+**Requirements:** TOOL-F01
+**Depends on:** Phase 27
+**Plans:** 7/7 plans complete
+
+**Verification:** Passed 2026-09-25; see `.planning/phases/28-tool-calling-protocol-completion/28-VERIFICATION.md`.
+
+Plans:
+
+- [x] 28-01-PLAN.md
+- [x] 28-02-PLAN.md
+- [x] 28-03-PLAN.md
+- [x] 28-04-PLAN.md
+- [x] 28-05-PLAN.md
+- [x] 28-06-PLAN.md
+- [x] 28-07-PLAN.md
+
+- [x] `28-01-PLAN.md` — Define and enforce the normalized public tool protocol at the HTTP boundary
+- [x] `28-02-PLAN.md` — Add capability-aware routing, explicit OPT-OUT, Fusion rejection, and fallback safety
+- [x] `28-03-PLAN.md` — Build the shared streaming shadow state machine and cross-provider contract harness
+- [x] `28-04-PLAN.md` — Complete OpenAI-compatible non-stream and streaming tool adaptation
+- [x] `28-05-PLAN.md` — Complete Anthropic non-stream and streaming tool adaptation
+- [x] `28-06-PLAN.md` — Complete Gemini non-stream and streaming tool adaptation
+- [x] `28-07-PLAN.md` — Gateway Integration, Observability, and Phase Gate
+
+**Cross-cutting constraints:**
+
+- D-29 through D-33: Pinned SDK behavior is rechecked, deterministic shared/provider fixtures are the evidence, all Go test commands use a 60-second timeout, and no dependency is upgraded.
+
+## Planned Next Phase
+
+### Phase 29: Semantic Cache Latency Hardening
+
+**Goal:** Make explicitly allowlisted semantic answer reuse safe and latency-bounded for non-streaming requests, with configurable embedding models, version/tenant isolation, asynchronous writes, and fail-open cache bypass that preserves primary forwarding.
+**Requirements:** CACHE-F01
+**Depends on:** Phase 28
+**Plans:** 2/3 plans executed; Phase 29 remains incomplete
+
+**Latest execution:** [2026-10-08 expanded verification](debug/phase29-comprehensive-20261008/REPORT.md). The ordered Redis writer no longer queues subsequent same-key publications behind delayed replies; version rejection, errors and default 50ms deadlines remain. All 411 source hashes match the committed code: 613 backend PASS / 2 SKIP / 0 FAIL, 83 affected race PASS, 7 real-Redis PASS, 24 unique live cache/gateway PASS. Two local embedding model lifecycles were already recorded on 2026-10-03.
+
+**Accepted integration contract (user decision, 2026-10-08):** semantic miss/low-hit P95 must satisfy both ≤1.25×off and delta≤40ms against each matched before/after off endpoint; exact miss delta≤10ms; hits P95≤60ms and ≤0.5×each off; residual P95≤10/P99≤15ms. Current 36-window, 3,600-request, three-block verification passes all nine scenario and interval checks. Original 1.05 still fails. Historical Formal07 (144 windows/43,200 requests) used an older binary and remains separate. This decision permits default-off code integration, not production activation or automatic Phase 29 completion.
+
+Plans:
+**Wave 1**
+
+- [x] 29-01-PLAN.md
+
+**Wave 2** *(offline implementation verified; numeric release approval deferred)*
+
+- [x] 29-02-PLAN.md
+
+**Wave 3** *(integration accepted; production open: original 1.05, independent semantic quality/seed correctness, empty-collection reclamation, historical primary EOF, longer/higher-load capacity and activation decision)*
+
+- [ ] 29-03-PLAN.md
+
+## Shipped v7.8 Phase
 
 | Phase | Name | Goal | Requirements | Status |
 |-------|------|------|--------------|--------|
@@ -85,7 +143,6 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 ## Future Milestones
 
 - **Phase 11: BFF Layer & Admin Console** - JWT authentication, role-based access control, session management, and Admin Console foundation. Depends on Phase 7.
-- **Tool calling protocol completion** - Complete tool schema, tool-call fragment, result correlation, Usage, and finish-reason mappings.
 - **Semantic-cache latency hardening** - Configurable embedding path, short read budget, bounded asynchronous write path, and failure isolation.
 - **Stage timeout and cancellation hardening** - Connect, first-byte, stream-idle, and total-duration budgets with explicit retry eligibility.
 - **Scheduler automation** - optional automatic ONNX rollout changes after explicit operator opt-in.
@@ -102,4 +159,4 @@ The architecture uses SQLite + Redis Stack + Qdrant for the main Plans 1/2 path,
 - Config unification in v7.6 is backward-compatible: existing ENV variables remain valid; nested struct grouping is the new preferred form.
 
 ---
-*Roadmap refreshed: 2026-09-20 - Phase 27 planning started*
+*Roadmap refreshed: 2026-10-08 — all branch commits selected for PR; production cache off, no deployment performed.*

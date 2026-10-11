@@ -1,0 +1,14 @@
+=== RUN   TestLiveStreamCancellation
+{"time":"2026-10-03T19:31:28.759094303Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:28.787639113Z","level":"WARN","msg":"Unable to get server version, use default","err":"rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\"","default":"Unknown"}
+{"time":"2026-10-03T19:31:28.788734006Z","level":"WARN","msg":"Failed to obtain server version. Unable to check client-server compatibility. Set SkipCompatibilityCheck=true to skip version check."}
+{"time":"2026-10-03T19:31:28.789005328Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:28.789129572Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:31:28.789925942Z","level":"WARN","msg":"failed to initialize Qdrant; evaluating fallback","error":"failed to connect to qdrant: HealthCheck() failed: rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\""}
+{"time":"2026-10-03T19:31:28.796441122Z","level":"INFO","msg":"activated Redis VSS fallback for vector store"}
+{"time":"2026-10-03T19:31:28.802927643Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_protocol_test.go:170: model=text-embedding-embedder_collection dimension=768 primary=nvidia/nemotron-3-ultra-550b-a55b:free
+{"time":"2026-10-03T19:31:29.394882024Z","level":"INFO","msg":"request completed","request_id":"b47d62cdd03ffd6cd8b04cb2931dbc54","method":"POST","path":"/v1/chat/completions","status":200,"latency_ms":585}
+    live_ship_protocol_test.go:174: upstream completed before cancellation; cancellation untested
+--- FAIL: TestLiveStreamCancellation (0.84s)
+FAIL

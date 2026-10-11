@@ -16,6 +16,7 @@ const (
 type ProviderSnapshot struct {
 	ID                  string
 	Status              Status
+	ReadError           error `json:"-"`
 	EWMALatency         time.Duration
 	PendingRequests     int
 	ConsecutiveFailures int

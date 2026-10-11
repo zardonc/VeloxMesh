@@ -1,0 +1,360 @@
+{
+  "created": "2026-10-04T22:17:58.939Z",
+  "head": "9606669104617ea84c32f4959697fdb50f33f653",
+  "uncommitted": true,
+  "production_enabled": false,
+  "backend": {
+    "top_level_passed": 599,
+    "failed": 0,
+    "skips": [
+      {
+        "package": "veloxmesh/tests/integration",
+        "test": "TestPlan4PostgresSmoke"
+      },
+      {
+        "package": "veloxmesh/tests/integration",
+        "test": "TestPlan4PostgresSansPrimaryRealProviderSmoke"
+      }
+    ]
+  },
+  "verified_live_tests": {
+    "gemini-boundaries": [
+      "TestLiveGeminiCancelBeforeComplete",
+      "TestLiveGeminiInterruptedBody",
+      "TestLiveGeminiCompleteBeforeCancel",
+      "TestLiveGeminiTerminalTailFaults",
+      "TestLiveGeminiWireComparison"
+    ],
+    "local-readiness": [
+      "TestLiveScopeReadinessGateway",
+      "TestPhase29LocalGatewayAcceptance",
+      "TestLiveExactCacheSafetyRegression",
+      "TestLiveExactCacheVersionIsolation"
+    ],
+    "indexed-readiness-confirmed": [
+      "TestLivePostgresScopeReadiness",
+      "TestLiveScopeReadinessGateway"
+    ],
+    "fault-queue-regression": [
+      "TestPhase29LocalEmbeddingFault",
+      "TestPhase29LocalQueueBurst"
+    ],
+    "exact-comparison-corrected": [
+      "TestLiveControlledOff",
+      "TestLiveControlledExactMiss",
+      "TestLiveControlledOffAfter"
+    ]
+  },
+  "source_sha256": {
+    "internal/app/live_controlled_load_test.go": "834fa0f35daeb1c7a744ff2a8f52cd60d8bcf5cc301bf43b6dd469c0faa33935",
+    "internal/cache/semantic.go": "09ef0f30f82d2848e149e834a1c749abb5c9ecb8eaa73e6eec27a46009e42d86",
+    "internal/providers/gemini/adapter.go": "4bf6d84f67b8c2cdb7204353956273e9cbc06f15ebb5c3d3b8c8d2d73e76db8e",
+    "internal/providers/gemini/tool_protocol.go": "fb1918395166dec5c0a1d96c680db76432328e82137b25e7cb40067949a61446",
+    "internal/app/live_exact_controlled_test.go": "7f60bd25f039d30e2816b767ed6046d5a2047cc4c1df34d76195cc0f1ab845cf",
+    "internal/app/live_gemini_tail_test.go": "7f30610a133b312552c00f58d577ddd94be070e7bc63c05f849ecd9a7f96aa1b",
+    "internal/app/live_gemini_wire_test.go": "c576bd2ab2338fee0bb28054fa27f0b785d70a1d24640560e1538779650889b6",
+    "internal/app/live_readiness_postgres_test.go": "6e4b0372404b89c4ddfc462bd6e250950c77a4a96f730266bb09af2adbac3f86",
+    "internal/app/live_scope_readiness_test.go": "e5458bf9761864733ae577a79eb3bc1f091bbfa28dc9612ee5d7ecee196323eb",
+    "internal/cache/readiness.go": "b6633f188032fa57399db994ade8f538c7ddcebc3a40d2564e9faeb6042c3ba0",
+    "internal/cache/scope_readiness_test.go": "561e62da1eb6370f004e511cb506145bec7791ec6338f49ab3cda447a8972db8",
+    "internal/cache/vector_lookup.go": "ea689dcbc028c7134c4f56dfbbc6813a4660f308d415442b12912e665f62db5f",
+    "internal/controlstate/cache_readiness.go": "d055e39824431f7c0ab418b9a548b78cf31309dc7d5722ac52066fe2e5f5b8df",
+    "internal/controlstate/migrations/postgres/0010_cache_readiness.sql": "4fd81b3eae573d4e2939564334be0e292e8acd32ec29056c3fbb5e4a460f9813",
+    "internal/controlstate/migrations/sqlite/0011_cache_readiness.sql": "2b94278ba70bbade2c6756616b55186b5ecebd71798cc92211b9d117409d7187",
+    "internal/controlstate/postgres/cache_readiness.go": "6204109a2d6c29c103350a064be08903b864f1aeb480e544d9b459f476207acd",
+    "internal/controlstate/replication/cache_readiness.go": "d0575afb350a92bdf0b10f98282b5bc5247a9b6e540732cdb198c1ea0104b6b4",
+    "internal/controlstate/sqlite/cache_readiness.go": "157782db824278e2c487f54a81be82c97696c49f52d5d180fe32e344cfd179a1",
+    "internal/providers/gemini/stream_audit.go": "4f4a426d0c182f42c4e91c7f08b65b040470632be075f9bf696f06bef378b364",
+    "internal/providers/gemini/stream_boundary_test.go": "0bebe720e059a9b76112004f0cd2b129157fececbb5c19d9c623d2ccca52edd3"
+  },
+  "report_sha256": {
+    ".planning/STATE.md": "0f32ff460f1770ef544a4745728bb503a9ab4926357c5c1a56dc211f6c561458",
+    ".planning/phases/27-stream-terminal-settlement-consistency/27-VERIFICATION.md": "3316ba6f997cef53e9407220e21c87924c3b4e13905b42e89c2197afe0a6a5bd",
+    ".planning/phases/28-tool-calling-protocol-completion/28-VERIFICATION.md": "7f2ee6683cdbc27347ac45896beb0cf9386dcfaff80fd9b052894ea4321769d5",
+    ".planning/phases/29-semantic-cache-latency-hardening/29-VERIFICATION.md": "5d7543b5cc88c3f903badb05fa5cb189915355cbc1894a47aca6512a855c191b",
+    ".planning/phases/29-semantic-cache-latency-hardening/29-FURTHER-CORRECTION-20261004.md": "03fac5a6181ecb4e359bf863bc936d11930bd3d89c341a8f59c2ae3f962d76d3"
+  },
+  "binary_sha256": {
+    ".tmp/further-correction-20261004/app-linux.test": "b2a991298e83f7b043e3180cc2aef7b33c3eada5a048272655dafa5893c8f271",
+    ".tmp/further-correction-20261004/runner.exe": "2ba0c8a06bedc7240f1ca1372572d8142c070ea3b8e5de74d58f8d6690575471"
+  },
+  "evidence_sha256": {
+    "backend-final/full-backend.jsonl": "121a4a0d46ac9850645862c0edb5e97bc596a16947e566691fdb6fc948815f5d",
+    "backend-final/run-result.json": "eb05dcd0090c124736ec42ac480e1adb16c8a9b68de16a4a72a36647d3a208f7",
+    "backend-final/runner.log": "dc809f2ceadcec015e771b8b19fbe8fc1e756b881aa0bcb9165a2db844ff318f",
+    "backend-indexed-final/full-backend.jsonl": "65f66cabf7f21231e69fed18be2454ad468b4ec4bda470c9d7e6416a45e580da",
+    "backend-indexed-final/run-result.json": "4089a3ce174a44065e3345cff64f1d0555c1e8fc602898c9e8926f1f3ff08b40",
+    "backend-indexed-final/runner.log": "dc809f2ceadcec015e771b8b19fbe8fc1e756b881aa0bcb9165a2db844ff318f",
+    "cleanup-final.log": "f13a1f16df0ee97f15458bf6e2b4bede8dd2288991d1cca3192043d1b27e1e56",
+    "cleanup.log": "84de68d25b9f8141e96a6cb9abaa840aac5e495d8f2a38ed4bb967e11333d892",
+    "cleanup.py": "d60eb12bbbbf3a5230d07ef0fa155a4a145e51e68e222f9ff24d6ca01b2251ef",
+    "controlled-suite.mjs": "50dab818b1d463713a5e05168af7de119d6af4b7c63ba7dd871219ab8847da55",
+    "evaluate.py": "234ff1cee324ff93ff2dcd0d822d14a8c66dec791602fa120f85a0974d966392",
+    "exact-comparison-corrected/run-result.json": "a0054e8ebc494fcf36a62f02501093619959a989258907ed9eebf8debb003a4b",
+    "exact-comparison-corrected/runner.log": "acb672d2fc514045fdfbcd77d36961b277b36596979279ed04a1828a48a484ab",
+    "exact-comparison-corrected/TestLiveControlledExactMiss-vm-after.log": "6d70a4059cc4b7e197043c15d96be3b985ff254e2ebc8430b40e0680eacdd4dc",
+    "exact-comparison-corrected/TestLiveControlledExactMiss-vm-before.log": "10793fedf542ff1c6e123f7efd19bc2cb2e4e35f480d9edb260abb9f45545fd3",
+    "exact-comparison-corrected/TestLiveControlledExactMiss.log": "d6e61e48bc49475759f19252c44bd123209b630149feba3553854ede1b9cfabc",
+    "exact-comparison-corrected/TestLiveControlledOff-vm-after.log": "e3c8db94f5346478276b9f18ededc2c40dad35806f9b4606372b3c253806aba8",
+    "exact-comparison-corrected/TestLiveControlledOff-vm-before.log": "2513419b208b5ebedb812fb12df55e55d4d090742cf4c416d281ef9df1f9b6c4",
+    "exact-comparison-corrected/TestLiveControlledOff.log": "373468ec7097f876e712eeaabdcb82053f64d2fb86c9cdd5dba5550591edd98d",
+    "exact-comparison-corrected/TestLiveControlledOffAfter-vm-after.log": "5caf2e6cccac7f32f9da63a547b7baa2175eab88b5216f423a586c8a7ed37978",
+    "exact-comparison-corrected/TestLiveControlledOffAfter-vm-before.log": "f5cab4c8941c5ad9a0d8feb014a817ba5b753f90872a3f256e909cb0b1faa33c",
+    "exact-comparison-corrected/TestLiveControlledOffAfter.log": "078838e647539681bb1b2ae637f6249351363d773570ef86682a0b403d1fb9cc",
+    "fault-queue-regression/run-result.json": "577bf06fa54a094be9d954c3bada78693bc3f262f23a934588833b3d314e086f",
+    "fault-queue-regression/runner.log": "1ccfe7be33444dc9aee205f84bdb3e524d5388e632a06ba5bf98c012ce2b012a",
+    "fault-queue-regression/TestPhase29LocalEmbeddingFault-vm-after.log": "b2223d3cccac7a2f446deedc29a13e278b56d062fdf1a0cbca63cc213c4f0b4e",
+    "fault-queue-regression/TestPhase29LocalEmbeddingFault-vm-before.log": "80bcc91647805717b5e852977f7f13a34a309eeed9817de29d17208341d6016d",
+    "fault-queue-regression/TestPhase29LocalEmbeddingFault.log": "1e3843e4f5af6a894633aa864b56268ac6a37303e9bce29cbc48aa8a185a330e",
+    "fault-queue-regression/TestPhase29LocalQueueBurst-vm-after.log": "d560c917c18bac8f06bcf59b762c598439333fe45bd71399144cca150ebd24d2",
+    "fault-queue-regression/TestPhase29LocalQueueBurst-vm-before.log": "674d43003199e5a454e0d029fe9c976c1662fd82776ad4e0e5c4b885bd49122d",
+    "fault-queue-regression/TestPhase29LocalQueueBurst.log": "87a97f496f3b8e0a94d125c2395416a1445d12129b5ac37b4a4af7da1a211dd0",
+    "final-checks.json": "f741844cb50db8ac6079bbeeebdc1e081b8aee93f658c8b3c1790e8e6c5ec33b",
+    "final-checks.mjs": "1747e8030dc22418b48446ad61e9c584ccb1fe9dc30eb9a53f42468f7e01eb64",
+    "gemini-boundaries/run-result.json": "9ca7e04356f4711ca8018386e0681593b0267a9f32eb71b887ccd98fd70b0af0",
+    "gemini-boundaries/runner.log": "a0a2ec02862ee49cfadb7120287d23664135988ec28229384a4033c4d8fdb0de",
+    "gemini-boundaries/TestLiveGeminiCancelBeforeComplete-vm-after.log": "1de973a5e3b9e0ef3fc7430d5ab73eda026a01556dbd70b4dd6d7716be29edab",
+    "gemini-boundaries/TestLiveGeminiCancelBeforeComplete-vm-before.log": "d565029507a84dce54281574f99e4dfacd36457c918041cd7a2bbc365142251e",
+    "gemini-boundaries/TestLiveGeminiCancelBeforeComplete.log": "334e0a42763fdcbbf566457a269476d31822b09b0dece4a91abd2b36019caf44",
+    "gemini-boundaries/TestLiveGeminiCompleteBeforeCancel-vm-after.log": "59d12270ce2743179f85fbe157173fd6268a4b8dbe81b84e5017dd5a503e8711",
+    "gemini-boundaries/TestLiveGeminiCompleteBeforeCancel-vm-before.log": "e7a4258136c6e3b489714a5719ccf9140d62e7714b2f13111d953136cc63275f",
+    "gemini-boundaries/TestLiveGeminiCompleteBeforeCancel.log": "77011b6eb482ec1faff0a9ec465f681908ecd42cc786a5c3af27a2e1b9d5f865",
+    "gemini-boundaries/TestLiveGeminiInterruptedBody-vm-after.log": "df8b021913032043bb3e7d1b844240eeb18f04c2e68fb4a9214598e366e2a69f",
+    "gemini-boundaries/TestLiveGeminiInterruptedBody-vm-before.log": "36dc7723a27bd2869ec0ff012f7f292d7a50e5772bd1c214f9b5e08717c68f38",
+    "gemini-boundaries/TestLiveGeminiInterruptedBody.log": "be35058830743f862c2b8e7764e0d4eab776b9fad265f6912861370a875977fc",
+    "gemini-boundaries/TestLiveGeminiTerminalTailFaults-vm-after.log": "ad86037374bd4f2944bea70758c54ac851b0eb78e28e3ebfc2a89be43bb5cd76",
+    "gemini-boundaries/TestLiveGeminiTerminalTailFaults-vm-before.log": "1ba9afe1d3d433ec42d516467d36ad77fd35563aba5e497e9bc76e92918021b6",
+    "gemini-boundaries/TestLiveGeminiTerminalTailFaults.log": "bc38eaf0947fbeaaa252aa92820ce4980751cfbbfead1b37967dd97c15985806",
+    "gemini-boundaries/TestLiveGeminiWireComparison-vm-after.log": "8a00fddfdad634f28f885fe82c67529a7f30cd2f5d1ac126ab4a0f8d177064b1",
+    "gemini-boundaries/TestLiveGeminiWireComparison-vm-before.log": "9b3307641b4ef9aea1f08262121d8081b42bd2c4326b939a8abf3c159fb84da1",
+    "gemini-boundaries/TestLiveGeminiWireComparison.log": "b1537064040ddab3217eb4375a765828fb63617fe8921975bd99ea49b6c2fd77",
+    "green-focused.jsonl": "d62d141c8c30ecb2a5c492f9d49e9407c628272fe88e1012d7dfb4dacfeef9db",
+    "green-packages.jsonl": "adbbc50366ae5efa0de95b34d4b9c44d389583a707c53c5c22f3e80d2654021c",
+    "indexed-readiness/run-result.json": "3eb2c30a89dc2eddb1507b5550343716ab4f4fb1c5f74f1de8fc16ff557c2103",
+    "indexed-readiness/runner.log": "c11b4cd3b58f95db842ebcf0718186dfc34b0f9160353e9d8c69872dba8ed365",
+    "indexed-readiness/TestLivePostgresScopeReadiness-vm-after.log": "eea2b61399de30625603619b4400e96c736ac0a1a3c908ef0902442d016e4ff3",
+    "indexed-readiness/TestLivePostgresScopeReadiness-vm-before.log": "be0059cb7a186120b3eaff8a362d6cad19011243d208ae7021acee51d5fd08ed",
+    "indexed-readiness/TestLivePostgresScopeReadiness.log": "bdb686632f0a802a3a1c87c9b54f2d648cd01994a3b4f8f6123c9a07121c89fc",
+    "indexed-readiness/TestLiveScopeReadinessGateway-vm-after.log": "4bb9b3fbd051250135b35e38c6498e178ef58866a35a8ec8d2b0389103110448",
+    "indexed-readiness/TestLiveScopeReadinessGateway-vm-before.log": "be7b88f45966cc37b62bdff63f7f62899635077a1a471074b6f55d047f67c32d",
+    "indexed-readiness/TestLiveScopeReadinessGateway.log": "53fa2226f88b8c9665f5c3e1d1f8b96007fb96e26c77aba9e7fbc7bb79184e17",
+    "indexed-readiness-confirmed/run-result.json": "533c7d5e2c6a5d615fa674e8cb4f29a498095cca5229e303541bd69a1c27dcae",
+    "indexed-readiness-confirmed/runner.log": "c11b4cd3b58f95db842ebcf0718186dfc34b0f9160353e9d8c69872dba8ed365",
+    "indexed-readiness-confirmed/TestLivePostgresScopeReadiness-vm-after.log": "05ef42c79cbfca0d2b6c29bff3f629470e0b4874aeadab6703443a6465639ccb",
+    "indexed-readiness-confirmed/TestLivePostgresScopeReadiness-vm-before.log": "d74495595f60ef57687c7ade726a7ab7d385ee465e5aeefe76a778c4fc10f67b",
+    "indexed-readiness-confirmed/TestLivePostgresScopeReadiness.log": "7944797c4c119f39fca4e76aa3466409c2c009b9dd75cdbce5d4a429821068fa",
+    "indexed-readiness-confirmed/TestLiveScopeReadinessGateway-vm-after.log": "2d43d8c172c8b694abf2fbe0ad6767154cc2b2cf5506d00b48ab7bd863b409ab",
+    "indexed-readiness-confirmed/TestLiveScopeReadinessGateway-vm-before.log": "e557c9a3e33f29d072e5d5bce7cdfe8f883d4bb9bce7089a92f680726ef349c6",
+    "indexed-readiness-confirmed/TestLiveScopeReadinessGateway.log": "3df951e794305915ed791e71ae7e1f488bf27ddf6bac271cf73dabade50ffe9f",
+    "live-v1-binary.sha256": "19824b7abdb12714bfcb8e141ccaab64bd2b6fe39a54335226618e6b54a4b34c",
+    "live-v2-binary.sha256": "1a19f92cd3f912e4b8a6389d3188b65879c037a966a55228a2a6587bd23ecf79",
+    "live-v3-binary.sha256": "4da25c1ca533b6793f88d88dd1bdf4db9b7a83b0f8a3a575979fc620d1dd4bfd",
+    "live-v4-binary.sha256": "c9309ae9a09a2064728dd4d3dd0f41a4b262d8caaa2267d9f7799595e5d0dd16",
+    "local-readiness/run-result.json": "f6d7bd4739953a731208293236a4d41ff2eb2f659d9c4d727f4905cba0229946",
+    "local-readiness/runner.log": "d9132f91b2f23272e4b4ff777ed4ec66684d21a0f339ef574e7f3d848e93d0c1",
+    "local-readiness/TestLiveExactCacheSafetyRegression-vm-after.log": "df0d6ed3411cfed28ed177014010ef9510bba037f7992676fe7f382b19d4c4df",
+    "local-readiness/TestLiveExactCacheSafetyRegression-vm-before.log": "4c13cb1386a47e47e1475d08a46d95f7c79b195f5eeebfc4faac41c583ddf820",
+    "local-readiness/TestLiveExactCacheSafetyRegression.log": "c19eb9a92ddb1b8d671a81f2fbfff719ac04b6a08374c14f7f6a8d519a063272",
+    "local-readiness/TestLiveExactCacheVersionIsolation-vm-after.log": "7234df41bd7e315547846914a47417a09b0c9ca753b2518d904427f4d4271645",
+    "local-readiness/TestLiveExactCacheVersionIsolation-vm-before.log": "4b46714afc481642bf4ed893ec4b42727ba43e062703f6189fac60dcbe16d03c",
+    "local-readiness/TestLiveExactCacheVersionIsolation.log": "e82ea969b17cfae313464039b26ffb195ef971e8e8a2a0042bc84c45184ac2d9",
+    "local-readiness/TestLiveScopeReadinessGateway-vm-after.log": "fff23d24cc438101f30c3150b8cd04260e558d439947f50b779c67479aed94f8",
+    "local-readiness/TestLiveScopeReadinessGateway-vm-before.log": "73f0136f11c263a0535f108317b534ac3128d6a2135f0037d8262cd67384ef0c",
+    "local-readiness/TestLiveScopeReadinessGateway.log": "714cf61d9f86a46f22a515c9dc4e6c3c182523662cc5624ce64fd5cba7bb39d3",
+    "local-readiness/TestPhase29LocalGatewayAcceptance-vm-after.log": "5ddd2b2a8d51f8beea9e6e358e52671a194b071a6d603ac46d535ebdf7413653",
+    "local-readiness/TestPhase29LocalGatewayAcceptance-vm-before.log": "e2789d40dd231f2ae41be8a939f1a5554f472e023a2348b5915ef966681f996b",
+    "local-readiness/TestPhase29LocalGatewayAcceptance.log": "6ef9d5ab523777eea38a703ad81a115a93d35022b8f102673d05ea6737eba407",
+    "path-comparison/run-result.json": "0fd50b6f8d2f07d2c48b9d2c2fd7cde06c3e6ca1cca38aae3e0e6e5df2865618",
+    "path-comparison/runner.log": "f7139e90eb634fb6d23be8fd21bb8cfeb99c0d9402895241eb5d096414a9a34b",
+    "path-comparison/TestLiveCacheHitSettlementLoad-vm-after.log": "c9cd277abdcbf01497010e541ad55c499c595d56abf821b2b4bbda21b8e6bae4",
+    "path-comparison/TestLiveCacheHitSettlementLoad-vm-before.log": "769ea822f827fb8f8c3c8526033ff1d7754fa9044017cbac0a2b8415d172a895",
+    "path-comparison/TestLiveCacheHitSettlementLoad.log": "ebeb1eca966c966166e521ac972d4663e36280e59e840a20ec3f6a9216f082c7",
+    "path-comparison/TestLiveControlledExactMiss-vm-after.log": "f90aa280d387212a0d7b12dbc2b0c22c79f91292e41ebe8ec6e72cdeb6d83253",
+    "path-comparison/TestLiveControlledExactMiss-vm-before.log": "2e8ead34489d7a77ce40d9c09220464529234e743ae06c966d2058e4468e626f",
+    "path-comparison/TestLiveControlledExactMiss.log": "8c1e5180ca94414c9cc1384b32ff009f260d6e1a8ed8cf3ed145e9ee8611bab6",
+    "path-comparison/TestLiveControlledOff-vm-after.log": "70376f9cff33182dd1b851edd901c1212dd6360d6453215f5c2b6eb6c5a98770",
+    "path-comparison/TestLiveControlledOff-vm-before.log": "5478d01f7cb206bcdfc3e5caf7acca6c4c0451d2ff3722429cc8348969e33ee8",
+    "path-comparison/TestLiveControlledOff.log": "fe071a57fabfdf9bdabed07e62749c6cf9a46666df05a7f7e570a28596968490",
+    "path-comparison/TestLiveControlledOffAfter-vm-after.log": "0c1cc7f62903f928bc3dc459f0474081e42be86ba8576c1e221cd32eb898df45",
+    "path-comparison/TestLiveControlledOffAfter-vm-before.log": "e27c7eedeca98f9354a2b8471045b78cfd3951474d4271d1daeeb3ce5589e3e2",
+    "path-comparison/TestLiveControlledOffAfter.log": "156f6f8e800b5634d73ef68a70f84f9874219b05b38c4a540bf61895ca1d6c41",
+    "path-comparison/TestLiveControlledOn-vm-after.log": "0832afce4172bc8dd12da51f80f8fc29a54e1ee4e9d666eaec33bbf3c2e2de0c",
+    "path-comparison/TestLiveControlledOn-vm-before.log": "80e053358685452442eab550efd1b9cd1bffe63e7e63553ae8789a323fbe2da2",
+    "path-comparison/TestLiveControlledOn.log": "b1f6c9bcfde5bedf65af951de808bb373883d64b4c205d9f6749968d1f7711b3",
+    "PATH-COMPARISON.md": "130601e2fb6e4d433b5fe2b5f48e5479e021e06ca0dfee0aa9a1fb722fa557e1",
+    "path-evaluation.json": "a69decec88a1dc190eecd3848bb15b566ebf44ccc67ef6703511d26883bb76e7",
+    "postgres-readiness/run-result.json": "25dfa09bfd6da7ec78c3cdc2efa0a30f93527ee055bd7361b63479d1ff424473",
+    "postgres-readiness/runner.log": "df15fe9404f2e198946ea4f425b22f456fb2ea8bd20f1bf27109fad0961cec71",
+    "postgres-readiness/TestLivePostgresScopeReadiness-vm-after.log": "923a1156cdb2bc6427ffc304d550b3e3881d6f5bed0b66a1d035143d7143fa1f",
+    "postgres-readiness/TestLivePostgresScopeReadiness-vm-before.log": "fc0a12e6f5324485b8de2a172edaeb03b38c1e854a580f77f4744f17fd2982da",
+    "postgres-readiness/TestLivePostgresScopeReadiness.log": "971659d460469d97dd1f27259d7af26d6ef29e57ee76ff00c36f709e5889eafa",
+    "preflight/run-result.json": "b144a87d604fe2cf859255218935a7cec61f0b8ec53695d528c7226d3bfc0e7b",
+    "preflight/runner.log": "2cddf023aa8284eaefc66a509fd96d73280e3bd1d40032b243d60571e316e0e8",
+    "preflight/TestLiveModelAvailability-vm-after.log": "9261a4ddf51e21d5313e3454a4eeb92805e2c989e564d33bac0d6f78e338117c",
+    "preflight/TestLiveModelAvailability-vm-before.log": "99f1dfddbe64ceeea4448d57265ccb0da433f41bdc41fde46a2a40afdc220d0c",
+    "preflight/TestLiveModelAvailability.log": "b07d604b3b4c5ab4dcf5e493492b58e7fa1d8e6100e8d203af7cbe4354e9b589",
+    "preflight.py": "3901f4916baa3e6f1decf5201b87676b4a5fb820ce8539ed3e74953f831033bd",
+    "prepare.py": "625ff6b3b1c2a824ccd9ba046bf4dcb82d7b3513dfc628a4ef7cac88b3a2703a",
+    "prepared.jsonl": "09ff8cba8585afd40c75d8976390e1b60673a30a6cf6c5105a311acf68279083",
+    "red-corrected-fixture.jsonl": "bb07a69152bb7e21041561d1331f3ca9c109e91c6d130465b96848ed26f81216",
+    "red.jsonl": "1631d81003a8eae5d0c45f967b73ab3afb00423aa37bb9cc3ce08e6961167b33",
+    "run.mjs": "d8868bac16874aace1e87f0af7e2acd595f6f064631d6f6b1cfc0e9b4977701e",
+    "seal.mjs": "a191d0b69b29774eb170002b68cbef33ccccdc0ae94197992559f8d4c9347046",
+    "setup.mjs": "f9012c95c00b9f54e60d4f8f225c3c13996c347bfecdd1e6a7021796de80ffab",
+    "source-version-check.json": "2b2d943ab07fc578decb90cf8389776a40e07ae7ccee6aa2c8761d2ddcd8ae47",
+    "vet.json": "498cb7c1016153ed3ca49e0301270b01d83ac50735444be097bf125a26bd1ecb",
+    "vm-preflight.jsonl": "900928a225f1a6dc7ee6ea9fa83d4aaf98d0447932c4a78b607641321dc5f1b1",
+    "vmctl.go": "78805a441d9ca5618b88b2bb6dcde4ca28484ab595dab55a65c03e9bf2ed759b"
+  },
+  "final_source_version": {
+    "linux_binary_mtime": "2026-10-04T22:07:44.131Z",
+    "excluded_old_binary_run": {
+      "started": "2026-10-04T22:07:38.204Z",
+      "ended": "2026-10-04T22:07:43.739Z",
+      "status": 0
+    },
+    "confirmed_after_compilation": {
+      "started": "2026-10-04T22:08:51.149Z",
+      "ended": "2026-10-04T22:08:56.797Z",
+      "status": 0
+    }
+  },
+  "cleanup": {
+    "collection": {
+      "fresh_collection_count": 10,
+      "semantic_count": 9,
+      "names": [
+        "scheduler_training_samples",
+        "semantic_cache_090e5c402a2426048595c4212c2b888c64ad183db48e8984e4349368088fe69a",
+        "semantic_cache_128fae723206312facdfb89c9d1e20540e7fd7f2377a14153b802f8b4f936bad",
+        "semantic_cache_1c28898a638841c4a7959acf6139665f44c8bc5630559ffff29801f2d7b856db",
+        "semantic_cache_237272a69dba8aaae08dd84ebd5de64365c654792e215fa66b7188e543f66102",
+        "semantic_cache_4d11d1f6722630374d788d021293124270dab48d696e82fcd53a90403a60b82b",
+        "semantic_cache_57055b054808a81895ec9ed7087ecb451ff65bc548f3f8a2d286746990a2383c",
+        "semantic_cache_70b08805b566de423ff6b0d9fcf5cf74a4a7e3c2d4b7fb54535ee81c22d76467",
+        "semantic_cache_79d329cc94fc3c9acd9dbb605b99d1e42ef43a4af4d6d21a0557af0d1166720c",
+        "semantic_cache_bb320020a08f83028cde2cc32c00e9a983ef2acb4db28ca09f815adc8b490018"
+      ]
+    },
+    "removed": {
+      "removed_owned_binary": "/tmp/veloxmesh-further-20261004-01a1089d.test",
+      "sha256": "b2a991298e83f7b043e3180cc2aef7b33c3eada5a048272655dafa5893c8f271",
+      "size": 68629298
+    },
+    "containers": [
+      {
+        "name": "/veloxmesh-further-20261004-01a1089d-redis",
+        "running": false,
+        "oom": false,
+        "restarts": 0,
+        "volume_preserved": [
+          "veloxmesh-further-20261004-01a1089d-redis"
+        ]
+      },
+      {
+        "name": "/veloxmesh-further-20261004-01a1089d-qdrant",
+        "running": false,
+        "oom": false,
+        "restarts": 0,
+        "volume_preserved": [
+          "veloxmesh-further-20261004-01a1089d-qdrant"
+        ]
+      },
+      {
+        "name": "/veloxmesh-further-20261004-01a1089d-postgres",
+        "running": false,
+        "oom": false,
+        "restarts": 0,
+        "volume_preserved": [
+          "veloxmesh-further-20261004-01a1089d-postgres"
+        ]
+      },
+      {
+        "name": "/veloxmesh-test-redis",
+        "running": false,
+        "oom": false,
+        "restarts": 0,
+        "volume_preserved": [
+          "veloxmesh-test-redis"
+        ]
+      },
+      {
+        "name": "/veloxmesh-test-qdrant",
+        "running": false,
+        "oom": false,
+        "restarts": 0,
+        "volume_preserved": [
+          "veloxmesh-test-qdrant"
+        ]
+      },
+      {
+        "name": "/veloxmesh-test-postgres",
+        "running": false,
+        "oom": false,
+        "restarts": 0,
+        "volume_preserved": [
+          "veloxmesh-test-postgres"
+        ]
+      }
+    ]
+  },
+  "credential_audit": "passed",
+  "performance": {
+    "acceptance_approved": false,
+    "diagnostic_only": true,
+    "comparisons": {
+      "semantic_miss": {
+        "diagnostic_only": true,
+        "acceptance_approved": false,
+        "off_before_p95_ms": 145.517,
+        "off_after_p95_ms": 124.608,
+        "off_drift_pct": -14.368767910278525,
+        "drift_screen_passed": false,
+        "conservative_anchor": "slower of both bracketing off windows",
+        "ratio": 1.0362431880811176,
+        "delta_ms": 5.274000000000001,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 181.89625,
+        "candidate_passed": true,
+        "proposal": true
+      },
+      "exact_miss": {
+        "diagnostic_only": true,
+        "acceptance_approved": false,
+        "off_before_p95_ms": 119.109,
+        "off_after_p95_ms": 123.66,
+        "off_drift_pct": 3.8208699594489026,
+        "drift_screen_passed": true,
+        "conservative_anchor": "slower of both bracketing off windows",
+        "ratio": 1.0357674268154617,
+        "delta_ms": 4.423000000000002,
+        "original_limit": 1.05,
+        "original_passed": true,
+        "candidate_ratio_limit": 1.25,
+        "candidate_delta_limit_ms": 40,
+        "candidate_operator": "AND",
+        "candidate_limit_ms": 154.575,
+        "candidate_passed": true,
+        "proposal": true
+      }
+    }
+  },
+  "excluded_evidence": {
+    "path-comparison/TestLiveControlledExactMiss.log": "Helper overwrote exact mode; retained, excluded.",
+    "path-comparison/TestLiveCacheHitSettlementLoad.log": "Functional C4 burst; excluded from matched 8 RPS comparisons.",
+    "indexed-readiness": "Run finished before v4 compilation; excluded from index verification.",
+    "red.jsonl": "Contains initial fixture compile/schema failures; corrected-fixture red is product evidence.",
+    "green-focused.jsonl": "Contains active-scope UTC fixture failure; green-packages is corrected."
+  },
+  "limits": [
+    "One fixed-order Gemini stream pair; canonical JSON equality, connection reuse differs.",
+    "Gemini intermittent response-header timeout remains open; no retry or deadline extension.",
+    "All path timing samples predate index migrations; semantic baseline drift invalidates acceptance.",
+    "Readiness is not persistent collection ownership or garbage collection.",
+    "Business seed correctness and semantic negative safety remain release gates."
+  ]
+}

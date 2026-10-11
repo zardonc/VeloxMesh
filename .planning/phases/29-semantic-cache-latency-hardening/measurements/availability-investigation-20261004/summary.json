@@ -1,0 +1,299 @@
+{
+  "base_revision": "780e12e76dff3c0c4576879d30d88dbb7245eccd",
+  "uncommitted_source": true,
+  "classification_fix": "fail-closed health_state_unavailable, not latency/availability resolution",
+  "tests": [
+    {
+      "path": "baseline-network/LOCAL-qwen2.5-0.5b-instruct/TestLiveHealthSnapshotDelayMatrix.log",
+      "name": "TestLiveHealthSnapshotDelayMatrix",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "baseline-network/LOCAL-qwen2.5-0.5b-instruct/TestLiveRoutingHealthDependencyError.log",
+      "name": "TestLiveRoutingHealthDependencyError",
+      "status": "FAIL",
+      "expected_red": true,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "final-backend/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalEmbeddingFault.log",
+      "name": "TestPhase29LocalEmbeddingFault",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "final-backend/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalGatewayAcceptance.log",
+      "name": "TestPhase29LocalGatewayAcceptance",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "final-backend/LOCAL-qwen2.5-0.5b-instruct/TestPhase29LocalQueueBurst.log",
+      "name": "TestPhase29LocalQueueBurst",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveBufferedStream.log",
+      "name": "TestLiveBufferedStream",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveFusionStream.log",
+      "name": "TestLiveFusionStream",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveHealthDependencyHealthyPeer.log",
+      "name": "TestLiveHealthDependencyHealthyPeer",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveHealthDependencyRoutes.log",
+      "name": "TestLiveHealthDependencyRoutes",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveHealthSnapshotDelayMatrix.log",
+      "name": "TestLiveHealthSnapshotDelayMatrix",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisConcurrentSnapshots.log",
+      "name": "TestLiveRedisConcurrentSnapshots",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisProviderIsolation.log",
+      "name": "TestLiveRedisProviderIsolation",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveRedisStalePublication.log",
+      "name": "TestLiveRedisStalePublication",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveRoutingHealthDependencyError.log",
+      "name": "TestLiveRoutingHealthDependencyError",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveStreamCancellation.log",
+      "name": "TestLiveStreamCancellation",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "green/LOCAL-qwen2.5-0.5b-instruct/TestLiveStreamSettlement.log",
+      "name": "TestLiveStreamSettlement",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "routes-corrected-red/LOCAL-qwen2.5-0.5b-instruct/TestLiveHealthDependencyRoutes.log",
+      "name": "TestLiveHealthDependencyRoutes",
+      "status": "FAIL",
+      "expected_red": true,
+      "fixture_failure": false,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "routes-red/LOCAL-qwen2.5-0.5b-instruct/TestLiveHealthDependencyHealthyPeer.log",
+      "name": "TestLiveHealthDependencyHealthyPeer",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": true,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "routes-red/LOCAL-qwen2.5-0.5b-instruct/TestLiveHealthDependencyRoutes.log",
+      "name": "TestLiveHealthDependencyRoutes",
+      "status": "FAIL",
+      "expected_red": false,
+      "fixture_failure": true,
+      "clients": 0,
+      "failed_clients": 0
+    },
+    {
+      "path": "workload/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOff.log",
+      "name": "TestLiveCacheLoadOff",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 100,
+      "failed_clients": 0
+    },
+    {
+      "path": "workload/LOCAL-qwen2.5-0.5b-instruct/TestLiveCacheLoadOnWithoutMemo.log",
+      "name": "TestLiveCacheLoadOnWithoutMemo",
+      "status": "PASS",
+      "expected_red": false,
+      "fixture_failure": false,
+      "clients": 100,
+      "failed_clients": 0
+    }
+  ],
+  "final_backend": {
+    "path": "final-backend/LOCAL-qwen2.5-0.5b-instruct/full-backend.jsonl",
+    "passed": 954,
+    "top_level_passed": 595,
+    "packages_passed": 38,
+    "skipped_tests": [
+      {
+        "package": "veloxmesh/tests/integration",
+        "test": "TestPlan4PostgresSmoke"
+      },
+      {
+        "package": "veloxmesh/tests/integration",
+        "test": "TestPlan4PostgresSansPrimaryRealProviderSmoke"
+      }
+    ],
+    "packages_without_tests": [
+      "veloxmesh/cmd/controlstate-migrate",
+      "veloxmesh/cmd/gateway",
+      "veloxmesh/internal/scheduler/predictorv1",
+      "veloxmesh/internal/scheduler/schedulerv1"
+    ],
+    "failed": []
+  },
+  "direct": {
+    "normal_requests": 160,
+    "failures": 0,
+    "intentional_cancellations": 8
+  },
+  "workload": {
+    "blocks": 1,
+    "gate": {
+      "ratio": 1.0777245450004573,
+      "delta_ms": 11.048000000000002,
+      "original_limit": 1.05,
+      "original_passed": false,
+      "candidate_ratio_limit": 1.25,
+      "candidate_delta_limit_ms": 40,
+      "candidate_operator": "AND",
+      "candidate_limit_ms": 177.67875,
+      "candidate_passed": true,
+      "proposal": true
+    },
+    "windows": {
+      "off": {
+        "requests": 100,
+        "failures": 0,
+        "hits": 0,
+        "actual_rps": 8.007745091052065,
+        "actual_max_concurrency": 2,
+        "latency": {
+          "n": 100,
+          "p50_ms": 100.928,
+          "p95_ms": 142.143,
+          "p99_ms": 171.866,
+          "max_ms": 173.063
+        },
+        "application": {
+          "n": 100,
+          "p50_ms": 3.540999999999997,
+          "p95_ms": 4.393000000000001,
+          "p99_ms": 5.188000000000002,
+          "max_ms": 5.197000000000003
+        }
+      },
+      "on": {
+        "requests": 100,
+        "failures": 0,
+        "hits": 4,
+        "actual_rps": 7.997551469642055,
+        "actual_max_concurrency": 2,
+        "latency": {
+          "n": 100,
+          "p50_ms": 115.121,
+          "p95_ms": 153.191,
+          "p99_ms": 170.558,
+          "max_ms": 177.231
+        },
+        "application": {
+          "n": 100,
+          "p50_ms": 3.3840000000000003,
+          "p95_ms": 4.640999999999991,
+          "p99_ms": 5.292000000000002,
+          "max_ms": 6.945000000000007
+        }
+      }
+    },
+    "initial_qdrant_lookup_errors": 2,
+    "release_validated": false
+  },
+  "cleanup_log": "workload/LOCAL-qwen2.5-0.5b-instruct/runner.log",
+  "pending": [
+    "natural Redis read stalls and steady-state host attribution",
+    "Qdrant scope initialization and collection growth inventory",
+    "upstream 400 raw engine cause/correlation",
+    "balanced six-block performance confirmation",
+    "business-approved semantic evaluation and isolated model cold state"
+  ],
+  "provenance": {
+    "baseline_sources": "baseline/internal/",
+    "observer_executed_source": "baseline/redis-observation-executed.txt",
+    "observer_replay_source": "redis-observation.go",
+    "previous_evidence_unchanged": "../policy-execution-20261003"
+  }
+}

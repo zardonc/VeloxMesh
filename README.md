@@ -51,7 +51,7 @@ flowchart TD
 - **Multi-provider routing**: support explicit provider selection, default routing, and fallback across providers.
 - **Operational controls**: manage API keys, quotas, rate limits, health checks, and runtime provider state.
 - **Cost and usage awareness**: track request settlement and support budget-oriented admission checks.
-- **Semantic cache ready**: integrate vector-backed caching paths for repeated or similar prompts.
+- **Controlled answer reuse**: default-off, trusted profiles select exact or experimental semantic reuse, with bounded reads and asynchronous writes.
 - **Production-minded defaults**: health endpoints, metrics, structured logging, and durable control state.
 
 ## Main Features
@@ -185,6 +185,31 @@ curl -X POST http://localhost:8080/v1/chat/completions \
   }'
 ```
 
+## Client Compatibility
+
+Tool definitions, choices, streamed fragments, and tool-result IDs are validated
+across OpenAI-compatible, Anthropic, and Gemini adapters. VeloxMesh forwards tool
+protocol data; it does not execute tools or provide an MCP/Agent runtime. Tool
+traffic bypasses answer caching. Stream completion owns usage settlement once;
+failed or cancelled streams do not debit the client.
+
+### Gemini Tool Calling
+
+Gemini 3 requires thought signatures when continuing a tool-calling turn. Preserve
+`tool_calls[].extra_content.google.thought_signature` exactly as returned and send
+it back on the same assistant tool call in the next request's message history.
+For SSE responses, retain this metadata when assembling the streamed tool calls.
+
+Third-party clients that discard `extra_content` are incompatible with these
+continuations: Gemini can reject the next request with HTTP 400 even when the
+tool call ID, function arguments, and tool result are correct. VeloxMesh forwards
+the signature but does not retain a server-side copy to recover discarded fields.
+
+The official Google Gen AI SDK handles signatures when the complete model
+response is retained in history; manually rebuilding messages still requires
+preserving them. See Google's [thought signature requirements and OpenAI-compatible
+examples](https://ai.google.dev/gemini-api/docs/generate-content/thought-signatures).
+
 ## Configuration Overview
 
 VeloxMesh can start with simple environment variables and grow into durable runtime configuration.
@@ -211,6 +236,13 @@ Common settings:
 | `SEMANTIC_PIPELINE_CONFIG_FILE` | Optional input/output rule pipeline config file |
 
 Keep secrets in environment variables or local secret stores. Do not commit real provider keys.
+
+Production answer caching remains disabled with an empty use-case allowlist.
+The accepted Phase 29 integration budget does not authorize production enablement.
+See [answer reuse policy and performance limits](docs/cache-reuse-policy.md),
+[embedding configuration](docs/semantic-cache-embedding.md),
+[provider attempt protection](docs/provider-protection.md), and
+[health dependency errors](docs/health-state-errors.md).
 
 For multiple providers, define each provider key using the exact environment
 variable name referenced by its `auth.api_key_env` configuration field.
@@ -254,10 +286,12 @@ Or use `scripts/smoke/plan4-postgres.sh`.
 
 ## Testing
 
-Run the full Go test suite:
+Run backend tests with a 60-second Go timeout and an outer 60-second process
+limit (terminate the process tree on Windows). Start with affected packages;
+reserve the full suite for the final check:
 
 ```bash
-make test
+go test -timeout 60s ./...
 ```
 
 Run formatting and vet checks:
@@ -268,6 +302,10 @@ make vet
 ```
 
 Some integration tests require local services such as Redis Stack or Qdrant. Set the related environment variables before running those tests.
+
+Opt-in tests that skip are reported separately from passes. Live-provider and
+matched-load runs are phase-end checks, not per-commit tests. The latest retained
+validation is summarized in [release notes](RELEASE_NOTES.md).
 
 The installed Docker deployment also includes smoke, concurrent, and scheduler
 rollout dataset runners:

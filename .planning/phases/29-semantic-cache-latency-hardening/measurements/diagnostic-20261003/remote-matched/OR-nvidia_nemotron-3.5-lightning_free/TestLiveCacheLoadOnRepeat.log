@@ -1,0 +1,15 @@
+=== RUN   TestLiveCacheLoadOnRepeat
+{"time":"2026-10-03T19:32:15.345477283Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:32:15.348124035Z","level":"WARN","msg":"Unable to get server version, use default","err":"rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\"","default":"Unknown"}
+{"time":"2026-10-03T19:32:15.348146787Z","level":"WARN","msg":"Failed to obtain server version. Unable to check client-server compatibility. Set SkipCompatibilityCheck=true to skip version check."}
+{"time":"2026-10-03T19:32:15.348154352Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:32:15.348184098Z","level":"WARN","msg":"API key is being used without TLS(HTTPS). It will be transmitted in plaintext."}
+{"time":"2026-10-03T19:32:15.348253238Z","level":"WARN","msg":"failed to initialize Qdrant; evaluating fallback","error":"failed to connect to qdrant: HealthCheck() failed: rpc error: code = Unavailable desc = connection error: desc = \"error reading server preface: connection reset by peer\""}
+{"time":"2026-10-03T19:32:15.352310141Z","level":"INFO","msg":"activated Redis VSS fallback for vector store"}
+{"time":"2026-10-03T19:32:15.355862514Z","level":"INFO","msg":"starting config change subscriber"}
+    live_ship_load_test.go:228: model=text-embedding-embedder_collection dimension=768 primary=nvidia/nemotron-3.5-lightning:free
+    live_ship_load_test.go:228: SAMPLE {"sample":{"type":"client","request_id":"diag-1","model":"nvidia/nemotron-3.5-lightning:free","index":999,"start_ms":0.12,"elapsed_ms":12005.334,"status":0,"ok":false,"hit":false,"concurrent":0,"error":"transport_error: Post \"http://127.0.0.1:39817/v1/chat/completions\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)","planned_ms":0},"type":"warmup"}
+    live_ship_load_test.go:228: real primary warmup failed; no valid latency gate
+{"time":"2026-10-03T19:32:27.383194156Z","level":"INFO","msg":"request completed","request_id":"diag-1","method":"POST","path":"/v1/chat/completions","status":499,"latency_ms":12025}
+--- FAIL: TestLiveCacheLoadOnRepeat (12.18s)
+FAIL

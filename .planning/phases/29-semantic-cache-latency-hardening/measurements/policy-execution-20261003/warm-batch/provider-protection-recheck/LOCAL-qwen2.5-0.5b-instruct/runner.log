@@ -1,0 +1,10 @@
+dependency ready: veloxmesh-test-redis
+dependency ready: veloxmesh-test-qdrant
+dependency ready: veloxmesh-test-postgres
+TestLiveProviderDeadlineProtection exit: <nil>
+TestLiveProviderConcurrencyRecovery exit: <nil>
+TestLiveProviderCancellationRecovery exit: <nil>
+TestLiveProviderSharedResource exit: <nil>
+/veloxmesh-test-redis true
+/veloxmesh-test-qdrant true
+/veloxmesh-test-postgres true

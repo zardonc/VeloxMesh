@@ -1,0 +1,4 @@
+=== RUN   TestLiveRawAvailabilityBudget
+    live_diagnostic_test.go:88: SAMPLE {"content_characters":2,"finish_reason":"stop","max_tokens":256,"model":"oc/fledge-alpha-free","status":200,"type":"raw_availability","usage":{"prompt_tokens":254,"completion_tokens":24,"total_tokens":278}}
+--- PASS: TestLiveRawAvailabilityBudget (1.85s)
+PASS
