@@ -1,5 +1,6 @@
 # Agent and tool configurations
 .agent/
+.agents/
 .codex/
 .opencode/
 .tmp/
