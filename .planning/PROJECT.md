@@ -20,6 +20,12 @@ performance budget for integrating all current branch commits, including Phase
 cache remains disabled with an empty allowlist. Phase 29 stays partial for
 production. See [current verification](phases/29-semantic-cache-latency-hardening/29-VERIFICATION.md).
 
+**Next-phase decision (2026-10-17):** local `main` includes the PR #31 merge.
+Phase 30 will add a request-wide budget and conservative safe failover on top of
+the existing per-attempt protection. Ambiguous upstream execution ends without
+replay. Phase 29 production gates remain open; this session updates documentation
+and plans only.
+
 **v7.8 Scheduler Scoring Backpressure Hardening** has shipped. The milestone hardened external scorer/predictor backpressure and closed scheduler release-blocking review findings around queue admission concurrency, task context propagation, rollout PATCH reporting, predictor breaker configuration, planning state, and multilingual feature extraction.
 
 **v7.7 Scheduler Hardening + Plan 3 Vector Compatibility** has shipped and is archived. The milestone hardened Scheduler queue recovery, made in-memory queueing the default, kept Redis as a node-scoped optional queue, and clarified the Plan 3 single-node LanceDB/Qdrant vector-store boundary.
@@ -121,6 +127,11 @@ production. See [current verification](phases/29-semantic-cache-latency-hardenin
   implemented and accepted for integration under the candidate budget. Original
   1.05, business semantic quality/seed correctness, collection reclamation,
   long-duration capacity and production activation remain open.
+- TIMEOUT-F01 / Phase 30: optional request-wide budget, bounded connection/SDK
+  attempts, conservative cross-provider failover and repeatable HTTP/SSE acceptance.
+- DIAG-F01 / Phase 31: advance planning for bounded non-generating probes,
+  explicit manual generation checks, gateway output timing and redacted request
+  lookup. Execution follows verified Phase 30; Console UI remains deferred.
 
 ### Deferred to Future Milestones
 
@@ -191,4 +202,4 @@ production. See [current verification](phases/29-semantic-cache-latency-hardenin
 | Phase 29 uses the accepted candidate budget for integration | User decision on 2026-10-08; retain original 1.05 failure and separate production gates | Accepted for default-off code only |
 
 ---
-*Last updated: 2026-10-08 for Phase 27–29 integration; production remains disabled.*
+*Last updated: 2026-10-17 for local merge confirmation and Phase 30/31 planning; production activation remains unapproved.*

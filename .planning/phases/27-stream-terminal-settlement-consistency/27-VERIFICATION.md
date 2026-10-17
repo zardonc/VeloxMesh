@@ -6,19 +6,21 @@ score: 5/5 must-haves verified
 covered_files:
   - .planning/REQUIREMENTS.md
   - .planning/ROADMAP.md
-  - .planning/phases/27-stream-terminal-settlement-consistency/27-PHASE-BASE.txt
   - .planning/phases/27-stream-terminal-settlement-consistency/27-01-PLAN.md
-  - .planning/phases/27-stream-terminal-settlement-consistency/27-02-PLAN.md
-  - .planning/phases/27-stream-terminal-settlement-consistency/27-03-PLAN.md
-  - .planning/phases/27-stream-terminal-settlement-consistency/27-04-PLAN.md
-  - .planning/phases/27-stream-terminal-settlement-consistency/27-05-PLAN.md
-  - .planning/phases/27-stream-terminal-settlement-consistency/27-06-PLAN.md
   - .planning/phases/27-stream-terminal-settlement-consistency/27-01-SUMMARY.md
+  - .planning/phases/27-stream-terminal-settlement-consistency/27-02-PLAN.md
   - .planning/phases/27-stream-terminal-settlement-consistency/27-02-SUMMARY.md
+  - .planning/phases/27-stream-terminal-settlement-consistency/27-03-PLAN.md
   - .planning/phases/27-stream-terminal-settlement-consistency/27-03-SUMMARY.md
+  - .planning/phases/27-stream-terminal-settlement-consistency/27-04-PLAN.md
   - .planning/phases/27-stream-terminal-settlement-consistency/27-04-SUMMARY.md
+  - .planning/phases/27-stream-terminal-settlement-consistency/27-05-PLAN.md
   - .planning/phases/27-stream-terminal-settlement-consistency/27-05-SUMMARY.md
+  - .planning/phases/27-stream-terminal-settlement-consistency/27-06-PLAN.md
   - .planning/phases/27-stream-terminal-settlement-consistency/27-06-SUMMARY.md
+  - .planning/phases/27-stream-terminal-settlement-consistency/27-PHASE-BASE.txt
+  - internal/app/live_gemini_tail_test.go
+  - internal/app/live_gemini_timeline_test.go
   - internal/errors/errors.go
   - internal/errors/errors_test.go
   - internal/gateway/fusion.go
@@ -37,19 +39,17 @@ covered_files:
   - internal/http/handlers/chat_stream.go
   - internal/http/handlers/chat_stream_test.go
   - internal/http/handlers/chat_test.go
-  - internal/providers/openai/adapter.go
   - internal/providers/gemini/adapter.go
-  - internal/providers/gemini/tool_protocol.go
   - internal/providers/gemini/stream_audit.go
   - internal/providers/gemini/stream_boundary_test.go
-  - internal/app/live_gemini_timeline_test.go
-  - internal/app/live_gemini_tail_test.go
+  - internal/providers/gemini/tool_protocol.go
+  - internal/providers/openai/adapter.go
   - internal/providers/openai/adapter_test.go
   - tests/integration/chat_stream_test.go
   - tests/integration/chat_test.go
 original_covered_digest: "v1:sha256:ae731375cf2a25384b79bbc506e24a4fd818ecf15ef9b9ad84fb7be96fa7a006"
-covered_digest: "v1:sha256:df6e1e7dca2ff4f444d61c0427e96bd3e1c9f9b59a25a31b02ca2d92099cf789"
-fingerprint_reviewed: 2026-10-08
+covered_digest: "v3:sha256:a6be4ff0e83c3a603f9653e433afdeb89d44fd2825f5af835d4d3134b9ec2abc"
+fingerprint_reviewed: 2026-10-17
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -64,6 +64,11 @@ gaps: []
 ---
 
 # Phase 27: Stream Terminal and Settlement Consistency Verification Report
+
+**Planning metadata refresh, 2026-10-17:** Phase 30 changes the shared roadmap and
+requirements only. The covered-file fingerprint is refreshed using the current
+GSD helper; historical verification dates and test outcomes below are retained.
+No terminal/settlement implementation or live acceptance test was rerun here.
 
 **Integration review, 2026-10-08:** original phase findings below retain their
 2026-09-25 scope. Later protocol/settlement fixes and current 613 backend PASS /

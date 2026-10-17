@@ -7,50 +7,55 @@ covered_files:
   - .planning/REQUIREMENTS.md
   - .planning/ROADMAP.md
   - .planning/phases/28-tool-calling-protocol-completion/28-01-PLAN.md
-  - .planning/phases/28-tool-calling-protocol-completion/28-02-PLAN.md
-  - .planning/phases/28-tool-calling-protocol-completion/28-03-PLAN.md
-  - .planning/phases/28-tool-calling-protocol-completion/28-04-PLAN.md
-  - .planning/phases/28-tool-calling-protocol-completion/28-05-PLAN.md
-  - .planning/phases/28-tool-calling-protocol-completion/28-06-PLAN.md
-  - .planning/phases/28-tool-calling-protocol-completion/28-07-PLAN.md
   - .planning/phases/28-tool-calling-protocol-completion/28-01-SUMMARY.md
+  - .planning/phases/28-tool-calling-protocol-completion/28-02-PLAN.md
   - .planning/phases/28-tool-calling-protocol-completion/28-02-SUMMARY.md
+  - .planning/phases/28-tool-calling-protocol-completion/28-03-PLAN.md
   - .planning/phases/28-tool-calling-protocol-completion/28-03-SUMMARY.md
+  - .planning/phases/28-tool-calling-protocol-completion/28-04-PLAN.md
   - .planning/phases/28-tool-calling-protocol-completion/28-04-SUMMARY.md
+  - .planning/phases/28-tool-calling-protocol-completion/28-05-PLAN.md
   - .planning/phases/28-tool-calling-protocol-completion/28-05-SUMMARY.md
+  - .planning/phases/28-tool-calling-protocol-completion/28-06-PLAN.md
   - .planning/phases/28-tool-calling-protocol-completion/28-06-SUMMARY.md
+  - .planning/phases/28-tool-calling-protocol-completion/28-07-PLAN.md
   - .planning/phases/28-tool-calling-protocol-completion/28-07-SUMMARY.md
-  - internal/llm/tool_protocol.go
-  - internal/http/handlers/chat.go
-  - internal/http/handlers/chat_tool_test.go
-  - internal/http/handlers/chat_stream_test.go
-  - internal/routing/router_tool_test.go
-  - internal/gateway/service.go
-  - internal/gateway/service_stream.go
+  - internal/app/live_gemini_wire_test.go
   - internal/gateway/fusion.go
   - internal/gateway/fusion_terminal_test.go
-  - internal/gateway/service_tool_test.go
+  - internal/gateway/service.go
+  - internal/gateway/service_stream.go
   - internal/gateway/service_stream_tool_test.go
-  - internal/providers/toolstream/state.go
+  - internal/gateway/service_tool_test.go
+  - internal/http/handlers/chat.go
+  - internal/http/handlers/chat_stream_test.go
+  - internal/http/handlers/chat_tool_test.go
+  - internal/llm/tool_protocol.go
   - internal/providers/adaptertest/tool_contract.go
-  - internal/providers/openai/adapter.go
   - internal/providers/anthropic/adapter.go
   - internal/providers/anthropic/tool_protocol.go
   - internal/providers/gemini/adapter.go
-  - internal/providers/gemini/tool_protocol.go
   - internal/providers/gemini/stream_audit.go
   - internal/providers/gemini/stream_boundary_test.go
-  - internal/app/live_gemini_wire_test.go
+  - internal/providers/gemini/tool_protocol.go
+  - internal/providers/openai/adapter.go
+  - internal/providers/toolstream/state.go
+  - internal/routing/router_tool_test.go
   - tests/integration/chat_tools_test.go
 original_covered_digest: "v1:sha256:4f8703cfba15e357988023ec9771be9a361e7e54e02802577f1195372991734d"
-covered_digest: "v1:sha256:0febc85af6eb991efc9382ace0a39d1f379f4ccdb1abfba1870361c5aa852a7f"
-fingerprint_reviewed: 2026-10-08
+covered_digest: "v3:sha256:5f62dbca819eb74981a14976984069841326ad8e318eedc0cf345f6aa6cc9f7a"
+fingerprint_reviewed: 2026-10-17
 behavior_unverified: 0
 overrides_applied: 0
 gaps: []
 ---
 
 # Phase 28: Tool Calling Protocol Completion Verification Report
+
+**Planning metadata refresh, 2026-10-17:** Phase 30 changes the shared roadmap and
+requirements only. The covered-file fingerprint is refreshed using the current
+GSD helper; historical verification dates and test outcomes below are retained.
+No tool-protocol implementation or live acceptance test was rerun here.
 
 **Integration review, 2026-10-08:** original phase findings below retain their
 2026-09-25 scope. Later provider/tool boundary fixes and current 613 backend PASS /

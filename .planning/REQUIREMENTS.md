@@ -40,12 +40,36 @@ every online model or independent business answer quality. CACHE-F01 remains ope
 for the original 1.05 target, semantic quality/seed provenance, collection
 reclamation, capacity and production activation. No production enablement is approved.
 
+## Phase 30 Requirements — Request Budget and Safe Failover
+
+**Updated:** 2026-10-17. Owner selected this direction and conservative failover. Existing per-attempt stage protection and limited fallback are implementation foundations, not missing features to rebuild. Phase 29 production remains partial after PR #31 merged into local main.
+
+- [ ] **TIMEOUT-F01**: Unify request-wide and connection-stage deadlines with existing per-attempt protection and explicit safe-failover eligibility (Phase 30 umbrella).
+- [ ] **BUDGET-01**: An optional ingress deadline covers cache, routing, admission, all attempts and response/stream completion, including bounded synchronous settlement/logging/cost I/O; earlier client deadlines win and exhausted requests start no new attempt. Phase 27 first-terminal ownership remains: cancellation/error never debit, completed-first settles once, and known Usage remains available for diagnosis.
+- [ ] **CONNECT-01**: Connection and existing stage limits consume the remaining request budget; audit locked SDK/transport retries and prove actual upstream invocation bounds without upgrading dependencies.
+- [ ] **FAILOVER-01**: Existing cross-provider fallback is bounded by remaining time and attempt count; ambiguous execution, client cancellation and started streams are never replayed, including tool traffic.
+- [ ] **BUDGET-OBS-01**: Low-cardinality reasons and redacted replay evidence distinguish request exhaustion, attempt deadlines, permitted failover and replay refusal without payload or credential logging.
+- [ ] **BUDGET-UAT-01**: Test-first failure cases and phase-end real local HTTP/SSE acceptance verify normal, tool, buffered/Fusion, cancellation, once-only terminal/settlement and permit cleanup under a hard 60-second backend test limit.
+
+## Phase 31 Requirements — Operator Diagnostics Foundation
+
+**Updated:** 2026-10-17. Owner selected Console prerequisites, with UI later; background probes are non-generating and generation checks require an explicit administrator action. Phase 30 remains unimplemented and is an execution prerequisite.
+
+- [ ] **DIAG-F01**: Deliver trustworthy probe, timing and request-correlation data for a later Console without introducing a UI, new gateway protocols or a diagnostics platform.
+- [ ] **PROBE-01**: Background probes perform only supported, bounded non-generating checks; distinguish configuration, reachability/authentication, unsupported/unknown and generation observations. Non-generating success cannot erase real-traffic failures or assert model availability.
+- [ ] **PROBE-ISO-01**: Probe work has separate finite concurrency/rate/time bounds and cannot block user forwarding. Explicit manual generation checks use a registered provider/model, bounded output and controlled wire attempts, report potential provider cost/Usage separately, and never debit an unrelated tenant or enter its cache/scheduler path.
+- [ ] **TIMING-01**: Define gateway-observed ingress-to-first and ingress-to-last successfully flushed semantic output, distinct from E2E and provider-attempt timing. Cover text/tools, ordinary/buffered/Fusion, write/flush failure, cancellation, empty responses and non-streaming nullable values without changing Phase 27 terminal/settlement ownership.
+- [ ] **CORRELATION-01**: Generate one trusted internal request ID at ingress, correlate all attempts/trace/diagnostic records and return it to the caller without reusing external IDs as settlement keys. Validate and bound external IDs, retain only their safe correlation representation, and prevent duplicate external IDs from overwriting unrelated requests.
+- [ ] **DIAG-QUERY-01**: Provide optional default-off capture into bounded node-local memory with TTL, entry/byte limits, nonblocking saturation handling and redacted allowlisted fields only. Admin-only, rate-limited bounded lookup/filtering must expose disabled/not-found/expiry/node-scope limits honestly; never store bodies, tool arguments, credentials or arbitrary upstream errors, and never use request IDs as metric labels.
+- [ ] **DIAG-UAT-01**: Write failure cases before implementation; phase-end real local HTTP/SSE acceptance checks probes, timing, IDs, authorization/rate limits, redaction, saturation/TTL and isolation under an outer hard 60-second backend test ceiling plus Go's internal timeout, requiring exact named PASS and repeatable redacted artifacts.
+
 ## Future Requirements
 
-- **TIMEOUT-F01**: Unify connection, first-byte, stream-idle, and total-duration timeouts plus retry eligibility.
 - **CONSOLE-F01**: Add a lightweight control-plane Console for configuration and latency diagnosis.
 
 ## v7.9 Out of Scope
+
+The historical table below describes the shipped Phase 27/28 protocol slice. Phase 30/31 additions are governed by their explicit requirements above; their Admin diagnostics and safe-failover work are not retroactive claims about that slice.
 
 | Feature | Reason |
 |---------|--------|
@@ -69,6 +93,19 @@ reclamation, capacity and production activation. No production enablement is app
 | TERM-08 | Phase 27 | Verified |
 | TOOL-F01 | Phase 28 | Verified |
 | CACHE-F01 | Phase 29 | Integration accepted under candidate budget; production partial |
+| TIMEOUT-F01 | Phase 30 | Planned scope; per-attempt foundation already implemented |
+| BUDGET-01 | Phase 30 | Pending |
+| CONNECT-01 | Phase 30 | Pending |
+| FAILOVER-01 | Phase 30 | Pending |
+| BUDGET-OBS-01 | Phase 30 | Pending |
+| BUDGET-UAT-01 | Phase 30 | Pending |
+| DIAG-F01 | Phase 31 | Planned; blocked on Phase 30 implementation/verification |
+| PROBE-01 | Phase 31 | Planned; pending implementation |
+| PROBE-ISO-01 | Phase 31 | Planned; pending implementation |
+| TIMING-01 | Phase 31 | Planned; pending implementation |
+| CORRELATION-01 | Phase 31 | Planned; pending implementation |
+| DIAG-QUERY-01 | Phase 31 | Planned; pending implementation |
+| DIAG-UAT-01 | Phase 31 | Planned; pending implementation |
 
 **Coverage:**
 
@@ -77,6 +114,8 @@ reclamation, capacity and production activation. No production enablement is app
 - Unmapped: 0
 - Complete: 9
 - Separate active Phase 29 requirement: 1 mapped, 0 fully production-complete.
+- Phase 30 requirements: 6 mapped, pending implementation and acceptance.
+- Phase 31 requirements: 7 mapped, planning passed independent review; implementation waits for Phase 30.
 
 ---
-*Requirements refreshed: 2026-10-08; v7.9 verification retained, Phase 29 integration decision recorded.*
+*Requirements refreshed: 2026-10-17; historical v7.9 verification retained, Phase 29 production gates open, Phase 30/31 planned in dependency order.*

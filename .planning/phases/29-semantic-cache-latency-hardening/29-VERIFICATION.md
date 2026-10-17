@@ -1,7 +1,9 @@
 ---
 phase: 29-semantic-cache-latency-hardening
 verified: 2026-10-01T20:48:00-07:00
-status: partial
+status: gaps_found
+production_status: partial
+status_schema_migrated: 2026-10-17
 functional_status: passed
 acceptance_scope: local-model-functional
 source_revision: 90dfd695156d7f78d8f3cb7ee63b319502ee3a15
@@ -14,6 +16,8 @@ production_release_approved: false
 ---
 
 # Phase 29 验收报告
+
+**2026-10-17 元数据兼容更新：** GSD 1.17.0 的状态枚举不再接受 `partial`。为使后续阶段规划可读取既有证据，机器状态映射为 `gaps_found`，另保留 `production_status: partial`。这只迁移状态格式；历史验收时间、候选合入通过、原门槛失败和生产未批准均不改变，本次没有重新测试。
 
 ## 当前合入结论 — 2026-10-08
 

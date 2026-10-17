@@ -1,8 +1,8 @@
 # Roadmap: VeloxMesh
 
 **Created:** 2026-06-15
-**Updated:** 2026-10-08
-**Current focus:** Integrate all Phase 27–29 branch commits under the user-accepted candidate budget. Current application and bounded performance verification pass; production cache remains disabled with an empty allowlist. Phase 29 production readiness remains partial.
+**Updated:** 2026-10-17
+**Current focus:** Phase 30 — Request Budget and Safe Failover is planned and ready for implementation. Local main already contains PR #31 (merge 16a1c65); Phase 27/28 are verified and Phase 29 was integrated under the accepted candidate budget. Phase 29 production readiness remains partial; production cache stays disabled with an empty allowlist.
 
 ## Overview
 
@@ -117,6 +117,114 @@ Plans:
 
 - [ ] 29-03-PLAN.md
 
+### Phase 30: Request Budget and Safe Failover
+
+**Goal:** Bound the entire gateway request across cache, routing, admission, all provider attempts and streaming completion; complete connection-stage limits and constrain existing fallback to demonstrably safe failures without replaying ambiguous executions.
+**Requirements:** TIMEOUT-F01, BUDGET-01, CONNECT-01, FAILOVER-01, BUDGET-OBS-01, BUDGET-UAT-01
+**Depends on:** Phase 27/28 contracts and the integrated Phase 29 implementation. Phase 29 production activation is not a prerequisite; production remains default-off.
+**Canonical refs:** `.planning/phases/30-request-budget-and-safe-failover/30-CONTEXT.md`; `Agent-gateway/2026-09-20-网关项目-下一步开发方向调研报告.md` (external junction; 2026-10-17 update).
+
+**Success criteria:**
+
+1. A configured ingress deadline covers all request stages and attempts; earlier client deadlines win and no attempt starts after exhaustion.
+2. Connection and per-attempt stage limits consume remaining budget; locked SDK implicit retries and actual invocation counts are verified.
+3. Unknown upstream execution, client cancellation and started streams never replay; tool traffic retains its protocol and safety boundary.
+4. Errors and cancellation release permits promptly and preserve once-only terminal/Usage settlement across ordinary, buffered and Fusion paths.
+5. Phase-end real local HTTP/SSE fault acceptance emits redacted, repeatable evidence; absent new configuration preserves existing timeout defaults.
+
+**Plans:** 0/8 plans executed; planning passed independent review.
+**Estimate:** 4–7 engineering days, excluding review waits; acceptance evidence determines completion.
+
+Plans:
+
+**Wave 1**
+
+- [ ] 30-01-PLAN.md — Optional ingress budget and a real HTTP tracer.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 30-02-PLAN.md — Ordinary-request guards and bounded once-only finalization.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 30-03-PLAN.md — Connection limits and locked SDK retry audit.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 30-04-PLAN.md — Enforce SDK wire-attempt limits.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 30-05-PLAN.md — Conservative cross-provider failover.
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 30-06-PLAN.md — Ordinary and buffered streaming lifetime.
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 30-07-PLAN.md — Fusion lifetime and cleanup.
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 30-08-PLAN.md — Low-cardinality observation and final repeatable HTTP/SSE acceptance.
+
+### Phase 31: Operator Diagnostics Foundation
+
+**Goal:** Provide trustworthy operator diagnostics before Console UI: bounded non-generating probes, explicit manual generation checks, gateway-defined TTFT/TTLT, and protected request-ID lookup of redacted metadata.
+**Requirements:** DIAG-F01, PROBE-01, PROBE-ISO-01, TIMING-01, CORRELATION-01, DIAG-QUERY-01, DIAG-UAT-01
+**Depends on:** Phase 30 implementation and verification, plus Phase 27/28 terminal/tool contracts. Phase 30 is planned, not implemented; Phase 31 is advance planning and must not skip that prerequisite.
+**Canonical refs:** `.planning/phases/31-operator-diagnostics-foundation/31-CONTEXT.md`; `.planning/phases/31-operator-diagnostics-foundation/31-PATTERNS.md`; research report section 11.
+
+**Success criteria:**
+
+1. Background probes make no generation requests and report only the capability actually checked; light probe success never clears failures of real generation traffic.
+2. Manual generation checks require an explicit authorized action, a registered provider/model, finite cost/work limits and separate probe accounting.
+3. Gateway TTFT/TTLT measure successful client-facing semantic output from ingress; headers, empty/role/Usage/terminal frames and hidden Fusion output do not become token latency. Undefined timings remain nullable and E2E is separate.
+4. Server-generated request identity survives all attempts; bounded, redacted node-local diagnostics are queryable only through authenticated and rate-limited Admin endpoints with clear disabled/expiry/node-scope behavior.
+5. Real local HTTP/SSE fault acceptance verifies semantics, cost boundaries, redaction, bounded memory and data-plane isolation with repeatable evidence, preserving existing terminal/settlement behavior.
+
+**Plans:** 0/9 plans executed; planning passed independent review, execution blocked on Phase 30 implementation/verification.
+**Estimate:** 5–8 engineering days, excluding Phase 30 dependency and review waits; acceptance evidence determines completion.
+
+Plans:
+
+**Wave 1**
+
+- [ ] 31-01-PLAN.md — Real non-generating Admin HTTP probe tracer.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 31-02-PLAN.md — Native read probes and separate generation-health semantics.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 31-03-PLAN.md — Independent bounded background probes and lifecycle.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 31-04-PLAN.md — Explicit manual generation with durable audit and controlled dispatch.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 31-05-PLAN.md — Trusted internal identity and compatible public request IDs.
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 31-06-PLAN.md — Semantic HTTP output timing through the real writer chain.
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 31-07-PLAN.md — Default-off bounded node-local capture and protected lookup.
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 31-08-PLAN.md — Finite attempt correlation and duplicate-safe external-ID query.
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 31-09-PLAN.md — Two fresh repeatable local HTTP/SSE acceptance runs.
+
 ## Shipped v7.8 Phase
 
 | Phase | Name | Goal | Requirements | Status |
@@ -143,8 +251,9 @@ Plans:
 ## Future Milestones
 
 - **Phase 11: BFF Layer & Admin Console** - JWT authentication, role-based access control, session management, and Admin Console foundation. Depends on Phase 7.
-- **Semantic-cache latency hardening** - Configurable embedding path, short read budget, bounded asynchronous write path, and failure isolation.
-- **Stage timeout and cancellation hardening** - Connect, first-byte, stream-idle, and total-duration budgets with explicit retry eligibility.
+- **Semantic-cache production gates** - Integrated implementation stays default-off; original latency target, business quality/seed facts, collection reclamation, capacity and activation approval remain open in Phase 29.
+- **Console UI** - Follows Phase 31 diagnostics; reuse the protected Admin API and trustworthy probe/timing/request data rather than introducing a new gateway platform.
+- **Model/account capability overrides** - Extend the existing catalog and tool filtering rather than rebuilding them.
 - **Scheduler automation** - optional automatic ONNX rollout changes after explicit operator opt-in.
 
 ## Notes
@@ -159,4 +268,4 @@ Plans:
 - Config unification in v7.6 is backward-compatible: existing ENV variables remain valid; nested struct grouping is the new preferred form.
 
 ---
-*Roadmap refreshed: 2026-10-08 — all branch commits selected for PR; production cache off, no deployment performed.*
+*Roadmap refreshed: 2026-10-17 — PR #31 merge confirmed in local main; Phase 30 selected for implementation, Phase 31 planned next; Phase 29 production gates remain open.*

@@ -2,31 +2,31 @@
 gsd_state_version: "1.0"
 milestone: v7.9
 milestone_name: Phases
-current_phase: 29
-current_phase_name: Semantic Cache Latency Hardening
+current_phase: 30
+current_phase_name: Request Budget and Safe Failover
 status: executing
-stopped_at: Candidate budget accepted for all-commit integration; documentation synchronized for PR; production cache off
-last_updated: "2026-10-08"
-last_activity: 2026-10-08
-last_activity_desc: 411 source hashes match; 613 backend passes, 83 race passes and 3600 successful measured requests; production partial
-state_head: 214422cb4ca0d40e455ce3dd7468323dbd092005
+stopped_at: Phase 31 planning complete; 9 plans passed independent review; blocked on Phase 30 implementation/verification; next execute Phase 30
+last_updated: "2026-10-17T16:21:50.684Z"
+last_activity: 2026-10-17
+last_activity_desc: Phase 31 planning complete; 9 reviewed plans; execution blocked on Phase 30; no implementation started
+state_head: 4a2e2bf620eedf0114bfdc65e3e43ff7a69e2721
+progress:
+  total_phases: 5
+  completed_phases: 2
+  total_plans: 37
+  completed_plans: 15
+  percent: 40
 integration_status: accepted_candidate_budget
 production_release_approved: false
-progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 16
-  completed_plans: 15
-  percent: 93
 ---
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-08)
+See: `.planning/PROJECT.md` (updated 2026-10-17)
 
 **Core value:** Client applications can call one OpenAI-compatible gateway endpoint and reliably reach the right LLM provider through a low-latency, observable, provider-agnostic routing layer.
 
-**Current focus:** Phase 29 — Semantic Cache Latency Hardening
+**Current focus:** Phase 30 — Request Budget and Safe Failover; Phase 29 production gates remain open
 
 ## Current Implementation State
 
@@ -72,7 +72,9 @@ See: `.planning/PROJECT.md` (updated 2026-10-08)
 
 ## Planned Next
 
-1. Submit all current branch commits and synchronized documentation in a PR to main under the accepted candidate budget. Keep production caching off and Phase 29 production work partial.
+1. Execute the reviewed Phase 30 plans in dependency order on `codex/roadmap-next-phase-20261017`. This documentation session does not start implementation.
+2. Phase 31 has 9 reviewed plans for Console prerequisites. Execute them only after Phase 30 implementation and verification pass; Console UI is deferred.
+3. Keep Phase 29 production gates open, production caching off and the allowlist empty; local `main` already contains the PR #31 merge.
 
 ## Useful Commands
 
@@ -82,17 +84,18 @@ See: `.planning/PROJECT.md` (updated 2026-10-08)
 
 ## Current Position
 
-Phase: 29 (Semantic Cache Latency Hardening) — EXECUTING
-Plan: 3 of 3
-Status: Application and candidate-budget verification pass for integration; production gates remain open
-Last activity: 2026-10-08 — user accepts candidate budget, all branch commits and planning history; latest 411-source manifest verified against committed code
+Phase: 30 (Request Budget and Safe Failover) — READY TO EXECUTE
+Plan: Not started (0 of 8)
+Status: Ready to execute
+Last activity: 2026-10-17 — Phase 31 planning complete; 9 reviewed plans; execution blocked on Phase 30; no implementation started
 
 ## Operator Next Steps
 
-- Use [current verification](phases/29-semantic-cache-latency-hardening/29-VERIFICATION.md) and the [consolidated review](REVIEW-20261008.md) for PR review; earlier measurements retain their dates and source identities.
-- Preserve all 68 existing commits when submitting the PR; documentation adds a new commit without filtering planning history.
-- Latest validation: 613 backend PASS / 2 SKIP / 0 FAIL; 83 affected race, 7 real-Redis and 24 unique live cache/gateway tests pass. Performance: 36 windows, 3,600 successful requests, nine candidate scenario/interval checks pass.
-- Treat the three-block current-binary run separately from the older Formal07; do not rerun large batches solely for documentation changes.
+- Use the [Phase 30 context](phases/30-request-budget-and-safe-failover/30-CONTEXT.md) and reviewed execution plans for the next implementation step.
+- [Phase 31 context](phases/31-operator-diagnostics-foundation/31-CONTEXT.md) and [planning checks](phases/31-operator-diagnostics-foundation/31-PLANNING-CHECKS.md) record its 9-plan scope, static review and unmet Phase 30 prerequisite.
+- PR #31 is already merged in local `main`; no PR submission or deployment is part of this documentation session.
+- Historical 2026-10-08 validation: 613 backend PASS / 2 SKIP / 0 FAIL; 83 affected race, 7 real-Redis and 24 unique live cache/gateway PASS; 36 windows and 3,600 successful requests satisfy nine candidate checks. Current source matches the 411-file manifest after line-ending normalization.
+- Earlier report-update checks: `go vet -tags phase29preflight ./...` and `go build ./...` exited zero; they were not rerun for Phase 31 planning. Current Phase 31 checks are plan structure/coverage and independent static review only. Historical E2E/performance results are not reruns; older Formal07 retains its own binary identity.
 - Keep production cache disabled and allowlist empty. No production rollout is included.
 
 ## Deferred Items
@@ -134,12 +137,14 @@ Items acknowledged at v7.0 close:
 
 - Phase 28 added: Tool Calling Protocol Completion
 - Phase 29 added: Semantic Cache Latency Hardening
+- Phase 30 added: Request Budget and Safe Failover selected; local main contains PR31; Phase29 production stays partial
+- Phase 31 added: Operator Diagnostics Foundation; advance planning only, execution follows verified Phase30
 
 ## Session
 
-**Last session:** 2026-10-08
-**Stopped at:** All-commit PR preparation under accepted candidate budget; documentation synchronized, production partial
-**Resume file:** 29-03-PLAN.md
+**Last session:** 2026-10-17T16:21:50.451Z
+**Stopped at:** Phase 31 planning complete; 9 plans passed independent review; blocked on Phase 30 implementation/verification; next execute Phase 30
+**Resume file:** .planning/phases/30-request-budget-and-safe-failover/30-01-PLAN.md
 
 ## Decisions
 
@@ -163,6 +168,9 @@ Earlier decisions below are retained with their original scope; candidate-budget
 - [Phase 29]: 2026-10-04 explicit disabled/exact/experimental-semantic profiles and layered Provider deadlines/shared attempt capacity implemented. Exact regression rejects 41 changed questions; final backend and real protected SSE/Fusion pass. Scenario budgets retain original 1.05 evidence and require both 1.25 ratio and +40ms; no production approval.
 - [Phase 29]: Continued 2026-10-04 investigation separates health-store read failure from provider unhealthy through fail-closed 503 health_state_unavailable. Five routing modes, readable peer, recovery and eleven selected real regressions pass; final backend is 595 top-level passes, zero failures.
 - [Phase 29]: RAM upgrade is verified at 7376MiB with the same four vCPUs. Six bracket blocks per scenario yield 4800 successful formal requests; candidate AND point estimates and residual pass, original 1.05 fails. Four drifting brackets, observed swap-in and 323 small semantic collections keep stable performance/lifecycle investigation open; no production approval.
+- [Phase 30]: Owner selects request-wide budget and conservative failover: ambiguous execution timeout ends without replay; started output is never replayed
+- [Phase 31]: Owner selects Console prerequisite diagnostics; UI later; background probes non-generating, generation checks require explicit administrator action
+- [Phase 31]: Default-off bounded node-local redacted metadata and trusted internal IDs; Phase30 implementation and verification remain execution prerequisite
 
 ### Remaining Production Gates
 
